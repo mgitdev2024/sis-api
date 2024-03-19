@@ -16,7 +16,6 @@ class Credential extends Authenticatable
     protected $fillable = [
         'employee_id',
         'password',
-        'user_access_id',
         'status',
     ];
 
@@ -28,9 +27,4 @@ class Credential extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
-
-    public function userAccess()
-    {
-        return $this->belongsTo(UserAccess::class, 'user_access_id');
-    }
 }
