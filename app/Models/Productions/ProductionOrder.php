@@ -27,4 +27,13 @@ class ProductionOrder extends Model
     {
         return $this->belongsTo(Credential::class, 'updated_by_id');
     }
+
+    public static function onGenerateProductionReferenceNumber()
+    {
+        $latestProductionOrder = static::latest()->value('id');
+        $nextProductionOrder = $latestProductionOrder + 1;
+        $referenceNumber = '9' . str_pad($nextProductionOrder, 6, '0', STR_PAD_LEFT);
+
+        return $referenceNumber;
+    }
 }

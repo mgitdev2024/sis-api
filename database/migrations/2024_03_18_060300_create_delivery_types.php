@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('delivery_types', function (Blueprint $table) {
             $table->id();
-            $table->string('type');
+            $table->string('type')->index();
             $table->string('description');
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();

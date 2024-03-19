@@ -17,7 +17,7 @@ class ProductionOTA extends Model
         'production_order_id',
         'item_code',
         'actual_quantity',
-        'buffer_percentage',
+        'buffer_level',
         'total_quantity',
         'created_by_id',
         'updated_by_id',

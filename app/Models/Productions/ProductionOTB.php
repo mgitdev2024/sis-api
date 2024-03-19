@@ -15,10 +15,10 @@ class ProductionOTB extends Model
     protected $appends = ['production_label'];
     protected $fillable = [
         'production_order_id',
-        'delivery_type_id',
+        'delivery_type',
         'item_code',
         'actual_quantity',
-        'buffer_percentage',
+        'buffer_level',
         'total_quantity',
         'created_by_id',
         'updated_by_id',
@@ -47,7 +47,7 @@ class ProductionOTB extends Model
 
     public function deliveryType()
     {
-        return $this->belongsTo(DeliveryType::class, 'delivery_type_id');
+        return $this->belongsTo(DeliveryType::class, 'delivery_type');
     }
     public function getProductionLabelAttribute()
     {

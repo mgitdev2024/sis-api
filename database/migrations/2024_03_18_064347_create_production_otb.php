@@ -13,10 +13,10 @@ return new class extends Migration {
         Schema::create('production_otb', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_order_id');
-            $table->unsignedBigInteger('delivery_type_id');
+            $table->string('delivery_type');
             $table->string('item_code');
             $table->integer('actual_quantity');
-            $table->float('buffer_percentage');
+            $table->float('buffer_level');
             $table->float('total_quantity');
 
             $table->unsignedBigInteger('created_by_id');
@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->foreign('updated_by_id')->references('id')->on('credentials');
             $table->foreign('production_order_id')->references('id')->on('production_orders');
             $table->foreign('item_code')->references('item_code')->on('item_masterdata');
-            $table->foreign('delivery_type_id')->references('id')->on('delivery_types');
+            $table->foreign('delivery_type')->references('type')->on('delivery_types');
         });
     }
 

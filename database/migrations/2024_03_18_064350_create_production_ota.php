@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('production_order_id');
             $table->string('item_code');
             $table->integer('actual_quantity');
-            $table->float('buffer_percentage');
+            $table->float('buffer_level');
             $table->float('total_quantity');
 
             $table->unsignedBigInteger('created_by_id');
