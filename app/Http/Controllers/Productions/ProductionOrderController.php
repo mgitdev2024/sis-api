@@ -97,20 +97,26 @@ class ProductionOrderController extends Controller
 
     public function onBulkUploadProductionOrder(Request $request)
     {
+        $request->validate([
+            'data' => 'required',
+            'created_by_id' => 'required'
+        ]);
+
         $bulkUploadData = json_decode($request->data, true);
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrder::onGenerateProductionReferenceNumber();
         try {
             DB::beginTransaction();
             $productionOrder = new ProductionOrder();
-            $productionOTA = new ProductionOTA();
-            $productionOTB = new ProductionOTB();
+
 
             $productionOrder->reference_number = $referenceNumber;
             $productionOrder->production_date = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
             $productionOrder->created_by_id = $request->created_by_id;
             $productionOrder->save();
             foreach ($bulkUploadData as $value) {
+                $productionOTA = new ProductionOTA();
+                $productionOTB = new ProductionOTB();
                 if ($value['delivery_type'] != "" || $value['delivery_type'] != null) {
                     // Production OTB here
                     $productionOTB->production_order_id = $productionOrder->id;
