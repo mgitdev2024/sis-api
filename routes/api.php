@@ -61,6 +61,7 @@ Route::post('production/order/get', [App\Http\Controllers\Productions\Production
 Route::get('production/order/get/{id}', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onGetById']);
 Route::get('production/order/status/{id}', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onChangeStatus']);
 Route::post('production/order/bulk', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
+Route::get('production/order/categorize', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onCategorizeProductionItem']);
 #endregion
 
 Route::group(['middleware' => ['auth:sanctum']], function () {

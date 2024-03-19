@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Models\Items\ItemMasterdata;
 use App\Models\Productions\ProductionOrder;
 use App\Models\Productions\ProductionOTA;
 use App\Models\Productions\ProductionOTB;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use DB;
+use Illuminate\Validation\Rule;
 
 class ProductionOrderController extends Controller
 {
     use CrudOperationsTrait;
-    
+
     public static function getRules($orderId = "")
     {
         return [
@@ -39,24 +41,39 @@ class ProductionOrderController extends Controller
     {
         return $this->readRecordById(ProductionOrder::class, $id, 'Production Order');
     }
-    // public function onDeleteById($id)
-    // {
-    //     return $this->deleteRecordById(ProductionOrder::class, $id, 'Production Order');
-    // }
     public function onChangeStatus($id)
     {
         return $this->changeStatusRecordById(ProductionOrder::class, $id, 'Production Order');
     }
+    public function onCategorizeProductionItem()
+    {
+        try {
+            $productionOrder = ProductionOrder::where('status', 1)->first();
+            $productionOTA = ProductionOTA::where('production_order_id', $productionOrder->id)->get();
+            $productionOTB = ProductionOTB::where('production_order_id', $productionOrder->id)->get();
 
+            $response = [
+                'reference_number' => $productionOrder->reference_number,
+                'production_date' => $productionOrder->production_date,
+                'production_ota' => $productionOTA,
+                'production_otb' => $productionOTB,
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+        } catch (\Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
     public function onBulkUploadProductionOrder(Request $request)
     {
         $request->validate([
             'bulk_data' => 'required',
             'created_by_id' => 'required'
         ]);
-        $bulkUploadData = $request->bulk_data;
+        $bulkUploadData = json_decode($request->bulk_data, true);
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrder::onGenerateProductionReferenceNumber();
+
+        $duplicates = [];
         try {
             DB::beginTransaction();
             $productionOrder = new ProductionOrder();
@@ -67,8 +84,18 @@ class ProductionOrderController extends Controller
             foreach ($bulkUploadData as $value) {
                 $productionOTA = new ProductionOTA();
                 $productionOTB = new ProductionOTB();
-                if ($value['delivery_type'] != "" || $value['delivery_type'] != null) {
-                    // Production OTB here
+                $itemClassification = ItemMasterdata::where('item_code', $value['item_code'])
+                    ->first()
+                    ->itemClassification
+                    ->name;
+                if (strcasecmp($itemClassification, 'Breads') === 0) {
+                    $existingOTB = ProductionOTB::where('production_order_id', $productionOrder->id)
+                        ->where('item_code', $value['item_code'])
+                        ->exists();
+                    if ($existingOTB) {
+                        $duplicates[] = $value['item_code'];
+                        continue;
+                    }
                     $productionOTB->production_order_id = $productionOrder->id;
                     $productionOTB->delivery_type = $value['delivery_type'];
                     $productionOTB->item_code = $value['item_code'];
@@ -78,7 +105,14 @@ class ProductionOrderController extends Controller
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
                 } else {
-                    // Production OTA here
+                    $existingOTA = ProductionOTA::where('production_order_id', $productionOrder->id)
+                        ->where('item_code', $value['item_code'])
+                        ->exists();
+
+                    if ($existingOTA) {
+                        $duplicates[] = $value['item_code'];
+                        continue;
+                    }
                     $productionOTA->production_order_id = $productionOrder->id;
                     $productionOTA->item_code = $value['item_code'];
                     $productionOTA->actual_quantity = $value['quantity'];
@@ -88,8 +122,20 @@ class ProductionOrderController extends Controller
                     $productionOTA->save();
                 }
             }
-            DB::commit();
-            return $this->dataResponse('success', 201, __('msg.create_success'));
+            $response = [
+                "is_duplicate" => false,
+                "message" => "Bulk upload success"
+            ];
+            if (count($duplicates) > 0) {
+                $message = "Bulk upload cancelled: Duplicate entries were uploaded";
+                $response["is_duplicate"] = true;
+                $response["message"] = $message;
+                $response['duplicated_entries'] = $duplicates;
+            } else {
+                DB::commit();
+            }
+
+            return $this->dataResponse('success', 200, $response);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
@@ -97,3 +143,9 @@ class ProductionOrderController extends Controller
 
     }
 }
+
+
+// public function onDeleteById($id)
+// {
+//     return $this->deleteRecordById(ProductionOrder::class, $id, 'Production Order');
+// }
