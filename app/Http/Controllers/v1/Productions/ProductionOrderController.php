@@ -128,14 +128,14 @@ class ProductionOrderController extends Controller
                     DB::commit();
                 }
 
-                return $this->dataResponse('success', 200, $response);
+                return $this->dataResponse('success', 200, "", $response);
             } else {
                 $response = [
                     "is_duplicate" => false,
                     "is_previous_production_order_open" => true,
                     "message" => "Bulk upload failed"
                 ];
-                return $this->dataResponse('success', 200, $response);
+                return $this->dataResponse('success', 200, "", $response);
             }
 
         } catch (\Exception $exception) {
