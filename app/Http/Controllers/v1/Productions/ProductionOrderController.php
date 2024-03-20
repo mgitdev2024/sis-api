@@ -91,7 +91,7 @@ class ProductionOrderController extends Controller
                         $productionOTB->production_order_id = $productionOrder->id;
                         $productionOTB->delivery_type = $value['delivery_type'];
                         $productionOTB->item_code = $value['item_code'];
-                        $productionOTB->actual_quantity = $value['quantity'];
+                        $productionOTB->plotted_quantity = $value['quantity'];
                         $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
                         $productionOTB->total_quantity = $value['total'];
                         $productionOTB->created_by_id = $createdById;
@@ -107,7 +107,7 @@ class ProductionOrderController extends Controller
                         }
                         $productionOTA->production_order_id = $productionOrder->id;
                         $productionOTA->item_code = $value['item_code'];
-                        $productionOTA->actual_quantity = $value['quantity'];
+                        $productionOTA->plotted_quantity = $value['quantity'];
                         $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
                         $productionOTA->total_quantity = $value['total'];
                         $productionOTA->created_by_id = $createdById;

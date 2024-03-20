@@ -12,11 +12,11 @@ class ProductionOTA extends Model
     use HasFactory;
 
     protected $table = 'production_ota';
-    protected $appends = ['production_label'];
+    protected $appends = ['production_label', 'item_classification_label'];
     protected $fillable = [
         'production_order_id',
         'item_code',
-        'actual_quantity',
+        'plotted_quantity',
         'buffer_level',
         'total_quantity',
         'scanned_quantity',
@@ -49,5 +49,11 @@ class ProductionOTA extends Model
     {
         $production_label = $this->productionOrder->toArray();
         return isset ($production_label) ? $production_label['reference_number'] : 'n/a';
+    }
+
+    public function getItemClassificationLabelAttribute()
+    {
+        $itemClassification = $this->itemMasterData->itemClassification->toArray();
+        return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
 }
