@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Delivery;
+namespace App\Http\Controllers\v1\Delivery;
 
 use App\Http\Controllers\Controller;
 use App\Models\Delivery\DeliveryType;
