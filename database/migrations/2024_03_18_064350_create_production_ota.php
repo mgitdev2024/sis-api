@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('production_order_id');
             $table->string('item_code');
-            $table->integer('actual_quantity');
+            $table->integer('plotted_quantity');
             $table->float('buffer_level');
             $table->float('total_quantity');
             $table->integer('scanned_quantity')->default(0);
