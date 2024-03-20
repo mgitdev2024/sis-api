@@ -116,24 +116,23 @@ class ProductionOrderController extends Controller
                 $response = [
                     "is_duplicate" => false,
                     "is_previous_production_order_open" => false,
-                    "message" => "Bulk upload success"
                 ];
+                $message = "Bulk upload success";
                 if (count($duplicates) > 0) {
                     $message = "Bulk upload cancelled: Duplicate entries were uploaded";
                     $response["is_duplicate"] = true;
-                    $response["message"] = $message;
                     $response['duplicated_entries'] = $duplicates;
                 } else {
                     DB::commit();
                 }
-                return $this->dataResponse('success', 200, "", $response);
+
+                return $this->dataResponse('success', 200, $message, $response);
             } else {
                 $response = [
                     "is_duplicate" => false,
                     "is_previous_production_order_open" => true,
-                    "message" => "Bulk upload failed"
                 ];
-                return $this->dataResponse('success', 200, "", $response);
+                return $this->dataResponse('success', 200, "Bulk upload failed", $response);
             }
 
         } catch (\Exception $exception) {

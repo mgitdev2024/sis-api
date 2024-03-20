@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::get('/run-migrations-and-seed', function () {
+Route::get('v1/run-migrations-and-seed', function () {
     // Artisan::call('migrate', ["--force" => true]);
     Artisan::call('migrate:fresh', ["--force" => true]);
     Artisan::call('db:seed', ["--force" => true]);
