@@ -16,10 +16,10 @@ class ProductionOTA extends Model
     protected $fillable = [
         'production_order_id',
         'item_code',
-        'plotted_quantity',
+        'requested_quantity',
         'buffer_level',
-        'total_quantity',
-        'scanned_quantity',
+        'plotted_quantity',
+        'actual_quantity',
         'created_by_id',
         'updated_by_id',
         'status',
