@@ -18,7 +18,9 @@ class ItemMasterdataController extends Controller
             'updated_by_id' => 'nullable|exists:credentials,id',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'name' => 'required|string',
+            'description' => 'nullable|string',
             'item_classification_id' => 'required|integer|exists:item_classifications,id',
+            'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
         ];
     }
 
@@ -32,7 +34,7 @@ class ItemMasterdataController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['name', 'item_code', 'item_classification_label'];
+        $searchableFields = ['name', 'item_code'];
         return $this->readPaginatedRecord(ItemMasterdata::class, $request, $searchableFields, 'Item Masterdata');
     }
     public function onGetById($id)
