@@ -1,6 +1,4 @@
 <?php
-use App\Http\Controllers\Auth\CredentialController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,49 +21,65 @@ Route::get('/run-migrations-and-seed', function () {
     Artisan::call('db:seed', ["--force" => true]);
     return 'Migrations and Seed completed successfully!';
 });
-Route::post('login', [CredentialController::class, 'onLogin']);
 
-
-
+Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 #region Item Classifications
-Route::post('item-classification/create', [App\Http\Controllers\Items\ItemClassificationController::class, 'onCreate']);
-Route::post('item-classification/update/{id}', [App\Http\Controllers\Items\ItemClassificationController::class, 'onUpdateById']);
-Route::post('item-classification/get', [App\Http\Controllers\Items\ItemClassificationController::class, 'onGetPaginatedList']);
-Route::get('item-classification/get/{id}', [App\Http\Controllers\Items\ItemClassificationController::class, 'onGetById']);
-Route::get('item-classification/status/{id}', [App\Http\Controllers\Items\ItemClassificationController::class, 'onChangeStatus']);
-Route::delete('item-classification/delete/{id}', [App\Http\Controllers\Items\ItemClassificationController::class, 'onDeleteById']);
+Route::post('v1/item-classification/create', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onCreate']);
+Route::post('v1/item-classification/update/{id}', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onUpdateById']);
+Route::post('v1/item-classification/get', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onGetPaginatedList']);
+Route::get('v1/item-classification/get/{id}', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onGetById']);
+Route::get('v1/item-classification/status/{id}', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onChangeStatus']);
+Route::delete('v1/item-classification/delete/{id}', [App\Http\Controllers\v1\Items\ItemClassificationController::class, 'onDeleteById']);
 #endregion
 
 #region Item Masterdata
-Route::post('item-masterdata/create', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onCreate']);
-Route::post('item-masterdata/update/{id}', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onUpdateById']);
-Route::post('item-masterdata/get', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
-Route::get('item-masterdata/get/{id}', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onGetById']);
-Route::get('item-masterdata/status/{id}', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onChangeStatus']);
-Route::delete('item-masterdata/delete/{id}', [App\Http\Controllers\Items\ItemMasterdataController::class, 'onDeleteById']);
+Route::post('v1/item-masterdata/create', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onCreate']);
+Route::post('v1/item-masterdata/update/{id}', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onUpdateById']);
+Route::post('v1/item-masterdata/get', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
+Route::get('v1/item-masterdata/get/{id}', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onGetById']);
+Route::get('v1/item-masterdata/status/{id}', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onChangeStatus']);
+Route::delete('v1/item-masterdata/delete/{id}', [App\Http\Controllers\v1\Items\ItemMasterdataController::class, 'onDeleteById']);
 #endregion
 
 #region Delivery Types
-Route::post('delivery/type/create', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onCreate']);
-Route::post('delivery/type/update/{id}', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onUpdateById']);
-Route::post('delivery/type/get', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onGetPaginatedList']);
-Route::get('delivery/type/get/{id}', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onGetById']);
-Route::get('delivery/type/status/{id}', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onChangeStatus']);
-Route::delete('delivery/type/delete/{id}', [App\Http\Controllers\Delivery\DeliveryTypeController::class, 'onDeleteById']);
+Route::post('v1/delivery/type/create', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onCreate']);
+Route::post('v1/delivery/type/update/{id}', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onUpdateById']);
+Route::post('v1/delivery/type/get', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onGetPaginatedList']);
+Route::get('v1/delivery/type/get/{id}', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onGetById']);
+Route::get('v1/delivery/type/status/{id}', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onChangeStatus']);
+Route::delete('v1/delivery/type/delete/{id}', [App\Http\Controllers\v1\Delivery\DeliveryTypeController::class, 'onDeleteById']);
 #endregion
 
 #region Production Orders
-Route::post('production/order/create', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onCreate']);
-Route::post('production/order/update/{id}', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onUpdateById']);
-Route::post('production/order/get', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onGetPaginatedList']);
-Route::get('production/order/get/{id}', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onGetById']);
-Route::get('production/order/status/{id}', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onChangeStatus']);
-Route::post('production/order/bulk', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
-Route::get('production/order/categorize', [App\Http\Controllers\Productions\ProductionOrderController::class, 'onCategorizeProductionItem']);
+Route::post('v1/production/order/create', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onCreate']);
+Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onUpdateById']);
+Route::post('v1/production/order/get', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetPaginatedList']);
+Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetById']);
+Route::get('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
+Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
+Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetCurrent']);
+#endregion
+
+#region Production OTA
+Route::post('v1/production/ota/create', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onCreate']);
+Route::post('v1/production/ota/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onUpdateById']);
+Route::post('v1/production/ota/get', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetPaginatedList']);
+Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetById']);
+Route::get('v1/production/ota/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onChangeStatus']);
+Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetCurrent']);
+#endregion
+
+#region Production OTB
+Route::post('v1/production/otb/create', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onCreate']);
+Route::post('v1/production/otb/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onUpdateById']);
+Route::post('v1/production/otb/get', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetPaginatedList']);
+Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetById']);
+Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);
+Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetCurrent']);
 #endregion
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
-    Route::get('logout', [CredentialController::class, 'onLogout']); // Logout
+    Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });

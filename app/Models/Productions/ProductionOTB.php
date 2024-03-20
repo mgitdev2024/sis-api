@@ -20,6 +20,7 @@ class ProductionOTB extends Model
         'actual_quantity',
         'buffer_level',
         'total_quantity',
+        'scanned_quantity',
         'created_by_id',
         'updated_by_id',
         'status',

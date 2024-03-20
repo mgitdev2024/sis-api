@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->integer('actual_quantity');
             $table->float('buffer_level');
             $table->float('total_quantity');
+            $table->integer('scanned_quantity')->default(0);
 
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();

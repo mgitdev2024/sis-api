@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Productions;
+namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProductionOTA;

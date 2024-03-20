@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Items;
+namespace App\Http\Controllers\v1\Items;
 
 use App\Http\Controllers\Controller;
 use App\Models\Items\ItemClassification;
