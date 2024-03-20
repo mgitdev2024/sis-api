@@ -59,8 +59,8 @@ class ProductionOrderController extends Controller
             'bulk_data' => 'required',
             'created_by_id' => 'required'
         ]);
-        $bulkUploadData = json_decode($request->bulk_data, true);
-        // $bulkUploadData = $request->bulk_data;
+        // $bulkUploadData = json_decode($request->bulk_data, true);
+        $bulkUploadData = $request->bulk_data;
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrder::onGenerateProductionReferenceNumber();
         $existingProductionOrderOpen = ProductionOrder::where('status', 1)->get();
@@ -100,7 +100,6 @@ class ProductionOrderController extends Controller
                         $existingOTA = ProductionOTA::where('production_order_id', $productionOrder->id)
                             ->where('item_code', $value['item_code'])
                             ->exists();
-
                         if ($existingOTA) {
                             $duplicates[] = $value['item_code'];
                             continue;
@@ -127,7 +126,6 @@ class ProductionOrderController extends Controller
                 } else {
                     DB::commit();
                 }
-
                 return $this->dataResponse('success', 200, "", $response);
             } else {
                 $response = [
