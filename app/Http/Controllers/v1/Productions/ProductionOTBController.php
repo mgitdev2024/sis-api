@@ -48,15 +48,22 @@ class ProductionOTBController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $productionOrder = new ProductionOrderController();
-        $currentProductionOrder = $productionOrder->onGetCurrent();
+        $whereFields = [];
+        if ($id != null) {
+            $whereFields = [
+                'production_order_id' => $id
+            ];
+        } else {
+            $productionOrder = new ProductionOrderController();
+            $currentProductionOrder = $productionOrder->onGetCurrent();
 
-        if (!isset ($currentProductionOrder->getOriginalContent()['success'])) {
-
+            $whereFields = [];
+            if (isset ($currentProductionOrder->getOriginalContent()['success'])) {
+                $whereFields = [
+                    'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
+                ];
+            }
         }
-        $whereFields = [
-            'production_order_id' => 1
-        ];
         return $this->readCurrentRecord(ProductionOTB::class, $id, $whereFields, 'Production Order');
     }
 }

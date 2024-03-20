@@ -46,4 +46,24 @@ class ProductionOTAController extends Controller
     {
         return $this->changeStatusRecordById(ProductionOTA::class, $id, 'Production OTA');
     }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [];
+        if ($id != null) {
+            $whereFields = [
+                'production_order_id' => $id
+            ];
+        } else {
+            $productionOrder = new ProductionOrderController();
+            $currentProductionOrder = $productionOrder->onGetCurrent();
+
+            $whereFields = [];
+            if (isset ($currentProductionOrder->getOriginalContent()['success'])) {
+                $whereFields = [
+                    'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
+                ];
+            }
+        }
+        return $this->readCurrentRecord(ProductionOTA::class, $id, $whereFields, 'Production OTA');
+    }
 }
