@@ -19,7 +19,6 @@ class ItemClassificationController extends Controller
             'name' => 'required|string|unique:item_classifications,name,' . $itemId,
         ];
     }
-
     public function onCreate(Request $request)
     {
         return $this->createRecord(ItemClassification::class, $request, $this->getRules(), 'Item Classification');

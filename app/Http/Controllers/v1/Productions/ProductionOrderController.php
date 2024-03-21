@@ -59,8 +59,7 @@ class ProductionOrderController extends Controller
             'bulk_data' => 'required',
             'created_by_id' => 'required'
         ]);
-        // $bulkUploadData = json_decode($request->bulk_data, true);
-        $bulkUploadData = $request->bulk_data;
+        $bulkUploadData = json_decode($request->bulk_data,true); 
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrder::onGenerateProductionReferenceNumber();
         $existingProductionOrderOpen = ProductionOrder::where('status', 1)->get();
