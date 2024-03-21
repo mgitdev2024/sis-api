@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Productions;
+namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProductionOTB;
@@ -45,5 +45,25 @@ class ProductionOTBController extends Controller
     public function onChangeStatus($id)
     {
         return $this->changeStatusRecordById(ProductionOTB::class, $id, 'Production OTB');
+    }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [];
+        if ($id != null) {
+            $whereFields = [
+                'production_order_id' => $id
+            ];
+        } else {
+            $productionOrder = new ProductionOrderController();
+            $currentProductionOrder = $productionOrder->onGetCurrent();
+
+            $whereFields = [];
+            if (isset ($currentProductionOrder->getOriginalContent()['success'])) {
+                $whereFields = [
+                    'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
+                ];
+            }
+        }
+        return $this->readCurrentRecord(ProductionOTB::class, $id, $whereFields, 'Production OTB');
     }
 }

@@ -131,6 +131,23 @@ trait CrudOperationsTrait
         }
     }
 
+    public function readCurrentRecord($model, $id, $whereFields, $modelName)
+    {
+        try {
+            $productionOrder = $model::orderBy('id', 'ASC');
+            foreach ($whereFields as $field => $value) {
+                $productionOrder->where($field, $value);
+            }
+            $dataList = $productionOrder->get();
+            if ($dataList->isNotEmpty()) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
+            }
+            return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
     public function changeStatusRecordById($model, $id, $modelName)
     {
         try {

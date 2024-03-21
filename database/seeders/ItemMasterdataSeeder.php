@@ -19,28 +19,38 @@ class ItemMasterdataSeeder extends Seeder
         $itemMasterdata = [
             [
                 'name' => 'Cheeseroll Box of 6',
+                'description' => '',
                 'item_code' => 'CR6 BX',
                 'item_classification_id' => '1',
+                'item_variant_type_id' => '7',
             ],
             [
                 'name' => 'Chocolate Cake',
+                'description' => '',
                 'item_code' => 'CHOC BX',
                 'item_classification_id' => '2',
+                'item_variant_type_id' => '1',
             ],
             [
                 'name' => 'Chocolate truffle Cake',
+                'description' => '',
                 'item_code' => 'TRUF BX',
                 'item_classification_id' => '2',
+                'item_variant_type_id' => '1',
             ],
             [
                 'name' => 'Mamon Box of 6',
+                'description' => '',
                 'item_code' => 'MM6',
                 'item_classification_id' => '1',
+                'item_variant_type_id' => '7',
             ],
             [
                 'name' => 'Banana Bread',
+                'description' => '',
                 'item_code' => 'BD',
                 'item_classification_id' => '4',
+                'item_variant_type_id' => '9',
             ],
         ];
 
@@ -50,6 +60,7 @@ class ItemMasterdataSeeder extends Seeder
                 'name' => $value['name'],
                 'item_code' => $value['item_code'],
                 'item_classification_id' => $value['item_classification_id'],
+                'item_variant_type_id' => $value['item_variant_type_id'],
             ]);
         }
     }

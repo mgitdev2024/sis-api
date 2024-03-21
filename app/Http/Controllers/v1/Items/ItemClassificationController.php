@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Items;
+namespace App\Http\Controllers\v1\Items;
 
 use App\Http\Controllers\Controller;
 use App\Models\Items\ItemClassification;
@@ -19,7 +19,6 @@ class ItemClassificationController extends Controller
             'name' => 'required|string|unique:item_classifications,name,' . $itemId,
         ];
     }
-
     public function onCreate(Request $request)
     {
         return $this->createRecord(ItemClassification::class, $request, $this->getRules(), 'Item Classification');

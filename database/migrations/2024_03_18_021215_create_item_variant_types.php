@@ -10,13 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('production_orders', function (Blueprint $table) {
+        Schema::create('item_variant_types', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number');
-            $table->date('production_date');
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(1); // 0 = Closed, 1 = Open
+            $table->string('name');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
 
             $table->foreign('created_by_id')->references('id')->on('credentials');
@@ -29,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('production_orders');
+        Schema::dropIfExists('item_variant_type');
     }
 };
