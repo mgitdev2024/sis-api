@@ -67,16 +67,18 @@ class ProductionOrderController extends Controller
         try {
             if (!count($existingProductionOrderOpen) > 0) {
                 DB::beginTransaction();
+                $productionDate = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
                 $productionOrder = new ProductionOrder();
                 $productionOrder->reference_number = $referenceNumber;
-                $productionOrder->production_date = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
+                $productionOrder->production_date = $productionDate;
                 $productionOrder->created_by_id = $request->created_by_id;
                 $productionOrder->save();
                 foreach ($bulkUploadData as $value) {
                     $productionOTA = new ProductionOTA();
                     $productionOTB = new ProductionOTB();
-                    $itemClassification = ItemMasterdata::where('item_code', $value['item_code'])
-                        ->first()
+                    $itemMasterdata = ItemMasterdata::where('item_code', $value['item_code'])
+                        ->first();
+                    $itemClassification = $itemMasterdata
                         ->itemClassification
                         ->name;
                     if (strcasecmp($itemClassification, 'Breads') === 0) {
@@ -93,6 +95,7 @@ class ProductionOrderController extends Controller
                         $productionOTB->requested_quantity = $value['quantity'];
                         $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
                         $productionOTB->plotted_quantity = $value['total'];
+                        $productionOTB->expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
                         $productionOTB->created_by_id = $createdById;
                         $productionOTB->save();
                     } else {
@@ -108,6 +111,7 @@ class ProductionOrderController extends Controller
                         $productionOTA->requested_quantity = $value['quantity'];
                         $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
                         $productionOTA->plotted_quantity = $value['total'];
+                        $productionOTA->expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
                         $productionOTA->created_by_id = $createdById;
                         $productionOTA->save();
                     }

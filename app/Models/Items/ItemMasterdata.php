@@ -12,11 +12,12 @@ class ItemMasterdata extends Model
     protected $table = 'item_masterdata';
     protected $appends = ['item_classification_label', 'item_variant_type_label'];
     protected $fillable = [
-        'name',
         'description',
         'item_code',
         'item_classification_id',
         'item_variant_type_id',
+        'shelf_life',
+        'plant_id',
         'created_by_id',
         'updated_by_id',
         'status',

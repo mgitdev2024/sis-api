@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\v1\Items;
+namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
 use App\Models\Items\ItemMasterdata;
@@ -17,8 +17,8 @@ class ItemMasterdataController extends Controller
             'created_by_id' => 'required|exists:credentials,id',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
-            'name' => 'required|string',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
+            'shelf_life' => 'nullable|integer',
             'item_classification_id' => 'required|integer|exists:item_classifications,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
         ];
