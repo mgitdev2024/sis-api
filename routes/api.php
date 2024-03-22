@@ -121,6 +121,7 @@ Route::delete('v1/sub_category/delete/{id}', [App\Http\Controllers\v1\Settings\C
 Route::post('v1/item_movement/create', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onCreate']);
 Route::post('v1/item_movement/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onUpdateById']);
 Route::post('v1/item_movement/paginated', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetPaginatedList']);
+Route::get('v1/item_movement/all', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetAll']);
 Route::get('v1/item_movement/{id?}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetById']);
 Route::get('v1/item_movement/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onChangeStatus']);
 Route::delete('v1/item_movement/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onDeleteById']);
@@ -130,6 +131,7 @@ Route::delete('v1/item_movement/delete/{id}', [App\Http\Controllers\v1\Settings\
 Route::post('v1/stock_type/create', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onCreate']);
 Route::post('v1/stock_type/update/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onUpdateById']);
 Route::post('v1/stock_type/paginated', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetPaginatedList']);
+Route::get('v1/stock_type/all', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetAll']);
 Route::get('v1/stock_type/{id?}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetById']);
 Route::get('v1/stock_type/status/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onChangeStatus']);
 Route::delete('v1/stock_type/delete/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onDeleteById']);
@@ -139,6 +141,7 @@ Route::delete('v1/stock_type/delete/{id}', [App\Http\Controllers\v1\Settings\Sto
 Route::post('v1/storage_type/create', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onCreate']);
 Route::post('v1/storage_type/update/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onUpdateById']);
 Route::post('v1/storage_type/paginated', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetPaginatedList']);
+Route::get('v1/storage_type/all', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetAll']);
 Route::get('v1/storage_type/{id?}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetById']);
 Route::get('v1/storage_type/status/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onChangeStatus']);
 Route::delete('v1/storage_type/delete/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onDeleteById']);
@@ -148,6 +151,7 @@ Route::delete('v1/storage_type/delete/{id}', [App\Http\Controllers\v1\Settings\S
 Route::post('v1/warehouse_location/create', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onCreate']);
 Route::post('v1/warehouse_location/update/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onUpdateById']);
 Route::post('v1/warehouse_location/paginated', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetPaginatedList']);
+Route::get('v1/warehouse_location/all', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetAll']);
 Route::get('v1/warehouse_location/{id?}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetById']);
 Route::get('v1/warehouse_location/status/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onChangeStatus']);
 Route::delete('v1/warehouse_location/delete/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onDeleteById']);
@@ -157,6 +161,7 @@ Route::delete('v1/warehouse_location/delete/{id}', [App\Http\Controllers\v1\Sett
 Route::post('v1/zone/create', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onCreate']);
 Route::post('v1/zone/update/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onUpdateById']);
 Route::post('v1/zone/paginated', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetPaginatedList']);
+Route::get('v1/warehouse_location/all', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetAll']);
 Route::get('v1/zone/{id?}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetById']);
 Route::get('v1/zone/status/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onChangeStatus']);
 Route::delete('v1/zone/delete/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onDeleteById']);
