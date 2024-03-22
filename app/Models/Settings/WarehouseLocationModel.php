@@ -9,5 +9,11 @@ class WarehouseLocationModel extends Model
 {
     use HasFactory;
     protected $table = 'warehouse_location';
-    protected $fillable = ['name','description','status'];
+    protected $fillable = [
+        'created_by_id',
+        'updated_by_id',
+        'name',
+        'description',
+        'status'
+    ];
 }

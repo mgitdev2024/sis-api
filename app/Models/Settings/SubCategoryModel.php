@@ -9,13 +9,20 @@ class SubCategoryModel extends Model
 {
     use HasFactory;
     protected $table = 'sub_categories';
-    protected $fillable = ['category_id', 'sub_category_code', 'sub_category_name','status'];
+    protected $fillable = [
+        'created_by_id',
+        'updated_by_id',
+        'category_id',
+        'sub_category_code',
+        'sub_category_name',
+        'status'
+    ];
 
     protected $appends = ['category_label'];
 
     public function category()
     {
-        return $this->belongsTo(CategoryModel::class, 'category_id'); 
+        return $this->belongsTo(CategoryModel::class, 'category_id');
     }
     public function getCategoryLabelAttribute()
     {

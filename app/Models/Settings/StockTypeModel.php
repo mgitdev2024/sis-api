@@ -9,5 +9,11 @@ class StockTypeModel extends Model
 {
     use HasFactory;
     protected $table = 'stock_type';
-    protected $fillable = ['name','description','status'];
+    protected $fillable = [
+        'created_by_id',
+        'updated_by_id',
+        'name',
+        'description',
+        'status'
+    ];
 }
