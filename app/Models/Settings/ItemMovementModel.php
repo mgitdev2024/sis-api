@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class ItemMovementModel extends Model
 {
     use HasFactory;
+    protected $table = 'item_movement';
+    protected $fillable = ['name','description','status'];
 }
