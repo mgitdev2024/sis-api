@@ -36,6 +36,10 @@ class WarehouseController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(WarehouseLocationModel::class, $request, $searchableFields, 'Warehouse Location');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(WarehouseLocationModel::class, 'Warehouse Location');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(WarehouseLocationModel::class, $id, 'Warehouse Location');

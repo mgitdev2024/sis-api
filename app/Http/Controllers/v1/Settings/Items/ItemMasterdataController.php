@@ -37,6 +37,10 @@ class ItemMasterdataController extends Controller
         $searchableFields = ['name', 'item_code'];
         return $this->readPaginatedRecord(ItemMasterdata::class, $request, $searchableFields, 'Item Masterdata');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ItemMasterdata::class, 'Item Masterdata');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ItemMasterdata::class, $id, 'Item Masterdata');

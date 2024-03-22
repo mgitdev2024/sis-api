@@ -35,6 +35,10 @@ class ZoneController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(ZoneModel::class, $request, $searchableFields, 'Zone');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ZoneModel::class, 'Zone');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ZoneModel::class, $id, 'Zone');

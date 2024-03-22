@@ -32,6 +32,10 @@ class ItemVariantTypeController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ItemVariantType::class, $request, $searchableFields, 'Item Variant Type');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ItemVariantType::class, 'Item Variant Type');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ItemVariantType::class, $id, 'Item Variant Type');

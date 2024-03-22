@@ -102,6 +102,7 @@ Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\Cat
 Route::post('v1/category/update/{id}', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onUpdateById']);
 Route::post('v1/category', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onGetPaginatedList']);
 Route::get('v1/category/{id?}', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onGetById']);
+Route::get('v1/category/all', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onGetAll']);
 Route::get('v1/category/status/{id}', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onChangeStatus']);
 Route::delete('v1/category/delete/{id}', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onDeleteById']);
 #endregion
@@ -111,6 +112,7 @@ Route::post('v1/sub_category/create', [App\Http\Controllers\v1\Settings\Category
 Route::post('v1/sub_category/update/{id}', [App\Http\Controllers\v1\Settings\Category\SubCategoryController::class, 'onUpdateById']);
 Route::post('v1/sub_category', [App\Http\Controllers\v1\Settings\Category\SubCategoryController::class, 'onGetPaginatedList']);
 Route::get('v1/sub_category/{id?}', [App\Http\Controllers\v1\Settings\Category\SubCategoryController::class, 'onGetById']);
+Route::get('v1/sub_category/all', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onGetAll']);
 Route::get('v1/sub_category/status/{id}', [App\Http\Controllers\v1\Settings\Category\SubCategoryController::class, 'onChangeStatus']);
 Route::delete('v1/sub_category/delete/{id}', [App\Http\Controllers\v1\Settings\Category\SubCategoryController::class, 'onDeleteById']);
 #endregion

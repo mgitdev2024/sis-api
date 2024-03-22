@@ -32,6 +32,10 @@ class ItemClassificationController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ItemClassification::class, $request, $searchableFields, 'Item Classification');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ItemClassification::class, 'Item Classification');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ItemClassification::class, $id, 'Item Classification');

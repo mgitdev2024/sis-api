@@ -34,6 +34,10 @@ class SubCategoryController extends Controller
         $searchableFields = ['sub_category_code','sub_category_name'];
         return $this->readPaginatedRecord(SubCategoryModel::class, $request, $searchableFields, 'Sub Category');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(SubCategoryModel::class, 'Sub Category');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(SubCategoryModel::class, $id, 'Sub Category');

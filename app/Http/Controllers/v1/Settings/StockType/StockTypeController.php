@@ -37,6 +37,10 @@ class StockTypeController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(StockTypeModel::class, $request, $searchableFields, 'Stock Type');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(StockTypeModel::class, 'Stock Type');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(StockTypeModel::class, $id, 'Stock Type');
