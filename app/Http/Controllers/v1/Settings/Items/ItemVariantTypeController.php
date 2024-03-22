@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
-use App\Models\Items\ItemVariantType;
+use App\Models\Settings\Items\ItemVariantTypeModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -21,27 +21,27 @@ class ItemVariantTypeController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemVariantType::class, $request, $this->getRules(), 'Item Variant Type');
+        return $this->createRecord(ItemVariantTypeModel::class, $request, $this->getRules(), 'Item Variant Type');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemVariantType::class, $request, $this->getRules($id), 'Item Variant Type', $id);
+        return $this->updateRecordById(ItemVariantTypeModel::class, $request, $this->getRules($id), 'Item Variant Type', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['name'];
-        return $this->readPaginatedRecord(ItemVariantType::class, $request, $searchableFields, 'Item Variant Type');
+        return $this->readPaginatedRecord(ItemVariantTypeModel::class, $request, $searchableFields, 'Item Variant Type');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemVariantType::class, $id, 'Item Variant Type');
+        return $this->readRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemVariantType::class, $id, 'Item Variant Type');
+        return $this->deleteRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ItemVariantType::class, $id, 'Item Variant Type');
+        return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
     }
 }

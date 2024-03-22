@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Delivery;
 
 use App\Http\Controllers\Controller;
-use App\Models\Delivery\DeliveryType;
+use App\Models\Settings\Delivery\DeliveryTypeModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -23,27 +23,27 @@ class DeliveryTypeController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(DeliveryType::class, $request, $this->getRules(), 'Delivery Type');
+        return $this->createRecord(DeliveryTypeModel::class, $request, $this->getRules(), 'Delivery Type');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(DeliveryType::class, $request, $this->getRules($id), 'Delivery Type', $id);
+        return $this->updateRecordById(DeliveryTypeModel::class, $request, $this->getRules($id), 'Delivery Type', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['type', 'description'];
-        return $this->readPaginatedRecord(DeliveryType::class, $request, $searchableFields, 'Delivery Type');
+        return $this->readPaginatedRecord(DeliveryTypeModel::class, $request, $searchableFields, 'Delivery Type');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(DeliveryType::class, $id, 'Delivery Type');
+        return $this->readRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(DeliveryType::class, $id, 'Delivery Type');
+        return $this->deleteRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(DeliveryType::class, $id, 'Delivery Type');
+        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
 }

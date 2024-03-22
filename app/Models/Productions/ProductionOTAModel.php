@@ -2,12 +2,12 @@
 
 namespace App\Models\Productions;
 
-use App\Models\Credential;
-use App\Models\Items\ItemMasterdata;
+use App\Models\CredentialModel;
+use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionOTA extends Model
+class ProductionOTAModel extends Model
 {
     use HasFactory;
 
@@ -18,6 +18,7 @@ class ProductionOTA extends Model
         'item_code',
         'requested_quantity',
         'buffer_level',
+        'expiration_date',
         'plotted_quantity',
         'actual_quantity',
         'created_by_id',
@@ -27,22 +28,22 @@ class ProductionOTA extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(Credential::class, 'created_by_id');
+        return $this->belongsTo(CredentialModel::class, 'created_by_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(Credential::class, 'updated_by_id');
+        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
 
     public function productionOrder()
     {
-        return $this->belongsTo(ProductionOrder::class, 'production_order_id');
+        return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
     }
 
     public function itemMasterData()
     {
-        return $this->belongsTo(ItemMasterdata::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 
     public function getProductionLabelAttribute()

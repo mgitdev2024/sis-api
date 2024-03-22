@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Productions\ProductionOTB;
+use App\Models\Productions\ProductionOTBModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -23,28 +23,28 @@ class ProductionOTBController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ProductionOTB::class, $request, $this->getRules(), 'Production OTB');
+        return $this->createRecord(ProductionOTBModel::class, $request, $this->getRules(), 'Production OTB');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOTB::class, $request, $this->getRules(), 'Production OTB', $id);
+        return $this->updateRecordById(ProductionOTBModel::class, $request, $this->getRules(), 'Production OTB', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['reference_number', 'production_date'];
-        return $this->readPaginatedRecord(ProductionOTB::class, $request, $searchableFields, 'Production OTB');
+        return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOTB::class, $id, 'Production OTB');
+        return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ProductionOTB::class, $id, 'Production OTB');
+        return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProductionOTB::class, $id, 'Production OTB');
+        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
     public function onGetCurrent($id = null)
     {
@@ -64,6 +64,6 @@ class ProductionOTBController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTB::class, $id, $whereFields, 'Production OTB');
+        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, 'Production OTB');
     }
 }

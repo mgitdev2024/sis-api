@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Items\ItemMasterdata;
+use App\Models\Settings\Items\ItemMasterdataModel;
 
 class ItemMasterdataSeeder extends Seeder
 {
@@ -22,9 +22,11 @@ class ItemMasterdataSeeder extends Seeder
                 'item_code' => 'CR6 BX',
                 'item_classification_id' => '1',
                 'item_variant_type_id' => '7',
-                'conversion_id' => '1',
+                'uom_id' => '1',
                 'primary_item_packing_size' => 1,
+                'primary_conversion_id' => 1,
                 'secondary_item_packing_size' => 6,
+                'secondary_conversion_id' => 1,
                 'plant_id' => '2',
                 'shelf_life' => '6',
             ],
@@ -33,9 +35,11 @@ class ItemMasterdataSeeder extends Seeder
                 'item_code' => 'CHOC BX',
                 'item_classification_id' => '2',
                 'item_variant_type_id' => '1',
-                'conversion_id' => '1',
+                'uom_id' => '1',
                 'primary_item_packing_size' => 1,
-                'secondary_item_packing_size' => 1,
+                'primary_conversion_id' => 1,
+                'secondary_item_packing_size' => 6,
+                'secondary_conversion_id' => 1,
                 'plant_id' => '2',
                 'shelf_life' => '7',
             ],
@@ -44,9 +48,11 @@ class ItemMasterdataSeeder extends Seeder
                 'item_code' => 'TRUF BX',
                 'item_classification_id' => '2',
                 'item_variant_type_id' => '1',
-                'conversion_id' => '1',
+                'uom_id' => '1',
                 'primary_item_packing_size' => 1,
-                'secondary_item_packing_size' => 1,
+                'primary_conversion_id' => 1,
+                'secondary_item_packing_size' => 6,
+                'secondary_conversion_id' => 1,
                 'plant_id' => '2',
                 'shelf_life' => '7',
             ],
@@ -55,9 +61,11 @@ class ItemMasterdataSeeder extends Seeder
                 'item_code' => 'MM6',
                 'item_classification_id' => '1',
                 'item_variant_type_id' => '7',
-                'conversion_id' => '1',
+                'uom_id' => '1',
                 'primary_item_packing_size' => 1,
+                'primary_conversion_id' => 1,
                 'secondary_item_packing_size' => 6,
+                'secondary_conversion_id' => 1,
                 'plant_id' => '2',
                 'shelf_life' => '4',
             ],
@@ -66,16 +74,18 @@ class ItemMasterdataSeeder extends Seeder
                 'item_code' => 'BD',
                 'item_classification_id' => '4',
                 'item_variant_type_id' => '9',
-                'conversion_id' => '1',
+                'uom_id' => '1',
                 'primary_item_packing_size' => 1,
-                'secondary_item_packing_size' => 1,
+                'primary_conversion_id' => 1,
+                'secondary_item_packing_size' => 6,
+                'secondary_conversion_id' => 1,
                 'plant_id' => '2',
                 'shelf_life' => '3',
             ],
         ];
 
         foreach ($itemMasterdata as $value) {
-            ItemMasterdata::create([
+            ItemMasterdataModel::create([
                 'created_by_id' => $createdById,
                 'description' => $value['description'],
                 'item_code' => $value['item_code'],
@@ -83,9 +93,11 @@ class ItemMasterdataSeeder extends Seeder
                 'item_variant_type_id' => $value['item_variant_type_id'],
                 'plant_id' => $value['plant_id'],
                 'shelf_life' => $value['shelf_life'],
-                'conversion_id' => $value['conversion_id'],
+                'uom_id' => $value['uom_id'],
                 'primary_item_packing_size' => $value['primary_item_packing_size'],
                 'secondary_item_packing_size' => $value['secondary_item_packing_size'],
+                'primary_conversion_id' => $value['primary_conversion_id'],
+                'secondary_conversion_id' => $value['secondary_conversion_id'],
             ]);
         }
     }

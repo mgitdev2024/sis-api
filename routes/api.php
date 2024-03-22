@@ -32,6 +32,24 @@ Route::get('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settin
 Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onDeleteById']);
 #endregion
 
+#region Measurement Conversion
+Route::post('v1/measurement/conversion/create', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onCreate']);
+Route::post('v1/measurement/conversion/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onUpdateById']);
+Route::post('v1/measurement/conversion/get', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetPaginatedList']);
+Route::get('v1/measurement/conversion/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetById']);
+Route::get('v1/measurement/conversion/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onChangeStatus']);
+Route::delete('v1/measurement/conversion/delete/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onDeleteById']);
+#endregion
+
+#region Measurement UOM
+Route::post('v1/measurement/uom/create', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onCreate']);
+Route::post('v1/measurement/uom/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onUpdateById']);
+Route::post('v1/measurement/uom/get', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetPaginatedList']);
+Route::get('v1/measurement/uom/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetById']);
+Route::get('v1/measurement/uom/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onChangeStatus']);
+Route::delete('v1/measurement/uom/delete/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onDeleteById']);
+#endregion
+
 #region Facility Plant
 Route::post('v1/plant/create', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onCreate']);
 Route::post('v1/plant/update/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onUpdateById']);

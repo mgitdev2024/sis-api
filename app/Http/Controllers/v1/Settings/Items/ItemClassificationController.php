@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
-use App\Models\Items\ItemClassification;
+use App\Models\Settings\Items\ItemClassificationModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -22,27 +22,27 @@ class ItemClassificationController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemClassification::class, $request, $this->getRules(), 'Item Classification');
+        return $this->createRecord(ItemClassificationModel::class, $request, $this->getRules(), 'Item Classification');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemClassification::class, $request, $this->getRules($id), 'Item Classification', $id);
+        return $this->updateRecordById(ItemClassificationModel::class, $request, $this->getRules($id), 'Item Classification', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['name'];
-        return $this->readPaginatedRecord(ItemClassification::class, $request, $searchableFields, 'Item Classification');
+        return $this->readPaginatedRecord(ItemClassificationModel::class, $request, $searchableFields, 'Item Classification');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemClassification::class, $id, 'Item Classification');
+        return $this->readRecordById(ItemClassificationModel::class, $id, 'Item Classification');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemClassification::class, $id, 'Item Classification');
+        return $this->deleteRecordById(ItemClassificationModel::class, $id, 'Item Classification');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ItemClassification::class, $id, 'Item Classification');
+        return $this->changeStatusRecordById(ItemClassificationModel::class, $id, 'Item Classification');
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Items\ItemMasterdata;
-use App\Models\Productions\ProductionOrder;
-use App\Models\Productions\ProductionOTA;
-use App\Models\Productions\ProductionOTB;
+use App\Models\Settings\Items\ItemMasterdataModel;
+use App\Models\Productions\ProductionOrderModel;
+use App\Models\Productions\ProductionOTAModel;
+use App\Models\Productions\ProductionOTBModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use DB;
@@ -26,24 +26,24 @@ class ProductionOrderController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ProductionOrder::class, $request, $this->getRules(), 'Production Order');
+        return $this->createRecord(ProductionOrderModel::class, $request, $this->getRules(), 'Production Order');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOrder::class, $request, $this->getRules($id), 'Production Order', $id);
+        return $this->updateRecordById(ProductionOrderModel::class, $request, $this->getRules($id), 'Production Order', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['reference_number', 'production_date'];
-        return $this->readPaginatedRecord(ProductionOrder::class, $request, $searchableFields, 'Production Order');
+        return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOrder::class, $id, 'Production Order');
+        return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProductionOrder::class, $id, 'Production Order');
+        return $this->changeStatusRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
     public function onGetCurrent($id = null)
     {
@@ -51,7 +51,7 @@ class ProductionOrderController extends Controller
             'status' => $id != null ? 0 : 1
         ];
         $id != null ? $whereFields['id'] = $id : "";
-        return $this->readCurrentRecord(ProductionOrder::class, $id, $whereFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, 'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -62,28 +62,28 @@ class ProductionOrderController extends Controller
         $bulkUploadData = json_decode($request->bulk_data, true);
         // $bulkUploadData = $request->bulk_data;
         $createdById = $request->created_by_id;
-        $referenceNumber = ProductionOrder::onGenerateProductionReferenceNumber();
-        $existingProductionOrderOpen = ProductionOrder::where('status', 1)->get();
+        $referenceNumber = ProductionOrderModel::onGenerateProductionReferenceNumber();
+        $existingProductionOrderOpen = ProductionOrderModel::where('status', 1)->get();
         $duplicates = [];
         try {
             if (!count($existingProductionOrderOpen) > 0) {
                 DB::beginTransaction();
                 $productionDate = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
-                $productionOrder = new ProductionOrder();
+                $productionOrder = new ProductionOrderModel();
                 $productionOrder->reference_number = $referenceNumber;
                 $productionOrder->production_date = $productionDate;
                 $productionOrder->created_by_id = $request->created_by_id;
                 $productionOrder->save();
                 foreach ($bulkUploadData as $value) {
-                    $productionOTA = new ProductionOTA();
-                    $productionOTB = new ProductionOTB();
-                    $itemMasterdata = ItemMasterdata::where('item_code', $value['item_code'])
+                    $productionOTA = new ProductionOTAModel();
+                    $productionOTB = new ProductionOTBModel();
+                    $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                         ->first();
                     $itemClassification = $itemMasterdata
                         ->itemClassification
                         ->name;
                     if (strcasecmp($itemClassification, 'Breads') === 0) {
-                        $existingOTB = ProductionOTB::where('production_order_id', $productionOrder->id)
+                        $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                             ->where('item_code', $value['item_code'])
                             ->exists();
                         if ($existingOTB) {
@@ -100,7 +100,7 @@ class ProductionOrderController extends Controller
                         $productionOTB->created_by_id = $createdById;
                         $productionOTB->save();
                     } else {
-                        $existingOTA = ProductionOTA::where('production_order_id', $productionOrder->id)
+                        $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                             ->where('item_code', $value['item_code'])
                             ->exists();
 
@@ -151,5 +151,5 @@ class ProductionOrderController extends Controller
 
 // public function onDeleteById($id)
 // {
-//     return $this->deleteRecordById(ProductionOrder::class, $id, 'Production Order');
+//     return $this->deleteRecordById(ProductionOrderModel::class, $id, 'Production Order');
 // }

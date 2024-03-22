@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Measurements\Conversion;
+use App\Models\Settings\Measurements\ConversionModel;
 
 class ConversionSeeder extends Seeder
 {
@@ -18,38 +18,28 @@ class ConversionSeeder extends Seeder
         $createdById = 1;
         $conversionUnits = [
             [
-                'primary_short_uom' => 'Pcs',
-                'secondary_short_uom' => 'Pcs/Box',
-                'primary_long_uom' => 'Pieces',
-                'secondary_long_uom' => 'Pieces/Box'
+                'conversion_short_uom' => 'Pcs',
+                'conversion_long_uom' => 'Pieces',
             ],
             [
-                'primary_short_uom' => 'Pcs',
-                'secondary_short_uom' => 'Box',
-                'primary_long_uom' => 'Pieces',
-                'secondary_long_uom' => 'Box'
+                'conversion_short_uom' => 'Pcs',
+                'conversion_long_uom' => 'Pieces',
             ],
             [
-                'primary_short_uom' => 'Pcs',
-                'secondary_short_uom' => 'Pck',
-                'primary_long_uom' => 'Pieces',
-                'secondary_long_uom' => 'Pack'
+                'conversion_short_uom' => 'Pcs',
+                'conversion_long_uom' => 'Pieces',
             ],
             [
-                'primary_short_uom' => 'Pcs',
-                'secondary_short_uom' => 'Set',
-                'primary_long_uom' => 'Pieces',
-                'secondary_long_uom' => 'Set'
+                'conversion_short_uom' => 'Pcs',
+                'conversion_long_uom' => 'Pieces',
             ],
         ];
 
         foreach ($conversionUnits as $value) {
-            Conversion::create([
+            ConversionModel::create([
                 'created_by_id' => $createdById,
-                'primary_short_uom' => $value['primary_short_uom'],
-                'primary_long_uom' => $value['primary_long_uom'],
-                'secondary_short_uom' => $value['secondary_short_uom'],
-                'secondary_long_uom' => $value['secondary_long_uom'],
+                'conversion_short_uom' => $value['conversion_short_uom'],
+                'conversion_long_uom' => $value['conversion_long_uom'],
             ]);
         }
     }

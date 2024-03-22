@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\v1\Settings\Measurements;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings\Measurements\ConversionModel;
+use App\Models\Settings\Measurements\UomModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
-class ConversionController extends Controller
+class UomController extends Controller
 {
     use CrudOperationsTrait;
 
@@ -16,34 +16,34 @@ class ConversionController extends Controller
         return [
             'created_by_id' => 'required|exists:credentials,id',
             'updated_by_id' => 'nullable|exists:credentials,id',
-            'conversion_short_uom' => 'required|string',
-            'conversion_long_uom' => 'required|string',
+            'short_uom' => 'required|string',
+            'long_uom' => 'required|string',
         ];
     }
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ConversionModel::class, $request, $this->getRules(), 'Conversions');
+        return $this->createRecord(UomModel::class, $request, $this->getRules(), 'UOM');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ConversionModel::class, $request, $this->getRules($id), 'Conversions', $id);
+        return $this->updateRecordById(UomModel::class, $request, $this->getRules($id), 'UOM', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['name'];
-        return $this->readPaginatedRecord(ConversionModel::class, $request, $searchableFields, 'Conversions');
+        return $this->readPaginatedRecord(UomModel::class, $request, $searchableFields, 'UOM');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->readRecordById(UomModel::class, $id, 'UOM');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->deleteRecordById(UomModel::class, $id, 'UOM');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->changeStatusRecordById(UomModel::class, $id, 'UOM');
     }
 }
