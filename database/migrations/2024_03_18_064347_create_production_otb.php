@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->float('plotted_quantity');
             $table->integer('actual_quantity')->default(0);
 
+            $table->date('expiration_date');
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->tinyInteger('status')->default(1);

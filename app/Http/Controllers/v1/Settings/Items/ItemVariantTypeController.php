@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\v1\Items;
+namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
 use App\Models\Items\ItemVariantType;
