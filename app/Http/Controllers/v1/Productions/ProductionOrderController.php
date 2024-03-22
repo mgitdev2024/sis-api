@@ -63,82 +63,72 @@ class ProductionOrderController extends Controller
         // $bulkUploadData = $request->bulk_data;
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrderModel::onGenerateProductionReferenceNumber();
-        $existingProductionOrderOpen = ProductionOrderModel::where('status', 1)->get();
         $duplicates = [];
         try {
-            if (!count($existingProductionOrderOpen) > 0) {
-                DB::beginTransaction();
-                $productionDate = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
-                $productionOrder = new ProductionOrderModel();
-                $productionOrder->reference_number = $referenceNumber;
-                $productionOrder->production_date = $productionDate;
-                $productionOrder->created_by_id = $request->created_by_id;
-                $productionOrder->save();
-                foreach ($bulkUploadData as $value) {
-                    $productionOTA = new ProductionOTAModel();
-                    $productionOTB = new ProductionOTBModel();
-                    $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
-                        ->first();
-                    $itemClassification = $itemMasterdata
-                        ->itemClassification
-                        ->name;
-                    if (strcasecmp($itemClassification, 'Breads') === 0) {
-                        $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
-                            ->where('item_code', $value['item_code'])
-                            ->exists();
-                        if ($existingOTB) {
-                            $duplicates[] = $value['item_code'];
-                            continue;
-                        }
-                        $productionOTB->production_order_id = $productionOrder->id;
-                        $productionOTB->delivery_type = $value['delivery_type'];
-                        $productionOTB->item_code = $value['item_code'];
-                        $productionOTB->requested_quantity = $value['quantity'];
-                        $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
-                        $productionOTB->plotted_quantity = $value['total'];
-                        $productionOTB->expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
-                        $productionOTB->created_by_id = $createdById;
-                        $productionOTB->save();
-                    } else {
-                        $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
-                            ->where('item_code', $value['item_code'])
-                            ->exists();
-
-                        if ($existingOTA) {
-                            $duplicates[] = $value['item_code'];
-                            continue;
-                        }
-                        $productionOTA->production_order_id = $productionOrder->id;
-                        $productionOTA->item_code = $value['item_code'];
-                        $productionOTA->requested_quantity = $value['quantity'];
-                        $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
-                        $productionOTA->plotted_quantity = $value['total'];
-                        $productionOTA->expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
-                        $productionOTA->created_by_id = $createdById;
-                        $productionOTA->save();
+            DB::beginTransaction();
+            $productionDate = date('Y-m-d', strtotime($bulkUploadData[0]['production_date']));
+            $productionOrder = new ProductionOrderModel();
+            $productionOrder->reference_number = $referenceNumber;
+            $productionOrder->production_date = $productionDate;
+            $productionOrder->created_by_id = $request->created_by_id;
+            $productionOrder->save();
+            foreach ($bulkUploadData as $value) {
+                $productionOTA = new ProductionOTAModel();
+                $productionOTB = new ProductionOTBModel();
+                $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
+                    ->first();
+                $itemClassification = $itemMasterdata
+                    ->itemClassification
+                    ->name;
+                if (strcasecmp($itemClassification, 'Breads') === 0) {
+                    $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
+                        ->where('item_code', $value['item_code'])
+                        ->exists();
+                    if ($existingOTB) {
+                        $duplicates[] = $value['item_code'];
+                        continue;
                     }
-                }
-                $response = [
-                    "is_duplicate" => false,
-                    "is_previous_production_order_open" => false,
-                ];
-                $message = "Bulk upload success";
-                if (count($duplicates) > 0) {
-                    $message = "Bulk upload cancelled: Duplicate entries were uploaded";
-                    $response["is_duplicate"] = true;
-                    $response['duplicated_entries'] = $duplicates;
+                    $productionOTB->production_order_id = $productionOrder->id;
+                    $productionOTB->delivery_type = $value['delivery_type'];
+                    $productionOTB->item_code = $value['item_code'];
+                    $productionOTB->requested_quantity = $value['quantity'];
+                    $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
+                    $productionOTB->plotted_quantity = $value['total'];
+                    $productionOTB->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
+                    $productionOTB->created_by_id = $createdById;
+                    $productionOTB->save();
                 } else {
-                    DB::commit();
-                }
+                    $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
+                        ->where('item_code', $value['item_code'])
+                        ->exists();
 
-                return $this->dataResponse('success', 200, $message, $response);
-            } else {
-                $response = [
-                    "is_duplicate" => false,
-                    "is_previous_production_order_open" => true,
-                ];
-                return $this->dataResponse('success', 200, "Bulk upload failed", $response);
+                    if ($existingOTA) {
+                        $duplicates[] = $value['item_code'];
+                        continue;
+                    }
+                    $productionOTA->production_order_id = $productionOrder->id;
+                    $productionOTA->item_code = $value['item_code'];
+                    $productionOTA->requested_quantity = $value['quantity'];
+                    $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
+                    $productionOTA->plotted_quantity = $value['total'];
+                    $productionOTA->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
+                    $productionOTA->created_by_id = $createdById;
+                    $productionOTA->save();
+                }
             }
+            $response = [
+                "is_duplicate" => false,
+            ];
+            $message = "Bulk upload success";
+            if (count($duplicates) > 0) {
+                $message = "Bulk upload cancelled: Duplicate entries were uploaded";
+                $response["is_duplicate"] = true;
+                $response['duplicated_entries'] = $duplicates;
+            } else {
+                DB::commit();
+            }
+
+            return $this->dataResponse('success', 200, $message, $response);
 
         } catch (\Exception $exception) {
             DB::rollBack();

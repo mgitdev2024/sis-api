@@ -32,6 +32,24 @@ Route::get('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settin
 Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onDeleteById']);
 #endregion
 
+#region Item Variant Type
+Route::post('v1/item/variant/type/create', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onCreate']);
+Route::post('v1/item/variant/type/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onUpdateById']);
+Route::post('v1/item/variant/type/get', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetPaginatedList']);
+Route::get('v1/item/variant/type/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetById']);
+Route::get('v1/item/variant/type/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onChangeStatus']);
+Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onDeleteById']);
+#endregion
+
+#region Item Masterdata
+Route::post('v1/item/masterdata/create', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onCreate']);
+Route::post('v1/item/masterdata/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onUpdateById']);
+Route::post('v1/item/masterdata/get', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
+Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetById']);
+Route::get('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onChangeStatus']);
+Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onDeleteById']);
+#endregion
+
 #region Measurement Conversion
 Route::post('v1/measurement/conversion/create', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onCreate']);
 Route::post('v1/measurement/conversion/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onUpdateById']);
@@ -57,24 +75,6 @@ Route::post('v1/plant/get', [App\Http\Controllers\v1\Settings\Facility\PlantCont
 Route::get('v1/plant/get/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetById']);
 Route::get('v1/plant/status/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onChangeStatus']);
 Route::get('v1/plant/current/{id?}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetCurrent']);
-#endregion
-
-#region Item Variant Type
-Route::post('v1/item/variant/type/create', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onCreate']);
-Route::post('v1/item/variant/type/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onUpdateById']);
-Route::post('v1/item/variant/type/get', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetPaginatedList']);
-Route::get('v1/item/variant/type/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetById']);
-Route::get('v1/item/variant/type/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onChangeStatus']);
-Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onDeleteById']);
-#endregion
-
-#region Item Masterdata
-Route::post('v1/item/masterdata/create', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onCreate']);
-Route::post('v1/item/masterdata/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onUpdateById']);
-Route::post('v1/item/masterdata/get', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
-Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetById']);
-Route::get('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onChangeStatus']);
-Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onDeleteById']);
 #endregion
 
 #region Delivery Types
@@ -112,6 +112,15 @@ Route::post('v1/production/otb/get', [App\Http\Controllers\v1\Productions\Produc
 Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetById']);
 Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);
 Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetCurrent']);
+#endregion
+
+#region Production Batch
+Route::post('v1/production/batch/create', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onCreate']);
+Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onUpdateById']);
+Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetPaginatedList']);
+Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
+Route::get('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
+Route::get('v1/production/batch/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
 #endregion
 
 Route::group(['middleware' => ['auth:sanctum']], function () {

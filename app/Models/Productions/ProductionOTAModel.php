@@ -18,7 +18,7 @@ class ProductionOTAModel extends Model
         'item_code',
         'requested_quantity',
         'buffer_level',
-        'expiration_date',
+        'expected_expiration_date',
         'plotted_quantity',
         'actual_quantity',
         'created_by_id',
