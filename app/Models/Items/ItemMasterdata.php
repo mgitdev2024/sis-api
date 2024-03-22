@@ -21,7 +21,6 @@ class ItemMasterdata extends Model
         'updated_by_id',
         'status',
     ];
-
     public function createdBy()
     {
         return $this->belongsTo(Credential::class, 'created_by_id');
@@ -35,23 +34,18 @@ class ItemMasterdata extends Model
     {
         return $this->belongsTo(ItemClassification::class, 'item_classification_id', 'id');
     }
-
     public function itemVariantType()
     {
         return $this->belongsTo(ItemVariantType::class, 'item_variant_type_id', 'id');
     }
-
     public function getItemClassificationLabelAttribute()
     {
         $itemClassification = $this->itemClassification->toArray();
-
         return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
-
     public function getItemVariantTypeLabelAttribute()
     {
         $itemVariantType = $this->itemVariantType->toArray();
-
         return isset ($itemVariantType) ? $itemVariantType['name'] : 'n/a';
     }
 }
