@@ -26,6 +26,6 @@ class SubCategoryModel extends Model
     }
     public function getCategoryLabelAttribute()
     {
-        return $this->category->category;
+        return $this->category->category_name;
     }
 }
