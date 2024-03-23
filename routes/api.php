@@ -27,6 +27,8 @@ Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::clas
 Route::post('v1/item/classification/create', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onCreate']);
 Route::post('v1/item/classification/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onUpdateById']);
 Route::post('v1/item/classification/get', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetPaginatedList']);
+Route::get('v1/item/classification/all', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetAll']);
+
 Route::get('v1/item/classification/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetById']);
 Route::get('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onChangeStatus']);
 Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onDeleteById']);
@@ -161,20 +163,11 @@ Route::delete('v1/warehouse_location/delete/{id}', [App\Http\Controllers\v1\Sett
 Route::post('v1/zone/create', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onCreate']);
 Route::post('v1/zone/update/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onUpdateById']);
 Route::post('v1/zone/paginated', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetPaginatedList']);
-Route::get('v1/warehouse_location/all', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetAll']);
+Route::get('v1/zone/all', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetAll']);
 Route::get('v1/zone/{id?}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetById']);
 Route::get('v1/zone/status/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onChangeStatus']);
 Route::delete('v1/zone/delete/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onDeleteById']);
 #endregion
-
-
-
-
-
-
-
 Route::group(['middleware' => ['auth:sanctum']], function () {
-
-
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });
