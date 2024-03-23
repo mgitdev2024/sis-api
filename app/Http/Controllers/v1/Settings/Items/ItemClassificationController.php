@@ -34,7 +34,7 @@ class ItemClassificationController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ItemClassification::class, 'Item Classification');
+        return $this->readRecord(ItemClassificationModel::class, 'Item Classification');
     }
     public function onGetById($id)
     {

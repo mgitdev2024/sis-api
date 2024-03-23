@@ -36,6 +36,10 @@ class PlantController extends Controller
         $searchableFields = ['short_name', 'long_name'];
         return $this->readPaginatedRecord(PlantModel::class, $request, $searchableFields, 'Plant');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(PlantModel::class, 'Plant');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(PlantModel::class, $id, 'Plant');

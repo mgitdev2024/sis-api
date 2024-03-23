@@ -39,7 +39,7 @@ class ItemMasterdataController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ItemMasterdata::class, 'Item Masterdata');
+        return $this->readRecord(ItemMasterdataModel::class, 'Item Masterdata');
     }
     public function onGetById($id)
     {

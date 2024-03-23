@@ -37,6 +37,7 @@ Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Set
 Route::post('v1/item/variant/type/create', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onCreate']);
 Route::post('v1/item/variant/type/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onUpdateById']);
 Route::post('v1/item/variant/type/get', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetPaginatedList']);
+Route::get('v1/item/variant/all', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetAll']);
 Route::get('v1/item/variant/type/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetById']);
 Route::get('v1/item/variant/type/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onChangeStatus']);
 Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onDeleteById']);
@@ -46,6 +47,7 @@ Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Setti
 Route::post('v1/item/masterdata/create', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onCreate']);
 Route::post('v1/item/masterdata/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onUpdateById']);
 Route::post('v1/item/masterdata/get', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
+Route::get('v1/item/masterdata/all', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetAll']);
 Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetById']);
 Route::get('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onChangeStatus']);
 Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onDeleteById']);
@@ -55,6 +57,7 @@ Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Setting
 Route::post('v1/measurement/conversion/create', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onCreate']);
 Route::post('v1/measurement/conversion/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onUpdateById']);
 Route::post('v1/measurement/conversion/get', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetPaginatedList']);
+Route::get('v1/measurement/conversion/all', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetAll']);
 Route::get('v1/measurement/conversion/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetById']);
 Route::get('v1/measurement/conversion/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onChangeStatus']);
 Route::delete('v1/measurement/conversion/delete/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onDeleteById']);
@@ -64,24 +67,25 @@ Route::delete('v1/measurement/conversion/delete/{id}', [App\Http\Controllers\v1\
 Route::post('v1/measurement/uom/create', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onCreate']);
 Route::post('v1/measurement/uom/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onUpdateById']);
 Route::post('v1/measurement/uom/get', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetPaginatedList']);
+Route::get('v1/measurement/uom/all', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetAll']);
 Route::get('v1/measurement/uom/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetById']);
 Route::get('v1/measurement/uom/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onChangeStatus']);
 Route::delete('v1/measurement/uom/delete/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onDeleteById']);
 #endregion
-
 #region Facility Plant
 Route::post('v1/plant/create', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onCreate']);
 Route::post('v1/plant/update/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onUpdateById']);
 Route::post('v1/plant/get', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetPaginatedList']);
+Route::get('v1/plant/all', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetAll']);
 Route::get('v1/plant/get/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetById']);
 Route::get('v1/plant/status/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onChangeStatus']);
 Route::delete('v1/plant/delete/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onDeleteById']);
 #endregion
-
 #region Delivery Types
 Route::post('v1/delivery/type/create', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onCreate']);
 Route::post('v1/delivery/type/update/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onUpdateById']);
 Route::post('v1/delivery/type/get', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetPaginatedList']);
+Route::get('v1/delivery/type/all', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetAll']);
 Route::get('v1/delivery/type/get/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetById']);
 Route::get('v1/delivery/type/status/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onChangeStatus']);
 Route::delete('v1/delivery/type/delete/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onDeleteById']);

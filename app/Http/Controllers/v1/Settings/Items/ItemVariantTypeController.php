@@ -34,7 +34,7 @@ class ItemVariantTypeController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ItemVariantType::class, 'Item Variant Type');
+        return $this->readRecord(ItemVariantTypeModel::class, 'Item Variant Type');
     }
     public function onGetById($id)
     {

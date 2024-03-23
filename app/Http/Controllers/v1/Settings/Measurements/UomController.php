@@ -34,6 +34,10 @@ class UomController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(UomModel::class, $request, $searchableFields, 'UOM');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(UomModel::class, 'UOM');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(UomModel::class, $id, 'UOM');
