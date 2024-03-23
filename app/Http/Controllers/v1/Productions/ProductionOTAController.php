@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
-use App\Models\Productions\ProductionOTA;
+use App\Models\Productions\ProductionOTAModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -23,28 +23,28 @@ class ProductionOTAController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ProductionOTA::class, $request, $this->getRules(), 'Production OTA');
+        return $this->createRecord(ProductionOTAModel::class, $request, $this->getRules(), 'Production OTA');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOTA::class, $request, $this->getRules(), 'Production OTA', $id);
+        return $this->updateRecordById(ProductionOTAModel::class, $request, $this->getRules(), 'Production OTA', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['reference_number', 'production_date'];
-        return $this->readPaginatedRecord(ProductionOTA::class, $request, $searchableFields, 'Production OTA');
+        return $this->readPaginatedRecord(ProductionOTAModel::class, $request, $searchableFields, 'Production OTA');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOTA::class, $id, 'Production OTA');
+        return $this->readRecordById(ProductionOTAModel::class, $id, 'Production OTA');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ProductionOTA::class, $id, 'Production OTA');
+        return $this->deleteRecordById(ProductionOTAModel::class, $id, 'Production OTA');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProductionOTA::class, $id, 'Production OTA');
+        return $this->changeStatusRecordById(ProductionOTAModel::class, $id, 'Production OTA');
     }
     public function onGetCurrent($id = null)
     {
@@ -64,6 +64,6 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTA::class, $id, $whereFields, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, 'Production OTA');
     }
 }

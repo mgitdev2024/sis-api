@@ -7,7 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ResponseTrait;
-use App\Models\Credential;
+use App\Models\CredentialModel;
 
 class CredentialController extends Controller
 {
@@ -18,7 +18,7 @@ class CredentialController extends Controller
             'employee_id' => 'required',
             'password' => 'required|min:6',
         ]);
-        $logged_user = Credential::where('employee_id', '=', $fields['employee_id'])->first();
+        $logged_user = CredentialModel::where('employee_id', '=', $fields['employee_id'])->first();
 
         if (!Auth::attempt($fields)) {
             return $this->dataResponse('error', 404, __('msg.employee_not_found'));

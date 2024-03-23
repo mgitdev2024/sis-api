@@ -2,23 +2,23 @@
 
 namespace App\Models\Productions;
 
-use App\Models\Credential;
-use App\Models\Delivery\DeliveryType;
-use App\Models\Items\ItemMasterdata;
+use App\Models\CredentialModel;
+use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionOTB extends Model
+class ProductionOTAModel extends Model
 {
     use HasFactory;
-    protected $table = 'production_otb';
+
+    protected $table = 'production_ota';
     protected $appends = ['production_label', 'item_classification_label'];
     protected $fillable = [
         'production_order_id',
-        'delivery_type',
         'item_code',
         'requested_quantity',
         'buffer_level',
+        'expected_expiration_date',
         'plotted_quantity',
         'actual_quantity',
         'created_by_id',
@@ -28,28 +28,24 @@ class ProductionOTB extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(Credential::class, 'created_by_id');
+        return $this->belongsTo(CredentialModel::class, 'created_by_id');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(Credential::class, 'updated_by_id');
+        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
 
     public function productionOrder()
     {
-        return $this->belongsTo(ProductionOrder::class, 'production_order_id');
+        return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
     }
 
     public function itemMasterData()
     {
-        return $this->belongsTo(ItemMasterdata::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 
-    public function deliveryType()
-    {
-        return $this->belongsTo(DeliveryType::class, 'delivery_type');
-    }
     public function getProductionLabelAttribute()
     {
         $production_label = $this->productionOrder->toArray();

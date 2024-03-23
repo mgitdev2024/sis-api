@@ -10,14 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('conversions', function (Blueprint $table) {
+        Schema::create('uom', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->string('primary_short_uom');
-            $table->string('secondary_short_uom');
-            $table->string('primary_long_uom');
-            $table->string('secondary_long_uom');
+            $table->string('short_uom');
+            $table->string('long_uom');
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
 
@@ -31,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('conversions');
+        Schema::dropIfExists('uom');
     }
 };

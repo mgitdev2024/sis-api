@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([CredentialSeeder::class]);
         $this->call([PlantSeeder::class]);
+        $this->call([UomSeeder::class]);
         $this->call([ConversionSeeder::class]);
         $this->call([ItemClassificationSeeder::class]);
         $this->call([ItemVariantTypeSeeder::class]);

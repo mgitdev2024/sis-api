@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Items\ItemVariantType;
+use App\Models\Settings\Items\ItemVariantTypeModel;
 
 class ItemVariantTypeSeeder extends Seeder
 {
@@ -19,7 +19,7 @@ class ItemVariantTypeSeeder extends Seeder
         $createdById = 1;
 
         foreach ($variantType as $name) {
-            ItemVariantType::create([
+            ItemVariantTypeModel::create([
                 'created_by_id' => $createdById,
                 'name' => $name,
             ]);

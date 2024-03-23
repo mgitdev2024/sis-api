@@ -16,9 +16,11 @@ return new class extends Migration {
             $table->string('description');
             $table->unsignedBigInteger('item_classification_id');
             $table->unsignedBigInteger('item_variant_type_id');
-            $table->unsignedBigInteger('conversion_id');
+            $table->unsignedBigInteger('uom_id');
             $table->integer('primary_item_packing_size');
+            $table->unsignedBigInteger('primary_conversion_id');
             $table->integer('secondary_item_packing_size');
+            $table->unsignedBigInteger('secondary_conversion_id');
             $table->integer('shelf_life');
             $table->unsignedBigInteger('plant_id');
             $table->unsignedBigInteger('created_by_id');
@@ -31,6 +33,9 @@ return new class extends Migration {
             $table->foreign('item_classification_id')->references('id')->on('item_classifications')->onDelete('restrict');
             $table->foreign('item_variant_type_id')->references('id')->on('item_variant_types')->onDelete('restrict');
             $table->foreign('plant_id')->references('id')->on('plants')->onDelete('restrict');
+            $table->foreign('uom_id')->references('id')->on('uom')->onDelete('restrict');
+            $table->foreign('primary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
+            $table->foreign('secondary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
         });
     }
 

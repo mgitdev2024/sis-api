@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
-use App\Models\Items\ItemMasterdata;
+use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -26,16 +26,16 @@ class ItemMasterdataController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemMasterdata::class, $request, $this->getRules(), 'Item Masterdata');
+        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemMasterdata::class, $request, $this->getRules($id), 'Item Masterdata', $id);
+        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['name', 'item_code'];
-        return $this->readPaginatedRecord(ItemMasterdata::class, $request, $searchableFields, 'Item Masterdata');
+        return $this->readPaginatedRecord(ItemMasterdataModel::class, $request, $searchableFields, 'Item Masterdata');
     }
     public function onGetAll()
     {
@@ -43,14 +43,14 @@ class ItemMasterdataController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemMasterdata::class, $id, 'Item Masterdata');
+        return $this->readRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemMasterdata::class, $id, 'Item Masterdata');
+        return $this->deleteRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ItemMasterdata::class, $id, 'Item Masterdata');
+        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
 }

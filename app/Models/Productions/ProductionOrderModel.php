@@ -2,11 +2,11 @@
 
 namespace App\Models\Productions;
 
-use App\Models\Credential;
+use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionOrder extends Model
+class ProductionOrderModel extends Model
 {
     use HasFactory;
 
@@ -21,11 +21,11 @@ class ProductionOrder extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(Credential::class, 'created_by_id');
+        return $this->belongsTo(CredentialModel::class, 'created_by_id');
     }
     public function updatedBy()
     {
-        return $this->belongsTo(Credential::class, 'updated_by_id');
+        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
 
     public static function onGenerateProductionReferenceNumber()

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Facility;
 
 use App\Http\Controllers\Controller;
-use App\Models\Facility\Plant;
+use App\Models\Settings\Facility\PlantModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -25,27 +25,27 @@ class PlantController extends Controller
 
     public function onCreate(Request $request)
     {
-        return $this->createRecord(Plant::class, $request, $this->getRules(), 'Plant');
+        return $this->createRecord(PlantModel::class, $request, $this->getRules(), 'Plant');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(Plant::class, $request, $this->getRules($id), 'Plant', $id);
+        return $this->updateRecordById(PlantModel::class, $request, $this->getRules($id), 'Plant', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['short_name', 'long_name'];
-        return $this->readPaginatedRecord(Plant::class, $request, $searchableFields, 'Plant');
+        return $this->readPaginatedRecord(PlantModel::class, $request, $searchableFields, 'Plant');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(Plant::class, $id, 'Plant');
+        return $this->readRecordById(PlantModel::class, $id, 'Plant');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(Plant::class, $id, 'Plant');
+        return $this->deleteRecordById(PlantModel::class, $id, 'Plant');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(Plant::class, $id, 'Plant');
+        return $this->changeStatusRecordById(PlantModel::class, $id, 'Plant');
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Facility\Plant;
+use App\Models\Settings\Facility\PlantModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -55,7 +55,7 @@ class PlantSeeder extends Seeder
         $createdById = 1;
 
         foreach ($plantData as $value) {
-            Plant::create([
+            PlantModel::create([
                 'created_by_id' => $createdById,
                 'short_name' => $value['short_name'],
                 'long_name' => $value['long_name'],

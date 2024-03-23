@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models\Delivery;
+namespace App\Models\Settings\Delivery;
 
-use App\Models\Credential;
+use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DeliveryType extends Model
+class DeliveryTypeModel extends Model
 {
     use HasFactory;
     protected $table = 'delivery_types';
@@ -20,10 +20,10 @@ class DeliveryType extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(Credential::class, 'created_by_id');
+        return $this->belongsTo(CredentialModel::class, 'created_by_id');
     }
     public function updatedBy()
     {
-        return $this->belongsTo(Credential::class, 'updated_by_id');
+        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
 }
