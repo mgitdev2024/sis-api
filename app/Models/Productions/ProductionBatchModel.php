@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionBatchModel extends Model
 {
     use HasFactory;
+    protected $appends = ['batch_type_label'];
     protected $table = 'production_batch';
     protected $fillable = [
         'production_otb_id',
@@ -42,13 +43,27 @@ class ProductionBatchModel extends Model
         return $this->belongsTo(ProducedItemModel::class, 'produced_item_id');
     }
 
-    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
+    public function getBatchTypeLabelAttribute()
+    {
+        $batchType = ['Fresh', 'Reprocessed'];
+        return $batchType[$this->batch_type];
+    }
+
+    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $isReprocessed = false)
     {
         $itemCode = str_replace(' ', '', $itemCode);
         $monthCode = chr(date('n') + 64);
         $day = date('j');
 
-        $batchCode = $monthCode . $day . '-' . $itemCode . str_pad($batchNumber, 2, '0', STR_PAD_LEFT) . '-' . $deliveryType;
+        $batchCode = $monthCode . $day . '-' . $itemCode . str_pad($batchNumber, 2, '0', STR_PAD_LEFT);
+
+        if ($deliveryType != null || $deliveryType != "") {
+            $batchCode .= '-' . $deliveryType;
+        }
+
+        if ($isReprocessed) {
+            $batchCode .= '-R';
+        }
 
         return $batchCode;
     }

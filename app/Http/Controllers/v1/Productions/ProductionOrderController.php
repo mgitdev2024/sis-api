@@ -48,7 +48,7 @@ class ProductionOrderController extends Controller
     public function onGetCurrent($id = null)
     {
         $whereFields = [
-            'status' => $id != null ? 0 : 1
+            'status' => 1
         ];
         $id != null ? $whereFields['id'] = $id : "";
         return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, 'Production Order');
