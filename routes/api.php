@@ -123,6 +123,14 @@ Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\Pr
 Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);
 Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetCurrent']);
 #endregion
+#region Production Batch
+Route::post('v1/production/batch/create', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onCreate']);
+Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onUpdateById']);
+Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetPaginatedList']);
+Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
+Route::get('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
+Route::get('v1/production/batch/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
+#endregion
 
 #region Category
 Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onCreate']);
