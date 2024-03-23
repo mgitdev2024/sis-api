@@ -74,7 +74,6 @@ Route::post('v1/plant/update/{id}', [App\Http\Controllers\v1\Settings\Facility\P
 Route::post('v1/plant/get', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetPaginatedList']);
 Route::get('v1/plant/get/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetById']);
 Route::get('v1/plant/status/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onChangeStatus']);
-Route::get('v1/plant/current/{id?}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetCurrent']);
 #endregion
 
 #region Delivery Types
