@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->date('expiration_date')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(0);
             $table->timestamps();
 
             $table->foreign('created_by_id')->references('id')->on('credentials');

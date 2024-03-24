@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('produced_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_batch_id');
-            $table->string('produced_items'); // JSON
+            $table->text('produced_items'); // JSON
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->tinyInteger('status')->default(1);

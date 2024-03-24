@@ -18,12 +18,12 @@ class ItemMasterdataSeeder extends Seeder
         $createdById = 1;
         $itemMasterdata = [
             [
-                'description' => 'Cheeseroll Box of 6',
-                'item_code' => 'CR6 BX',
+                'description' => 'Cheeseroll Box of 12',
+                'item_code' => 'CR12',
                 'item_classification_id' => '1',
                 'item_variant_type_id' => '7',
                 'uom_id' => '1',
-                'primary_item_packing_size' => 1,
+                'primary_item_packing_size' => 12,
                 'primary_conversion_id' => 1,
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
