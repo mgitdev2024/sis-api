@@ -126,6 +126,7 @@ Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\Production
 Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetPaginatedList']);
 Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
 Route::get('v1/produced/items/status/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
+Route::post('v1/produced/items/scan/deactivate', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
 #endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
