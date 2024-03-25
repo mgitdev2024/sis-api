@@ -51,7 +51,8 @@ class ProductionOrderController extends Controller
             'status' => 1
         ];
         $id != null ? $whereFields['id'] = $id : "";
-        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, 'Production Order');
+        $withFields = ['productionOta', 'productionOtb'];
+        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, $withFields, 'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {

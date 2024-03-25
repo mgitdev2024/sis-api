@@ -27,7 +27,15 @@ class ProductionOrderModel extends Model
     {
         return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
+    public function productionOta()
+    {
+        return $this->hasMany(ProductionOTAModel::class, 'production_order_id', 'id');
+    }
 
+    public function productionOtb()
+    {
+        return $this->hasMany(ProductionOTBModel::class, 'production_order_id', 'id');
+    }
     public static function onGenerateProductionReferenceNumber()
     {
         $latestProductionOrder = static::latest()->value('id');

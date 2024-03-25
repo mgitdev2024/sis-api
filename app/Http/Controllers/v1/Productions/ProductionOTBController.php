@@ -64,6 +64,6 @@ class ProductionOTBController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, 'Production OTB');
+        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, 'Production OTB');
     }
 }

@@ -64,6 +64,6 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, 'Production OTA');
     }
 }

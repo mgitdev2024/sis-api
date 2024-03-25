@@ -121,6 +121,12 @@ Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\
 Route::get('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
 #endregion
 
+#region Production Items
+Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onUpdateById']);
+Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetPaginatedList']);
+Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
+Route::get('v1/produced/items/status/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
+#endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
