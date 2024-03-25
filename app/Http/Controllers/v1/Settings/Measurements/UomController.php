@@ -20,8 +20,7 @@ class UomController extends Controller
             'long_uom' => 'required|string',
         ];
     }
-
-    public function onCreate(Request $request)
+     public function onCreate(Request $request)
     {
         return $this->createRecord(UomModel::class, $request, $this->getRules(), 'UOM');
     }

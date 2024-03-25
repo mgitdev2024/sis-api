@@ -19,8 +19,16 @@ class ItemMasterdataController extends Controller
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
             'shelf_life' => 'nullable|integer',
+            'category_id' => 'required|integer|exists:categories,id',
+            'sub_category_id' => 'required|integer|exists:sub_categories,id',
             'item_classification_id' => 'required|integer|exists:item_classifications,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
+            'uom_id' => 'required|integer|exists:uom,id',
+            'primary_item_packing_size' => 'required|integer',
+            'primary_conversion_id' => 'required|integer|exists:conversions,id',
+            'secondary_item_packing_size' => 'required|integer',
+            'secondary_conversion_id' => 'required|integer|exists:conversions,id',
+            'plant_id' => 'required|integer|exists:plants,id',
         ];
     }
 
