@@ -46,7 +46,7 @@ Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Setti
 #region Item Masterdata
 Route::post('v1/item/masterdata/create', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onCreate']);
 Route::post('v1/item/masterdata/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onUpdateById']);
-Route::post('v1/item/masterdata/get', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
+Route::post('v1/item/masterdata/paginated', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
 Route::get('v1/item/masterdata/all', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetAll']);
 Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetById']);
 Route::get('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onChangeStatus']);
@@ -56,7 +56,7 @@ Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Setting
 #region Measurement Conversion
 Route::post('v1/conversion/create', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onCreate']);
 Route::post('v1/conversion/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onUpdateById']);
-Route::post('v1/conversion/get', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetPaginatedList']);
+Route::post('v1/conversion/paginated', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetPaginatedList']);
 Route::get('v1/conversion/all', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetAll']);
 Route::get('v1/conversion/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onGetById']);
 Route::get('v1/conversion/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\ConversionController::class, 'onChangeStatus']);
@@ -66,7 +66,7 @@ Route::delete('v1/conversion/delete/{id}', [App\Http\Controllers\v1\Settings\Mea
 #region Measurement UOM
 Route::post('v1/uom/create', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onCreate']);
 Route::post('v1/uom/update/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onUpdateById']);
-Route::post('v1/uom/get', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetPaginatedList']);
+Route::post('v1/uom/paginated', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetPaginatedList']);
 Route::get('v1/uom/all', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetAll']);
 Route::get('v1/uom/get/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onGetById']);
 Route::get('v1/uom/status/{id}', [App\Http\Controllers\v1\Settings\Measurements\UomController::class, 'onChangeStatus']);
@@ -76,7 +76,7 @@ Route::delete('v1/uom/delete/{id}', [App\Http\Controllers\v1\Settings\Measuremen
 #region Facility Plant
 Route::post('v1/plant/create', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onCreate']);
 Route::post('v1/plant/update/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onUpdateById']);
-Route::post('v1/plant/get', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetPaginatedList']);
+Route::post('v1/plant/paginated', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetPaginatedList']);
 Route::get('v1/plant/all', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetAll']);
 Route::get('v1/plant/get/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onGetById']);
 Route::get('v1/plant/status/{id}', [App\Http\Controllers\v1\Settings\Facility\PlantController::class, 'onChangeStatus']);
@@ -86,7 +86,7 @@ Route::delete('v1/plant/delete/{id}', [App\Http\Controllers\v1\Settings\Facility
 #region Delivery Types
 Route::post('v1/delivery/type/create', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onCreate']);
 Route::post('v1/delivery/type/update/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onUpdateById']);
-Route::post('v1/delivery/type/get', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetPaginatedList']);
+Route::post('v1/delivery/type/paginated', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetPaginatedList']);
 Route::get('v1/delivery/type/all', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetAll']);
 Route::get('v1/delivery/type/get/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onGetById']);
 Route::get('v1/delivery/type/status/{id}', [App\Http\Controllers\v1\Settings\Delivery\DeliveryTypeController::class, 'onChangeStatus']);
@@ -96,7 +96,7 @@ Route::delete('v1/delivery/type/delete/{id}', [App\Http\Controllers\v1\Settings\
 #region Production Orders
 Route::post('v1/production/order/create', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onCreate']);
 Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onUpdateById']);
-Route::post('v1/production/order/get', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetPaginatedList']);
+Route::post('v1/production/order/paginated', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetPaginatedList']);
 Route::get('v1/production/order/all', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetAll']);
 Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetById']);
 Route::get('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
@@ -107,7 +107,7 @@ Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Product
 #region Production OTA
 Route::post('v1/production/ota/create', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onCreate']);
 Route::post('v1/production/ota/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onUpdateById']);
-Route::post('v1/production/ota/get', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetPaginatedList']);
+Route::post('v1/production/ota/paginated', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetPaginatedList']);
 Route::get('v1/production/ota/all', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetAll']);
 Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetById']);
 Route::get('v1/production/ota/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onChangeStatus']);
@@ -117,7 +117,7 @@ Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\Productio
 #region Production OTB
 Route::post('v1/production/otb/create', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onCreate']);
 Route::post('v1/production/otb/update/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onUpdateById']);
-Route::post('v1/production/otb/get', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetPaginatedList']);
+Route::post('v1/production/otb/paginated', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetPaginatedList']);
 Route::get('v1/production/otb/all', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetAll']);
 Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetById']);
 Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);

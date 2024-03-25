@@ -13,6 +13,7 @@ class ItemMasterdataController extends Controller
 
     public static function getRules($itemId = null)
     {
+    
         return [
             'created_by_id' => 'required|exists:credentials,id',
             'updated_by_id' => 'nullable|exists:credentials,id',
@@ -29,9 +30,19 @@ class ItemMasterdataController extends Controller
             'secondary_item_packing_size' => 'required|integer',
             'secondary_conversion_id' => 'required|integer|exists:conversions,id',
             'plant_id' => 'required|integer|exists:plants,id',
+            'storage_type_id' => 'required|integer|exists:storage_type,id',
+            'stock_type_id' => 'required|integer|exists:stock_type,id',
+            'item_movement_id' => 'required|integer|exists:item_movement,id',
+            'delivery_lead_time' => 'required|integer',
+            're_order_level' => 'required|integer',
+            'stock_rotation_type' => 'required|integer',
+            'qty_per_pallet' => 'required|integer',
+            'dimension' => 'nullable|string',
+            'is_qa_required' => 'required|integer',
+            'is_qa_disposal' => 'required|integer',
+            'image' => 'nullable|string',
         ];
     }
-
     public function onCreate(Request $request)
     {
         return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata');

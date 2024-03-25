@@ -83,7 +83,6 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(PlantModel::class, 'plant_id', 'id');
     }
-
     public function getStockRotationTypeLabelAttribute()
     {
         $stockRotationTypeLabel = array("FIFO", "FEFO");
