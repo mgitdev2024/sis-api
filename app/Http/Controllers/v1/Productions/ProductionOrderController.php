@@ -93,7 +93,7 @@ class ProductionOrderController extends Controller
                     $productionOTB->delivery_type = $value['delivery_type'];
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $value['quantity'];
-                    $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
+                    $productionOTB->buffer_level = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                     $productionOTB->plotted_quantity = $value['total'];
                     $productionOTB->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
                     $productionOTB->created_by_id = $createdById;

@@ -17,7 +17,7 @@ class ProductionOTBController extends Controller
             'updated_by_id' => 'nullable|exists:credentials,id',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
-            'production_date' => 'required|date,format:Y-m-d',
+            'production_date' => 'required|date_format:Y-m-d',
         ];
     }
 

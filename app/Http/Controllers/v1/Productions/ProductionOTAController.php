@@ -17,7 +17,7 @@ class ProductionOTAController extends Controller
             'updated_by_id' => 'nullable|exists:credentials,id',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
-            'production_date' => 'required|date,format:Y-m-d',
+            'production_date' => 'required|date_format:Y-m-d',
         ];
     }
 
@@ -27,7 +27,13 @@ class ProductionOTAController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOTAModel::class, $request, $this->getRules(), 'Production OTA', $id);
+        $rules = [
+            'created_by_id' => 'required|exists:credentials,id',
+            'updated_by_id' => 'nullable|exists:credentials,id',
+            'plotted_quantity' => 'required|integer',
+            'actual_quantity' => 'required|integer',
+        ];
+        return $this->updateRecordById(ProductionOTAModel::class, $request, $rules, 'Production OTA', $id);
     }
     public function onGetPaginatedList(Request $request)
     {

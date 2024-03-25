@@ -15,19 +15,19 @@ class ProducedItemController extends Controller
         $rules = [
             'expiration_date' => 'required|date',
         ];
-        return $this->updateRecordById(ProducedItemModel::class, $request, $rules, 'Produced Model', $id);
+        return $this->updateRecordById(ProducedItemModel::class, $request, $rules, 'Produced Item', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['reference_number', 'production_date'];
-        return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Model');
+        return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Item');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Model');
+        return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProducedItemModel::class, $id, 'Produced Model');
+        return $this->changeStatusRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
 }
