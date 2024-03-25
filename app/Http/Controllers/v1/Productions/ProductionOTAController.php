@@ -31,7 +31,7 @@ class ProductionOTAController extends Controller
             'created_by_id' => 'required|exists:credentials,id',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'plotted_quantity' => 'required|integer',
-            'actual_quantity' => 'required|integer',
+            'actual_quantity' => 'nullable|integer',
         ];
         return $this->updateRecordById(ProductionOTAModel::class, $request, $rules, 'Production OTA', $id);
     }

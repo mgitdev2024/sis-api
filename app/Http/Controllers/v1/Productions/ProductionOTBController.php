@@ -27,7 +27,13 @@ class ProductionOTBController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOTBModel::class, $request, $this->getRules(), 'Production OTB', $id);
+        $rules = [
+            'created_by_id' => 'required|exists:credentials,id',
+            'updated_by_id' => 'nullable|exists:credentials,id',
+            'plotted_quantity' => 'required|integer',
+            'actual_quantity' => 'nullable|integer',
+        ];
+        return $this->updateRecordById(ProductionOTBModel::class, $request, $rules, 'Production OTB', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
