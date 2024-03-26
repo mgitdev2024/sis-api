@@ -49,4 +49,11 @@ class ItemMasterdataController extends Controller
     {
         return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [
+            'item_code' => $id
+        ];
+        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, 'Item Masterdata');
+    }
 }

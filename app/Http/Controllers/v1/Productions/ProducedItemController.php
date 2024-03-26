@@ -60,4 +60,6 @@ class ProducedItemController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+
 }

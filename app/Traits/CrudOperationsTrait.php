@@ -145,6 +145,7 @@ trait CrudOperationsTrait
             }
 
             $dataList = $data->get();
+
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }

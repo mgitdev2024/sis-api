@@ -48,6 +48,7 @@ Route::post('v1/item/masterdata/get', [App\Http\Controllers\v1\Settings\Items\It
 Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetById']);
 Route::get('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onChangeStatus']);
 Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onDeleteById']);
+Route::get('v1/item/masterdata/current/{id?}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetCurrent']);
 #endregion
 
 #region Measurement Conversion
