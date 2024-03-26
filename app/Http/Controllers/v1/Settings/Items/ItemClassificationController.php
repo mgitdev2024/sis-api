@@ -19,6 +19,7 @@ class ItemClassificationController extends Controller
             'name' => 'required|string|unique:item_classifications,name,' . $itemId,
         ];
     }
+
     public function onCreate(Request $request)
     {
         return $this->createRecord(ItemClassificationModel::class, $request, $this->getRules(), 'Item Classification');
@@ -31,10 +32,6 @@ class ItemClassificationController extends Controller
     {
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ItemClassificationModel::class, $request, $searchableFields, 'Item Classification');
-    }
-    public function onGetAll()
-    {
-        return $this->readRecord(ItemClassificationModel::class, 'Item Classification');
     }
     public function onGetById($id)
     {
