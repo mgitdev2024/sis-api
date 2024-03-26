@@ -157,8 +157,8 @@ class ProductionBatchController extends Controller
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
                 $itemArray = [
                     'bid' => $productionBatch->id,
-                    's' => 1,
                     'q' => $itemQuantity,
+                    'status' => 1,
                     'quality' => 'Fresh',
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];
@@ -194,6 +194,14 @@ class ProductionBatchController extends Controller
     public function onChangeStatus($id)
     {
         return $this->changeStatusRecordById(ProductionBatchModel::class, $id, 'Production Batches');
+    }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [
+            'id' => $id,
+        ];
+        $withFields = ['producedItem'];
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Order');
     }
 }
 
