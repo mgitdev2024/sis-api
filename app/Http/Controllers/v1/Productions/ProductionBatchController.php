@@ -218,7 +218,7 @@ class ProductionBatchController extends Controller
             'id' => $id,
         ];
         $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Batches');
     }
 }
 
