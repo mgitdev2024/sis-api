@@ -34,6 +34,10 @@ class ConversionController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ConversionModel::class, $request, $searchableFields, 'Conversions');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ConversionModel::class, 'Conversions');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ConversionModel::class, $id, 'Conversions');

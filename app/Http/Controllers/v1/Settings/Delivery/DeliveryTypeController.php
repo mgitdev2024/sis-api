@@ -34,6 +34,10 @@ class DeliveryTypeController extends Controller
         $searchableFields = ['type', 'description'];
         return $this->readPaginatedRecord(DeliveryTypeModel::class, $request, $searchableFields, 'Delivery Type');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(DeliveryTypeModel::class, 'Delivery Type');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
