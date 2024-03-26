@@ -195,5 +195,13 @@ class ProductionBatchController extends Controller
     {
         return $this->changeStatusRecordById(ProductionBatchModel::class, $id, 'Production Batches');
     }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [
+            'id' => $id,
+        ];
+        $withFields = ['producedItem'];
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Order');
+    }
 }
 
