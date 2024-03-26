@@ -47,11 +47,18 @@ class ProductionOrderController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $whereFields = [
-            'status' => 1
-        ];
-        $id != null ? $whereFields['id'] = $id : "";
-        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, 'Production Order');
+        $whereFields = [];
+
+        $date_string = $id;
+        $date_object = \DateTime::createFromFormat('Y-m-d', $date_string);
+        if ($date_object && $date_object->format('Y-m-d') === $date_string) {
+            $whereFields['production_date'] = $date_string;
+        } else {
+            $id != null ? $whereFields['id'] = $id : "";
+        }
+
+        // $withFields = ['productionOta', 'productionOtb'];
+        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -91,7 +98,7 @@ class ProductionOrderController extends Controller
                     $productionOTB->delivery_type = $value['delivery_type'];
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $value['quantity'];
-                    $productionOTB->buffer_level = floatval($value['buffer_level']) / 100;
+                    $productionOTB->buffer_level = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                     $productionOTB->plotted_quantity = $value['total'];
                     $productionOTB->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
                     $productionOTB->created_by_id = $createdById;

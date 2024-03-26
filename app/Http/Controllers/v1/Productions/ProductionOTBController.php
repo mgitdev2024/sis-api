@@ -17,7 +17,7 @@ class ProductionOTBController extends Controller
             'updated_by_id' => 'nullable|exists:credentials,id',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
-            'production_date' => 'required|date,format:Y-m-d',
+            'production_date' => 'required|date_format:Y-m-d',
         ];
     }
 
@@ -27,7 +27,13 @@ class ProductionOTBController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ProductionOTBModel::class, $request, $this->getRules(), 'Production OTB', $id);
+        $rules = [
+            'created_by_id' => 'required|exists:credentials,id',
+            'updated_by_id' => 'nullable|exists:credentials,id',
+            'plotted_quantity' => 'required|integer',
+            'actual_quantity' => 'nullable|integer',
+        ];
+        return $this->updateRecordById(ProductionOTBModel::class, $request, $rules, 'Production OTB', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
@@ -64,6 +70,6 @@ class ProductionOTBController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, 'Production OTB');
+        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, 'Production OTB');
     }
 }
