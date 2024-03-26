@@ -20,7 +20,7 @@ class ItemMasterdataModel extends Model
         'primary_conversion_label',
         'secondary_conversion_label',
         'plant_label',
-        'stock_rotation_type_label'
+        // 'stock_rotation_type_label'
     ];
     protected $fillable = [
         'item_code',

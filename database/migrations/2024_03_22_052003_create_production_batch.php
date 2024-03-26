@@ -12,7 +12,8 @@ return new class extends Migration {
     {
         Schema::create('production_batch', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('production_otb_id');
+            $table->unsignedBigInteger('production_otb_id')->nullable();
+            $table->unsignedBigInteger('production_ota_id')->nullable();
             $table->unsignedBigInteger('produced_item_id')->nullable();
             $table->string('batch_code');
             $table->integer('batch_number');
