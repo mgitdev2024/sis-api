@@ -36,7 +36,7 @@ class ProductionBatchController extends Controller
         try {
             $batch = null;
             DB::beginTransaction();
-            if (isset ($fields['production_batch_id'])) {
+            if (isset($fields['production_batch_id'])) {
                 $batch = $this->onAddToExistingBatch($fields);
             } else {
                 $batch = $this->onInitialBatch($fields);
@@ -54,7 +54,7 @@ class ProductionBatchController extends Controller
     {
         try {
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
-            $productionToBakeAssemble = isset ($fields['production_otb_id'])
+            $productionToBakeAssemble = isset($fields['production_otb_id'])
                 ? ProductionOTBModel::find($fields['production_otb_id'])
                 : ProductionOTAModel::find($fields['production_ota_id']);
 
@@ -82,6 +82,7 @@ class ProductionBatchController extends Controller
                     's' => 1,
                     'q' => $itemQuantity,
                     'quality' => 'Reprocessed',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
                 ];
                 $secondaryValue -= $primaryPackingSize;
@@ -107,7 +108,7 @@ class ProductionBatchController extends Controller
         try {
             $batchNumberProdName = null;
             $productionToBakeAssemble = null;
-            if (isset ($fields['production_otb_id'])) {
+            if (isset($fields['production_otb_id'])) {
                 $batchNumberProdName = 'production_otb_id';
                 $productionToBakeAssemble = ProductionOTBModel::find($fields['production_otb_id']);
             } else {
@@ -177,6 +178,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'status' => 1,
                     'quality' => 'Fresh',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];
                 $secondaryValue -= $primaryPackingSize;
