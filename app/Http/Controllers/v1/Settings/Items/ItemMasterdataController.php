@@ -13,7 +13,7 @@ class ItemMasterdataController extends Controller
 
     public static function getRules($itemId = null)
     {
-    
+
         return [
             'created_by_id' => 'required|exists:credentials,id',
             'updated_by_id' => 'nullable|exists:credentials,id',
@@ -71,5 +71,12 @@ class ItemMasterdataController extends Controller
     public function onChangeStatus($id)
     {
         return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
+    }
+    public function onGetCurrent($id = null)
+    {
+        $whereFields = [
+            'item_code' => $id
+        ];
+        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, 'Item Masterdata');
     }
 }

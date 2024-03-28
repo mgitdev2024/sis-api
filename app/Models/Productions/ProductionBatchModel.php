@@ -13,6 +13,7 @@ class ProductionBatchModel extends Model
     protected $table = 'production_batch';
     protected $fillable = [
         'production_otb_id',
+        'production_ota_id',
         'produced_item_id',
         'batch_code',
         'batch_number',

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
+use App\Models\Productions\ProductionOTAModel;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
@@ -21,7 +22,8 @@ class ProductionBatchController extends Controller
     {
         return [
             'production_batch_id' => 'nullable|integer|exists:production_batch,id',
-            'production_otb_id' => 'required|exists:production_otb,id',
+            'production_ota_id' => 'nullable|exists:production_ota,id',
+            'production_otb_id' => 'nullable|exists:production_otb,id',
             'batch_type' => 'required|integer|in:0,1',
             'quantity' => 'required',
             'expiration_date' => 'nullable|date',
@@ -34,7 +36,7 @@ class ProductionBatchController extends Controller
         try {
             $batch = null;
             DB::beginTransaction();
-            if (isset ($fields['production_batch_id'])) {
+            if (isset($fields['production_batch_id'])) {
                 $batch = $this->onAddToExistingBatch($fields);
             } else {
                 $batch = $this->onInitialBatch($fields);
@@ -52,8 +54,12 @@ class ProductionBatchController extends Controller
     {
         try {
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
-            $productionOtb = ProductionOTBModel::find($fields['production_otb_id']);
-            $itemMasterdata = ItemMasterdataModel::where('item_code', $productionOtb->item_code)->first();
+            $productionToBakeAssemble = isset($fields['production_otb_id'])
+                ? ProductionOTBModel::find($fields['production_otb_id'])
+                : ProductionOTAModel::find($fields['production_ota_id']);
+
+
+            $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
             $producedItems = ProducedItemModel::where('production_batch_id', $productionBatch->id)->first();
 
@@ -76,6 +82,7 @@ class ProductionBatchController extends Controller
                     's' => 1,
                     'q' => $itemQuantity,
                     'quality' => 'Reprocessed',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
                 ];
                 $secondaryValue -= $primaryPackingSize;
@@ -99,11 +106,19 @@ class ProductionBatchController extends Controller
     public function onInitialBatch($fields)
     {
         try {
-            $productionOtb = ProductionOTBModel::find($fields['production_otb_id']);
-            $fields['expiration_date'] = $fields['expiration_date'] ?? $productionOtb->expected_expiration_date;
-            $itemCode = $productionOtb->item_code;
-            $deliveryType = $productionOtb->delivery_type;
-            $batchNumber = count(ProductionBatchModel::where('production_otb_id', $productionOtb->id)->get()) + 1;
+            $batchNumberProdName = null;
+            $productionToBakeAssemble = null;
+            if (isset($fields['production_otb_id'])) {
+                $batchNumberProdName = 'production_otb_id';
+                $productionToBakeAssemble = ProductionOTBModel::find($fields['production_otb_id']);
+            } else {
+                $batchNumberProdName = 'production_ota_id';
+                $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
+            }
+            $fields['expiration_date'] = $fields['expiration_date'] ?? $productionToBakeAssemble->expected_expiration_date;
+            $itemCode = $productionToBakeAssemble->item_code;
+            $deliveryType = $productionToBakeAssemble->delivery_type;
+            $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
             $batchCode = ProductionBatchModel::generateBatchCode($itemCode, $deliveryType, $batchNumber);
             $productionBatch = new ProductionBatchModel();
             $productionBatch->fill($fields);
@@ -144,8 +159,11 @@ class ProductionBatchController extends Controller
             $primaryValue = intval($quantity[$keys[0]]) ?? 0;
             $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
 
-            $productionOtb = ProductionOTBModel::find($productionBatch->production_otb_id);
-            $itemMasterdata = ItemMasterdataModel::where('item_code', $productionOtb->item_code)->first();
+            $productionToBakeAssemble = $productionBatch->production_otb_id
+                ? ProductionOTBModel::find($productionBatch->production_otb_id)
+                : ProductionOTAModel::find($productionBatch->production_ota_id);
+
+            $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
 
             $producedItems = new ProducedItemModel();
@@ -160,6 +178,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'status' => 1,
                     'quality' => 'Fresh',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];
                 $secondaryValue -= $primaryPackingSize;
@@ -201,7 +220,7 @@ class ProductionBatchController extends Controller
             'id' => $id,
         ];
         $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Batches');
     }
 }
 
