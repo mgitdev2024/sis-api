@@ -82,6 +82,7 @@ class ProductionBatchController extends Controller
                     's' => 1,
                     'q' => $itemQuantity,
                     'quality' => 'Reprocessed',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
                 ];
                 $secondaryValue -= $primaryPackingSize;
@@ -177,6 +178,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'status' => 1,
                     'quality' => 'Fresh',
+                    'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];
                 $secondaryValue -= $primaryPackingSize;
