@@ -20,7 +20,8 @@ class UomController extends Controller
             'long_uom' => 'required|string',
         ];
     }
-     public function onCreate(Request $request)
+
+    public function onCreate(Request $request)
     {
         return $this->createRecord(UomModel::class, $request, $this->getRules(), 'UOM');
     }
@@ -32,10 +33,6 @@ class UomController extends Controller
     {
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(UomModel::class, $request, $searchableFields, 'UOM');
-    }
-    public function onGetAll()
-    {
-        return $this->readRecord(UomModel::class, 'UOM');
     }
     public function onGetById($id)
     {

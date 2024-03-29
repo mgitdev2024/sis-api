@@ -180,8 +180,9 @@ return [
     | the HTTP protocol. You are free to modify this option if needed.
     |
     */
-    'same_site' => 'lax',
+
     'http_only' => true,
+
     /*
     |--------------------------------------------------------------------------
     | Same-Site Cookies
@@ -194,5 +195,7 @@ return [
     | Supported: "lax", "strict", "none", null
     |
     */
+
+    'same_site' => 'lax',
 
 ];
