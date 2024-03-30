@@ -45,7 +45,24 @@ class ProductionOrderController extends Controller
     {
         return $this->changeStatusRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
+
+
     public function onGetCurrent($id = null)
+    {
+        $whereFields = [];
+        $date_string = $id;
+        $date_object = \DateTime::createFromFormat('Y-m-d', $date_string);
+        if ($date_object && $date_object->format('Y-m-d') === $date_string) {
+            $whereFields['production_date'] = $date_string;
+        } else {
+            $id != null ? $whereFields['id'] = $id : "";
+        }
+
+        // $withFields = ['productionOta', 'productionOtb'];
+        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
+    }
+    
+    /* public function onGetCurrent($id = null)
     {
         $whereFields = [];
 
@@ -59,7 +76,7 @@ class ProductionOrderController extends Controller
 
         // $withFields = ['productionOta', 'productionOtb'];
         return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
-    }
+    } */
     public function onBulkUploadProductionOrder(Request $request)
     {
         $request->validate([
