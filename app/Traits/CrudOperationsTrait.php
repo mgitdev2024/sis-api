@@ -139,13 +139,10 @@ trait CrudOperationsTrait
             foreach ($whereFields as $field => $value) {
                 $data->where($field, $value);
             }
-
             if ($withFields != null) {
                 $data->with($withFields);
             }
-
             $dataList = $data->get();
-
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }

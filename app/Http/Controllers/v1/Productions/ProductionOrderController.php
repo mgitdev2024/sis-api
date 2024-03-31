@@ -50,22 +50,26 @@ class ProductionOrderController extends Controller
     public function onGetCurrent($id = null)
     {
         $whereFields = [];
-        $date_string = $id;
-        $date_object = \DateTime::createFromFormat('Y-m-d', $date_string);
-        if ($date_object && $date_object->format('Y-m-d') === $date_string) {
-            $whereFields['production_date'] = $date_string;
-        } else {
+        $whereObject = \DateTime::createFromFormat('Y-m-d', $id);
+        if ($whereObject && $whereObject->format('Y-m-d') === $whereObject) {
+            $whereFields['production_date'] = $whereObject;
+            return 'asds';
+        }/*  else {
             $id != null ? $whereFields['id'] = $id : "";
-        }
+            return 'test';
+        } */
+        $today = new \DateTime('today');
+        $tomorrow = new \DateTime('tomorrow');
+        $whereFields['production_date'] = $today->format('Y-m-d');
+        $whereFields['production_date'] = $tomorrow->format('Y-m-d');
 
-        // $withFields = ['productionOta', 'productionOtb'];
+
+
         return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
     }
-    
     /* public function onGetCurrent($id = null)
     {
         $whereFields = [];
-
         $date_string = $id;
         $date_object = \DateTime::createFromFormat('Y-m-d', $date_string);
         if ($date_object && $date_object->format('Y-m-d') === $date_string) {
@@ -73,7 +77,6 @@ class ProductionOrderController extends Controller
         } else {
             $id != null ? $whereFields['id'] = $id : "";
         }
-
         // $withFields = ['productionOta', 'productionOtb'];
         return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
     } */
