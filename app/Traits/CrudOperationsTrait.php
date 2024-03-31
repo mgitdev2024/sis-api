@@ -134,10 +134,17 @@ trait CrudOperationsTrait
     public function readCurrentRecord($model, $id, $whereFields, $withFields = null, $modelName)
     {
         try {
-
             $data = $model::orderBy('id', 'ASC');
             foreach ($whereFields as $field => $value) {
-                $data->where($field, $value);
+                if (is_array($value)) {
+                    $data->where(function ($query) use ($field, $value) {
+                        foreach ($value as $whereValue) {
+                            $query->orWhere($field, $whereValue);
+                        }
+                    });
+                } else {
+                    $data->where($field, $value);
+                }
             }
             if ($withFields != null) {
                 $data->with($withFields);

@@ -45,41 +45,21 @@ class ProductionOrderController extends Controller
     {
         return $this->changeStatusRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-
-
-    public function onGetCurrent($id = null)
+    public function onGetCurrent($filter = null)
     {
         $whereFields = [];
-        $whereObject = \DateTime::createFromFormat('Y-m-d', $id);
-        if ($whereObject && $whereObject->format('Y-m-d') === $whereObject) {
-            $whereFields['production_date'] = $whereObject;
-            return 'asds';
-        }/*  else {
-            $id != null ? $whereFields['id'] = $id : "";
-            return 'test';
-        } */
-        $today = new \DateTime('today');
-        $tomorrow = new \DateTime('tomorrow');
-        $whereFields['production_date'] = $today->format('Y-m-d');
-        $whereFields['production_date'] = $tomorrow->format('Y-m-d');
-
-
-
-        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
-    }
-    /* public function onGetCurrent($id = null)
-    {
-        $whereFields = [];
-        $date_string = $id;
-        $date_object = \DateTime::createFromFormat('Y-m-d', $date_string);
-        if ($date_object && $date_object->format('Y-m-d') === $date_string) {
-            $whereFields['production_date'] = $date_string;
-        } else {
-            $id != null ? $whereFields['id'] = $id : "";
+        $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+        if($whereObject && $whereObject->format('Y-m-d') === $filter){
+            $whereFields['production_date'] = $filter;
+        }elseif($filter){
+            $filter != null ? $whereFields['id'] = $filter : "";
+        }else{
+            $today = new \DateTime('today');
+            $tomorrow = new \DateTime('tomorrow');
+            $whereFields['production_date'] = [$today->format('Y-m-d'),$tomorrow->format('Y-m-d')];
         }
-        // $withFields = ['productionOta', 'productionOtb'];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $id, $whereFields, null, 'Production Order');
-    } */
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, 'Production Order');
+    }
     public function onBulkUploadProductionOrder(Request $request)
     {
         $request->validate([
