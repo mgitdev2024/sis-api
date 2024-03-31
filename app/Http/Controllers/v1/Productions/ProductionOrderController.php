@@ -56,6 +56,8 @@ class ProductionOrderController extends Controller
         }else{
             $today = new \DateTime('today');
             $tomorrow = new \DateTime('tomorrow');
+            $today->modify('+1 day');
+            $tomorrow->modify('+1 day');
             $whereFields['production_date'] = [$today->format('Y-m-d'),$tomorrow->format('Y-m-d')];
         }
         return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, 'Production Order');
