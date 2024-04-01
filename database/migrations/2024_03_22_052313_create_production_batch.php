@@ -19,7 +19,8 @@ return new class extends Migration {
             $table->integer('batch_number');
             $table->tinyInteger('batch_type');
             $table->string('quantity');
-            $table->date('expiration_date')->nullable();
+            $table->date('chilled_exp_date')->nullable();
+            $table->date('frozen_exp_date')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->tinyInteger('status')->default(0);

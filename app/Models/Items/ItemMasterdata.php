@@ -18,7 +18,7 @@ class ItemMasterdata extends Model
         'description',
         'item_classification_id',
         'item_variant_type_id',
-        'shelf_life',
+        'chilled_shelf_life',
         'category_id',
         'sub_category_id',
         'uom_id',
@@ -42,15 +42,15 @@ class ItemMasterdata extends Model
         'updated_by_id',
         'status',
     ];
- /*    public function createdBy()
-    {
-        return $this->belongsTo(Credential::class, 'created_by_id');
-    }
-    public function updatedBy()
-    {
-        return $this->belongsTo(Credential::class, 'updated_by_id');
-    }
- */
+    /*    public function createdBy()
+       {
+           return $this->belongsTo(Credential::class, 'created_by_id');
+       }
+       public function updatedBy()
+       {
+           return $this->belongsTo(Credential::class, 'updated_by_id');
+       }
+    */
     public function itemClassification()
     {
         return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');
@@ -62,11 +62,11 @@ class ItemMasterdata extends Model
     public function getItemClassificationLabelAttribute()
     {
         $itemClassification = $this->itemClassification->toArray();
-        return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
+        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
     public function getItemVariantTypeLabelAttribute()
     {
         $itemVariantType = $this->itemVariantType->toArray();
-        return isset ($itemVariantType) ? $itemVariantType['name'] : 'n/a';
+        return isset($itemVariantType) ? $itemVariantType['name'] : 'n/a';
     }
 }

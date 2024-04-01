@@ -16,7 +16,7 @@ class ProducedItemController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'expiration_date' => 'required|date',
+            'chilled_exp_date' => 'required|date',
         ];
         return $this->updateRecordById(ProducedItemModel::class, $request, $rules, 'Produced Item', $id);
     }
@@ -34,25 +34,28 @@ class ProducedItemController extends Controller
         return $this->changeStatusRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
 
-    public function onDeactivateItem(Request $request)
+    public function onDeactivateItem($id, Request $request)
     {
         $rules = [
-            'produced_item_qr' => 'required|string',
+            'scanned_item_qr' => 'required|string',
         ];
         $fields = $request->validate($rules);
         try {
             DB::beginTransaction();
-            $scannedItem = json_decode($fields['produced_item_qr'], true);
-            $itemKey = array_keys($scannedItem)[0];
 
-            $batchId = $scannedItem[$itemKey]['bid'];
+            $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
-            $producedItemModel = ProductionBatchModel::find($batchId)->producedItem;
+            $producedItemModel = ProductionBatchModel::find($id)->producedItem;
             $producedItem = $producedItemModel->produced_items;
             $producedItemArray = json_decode($producedItem, true);
-            $producedItemArray[$itemKey]['status'] = 0;
+
+            foreach ($scannedItem as $value) {
+                $producedItemArray[$value]['sticker_status'] = 0;
+            }
+
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
+
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
