@@ -83,7 +83,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
                     'status' => 1,
-                    'quality' => 'Reprocessed',
+                    'quality' => ProductionBatchModel::getBatchTypeLabelAttribute($fields['batch_type']),
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
                 ];
@@ -134,7 +134,7 @@ class ProductionBatchController extends Controller
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
-                'production_item' => $this->onGenerateProducedItems($productionBatch)->produced_items
+                'production_item' => $this->onGenerateProducedItems($productionBatch, $fields['batch_type'])->produced_items
             ];
             return $data;
         } catch (Exception $exception) {
@@ -143,17 +143,17 @@ class ProductionBatchController extends Controller
 
     }
 
-    public function onGenerateProducedItems($productionBatch)
+    public function onGenerateProducedItems($productionBatch, $batchType)
     {
         try {
-            return $this->onInitialProducedItems($productionBatch);
+            return $this->onInitialProducedItems($productionBatch, $batchType);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
 
     }
 
-    public function onInitialProducedItems($productionBatch)
+    public function onInitialProducedItems($productionBatch, $batchType)
     {
         try {
             $quantity = json_decode($productionBatch->quantity, true);
@@ -181,7 +181,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
                     'status' => 1,
-                    'quality' => 'Fresh',
+                    'quality' => ProductionBatchModel::getBatchTypeLabelAttribute($batchType),
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];
