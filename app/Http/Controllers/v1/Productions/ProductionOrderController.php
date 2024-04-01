@@ -37,6 +37,10 @@ class ProductionOrderController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProductionOrderModel::class, 'Item Masterdata');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
