@@ -49,18 +49,20 @@ class ProductionOrderController extends Controller
     {
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
-        if($whereObject && $whereObject->format('Y-m-d') === $filter){
+        if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
             $whereFields['production_date'] = $filter;
-        }elseif($filter){
+        } elseif ($filter) {
             $filter != null ? $whereFields['id'] = $filter : "";
-        }else{
+        } else {
             $today = new \DateTime('today');
             $tomorrow = new \DateTime('tomorrow');
-            $today->modify('+1 day');
-            $tomorrow->modify('+1 day');
-            $whereFields['production_date'] = [$today->format('Y-m-d'),$tomorrow->format('Y-m-d')];
+            $whereFields['production_date'] = [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')];
         }
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, 'Production Order');
+
+        $orderFields = [
+            "production_date" => "ASC",
+        ];
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -68,7 +70,7 @@ class ProductionOrderController extends Controller
             'bulk_data' => 'required',
             'created_by_id' => 'required'
         ]);
-        $bulkUploadData = json_decode($request->bulk_data,true); 
+        $bulkUploadData = json_decode($request->bulk_data, true);
         $createdById = $request->created_by_id;
         $referenceNumber = ProductionOrderModel::onGenerateProductionReferenceNumber();
         $duplicates = [];
@@ -102,7 +104,13 @@ class ProductionOrderController extends Controller
                     $productionOTB->requested_quantity = $value['quantity'];
                     $productionOTB->buffer_level = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                     $productionOTB->plotted_quantity = $value['total'];
-                    $productionOTB->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
+                    if ($itemMasterdata->chilled_shelf_life) {
+                        $productionOTB->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
+                    }
+                    if ($itemMasterdata->frozen_shelf_life) {
+                        $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
+                    }
+
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
                 } else {
@@ -119,7 +127,13 @@ class ProductionOrderController extends Controller
                     $productionOTA->requested_quantity = $value['quantity'];
                     $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
                     $productionOTA->plotted_quantity = $value['total'];
-                    $productionOTA->expected_expiration_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->shelf_life . ' days'));
+                    if ($itemMasterdata->chilled_shelf_life) {
+                        $productionOTA->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
+                    }
+                    if ($itemMasterdata->frozen_shelf_life) {
+                        $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
+                    }
+
                     $productionOTA->created_by_id = $createdById;
                     $productionOTA->save();
                 }

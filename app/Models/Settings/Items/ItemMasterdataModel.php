@@ -27,7 +27,8 @@ class ItemMasterdataModel extends Model
         'description',
         'item_classification_id',
         'item_variant_type_id',
-        'shelf_life',
+        'chilled_shelf_life',
+        'frozen_shelf_life',
         'category_id',
         'sub_category_id',
         'uom_id',
@@ -91,12 +92,12 @@ class ItemMasterdataModel extends Model
     public function getItemClassificationLabelAttribute()
     {
         $itemClassification = $this->itemClassification->toArray();
-        return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
+        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
     public function getItemVariantTypeLabelAttribute()
     {
         $itemVariantType = $this->itemVariantType->toArray();
-        return isset ($itemVariantType) ? $itemVariantType['name'] : 'n/a';
+        return isset($itemVariantType) ? $itemVariantType['name'] : 'n/a';
     }
     public function getUomLabelAttribute()
     {
@@ -105,7 +106,7 @@ class ItemMasterdataModel extends Model
             'short_name' => $uom['short_uom'],
             'long_name' => $uom['long_uom'],
         ];
-        return isset ($uom) ? $data : 'n/a';
+        return isset($uom) ? $data : 'n/a';
     }
 
     public function getPrimaryConversionLabelAttribute()
@@ -115,7 +116,7 @@ class ItemMasterdataModel extends Model
             'short_name' => $primaryConversion['conversion_short_uom'],
             'long_name' => $primaryConversion['conversion_long_uom'],
         ];
-        return isset ($primaryConversion) ? $data : 'n/a';
+        return isset($primaryConversion) ? $data : 'n/a';
     }
 
     public function getSecondaryConversionLabelAttribute()
@@ -125,7 +126,7 @@ class ItemMasterdataModel extends Model
             'short_name' => $secondaryConversion['conversion_short_uom'],
             'long_name' => $secondaryConversion['conversion_long_uom'],
         ];
-        return isset ($secondaryConversion) ? $data : 'n/a';
+        return isset($secondaryConversion) ? $data : 'n/a';
     }
     public function getPlantLabelAttribute()
     {
@@ -134,6 +135,6 @@ class ItemMasterdataModel extends Model
             'short_name' => $plant['short_name'],
             'long_name' => $plant['long_name'],
         ];
-        return isset ($plant) ? $data : 'n/a';
+        return isset($plant) ? $data : 'n/a';
     }
 }

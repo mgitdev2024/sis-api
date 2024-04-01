@@ -19,7 +19,7 @@ class ItemMasterdataController extends Controller
             'updated_by_id' => 'nullable|exists:credentials,id',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
-            'shelf_life' => 'nullable|integer',
+            'chilled_shelf_life' => 'nullable|integer',
             'category_id' => 'required|integer|exists:categories,id',
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
             'item_classification_id' => 'required|integer|exists:item_classifications,id',
@@ -77,6 +77,6 @@ class ItemMasterdataController extends Controller
         $whereFields = [
             'item_code' => $id
         ];
-        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, 'Item Masterdata');
+        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
     }
 }

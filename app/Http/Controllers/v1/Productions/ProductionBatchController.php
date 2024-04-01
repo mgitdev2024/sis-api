@@ -26,7 +26,7 @@ class ProductionBatchController extends Controller
             'production_otb_id' => 'nullable|exists:production_otb,id',
             'batch_type' => 'required|integer|in:0,1',
             'quantity' => 'required',
-            'expiration_date' => 'nullable|date',
+            'chilled_exp_date' => 'nullable|date',
             'created_by_id' => 'required|exists:credentials,id',
         ];
     }
@@ -79,8 +79,9 @@ class ProductionBatchController extends Controller
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
                 $itemArray = [
                     'bid' => $productionBatch->id,
-                    's' => 1,
                     'q' => $itemQuantity,
+                    'sticker_status' => 1,
+                    'status' => 1,
                     'quality' => 'Reprocessed',
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
@@ -115,7 +116,7 @@ class ProductionBatchController extends Controller
                 $batchNumberProdName = 'production_ota_id';
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
-            $fields['expiration_date'] = $fields['expiration_date'] ?? $productionToBakeAssemble->expected_expiration_date;
+            $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $productionToBakeAssemble->expected_chilled_exp_date;
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
@@ -176,6 +177,7 @@ class ProductionBatchController extends Controller
                 $itemArray = [
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
+                    'sticker_status' => 1,
                     'status' => 1,
                     'quality' => 'Fresh',
                     'parent_batch_code' => $productionBatch->batch_code,
@@ -197,7 +199,7 @@ class ProductionBatchController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'expiration_date' => 'required|date',
+            'chilled_exp_date' => 'required|date',
         ];
         return $this->updateRecordById(ProductionBatchModel::class, $request, $rules, 'Production Batches', $id);
     }
@@ -214,13 +216,16 @@ class ProductionBatchController extends Controller
     {
         return $this->changeStatusRecordById(ProductionBatchModel::class, $id, 'Production Batches');
     }
-    public function onGetCurrent($id = null)
+    public function onGetCurrent($id = null, $order_type = null)
     {
-        $whereFields = [
-            'id' => $id,
-        ];
+        $whereFields = [];
+        if (strcasecmp($order_type, 'otb') === 0) {
+            $whereFields['production_otb_id'] = $id;
+        } else {
+            $whereFields['production_ota_id'] = $id;
+        }
         $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, 'Production Batches');
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
     }
 }
 

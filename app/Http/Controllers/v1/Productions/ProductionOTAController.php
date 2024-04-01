@@ -21,7 +21,7 @@ class ProductionOTAController extends Controller
             'production_ota_id' => 'required|exists:production_ota,id',
             'batch_type' => 'required|integer|in:0,1',
             'quantity' => 'required',
-            'expiration_date' => 'nullable|date',
+            'chilled_exp_date' => 'nullable|date',
             'created_by_id' => 'required|exists:credentials,id',
         ];
     }
@@ -31,7 +31,7 @@ class ProductionOTAController extends Controller
         try {
             $batch = null;
             DB::beginTransaction();
-            if (isset ($fields['production_batch_id'])) {
+            if (isset($fields['production_batch_id'])) {
                 $batch = $this->onAddToExistingBatch($fields);
             } else {
                 $batch = $this->onInitialBatch($fields);
@@ -83,12 +83,12 @@ class ProductionOTAController extends Controller
             $currentProductionOrder = $productionOrder->onGetCurrent();
 
             $whereFields = [];
-            if (isset ($currentProductionOrder->getOriginalContent()['success'])) {
+            if (isset($currentProductionOrder->getOriginalContent()['success'])) {
                 $whereFields = [
                     'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
     }
 }

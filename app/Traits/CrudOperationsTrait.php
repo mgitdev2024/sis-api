@@ -60,10 +60,10 @@ trait CrudOperationsTrait
                         }
                     });
                 });
-            if (isset ($fields['type'])) {
+            if (isset($fields['type'])) {
                 $query->where('type', $fields['type']);
             }
-            if (isset ($request['is_pinned'])) {
+            if (isset($request['is_pinned'])) {
                 $query->where('is_pinned', $request['is_pinned']);
             }
             // $dataList = $query->limit($display)->offset($offset)->get();
@@ -131,10 +131,10 @@ trait CrudOperationsTrait
         }
     }
 
-    public function readCurrentRecord($model, $id, $whereFields, $withFields = null, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
     {
         try {
-            $data = $model::orderBy('id', 'ASC')->orderBy('production_date', 'ASC');
+            $data = $model::orderBy('id', 'ASC');
             foreach ($whereFields as $field => $value) {
                 if (is_array($value)) {
                     $data->where(function ($query) use ($field, $value) {
@@ -143,7 +143,12 @@ trait CrudOperationsTrait
                         }
                     });
                 } else {
-                    $data->where($field, $value);
+                    $data->orWhere($field, $value);
+                }
+            }
+            if ($orderFields) {
+                foreach ($orderFields as $field => $value) {
+                    $data->orderBy($field, $value);
                 }
             }
             if ($withFields != null) {

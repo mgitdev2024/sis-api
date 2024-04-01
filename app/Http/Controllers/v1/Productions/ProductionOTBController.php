@@ -64,12 +64,12 @@ class ProductionOTBController extends Controller
             $currentProductionOrder = $productionOrder->onGetCurrent();
 
             $whereFields = [];
-            if (isset ($currentProductionOrder->getOriginalContent()['success'])) {
+            if (isset($currentProductionOrder->getOriginalContent()['success'])) {
                 $whereFields = [
                     'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, 'Production OTB');
+        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, 'Production OTB');
     }
 }

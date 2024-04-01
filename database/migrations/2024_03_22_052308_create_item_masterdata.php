@@ -17,24 +17,26 @@ return new class extends Migration {
             $table->unsignedBigInteger('item_classification_id');
             $table->unsignedBigInteger('item_variant_type_id');
             $table->unsignedBigInteger('uom_id');
-            $table->unsignedBigInteger('category_id');
-            $table->unsignedBigInteger('sub_category_id');
-            $table->unsignedBigInteger('storage_type_id');
-            $table->unsignedBigInteger('stock_type_id');
-            $table->unsignedBigInteger('item_movement_id');
-            $table->integer('delivery_lead_time');
-            $table->integer('re_order_level');
-            $table->integer('stock_rotation_type');
-            $table->integer('qty_per_pallet');
-            $table->string('dimension');
-            $table->integer('is_qa_required');
-            $table->integer('is_qa_disposal');
-            $table->string('image');
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('sub_category_id')->nullable();
+            $table->unsignedBigInteger('storage_type_id')->nullable();
+            $table->unsignedBigInteger('stock_type_id')->nullable();
+            $table->unsignedBigInteger('item_movement_id')->nullable();
+            $table->integer('delivery_lead_time')->nullable();
+            $table->integer('re_order_level')->nullable();
+            $table->integer('stock_rotation_type')->nullable();
+            $table->integer('qty_per_pallet')->nullable();
+            $table->string('dimension')->nullable();
+            $table->integer('is_qa_required')->nullable();
+            $table->integer('is_qa_disposal')->nullable();
+            $table->string('image')->nullable();
             $table->integer('primary_item_packing_size');
             $table->unsignedBigInteger('primary_conversion_id');
             $table->integer('secondary_item_packing_size');
             $table->unsignedBigInteger('secondary_conversion_id');
-            $table->integer('shelf_life');
+            $table->integer('chilled_shelf_life')->nullable();
+            $table->integer('frozen_shelf_life')->nullable();
+
             $table->unsignedBigInteger('plant_id');
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
@@ -53,7 +55,7 @@ return new class extends Migration {
             $table->foreign('item_movement_id')->references('id')->on('item_movement')->onDelete('restrict');
             $table->foreign('primary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
             $table->foreign('secondary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
-       
+
         });
     }
 
