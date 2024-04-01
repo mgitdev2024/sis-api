@@ -27,6 +27,7 @@ class ProductionBatchController extends Controller
             'batch_type' => 'required|integer|in:0,1',
             'quantity' => 'required',
             'chilled_exp_date' => 'nullable|date',
+            'frozen_exp_date' => 'nullable|date',
             'created_by_id' => 'required|exists:credentials,id',
         ];
     }
@@ -117,6 +118,7 @@ class ProductionBatchController extends Controller
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $productionToBakeAssemble->expected_chilled_exp_date;
+            $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $productionToBakeAssemble->expected_frozen_exp_date;
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
