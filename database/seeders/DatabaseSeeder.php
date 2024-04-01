@@ -25,6 +25,6 @@ class DatabaseSeeder extends Seeder
         $this->call([ItemClassificationSeeder::class]);
         $this->call([ItemVariantTypeSeeder::class]);
         $this->call([DeliveryTypeSeeder::class]);
-        // $this->call([ItemMasterdataSeeder::class]);
+        $this->call([ItemMasterdataSeeder::class]);
     }
 }

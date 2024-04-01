@@ -25,6 +25,7 @@ class ItemMasterdataModel extends Model
     protected $fillable = [
         'item_code',
         'description',
+        'item_code',
         'item_classification_id',
         'item_variant_type_id',
         'shelf_life',
@@ -45,12 +46,14 @@ class ItemMasterdataModel extends Model
         'dimension',
         'is_qa_required',
         'is_qa_disposal',
+        'shelf_life',
         'plant_id',
         'image',
         'created_by_id',
         'updated_by_id',
         'status',
     ];
+
     public function createdBy()
     {
         return $this->belongsTo(CredentialModel::class, 'created_by_id');
@@ -58,6 +61,11 @@ class ItemMasterdataModel extends Model
     public function updatedBy()
     {
         return $this->belongsTo(CredentialModel::class, 'updated_by_id');
+    }
+    public function getStockRotationTypeLabelAttribute()
+    {
+        $stockRotationTypeLabel = array("FIFO", "FEFO");
+        return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
     public function itemClassification()
     {
@@ -83,21 +91,20 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(PlantModel::class, 'plant_id', 'id');
     }
-    public function getStockRotationTypeLabelAttribute()
-    {
-        $stockRotationTypeLabel = array("FIFO", "FEFO");
-        return $stockRotationTypeLabel[$this->stock_rotation_type];
-    }
     public function getItemClassificationLabelAttribute()
     {
         $itemClassification = $this->itemClassification->toArray();
+
         return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
+
     public function getItemVariantTypeLabelAttribute()
     {
         $itemVariantType = $this->itemVariantType->toArray();
+
         return isset ($itemVariantType) ? $itemVariantType['name'] : 'n/a';
     }
+
     public function getUomLabelAttribute()
     {
         $uom = $this->uom->toArray();
