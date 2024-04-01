@@ -40,6 +40,10 @@ class ProductionOTBController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');

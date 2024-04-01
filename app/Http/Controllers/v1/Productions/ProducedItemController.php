@@ -25,6 +25,10 @@ class ProducedItemController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Item');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProducedItemModel::class, 'Produced Item');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');

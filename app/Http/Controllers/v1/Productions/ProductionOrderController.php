@@ -39,7 +39,7 @@ class ProductionOrderController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ProductionOrderModel::class, 'Item Masterdata');
+        return $this->readRecord(ProductionOrderModel::class, 'Production Order');
     }
     public function onGetById($id)
     {

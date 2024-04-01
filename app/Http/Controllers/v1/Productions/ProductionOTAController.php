@@ -59,6 +59,10 @@ class ProductionOTAController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTAModel::class, $request, $searchableFields, 'Production OTA');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProductionOTAModel::class, 'Production OTA');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ProductionOTAModel::class, $id, 'Production OTA');
