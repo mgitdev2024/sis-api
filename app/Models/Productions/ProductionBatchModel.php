@@ -19,7 +19,8 @@ class ProductionBatchModel extends Model
         'batch_number',
         'batch_type',
         'quantity',
-        'expiration_date',
+        'chilled_exp_date',
+        'frozen_exp_date',
         'created_by_id',
         'updated_by_id',
         'status',
@@ -50,7 +51,18 @@ class ProductionBatchModel extends Model
         return $batchType[$this->batch_type];
     }
 
-    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $isReprocessed = false)
+    public static function setBatchTypeLabel($index)
+    {
+        $batchType = ['Fresh', 'Reprocessed'];
+        $label = null;
+        if ($index !== "" || $index !== null) {
+            $label = $batchType[$index];
+        }
+
+        return $label;
+    }
+
+    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
     {
         $itemCode = str_replace(' ', '', $itemCode);
         $monthCode = chr(date('n') + 64);
@@ -60,10 +72,6 @@ class ProductionBatchModel extends Model
 
         if ($deliveryType != null || $deliveryType != "") {
             $batchCode .= '-' . $deliveryType;
-        }
-
-        if ($isReprocessed) {
-            $batchCode .= '-R';
         }
 
         return $batchCode;

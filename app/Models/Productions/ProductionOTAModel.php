@@ -18,7 +18,8 @@ class ProductionOTAModel extends Model
         'item_code',
         'requested_quantity',
         'buffer_level',
-        'expected_expiration_date',
+        'expected_chilled_exp_date',
+        'expected_frozen_exp_date',
         'plotted_quantity',
         'actual_quantity',
         'created_by_id',
@@ -49,12 +50,12 @@ class ProductionOTAModel extends Model
     public function getProductionLabelAttribute()
     {
         $production_label = $this->productionOrder->toArray();
-        return isset ($production_label) ? $production_label['reference_number'] : 'n/a';
+        return isset($production_label) ? $production_label['reference_number'] : 'n/a';
     }
 
     public function getItemClassificationLabelAttribute()
     {
         $itemClassification = $this->itemMasterData->itemClassification->toArray();
-        return isset ($itemClassification) ? $itemClassification['name'] : 'n/a';
+        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
     }
 }

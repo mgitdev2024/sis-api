@@ -34,9 +34,11 @@ return new class extends Migration {
             $table->unsignedBigInteger('primary_conversion_id')->nullable();
             $table->integer('secondary_item_packing_size')->nullable();
             $table->unsignedBigInteger('secondary_conversion_id')->nullable();
-            $table->integer('shelf_life')->nullable();
-            $table->unsignedBigInteger('plant_id')->nullable();
-            $table->unsignedBigInteger('created_by_id')->nullable();
+            $table->integer('chilled_shelf_life')->nullable();
+            $table->integer('frozen_shelf_life')->nullable();
+
+            $table->unsignedBigInteger('plant_id');
+            $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
@@ -53,7 +55,7 @@ return new class extends Migration {
             $table->foreign('item_movement_id')->references('id')->on('item_movement')->onDelete('restrict');
             $table->foreign('primary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
             $table->foreign('secondary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
-       
+
         });
     }
 
