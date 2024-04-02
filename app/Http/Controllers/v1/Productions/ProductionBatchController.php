@@ -77,7 +77,7 @@ class ProductionBatchController extends Controller
             $addedProducedItem = [];
             for ($producedItemCount; $producedItemCount < $addedItemCount; $producedItemCount++) {
                 $batchCode = $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT);
-                if ($fields['batch_type' == 1]) {
+                if ($fields['batch_type'] == 1) {
                     $batchCode .= '-R';
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
