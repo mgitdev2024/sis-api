@@ -20,7 +20,7 @@ class ProductionBatchModel extends Model
         'batch_type',
         'quantity',
         'chilled_exp_date',
-        'chilled_frozen_date',
+        'frozen_exp_date',
         'created_by_id',
         'updated_by_id',
         'status',
