@@ -59,7 +59,6 @@ class ProductionBatchController extends Controller
                 ? ProductionOTBModel::find($fields['production_otb_id'])
                 : ProductionOTAModel::find($fields['production_ota_id']);
 
-
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
             $producedItems = ProducedItemModel::where('production_batch_id', $productionBatch->id)->first();
@@ -83,7 +82,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
                     'status' => 1,
-                    'quality' => ProductionBatchModel::getBatchTypeLabelAttribute($fields['batch_type']),
+                    'quality' => ProductionBatchModel::setBatchTypeLabel($fields['batch_type']),
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
                 ];
@@ -93,6 +92,15 @@ class ProductionBatchController extends Controller
             }
             $producedItems->produced_items = $producedItemArr;
             $producedItems->save();
+
+            $productionBatchCurrent = json_decode($productionBatch->quantity, true);
+            $toBeAddedQuantity = json_decode($fields['quantity'], true);
+
+            foreach ($toBeAddedQuantity as $key => $value) {
+                $productionBatchCurrent[$key] = $productionBatchCurrent[$key] + $value;
+            }
+            $productionBatch->quantity = json_encode($productionBatchCurrent);
+            $productionBatch->save();
 
             $data = [
                 'item_name' => $itemMasterdata->description,
@@ -181,7 +189,7 @@ class ProductionBatchController extends Controller
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
                     'status' => 1,
-                    'quality' => ProductionBatchModel::getBatchTypeLabelAttribute($batchType),
+                    'quality' => ProductionBatchModel::setBatchTypeLabel($batchType),
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
                 ];

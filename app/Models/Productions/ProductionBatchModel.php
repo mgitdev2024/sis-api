@@ -45,10 +45,21 @@ class ProductionBatchModel extends Model
         return $this->belongsTo(ProducedItemModel::class, 'produced_item_id');
     }
 
-    public static function getBatchTypeLabelAttribute($index)
+    public function getBatchTypeLabelAttribute()
     {
         $batchType = ['Fresh', 'Reprocessed'];
-        return $batchType[$index];
+        return $batchType[$this->batch_type];
+    }
+
+    public static function setBatchTypeLabel($index)
+    {
+        $batchType = ['Fresh', 'Reprocessed'];
+        $label = null;
+        if ($index) {
+            $label = $batchType[$index];
+        }
+
+        return $label;
     }
 
     public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $isReprocessed = false)

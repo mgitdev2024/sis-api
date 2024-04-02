@@ -28,7 +28,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'shelf_life' => '6',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
             ],
             [
                 'description' => 'Chocolate Cake',
@@ -41,7 +42,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'shelf_life' => '7',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
             ],
             [
                 'description' => 'Chocolate truffle Cake',
@@ -54,7 +56,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'shelf_life' => '7',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
             ],
             [
                 'description' => 'Mamon Box of 6',
@@ -67,7 +70,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'shelf_life' => '4',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
             ],
             [
                 'description' => 'Banana Bread',
@@ -80,7 +84,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'shelf_life' => '3',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
             ],
         ];
 
@@ -92,7 +97,8 @@ class ItemMasterdataSeeder extends Seeder
                 'item_classification_id' => $value['item_classification_id'],
                 'item_variant_type_id' => $value['item_variant_type_id'],
                 'plant_id' => $value['plant_id'],
-                'shelf_life' => $value['shelf_life'],
+                'chilled_shelf_life' => $value['chilled_shelf_life'],
+                'frozen_shelf_life' => $value['frozen_shelf_life'],
                 'uom_id' => $value['uom_id'],
                 'primary_item_packing_size' => $value['primary_item_packing_size'],
                 'secondary_item_packing_size' => $value['secondary_item_packing_size'],
