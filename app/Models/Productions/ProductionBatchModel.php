@@ -55,14 +55,14 @@ class ProductionBatchModel extends Model
     {
         $batchType = ['Fresh', 'Reprocessed'];
         $label = null;
-        if ($index) {
+        if ($index !== "" || $index !== null) {
             $label = $batchType[$index];
         }
 
         return $label;
     }
 
-    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $isReprocessed = false)
+    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
     {
         $itemCode = str_replace(' ', '', $itemCode);
         $monthCode = chr(date('n') + 64);
@@ -72,10 +72,6 @@ class ProductionBatchModel extends Model
 
         if ($deliveryType != null || $deliveryType != "") {
             $batchCode .= '-' . $deliveryType;
-        }
-
-        if ($isReprocessed) {
-            $batchCode .= '-R';
         }
 
         return $batchCode;

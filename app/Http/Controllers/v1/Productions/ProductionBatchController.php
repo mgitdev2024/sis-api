@@ -76,6 +76,10 @@ class ProductionBatchController extends Controller
 
             $addedProducedItem = [];
             for ($producedItemCount; $producedItemCount < $addedItemCount; $producedItemCount++) {
+                $batchCode = $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT);
+                if ($fields['batch_type' == 1]) {
+                    $batchCode .= '-R';
+                }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
                 $itemArray = [
                     'bid' => $productionBatch->id,
@@ -84,7 +88,7 @@ class ProductionBatchController extends Controller
                     'status' => 1,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($fields['batch_type']),
                     'parent_batch_code' => $productionBatch->batch_code,
-                    'batch_code' => $productionBatch->batch_code . '-' . str_pad($producedItemCount, 3, '0', STR_PAD_LEFT) . '-R',
+                    'batch_code' => $batchCode,
                 ];
                 $secondaryValue -= $primaryPackingSize;
                 $addedProducedItem[$producedItemCount] = $itemArray;
@@ -130,7 +134,11 @@ class ProductionBatchController extends Controller
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
-            $batchCode = ProductionBatchModel::generateBatchCode($itemCode, $deliveryType, $batchNumber);
+            $batchCode = ProductionBatchModel::generateBatchCode(
+                $itemCode,
+                $deliveryType,
+                $batchNumber
+            );
             $productionBatch = new ProductionBatchModel();
             $productionBatch->fill($fields);
             $productionBatch->batch_code = $batchCode;
@@ -182,7 +190,12 @@ class ProductionBatchController extends Controller
             $producedItems->created_by_id = $productionBatch->created_by_id;
 
             $producedItemsArray = [];
+
             for ($i = 1; $i <= $primaryValue; $i++) {
+                $batchCode = $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
+                if ($batchType == 1) {
+                    $batchCode .= '-R';
+                }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
                 $itemArray = [
                     'bid' => $productionBatch->id,
@@ -191,7 +204,7 @@ class ProductionBatchController extends Controller
                     'status' => 1,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($batchType),
                     'parent_batch_code' => $productionBatch->batch_code,
-                    'batch_code' => $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                    'batch_code' => $batchCode,
                 ];
                 $secondaryValue -= $primaryPackingSize;
                 $producedItemsArray[$i] = $itemArray;
