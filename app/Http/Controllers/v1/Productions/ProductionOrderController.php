@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Models\Productions\ProductionBatchModel;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use App\Models\Productions\ProductionOrderModel;
 use App\Models\Productions\ProductionOTAModel;
@@ -43,7 +44,37 @@ class ProductionOrderController extends Controller
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProductionOrderModel::class, $id, 'Production Order');
+        try {
+            $productionOrder = ProductionOrderModel::find($id);
+            if ($productionOrder) {
+                DB::beginTransaction();
+                $response = $productionOrder->toArray();
+                $response['status'] = 1;
+                $productionOrder->update($response);
+
+                $isBatchesComplete = true;
+                foreach ($productionOrder->productionOtb as $otb) {
+                    $productionBatch = ProductionBatchModel::where('production_otb_id', $otb->id)->get();
+
+                    if (count($productionBatch) > 0) {
+                        // foreach
+                        if ($productionBatch['status'] !== 2) {
+                            $isBatchesComplete = false;
+                            // break;
+                        }
+                    }
+                }
+
+
+                dd($isBatchesComplete);
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'), $response);
+            }
+            return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetCurrent($filter = null)
     {

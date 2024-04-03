@@ -93,16 +93,16 @@ class ProducedItemController extends Controller
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
             $forCompletionBatch = json_decode($producedItemModel->produced_items, true);
-            $forReceiveAll = true;
+            $isForReceiveAll = true;
 
             foreach ($forCompletionBatch as $item) {
                 if ($item['status'] !== 6) {
-                    $forReceiveAll = false;
+                    $isForReceiveAll = false;
                     break;
                 }
             }
 
-            if ($forReceiveAll) {
+            if ($isForReceiveAll) {
                 $productionBatch->status = 2;
                 $productionBatch->save();
             }
