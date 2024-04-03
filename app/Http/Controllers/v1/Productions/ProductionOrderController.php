@@ -52,21 +52,19 @@ class ProductionOrderController extends Controller
                 $response['status'] = 1;
                 $productionOrder->update($response);
 
-                $isBatchesComplete = true;
-                foreach ($productionOrder->productionOtb as $otb) {
-                    $productionBatch = ProductionBatchModel::where('production_otb_id', $otb->id)->get();
+                $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
+                $otaIds = $productionOrder->productionOta->pluck('id')->toArray();
+                $productionBatches = ProductionBatchModel::whereIn('production_otb_id', $otbIds)
+                    ->orWhereIn('production_ota_id', $otaIds)
+                    ->get();
 
-                    if (count($productionBatch) > 0) {
-                        // foreach
-                        if ($productionBatch['status'] !== 2) {
-                            $isBatchesComplete = false;
-                            // break;
-                        }
+                foreach ($productionBatches as $batch) {
+                    if ($batch->status !== 2) {
+                        $batch->status = 3;
+                        $batch->update();
                     }
                 }
 
-
-                dd($isBatchesComplete);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
