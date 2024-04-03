@@ -103,6 +103,7 @@ Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\
 Route::get('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
 Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
 Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetCurrent']);
+Route::get('v1/production/order/get/batches/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetBatches']);
 #endregion
 
 #region Production OTA
