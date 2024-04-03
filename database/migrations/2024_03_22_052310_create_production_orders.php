@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->date('production_date');
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(1); // 0 = Closed, 1 = Open
+            $table->tinyInteger('status')->default(0); // 0 = Pending, 1 = Complete
             $table->timestamps();
 
             $table->foreign('created_by_id')->references('id')->on('credentials');

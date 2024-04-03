@@ -137,8 +137,8 @@ Route::get('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productio
 Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onUpdateById']);
 Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetPaginatedList']);
 Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
-Route::get('v1/produced/items/status/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
-Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
+// Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
+Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
 #region Category
 Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onCreate']);
 Route::post('v1/category/update/{id}', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onUpdateById']);
