@@ -47,6 +47,7 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.create_success'), $batch);
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
@@ -143,6 +144,7 @@ class ProductionBatchController extends Controller
             $productionBatch->fill($fields);
             $productionBatch->batch_code = $batchCode;
             $productionBatch->batch_number = $batchNumber;
+            $productionBatch->status = 0;
             $productionBatch->save();
 
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
@@ -172,6 +174,7 @@ class ProductionBatchController extends Controller
     public function onInitialProducedItems($productionBatch, $batchType)
     {
         try {
+
             $quantity = json_decode($productionBatch->quantity, true);
             $data = $quantity;
             $keys = array_keys($data);
@@ -197,6 +200,7 @@ class ProductionBatchController extends Controller
                     $batchCode .= '-R';
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
+
                 $itemArray = [
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
@@ -206,6 +210,7 @@ class ProductionBatchController extends Controller
                     'parent_batch_code' => $productionBatch->batch_code,
                     'batch_code' => $batchCode,
                 ];
+
                 $secondaryValue -= $primaryPackingSize;
                 $producedItemsArray[$i] = $itemArray;
             }
