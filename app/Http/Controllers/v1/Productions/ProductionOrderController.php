@@ -187,6 +187,29 @@ class ProductionOrderController extends Controller
         }
 
     }
+
+    public function onGetBatches($id)
+    {
+        $productionOrder = ProductionOrderModel::find($id);
+        if ($productionOrder) {
+            $response = $productionOrder->toArray();
+            $response['status'] = 1;
+            $productionOrder->update($response);
+
+            $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
+            $otaIds = $productionOrder->productionOta->pluck('id')->toArray();
+            $productionBatches = ProductionBatchModel::whereIn('production_otb_id', $otbIds)
+                ->orWhereIn('production_ota_id', $otaIds)
+                ->get();
+
+            // dd($productionBatches);
+            $response = [
+                'batches' => $productionBatches,
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+        }
+        return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
+    }
 }
 
 

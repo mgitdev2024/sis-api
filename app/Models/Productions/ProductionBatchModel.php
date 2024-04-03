@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionBatchModel extends Model
 {
     use HasFactory;
-    protected $appends = ['batch_type_label', 'status_label'];
+    protected $appends = ['batch_type_label', 'status_label', 'production_ota_label', 'production_otb_label'];
     protected $table = 'production_batch';
     protected $fillable = [
         'production_otb_id',
@@ -35,9 +35,13 @@ class ProductionBatchModel extends Model
         return $this->belongsTo(CredentialModel::class, 'updated_by_id');
     }
 
-    public function productionOTB()
+    public function productionOtb()
     {
         return $this->belongsTo(ProductionOTBModel::class, 'production_otb_id');
+    }
+    public function productionOta()
+    {
+        return $this->belongsTo(ProductionOTAModel::class, 'production_ota_id');
     }
 
     public function producedItem()
@@ -55,6 +59,34 @@ class ProductionBatchModel extends Model
     {
         $status = ['In Progress', 'On Hold', 'Complete', 'Complete (Issues)'];
         return $status[$this->status];
+    }
+
+    public function getProductionOtaLabelAttribute()
+    {
+        $production_ota_label = $this->productionOta;
+        $response = null;
+        if (isset($production_ota_label)) {
+            $response = [
+                'item_code' => $production_ota_label['item_code'],
+                'plotted_quantity' => $production_ota_label['plotted_quantity'],
+                'actual_quantity' => $production_ota_label['plotted_quantity'],
+            ];
+        }
+        return $response;
+    }
+
+    public function getProductionOtbLabelAttribute()
+    {
+        $production_otb_label = $this->productionOtb;
+        $response = null;
+        if (isset($production_otb_label)) {
+            $response = [
+                'item_code' => $production_otb_label['item_code'],
+                'plotted_quantity' => $production_otb_label['plotted_quantity'],
+                'actual_quantity' => $production_otb_label['plotted_quantity'],
+            ];
+        }
+        return $response;
     }
 
     public static function setBatchTypeLabel($index)
