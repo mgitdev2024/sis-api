@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionBatchModel extends Model
 {
     use HasFactory;
-    protected $appends = ['batch_type_label'];
+    protected $appends = ['batch_type_label', 'status_label'];
     protected $table = 'production_batch';
     protected $fillable = [
         'production_otb_id',
@@ -49,6 +49,12 @@ class ProductionBatchModel extends Model
     {
         $batchType = ['Fresh', 'Reprocessed'];
         return $batchType[$this->batch_type];
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        $status = ['In Progress', 'On Hold', 'Complete', 'Complete (Issues)'];
+        return $status[$this->status];
     }
 
     public static function setBatchTypeLabel($index)
