@@ -70,6 +70,11 @@ class ProductionBatchController extends Controller
             $primaryValue = intval($quantity[$keys[0]]) ?? 0;
             $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
 
+            $stickerMultiplier = $productionBatch->productionOtb ?
+                $productionBatch->productionOtb->itemMasterData->itemClassification->sticker_multiplier :
+                ($productionBatch->productionOta ?
+                    $productionBatch->productionOta->itemMasterData->itemClassification->sticker_multiplier :
+                    1);
 
             $producedItemArr = json_decode($producedItems->produced_items, true);
             $producedItemCount = count($producedItemArr) + 1;
@@ -89,6 +94,7 @@ class ProductionBatchController extends Controller
                     'status' => 1,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($fields['batch_type']),
                     'parent_batch_code' => $productionBatch->batch_code,
+                    'sticker_multiplier' => $stickerMultiplier,
                     'batch_code' => $batchCode,
                 ];
                 $secondaryValue -= $primaryPackingSize;
@@ -145,6 +151,7 @@ class ProductionBatchController extends Controller
             $productionBatch->batch_code = $batchCode;
             $productionBatch->batch_number = $batchNumber;
             $productionBatch->status = 0;
+            $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
             $productionBatch->save();
 
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
@@ -193,7 +200,11 @@ class ProductionBatchController extends Controller
             $producedItems->created_by_id = $productionBatch->created_by_id;
 
             $producedItemsArray = [];
-
+            $stickerMultiplier = $productionBatch->productionOtb ?
+                $productionBatch->productionOtb->itemMasterData->itemClassification->sticker_multiplier :
+                ($productionBatch->productionOta ?
+                    $productionBatch->productionOta->itemMasterData->itemClassification->sticker_multiplier :
+                    1);
             for ($i = 1; $i <= $primaryValue; $i++) {
                 $batchCode = $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
                 if ($batchType == 1) {
@@ -208,9 +219,9 @@ class ProductionBatchController extends Controller
                     'status' => 1,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($batchType),
                     'parent_batch_code' => $productionBatch->batch_code,
+                    'sticker_multiplier' => $stickerMultiplier,
                     'batch_code' => $batchCode,
                 ];
-
                 $secondaryValue -= $primaryPackingSize;
                 $producedItemsArray[$i] = $itemArray;
             }
@@ -242,7 +253,21 @@ class ProductionBatchController extends Controller
     }
     public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ProductionBatchModel::class, $id, 'Production Batches');
+        try {
+            $productionBatch = ProductionBatchModel::find($id);
+            if ($productionBatch) {
+                DB::beginTransaction();
+                $response = $productionBatch->toArray();
+                $response['status'] = 1;
+                $productionBatch->update($response);
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'), $response);
+            }
+            return $this->dataResponse('error', 200, ProductionBatchModel::class . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetCurrent($id = null, $order_type = null)
     {

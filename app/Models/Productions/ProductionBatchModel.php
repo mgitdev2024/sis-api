@@ -14,6 +14,7 @@ class ProductionBatchModel extends Model
     protected $fillable = [
         'production_otb_id',
         'production_ota_id',
+        'production_order_id',
         'produced_item_id',
         'batch_code',
         'batch_number',
@@ -44,6 +45,11 @@ class ProductionBatchModel extends Model
         return $this->belongsTo(ProductionOTAModel::class, 'production_ota_id');
     }
 
+    public function productionOrder()
+    {
+        return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
+    }
+
     public function producedItem()
     {
         return $this->belongsTo(ProducedItemModel::class, 'produced_item_id');
@@ -57,7 +63,7 @@ class ProductionBatchModel extends Model
 
     public function getStatusLabelAttribute()
     {
-        $status = ['In Progress', 'On Hold', 'Complete', 'Complete (Issues)'];
+        $status = ['In Progress', 'On Hold', 'Complete'/*, 'Complete (Issues)'*/];
         return $status[$this->status];
     }
 
