@@ -32,4 +32,22 @@ class ProducedItemModel extends Model
     {
         return $this->belongsTo(ProductionBatchModel::class, 'production_batch_id');
     }
+
+    public static function getStatusLabel($index)
+    {
+        $labels = [
+            1 => 'Good',
+            2 => 'For Investigation',
+            3 => 'For Sampling',
+            4 => 'For Disposal',
+            5 => 'On Hold',
+            6 => 'For Receive',
+            7 => 'Received'
+        ];
+
+        return [
+            'key' => $index,
+            'value' => $labels[$index]
+        ];
+    }
 }
