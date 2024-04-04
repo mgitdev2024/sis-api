@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('production_otb_id')->nullable();
             $table->unsignedBigInteger('production_ota_id')->nullable();
+            $table->unsignedBigInteger('production_order_id');
             $table->unsignedBigInteger('produced_item_id')->nullable();
             $table->string('batch_code');
             $table->integer('batch_number');
