@@ -63,7 +63,7 @@ class ProductionBatchModel extends Model
 
     public function getStatusLabelAttribute()
     {
-        $status = ['In Progress', 'On Hold', 'Complete', 'Complete (Issues)'];
+        $status = ['In Progress', 'On Hold', 'Complete'/*, 'Complete (Issues)'*/];
         return $status[$this->status];
     }
 

@@ -59,8 +59,8 @@ class ProductionOrderController extends Controller
                     ->get();
 
                 foreach ($productionBatches as $batch) {
-                    if ($batch->status !== 2) {
-                        $batch->status = 3;
+                    if ($batch->status !== 1) {
+                        $batch->status = 2;
                         $batch->update();
                     }
                 }

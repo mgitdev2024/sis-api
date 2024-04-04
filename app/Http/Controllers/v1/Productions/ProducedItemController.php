@@ -92,20 +92,20 @@ class ProducedItemController extends Controller
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
-            $forCompletionBatch = json_decode($producedItemModel->produced_items, true);
-            $isForReceiveAll = true;
+            // $forCompletionBatch = json_decode($producedItemModel->produced_items, true);
+            // $isForReceiveAll = true;
 
-            foreach ($forCompletionBatch as $item) {
-                if ($item['status'] !== 6) {
-                    $isForReceiveAll = false;
-                    break;
-                }
-            }
+            // foreach ($forCompletionBatch as $item) {
+            //     if ($item['status'] !== 6) {
+            //         $isForReceiveAll = false;
+            //         break;
+            //     }
+            // }
 
-            if ($isForReceiveAll) {
-                $productionBatch->status = 2;
-                $productionBatch->save();
-            }
+            // if ($isForReceiveAll) {
+            //     $productionBatch->status = 2;
+            //     $productionBatch->save();
+            // }
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
