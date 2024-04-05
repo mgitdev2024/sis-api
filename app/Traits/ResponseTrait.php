@@ -5,6 +5,7 @@ trait ResponseTrait
 {
     public static function dataResponse($status, $httpCode, $statusMessage, $data = null)
     {
+
         $data_arr = ['message' => $statusMessage];
         if ($data !== null) {
             $key = $status === 'success' ? 'data' : 'error_thrown';

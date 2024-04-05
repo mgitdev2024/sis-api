@@ -60,10 +60,10 @@ trait CrudOperationsTrait
                         }
                     });
                 });
-            if (isset ($fields['type'])) {
+            if (isset($fields['type'])) {
                 $query->where('type', $fields['type']);
             }
-            if (isset ($request['is_pinned'])) {
+            if (isset($request['is_pinned'])) {
                 $query->where('is_pinned', $request['is_pinned']);
             }
             // $dataList = $query->limit($display)->offset($offset)->get();
@@ -131,14 +131,30 @@ trait CrudOperationsTrait
         }
     }
 
-    public function readCurrentRecord($model, $id, $whereFields, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
     {
         try {
-            $productionOrder = $model::orderBy('id', 'ASC');
+            $data = $model::orderBy('id', 'ASC');
             foreach ($whereFields as $field => $value) {
-                $productionOrder->where($field, $value);
+                if (is_array($value)) {
+                    $data->where(function ($query) use ($field, $value) {
+                        foreach ($value as $whereValue) {
+                            $query->orWhere($field, $whereValue);
+                        }
+                    });
+                } else {
+                    $data->orWhere($field, $value);
+                }
             }
-            $dataList = $productionOrder->get();
+            if ($orderFields) {
+                foreach ($orderFields as $field => $value) {
+                    $data->orderBy($field, $value);
+                }
+            }
+            if ($withFields != null) {
+                $data->with($withFields);
+            }
+            $dataList = $data->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -147,7 +163,6 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function changeStatusRecordById($model, $id, $modelName)
     {
         try {

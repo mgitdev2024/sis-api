@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Delivery\DeliveryType;
+use App\Models\Settings\Delivery\DeliveryTypeModel;
 
 class DeliveryTypeSeeder extends Seeder
 {
@@ -32,7 +32,7 @@ class DeliveryTypeSeeder extends Seeder
         ];
 
         foreach ($classifications as $value) {
-            DeliveryType::create([
+            DeliveryTypeModel::create([
                 'created_by_id' => $createdById,
                 'type' => $value['type'],
                 'description' => $value['description'],
