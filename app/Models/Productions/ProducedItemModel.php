@@ -36,13 +36,19 @@ class ProducedItemModel extends Model
     public static function getStatusLabel($index)
     {
         $labels = [
-            1 => 'Good',
-            2 => 'For Investigation',
-            3 => 'For Sampling',
-            4 => 'For Disposal',
-            5 => 'On Hold',
-            6 => 'For Receive',
-            7 => 'Received'
+            0 => 'Good',
+            1 => 'On Hold',
+            2 => 'For Receive',
+            3 => 'Received',
+            4 => 'For Investigation',
+            5 => 'For Sampling',
+            6 => 'For Retouch',
+            7 => 'For Slice',
+            8 => 'For Sticker Update',
+            9 => 'Sticker Updated',
+            10 => 'Reviewed',
+            11 => 'Retouched',
+            12 => 'Sliced',
         ];
 
         return [

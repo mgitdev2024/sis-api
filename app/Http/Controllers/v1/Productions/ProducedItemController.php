@@ -34,51 +34,36 @@ class ProducedItemController extends Controller
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
 
-    public function onChangeStatus($status_id, $id, Request $request)
+    public function onChangeStatus($id, Request $request)
     {
-        // 1 => 'Good',
-        // 2 => 'For Investigation',
-        // 3 => 'For Sampling',
-        // 4 => 'For Disposal',
-        // 5 => 'On Hold',
-        // 6 => 'For Receive',
-        // 7 => 'Received',
-        // 8 => 'Deactivate'
+        #region status list
+        // 0 => 'Good',
+        // 1 => 'On Hold',
+        // 2 => 'For Receive',
+        // 3 => 'Received',
+        // 4 => 'For Investigation',
+        // 5 => 'For Sampling',
+        // 6 => 'For Retouch',
+        // 7 => 'For Slice',
+        // 8 => 'For Sticker Update',
+        // 9 => 'Sticker Updated',
+        // 10 => 'Reviewed',
+        // 11 => 'Retouched',
+        // 12 => 'Sliced',
+        #endregion
+
         $rules = [
             'scanned_item_qr' => 'required|string',
+            'status_id' => 'required|integer|between:0,5',
+            'is_deactivate' => 'required|boolean'
         ];
         $fields = $request->validate($rules);
+        $statusId = $fields['status_id'];
 
-        switch ($status_id) {
-            case 1:
-                $label = 'Good';
-                return '';
-            case 2:
-                $label = 'For Investigation';
-                return '';
-            case 3:
-                $label = 'For Sampling';
-                return '';
-            case 4:
-                $label = 'For Disposal';
-                return '';
-            case 5:
-                $label = 'On Hold';
-                return '';
-            case 6:
-                $label = 'For Receive';
-                return $this->onForReceiveItem($id, $fields);
-            case 7:
-                $label = 'Received';
-                return '';
-            case 8:
-                return $this->onDeactivateItem($id, $fields);
-            default:
-                return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
-        }
+        return $fields['is_deactivate'] ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields);
     }
 
-    public function onForReceiveItem($id, $fields)
+    public function onUpdateItemStatus($statusId, $id, $fields)
     {
         try {
             DB::beginTransaction();
@@ -91,25 +76,11 @@ class ProducedItemController extends Controller
             $producedItemArray = json_decode($producedItem, true);
 
             foreach ($scannedItem as $value) {
-                $producedItemArray[$value]['status'] = 6;
+                $producedItemArray[$value]['status'] = $statusId;
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
-            // $forCompletionBatch = json_decode($producedItemModel->produced_items, true);
-            // $isForReceiveAll = true;
-
-            // foreach ($forCompletionBatch as $item) {
-            //     if ($item['status'] !== 6) {
-            //         $isForReceiveAll = false;
-            //         break;
-            //     }
-            // }
-
-            // if ($isForReceiveAll) {
-            //     $productionBatch->status = 2;
-            //     $productionBatch->save();
-            // }
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionBatchModel extends Model
 {
     use HasFactory;
-    protected $appends = ['batch_type_label', 'status_label', 'production_ota_label', 'production_otb_label'];
+    protected $appends = ['batch_type_label', 'production_ota_label', 'production_otb_label'];
     protected $table = 'production_batch';
     protected $fillable = [
         'production_otb_id',
