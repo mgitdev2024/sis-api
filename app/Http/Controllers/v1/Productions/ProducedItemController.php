@@ -76,19 +76,16 @@ class ProducedItemController extends Controller
             $productionBatchMain = ProductionBatchModel::find($id);
             $producedItemModelMain = $productionBatchMain->producedItem;
             $producedItemArrayMain = json_decode($producedItemModelMain->produced_items, true);
-
-            foreach ($scannedItem as $key => $value) {
+            foreach ($scannedItem as $value) {
                 if ($value['bid'] === $id) {
-                    $producedItemArrayMain[$key]['status'] = $statusId;
+                    $producedItemArrayMain[$value['sticker_no']]['status'] = $statusId;
                 } else {
                     $productionBatchOther = ProductionBatchModel::find($value['bid']);
-                    if ($productionBatchOther) {
-                        $producedItemModelOther = $productionBatchOther->producedItem;
-                        $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
-                        $producedItemArrayOther[$key]['status'] = $statusId;
-                        $producedItemModelOther->produced_items = json_encode($producedItemArrayOther);
-                        $producedItemModelOther->save();
-                    }
+                    $producedItemModelOther = $productionBatchOther->producedItem;
+                    $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
+                    $producedItemArrayOther[$value['sticker_no']]['status'] = $statusId;
+                    $producedItemModelOther->produced_items = json_encode($producedItemArrayOther);
+                    $producedItemModelOther->save();
                 }
 
                 if (in_array($statusId, $forQaDisposition)) {
