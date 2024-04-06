@@ -14,7 +14,7 @@ class ConversionController extends Controller
     public static function getRules($itemId = null)
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'conversion_short_uom' => 'required|string',
             'conversion_long_uom' => 'required|string',

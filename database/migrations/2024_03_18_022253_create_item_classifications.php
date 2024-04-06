@@ -15,7 +15,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->string('name');
-            $table->tinyInteger('sticker_multiplier')->default(1);
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\Productions;
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
+use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use Exception;
@@ -55,19 +56,20 @@ class ProducedItemController extends Controller
         $rules = [
             'scanned_item_qr' => 'required|string',
             'status_id' => 'required|integer|between:0,5',
-            'is_deactivate' => 'required|boolean'
+            'is_deactivate' => 'required|boolean',
+            'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
         $statusId = $fields['status_id'];
-
-        return $fields['is_deactivate'] ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields);
+        $createdBy = $fields['created_by_id'];
+        return $fields['is_deactivate'] ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields, $createdBy);
     }
 
-    public function onUpdateItemStatus($statusId, $id, $fields)
+    public function onUpdateItemStatus($statusId, $id, $fields, $createdById)
     {
         try {
             DB::beginTransaction();
-
+            $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
             $productionBatch = ProductionBatchModel::find($id);
@@ -77,10 +79,13 @@ class ProducedItemController extends Controller
 
             foreach ($scannedItem as $value) {
                 $producedItemArray[$value]['status'] = $statusId;
+                if (in_array($statusId, $forQaDisposition)) {
+                    $this->onItemDisposition($createdById, $id, $producedItemArray[$value], $statusId);
+                }
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
-            $producedItemModel->save();
+            $producedItemModel->update();
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -113,6 +118,25 @@ class ProducedItemController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
+        }
+    }
+
+    public function onItemDisposition($createdById, $id, $value, $statusId)
+    {
+        try {
+            $type = 1;
+            if ($statusId == 4) {
+                $type = 0;
+            }
+            $itemDisposition = new ItemDispositionModel();
+            $itemDisposition->created_by_id = $createdById;
+            $itemDisposition->production_batch_id = $id;
+            $itemDisposition->type = $type;
+            $itemDisposition->produced_items = json_encode($value);
+            $itemDisposition->save();
+        } catch (Exception $exception) {
+            dd($exception);
+            throw new Exception($exception->getMessage());
         }
     }
 }

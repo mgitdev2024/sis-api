@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Models\History\PrintHistoryModel;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
@@ -28,7 +29,7 @@ class ProductionBatchController extends Controller
             'quantity' => 'required',
             'chilled_exp_date' => 'nullable|date',
             'frozen_exp_date' => 'nullable|date',
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
         ];
     }
     public function onCreate(Request $request)
@@ -71,13 +72,13 @@ class ProductionBatchController extends Controller
             $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
 
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemClassification->sticker_multiplier :
+                $productionBatch->productionOtb->itemMasterData->itemVariantType->sticker_multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemClassification->sticker_multiplier :
+                    $productionBatch->productionOta->itemMasterData->itemVariantType->sticker_multiplier :
                     1);
 
-            $producedItemArr = json_decode($producedItems->produced_items, true);
-            $producedItemCount = count($producedItemArr) + 1;
+            $producedItemsArray = json_decode($producedItems->produced_items, true);
+            $producedItemCount = count($producedItemsArray) + 1;
             $addedItemCount = $producedItemCount + $primaryValue;
 
             $addedProducedItem = [];
@@ -99,11 +100,11 @@ class ProductionBatchController extends Controller
                 ];
                 $secondaryValue -= $primaryPackingSize;
                 $addedProducedItem[$producedItemCount] = $itemArray;
-                $producedItemArr[$producedItemCount] = $itemArray;
+                $producedItemsArray[$producedItemCount] = $itemArray;
             }
-            $producedItems->produced_items = $producedItemArr;
+            $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
-
+            $this->onPrintHistory($productionBatch->id, $producedItemsArray);
             $productionBatchCurrent = json_decode($productionBatch->quantity, true);
             $toBeAddedQuantity = json_decode($fields['quantity'], true);
 
@@ -201,9 +202,9 @@ class ProductionBatchController extends Controller
 
             $producedItemsArray = [];
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemClassification->sticker_multiplier :
+                $productionBatch->productionOtb->itemMasterData->itemVariantType->sticker_multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemClassification->sticker_multiplier :
+                    $productionBatch->productionOta->itemMasterData->itemVariantType->sticker_multiplier :
                     1);
             for ($i = 1; $i <= $primaryValue; $i++) {
                 $batchCode = $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
@@ -227,6 +228,9 @@ class ProductionBatchController extends Controller
             }
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
+
+
+            $this->onPrintHistory($productionBatch->id, $producedItemsArray);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();
             return $producedItems;
@@ -344,6 +348,18 @@ class ProductionBatchController extends Controller
         }
         $withFields = ['producedItem'];
         return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
+    }
+
+    public function onPrintHistory($batchId, $producedItems)
+    {
+        try {
+            $printHistory = new PrintHistoryModel();
+            $printHistory->production_batch_id = $batchId;
+            $printHistory->produced_items = json_encode($producedItems);
+            $printHistory->save();
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
     }
 }
 

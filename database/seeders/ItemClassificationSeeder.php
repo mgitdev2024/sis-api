@@ -18,23 +18,18 @@ class ItemClassificationSeeder extends Seeder
         $classifications = [
             [
                 'name' => 'Breads',
-                'sticker_multiplier' => 2,
             ],
             [
                 'name' => 'Cakes',
-                'sticker_multiplier' => 2,
             ],
             [
                 'name' => 'Pastries',
-                'sticker_multiplier' => 1,
             ],
             [
                 'name' => 'Loaves',
-                'sticker_multiplier' => 1,
             ],
             [
                 'name' => 'Others',
-                'sticker_multiplier' => 1,
             ],
         ];
         $createdById = 1;
@@ -42,8 +37,7 @@ class ItemClassificationSeeder extends Seeder
         foreach ($classifications as $value) {
             ItemClassificationModel::create([
                 'created_by_id' => $createdById,
-                'name' => $value['name'],
-                'sticker_multiplier' => $value['sticker_multiplier'],
+                'name' => $value['name']
             ]);
         }
     }
