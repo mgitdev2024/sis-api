@@ -13,7 +13,6 @@ class ItemClassificationModel extends Model
     protected $table = 'item_classifications';
     protected $fillable = [
         'name',
-        'sticker_multiplier',
         'created_by_id',
         'updated_by_id',
         'status'

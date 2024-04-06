@@ -22,7 +22,7 @@ class ProductionOTAController extends Controller
             'batch_type' => 'required|integer|in:0,1',
             'quantity' => 'required',
             'chilled_exp_date' => 'nullable|date',
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
         ];
     }
     public function onCreate(Request $request)
@@ -47,7 +47,7 @@ class ProductionOTAController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
@@ -58,6 +58,10 @@ class ProductionOTAController extends Controller
     {
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTAModel::class, $request, $searchableFields, 'Production OTA');
+    }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProductionOTAModel::class, 'Production OTA');
     }
     public function onGetById($id)
     {

@@ -14,9 +14,9 @@ return new class extends Migration {
             $table->id();
             $table->string('item_code')->index();
             $table->string('description');
-            $table->unsignedBigInteger('item_classification_id');
-            $table->unsignedBigInteger('item_variant_type_id');
-            $table->unsignedBigInteger('uom_id');
+            $table->unsignedBigInteger('item_classification_id')->nullable();
+            $table->unsignedBigInteger('item_variant_type_id')->nullable();
+            $table->unsignedBigInteger('uom_id')->nullable();
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('sub_category_id')->nullable();
             $table->unsignedBigInteger('storage_type_id')->nullable();
@@ -30,10 +30,10 @@ return new class extends Migration {
             $table->integer('is_qa_required')->nullable();
             $table->integer('is_qa_disposal')->nullable();
             $table->string('image')->nullable();
-            $table->integer('primary_item_packing_size');
-            $table->unsignedBigInteger('primary_conversion_id');
-            $table->integer('secondary_item_packing_size');
-            $table->unsignedBigInteger('secondary_conversion_id');
+            $table->integer('primary_item_packing_size')->nullable();
+            $table->unsignedBigInteger('primary_conversion_id')->nullable();
+            $table->integer('secondary_item_packing_size')->nullable();
+            $table->unsignedBigInteger('secondary_conversion_id')->nullable();
             $table->integer('chilled_shelf_life')->nullable();
             $table->integer('frozen_shelf_life')->nullable();
 

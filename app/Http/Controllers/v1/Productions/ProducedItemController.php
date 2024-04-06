@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\Productions;
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
+use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use Exception;
@@ -25,60 +26,50 @@ class ProducedItemController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Item');
     }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProducedItemModel::class, 'Produced Item');
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
 
-    public function onChangeStatus($status_id, $id, Request $request)
+    public function onChangeStatus($id, Request $request)
     {
-        // 1 => 'Good',
-        // 2 => 'For Investigation',
-        // 3 => 'For Sampling',
-        // 4 => 'For Disposal',
-        // 5 => 'On Hold',
-        // 6 => 'For Receive',
-        // 7 => 'Received',
-        // 8 => 'Deactivate'
+        #region status list
+        // 0 => 'Good',
+        // 1 => 'On Hold',
+        // 2 => 'For Receive',
+        // 3 => 'Received',
+        // 4 => 'For Investigation',
+        // 5 => 'For Sampling',
+        // 6 => 'For Retouch',
+        // 7 => 'For Slice',
+        // 8 => 'For Sticker Update',
+        // 9 => 'Sticker Updated',
+        // 10 => 'Reviewed',
+        // 11 => 'Retouched',
+        // 12 => 'Sliced',
+        #endregion
+
         $rules = [
             'scanned_item_qr' => 'required|string',
+            'status_id' => 'required|integer|between:0,5',
+            'is_deactivate' => 'required|boolean',
+            'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-
-        switch ($status_id) {
-            case 1:
-                $label = 'Good';
-                return '';
-            case 2:
-                $label = 'For Investigation';
-                return '';
-            case 3:
-                $label = 'For Sampling';
-                return '';
-            case 4:
-                $label = 'For Disposal';
-                return '';
-            case 5:
-                $label = 'On Hold';
-                return '';
-            case 6:
-                $label = 'For Receive';
-                return $this->onForReceiveItem($id, $fields);
-            case 7:
-                $label = 'Received';
-                return '';
-            case 8:
-                return $this->onDeactivateItem($id, $fields);
-            default:
-                return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
-        }
+        $statusId = $fields['status_id'];
+        $createdBy = $fields['created_by_id'];
+        return $fields['is_deactivate'] ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields, $createdBy);
     }
 
-    public function onForReceiveItem($id, $fields)
+    public function onUpdateItemStatus($statusId, $id, $fields, $createdById)
     {
         try {
             DB::beginTransaction();
-
+            $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
             $productionBatch = ProductionBatchModel::find($id);
@@ -87,25 +78,14 @@ class ProducedItemController extends Controller
             $producedItemArray = json_decode($producedItem, true);
 
             foreach ($scannedItem as $value) {
-                $producedItemArray[$value]['status'] = 6;
+                $producedItemArray[$value]['status'] = $statusId;
+                if (in_array($statusId, $forQaDisposition)) {
+                    $this->onItemDisposition($createdById, $id, $producedItemArray[$value], $statusId);
+                }
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
-            $producedItemModel->save();
-            // $forCompletionBatch = json_decode($producedItemModel->produced_items, true);
-            // $isForReceiveAll = true;
-
-            // foreach ($forCompletionBatch as $item) {
-            //     if ($item['status'] !== 6) {
-            //         $isForReceiveAll = false;
-            //         break;
-            //     }
-            // }
-
-            // if ($isForReceiveAll) {
-            //     $productionBatch->status = 2;
-            //     $productionBatch->save();
-            // }
+            $producedItemModel->update();
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -138,6 +118,25 @@ class ProducedItemController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
+        }
+    }
+
+    public function onItemDisposition($createdById, $id, $value, $statusId)
+    {
+        try {
+            $type = 1;
+            if ($statusId == 4) {
+                $type = 0;
+            }
+            $itemDisposition = new ItemDispositionModel();
+            $itemDisposition->created_by_id = $createdById;
+            $itemDisposition->production_batch_id = $id;
+            $itemDisposition->type = $type;
+            $itemDisposition->produced_items = json_encode($value);
+            $itemDisposition->save();
+        } catch (Exception $exception) {
+            dd($exception);
+            throw new Exception($exception->getMessage());
         }
     }
 }

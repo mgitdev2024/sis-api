@@ -13,7 +13,7 @@ class ProductionOTBController extends Controller
     public static function getRules()
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
@@ -28,7 +28,7 @@ class ProductionOTBController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
@@ -39,6 +39,10 @@ class ProductionOTBController extends Controller
     {
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
+    }
+    public function onGetAll()
+    {
+        return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
     }
     public function onGetById($id)
     {

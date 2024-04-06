@@ -14,7 +14,7 @@ class PlantController extends Controller
     public static function getRules($itemId = null)
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'short_name' => 'required|string|unique:plants,short_name,' . $itemId,
             'long_name' => 'required|string|unique:plants,long_name,' . $itemId,
