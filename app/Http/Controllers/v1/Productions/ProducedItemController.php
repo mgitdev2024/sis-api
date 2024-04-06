@@ -53,7 +53,6 @@ class ProducedItemController extends Controller
         // 12 => 'Sliced',
         #endregion
 
-        [];
         $rules = [
             'scanned_item_qr' => 'required|string',
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
@@ -74,20 +73,32 @@ class ProducedItemController extends Controller
             $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
-            $productionBatch = ProductionBatchModel::find($id);
-            $producedItemModel = $productionBatch->producedItem;
-            $producedItem = $producedItemModel->produced_items;
-            $producedItemArray = json_decode($producedItem, true);
+            $productionBatchMain = ProductionBatchModel::find($id);
+            $producedItemModelMain = $productionBatchMain->producedItem;
+            $producedItemArrayMain = json_decode($producedItemModelMain->produced_items, true);
 
-            foreach ($scannedItem as $value) {
-                $producedItemArray[$value]['status'] = $statusId;
+            foreach ($scannedItem as $key => $value) {
+                if ($value['bid'] === $id) {
+                    $producedItemArrayMain[$key]['status'] = $statusId;
+                } else {
+                    $productionBatchOther = ProductionBatchModel::find($value['bid']);
+                    if ($productionBatchOther) {
+                        $producedItemModelOther = $productionBatchOther->producedItem;
+                        $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
+                        $producedItemArrayOther[$key]['status'] = $statusId;
+                        $producedItemModelOther->produced_items = json_encode($producedItemArrayOther);
+                        $producedItemModelOther->save();
+                    }
+                }
+
                 if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $id, $producedItemArray[$value], $statusId);
+                    $this->onItemDisposition($createdById, $value['bid'], $producedItemArrayMain[$value['bid']], $statusId);
                 }
             }
 
-            $producedItemModel->produced_items = json_encode($producedItemArray);
-            $producedItemModel->update();
+            $producedItemModelMain->produced_items = json_encode($producedItemArrayMain);
+            $producedItemModelMain->save();
+
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -108,8 +119,8 @@ class ProducedItemController extends Controller
             $producedItem = $producedItemModel->produced_items;
             $producedItemArray = json_decode($producedItem, true);
 
-            foreach ($scannedItem as $value) {
-                $producedItemArray[$value]['sticker_status'] = 0;
+            foreach ($scannedItem as $key => $value) {
+                $producedItemArray[$key]['sticker_status'] = 0;
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
