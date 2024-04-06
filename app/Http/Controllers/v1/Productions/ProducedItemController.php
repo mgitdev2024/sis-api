@@ -53,16 +53,18 @@ class ProducedItemController extends Controller
         // 12 => 'Sliced',
         #endregion
 
+        [];
         $rules = [
             'scanned_item_qr' => 'required|string',
-            'status_id' => 'required|integer|between:0,5',
-            'is_deactivate' => 'required|boolean',
+            'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
+            'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-        $statusId = $fields['status_id'];
+
+        $statusId = isset($fields['status_id']) ? $fields['status_id'] : 0;
         $createdBy = $fields['created_by_id'];
-        return $fields['is_deactivate'] ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields, $createdBy);
+        return isset($fields['is_deactivate']) ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $id, $fields, $createdBy);
     }
 
     public function onUpdateItemStatus($statusId, $id, $fields, $createdById)
