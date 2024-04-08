@@ -26,6 +26,7 @@ class ProductionBatchController extends Controller
             'production_ota_id' => 'nullable|exists:production_ota,id',
             'production_otb_id' => 'nullable|exists:production_otb,id',
             'batch_type' => 'required|integer|in:0,1',
+            'endorsed_by_qa' => 'required|integer|in:0,1',
             'quantity' => 'required',
             'chilled_exp_date' => 'nullable|date',
             'frozen_exp_date' => 'nullable|date',
@@ -65,6 +66,7 @@ class ProductionBatchController extends Controller
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
             $producedItems = ProducedItemModel::where('production_batch_id', $productionBatch->id)->first();
 
+            $endorsedQA = $fields['endorsed_by_qa'];
             $quantity = json_decode($fields['quantity'], true);
             $data = $quantity;
             $keys = array_keys($data);
@@ -97,6 +99,7 @@ class ProductionBatchController extends Controller
                     'parent_batch_code' => $productionBatch->batch_code,
                     'sticker_multiplier' => $stickerMultiplier,
                     'batch_code' => $batchCode,
+                    'endorsed_by_qa' => $endorsedQA
                 ];
                 $secondaryValue -= $primaryPackingSize;
                 $addedProducedItem[$producedItemCount] = $itemArray;
@@ -137,6 +140,7 @@ class ProductionBatchController extends Controller
                 $batchNumberProdName = 'production_ota_id';
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
+            $endorsedQA = $fields['endorsed_by_qa'];
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $productionToBakeAssemble->expected_chilled_exp_date;
             $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $productionToBakeAssemble->expected_frozen_exp_date;
             $itemCode = $productionToBakeAssemble->item_code;
@@ -160,7 +164,7 @@ class ProductionBatchController extends Controller
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
-                'production_item' => $this->onGenerateProducedItems($productionBatch, $fields['batch_type'])->produced_items
+                'production_item' => $this->onGenerateProducedItems($productionBatch, $fields['batch_type'], $endorsedQA)->produced_items
             ];
             return $data;
         } catch (Exception $exception) {
@@ -169,17 +173,17 @@ class ProductionBatchController extends Controller
 
     }
 
-    public function onGenerateProducedItems($productionBatch, $batchType)
+    public function onGenerateProducedItems($productionBatch, $batchType, $endorsedQA)
     {
         try {
-            return $this->onInitialProducedItems($productionBatch, $batchType);
+            return $this->onInitialProducedItems($productionBatch, $batchType, $endorsedQA);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
 
     }
 
-    public function onInitialProducedItems($productionBatch, $batchType)
+    public function onInitialProducedItems($productionBatch, $batchType, $endorsedQA)
     {
         try {
 
@@ -206,6 +210,7 @@ class ProductionBatchController extends Controller
                 ($productionBatch->productionOta ?
                     $productionBatch->productionOta->itemMasterData->itemVariantType->sticker_multiplier :
                     1);
+
             for ($i = 1; $i <= $primaryValue; $i++) {
                 $batchCode = $productionBatch->batch_code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
                 if ($batchType == 1) {
@@ -222,6 +227,7 @@ class ProductionBatchController extends Controller
                     'parent_batch_code' => $productionBatch->batch_code,
                     'sticker_multiplier' => $stickerMultiplier,
                     'batch_code' => $batchCode,
+                    'endorsed_by_qa' => $endorsedQA
                 ];
                 $secondaryValue -= $primaryPackingSize;
                 $producedItemsArray[$i] = $itemArray;

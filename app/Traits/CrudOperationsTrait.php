@@ -143,7 +143,7 @@ trait CrudOperationsTrait
                         }
                     });
                 } else {
-                    $data->orWhere($field, $value);
+                    $data->where($field, $value);
                 }
             }
             if ($orderFields) {

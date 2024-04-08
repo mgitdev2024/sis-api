@@ -220,6 +220,14 @@ Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHisto
 #endregion
 
 
+#region Item Disposition
+Route::post('v1/item/disposition/update/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onUpdateById']);
+Route::get('v1/item/disposition/current/{id?}/{status}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
+Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAll']);
+Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
+Route::get('v1/item/disposition/status/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onChangeStatus']);
+Route::delete('v1/item/disposition/delete/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onDeleteById']);
+#endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });

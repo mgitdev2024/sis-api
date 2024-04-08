@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->unsignedBigInteger('production_batch_id');
+            $table->integer('item_key')->nullable();
             $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling,
             $table->string('produced_items');
             $table->string('reason')->nullable();

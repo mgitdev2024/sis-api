@@ -48,7 +48,7 @@ class ProducedItemModel extends Model
             9 => 'Sticker Updated',
             10 => 'Reviewed',
             11 => 'Retouched',
-            12 => 'Sliced',
+            12 => 'Sliced'
         ];
 
         return [
