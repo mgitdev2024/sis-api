@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\QualityAssurance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Productions\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use Exception;
@@ -34,19 +35,29 @@ class ItemDispositionController extends Controller
     }
     public function onGetCurrent($type = null, $status)
     {
-        $typeArray = [0, 1];
-        $whereFields = [];
-        if (in_array($type, $typeArray)) {
-            $whereFields = [
-                'status' => $status,
-                'type' => $type
-            ];
-        } else {
-            $whereFields = [
-                'status' => $status
-            ];
+        try {
+            $itemDisposition = ItemDispositionModel::with('productionBatch')
+                ->distinct()
+                ->where('status', $status)
+                ->where('type', $type)
+                ->get(['production_batch_id']);
+
+            $batchDisposition = [];
+            $counter = 0;
+            foreach ($itemDisposition as $value) {
+                $batchDisposition[$counter] = [
+                    'production_batch_id' => $value->production_batch_id,
+                    'production_orders_to_make' => $value->productionBatch->productionOtb ?? $value->productionBatch->productionOta
+                ];
+                ++$counter;
+            }
+            if (count($batchDisposition) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $batchDisposition);
+            }
+            return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        return $this->readCurrentRecord(ItemDispositionModel::class, $type, $whereFields, null, null, 'Item Disposition');
     }
     public function onGetAll()
     {

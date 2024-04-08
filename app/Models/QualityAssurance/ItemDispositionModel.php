@@ -15,6 +15,7 @@ class ItemDispositionModel extends Model
         'created_by_id',
         'updated_by_id',
         'production_batch_id',
+        'item_key',
         'type',
         'produced_items',
         'reason',

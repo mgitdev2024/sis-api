@@ -77,19 +77,26 @@ class ProducedItemController extends Controller
             $producedItemModelMain = $productionBatchMain->producedItem;
             $producedItemArrayMain = json_decode($producedItemModelMain->produced_items, true);
             foreach ($scannedItem as $value) {
-                if ($value['bid'] === $id) {
+                $produceItem = null;
+                if ($value['bid'] == $id) {
                     $producedItemArrayMain[$value['sticker_no']]['status'] = $statusId;
+                    $produceItem = $producedItemArrayMain[$value['sticker_no']];
                 } else {
                     $productionBatchOther = ProductionBatchModel::find($value['bid']);
                     $producedItemModelOther = $productionBatchOther->producedItem;
                     $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
+                    $produceItem = $producedItemArrayOther[$value['sticker_no']];
+
                     $producedItemArrayOther[$value['sticker_no']]['status'] = $statusId;
                     $producedItemModelOther->produced_items = json_encode($producedItemArrayOther);
                     $producedItemModelOther->save();
                 }
-
                 if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $producedItemArrayMain[$value['bid']], $statusId);
+                    $this->onItemDisposition($createdById, $value['bid'], $produceItem, $value['sticker_no'], $statusId);
+                }
+
+                if ($statusId == 2 && $produceItem['status'] != 2) {
+                    $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
                 }
             }
 
@@ -100,6 +107,7 @@ class ProducedItemController extends Controller
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
         }
     }
@@ -131,7 +139,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $statusId)
+    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId)
     {
         try {
             $type = 1;
@@ -141,11 +149,24 @@ class ProducedItemController extends Controller
             $itemDisposition = new ItemDispositionModel();
             $itemDisposition->created_by_id = $createdById;
             $itemDisposition->production_batch_id = $id;
+            $itemDisposition->item_key = $itemKey;
             $itemDisposition->type = $type;
-            $itemDisposition->produced_items = json_encode($value);
+            $itemDisposition->produced_items = json_encode([$itemKey => $value]);
+
             $itemDisposition->save();
         } catch (Exception $exception) {
-            dd($exception);
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onForReceiveItem($id, $value, $itemKey)
+    {
+        try {
+            $productionBatch = ProductionBatchModel::find($value['bid']);
+            $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+            $productionActualQuantity->actual_quantity += 1;
+            $productionActualQuantity->save();
+        } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
