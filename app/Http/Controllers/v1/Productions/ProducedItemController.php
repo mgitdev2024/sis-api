@@ -95,7 +95,7 @@ class ProducedItemController extends Controller
                     $this->onItemDisposition($createdById, $value['bid'], $produceItem, $value['sticker_no'], $statusId);
                 }
 
-                if ($statusId == 2 && $produceItem['status'] != 2) {
+                if ($statusId == 2 /*&& $produceItem['status'] != 2*/) {
                     $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
                 }
             }
@@ -124,8 +124,8 @@ class ProducedItemController extends Controller
             $producedItem = $producedItemModel->produced_items;
             $producedItemArray = json_decode($producedItem, true);
 
-            foreach ($scannedItem as $key => $value) {
-                $producedItemArray[$key]['sticker_status'] = 0;
+            foreach ($scannedItem as $value) {
+                $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
