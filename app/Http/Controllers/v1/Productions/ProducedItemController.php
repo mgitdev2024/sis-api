@@ -81,12 +81,18 @@ class ProducedItemController extends Controller
                 if ($value['bid'] == $id) {
                     $producedItemArrayMain[$value['sticker_no']]['status'] = $statusId;
                     $produceItem = $producedItemArrayMain[$value['sticker_no']];
+                    if ($statusId == 2) {
+                        $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
+                    }
                 } else {
                     $productionBatchOther = ProductionBatchModel::find($value['bid']);
                     $producedItemModelOther = $productionBatchOther->producedItem;
                     $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
                     $produceItem = $producedItemArrayOther[$value['sticker_no']];
 
+                    if ($statusId == 2) {
+                        $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
+                    }
                     $producedItemArrayOther[$value['sticker_no']]['status'] = $statusId;
                     $producedItemModelOther->produced_items = json_encode($producedItemArrayOther);
                     $producedItemModelOther->save();
@@ -95,9 +101,6 @@ class ProducedItemController extends Controller
                     $this->onItemDisposition($createdById, $value['bid'], $produceItem, $value['sticker_no'], $statusId);
                 }
 
-                if ($statusId == 2 /*&& $produceItem['status'] != 2*/) {
-                    $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
-                }
             }
 
             $producedItemModelMain->produced_items = json_encode($producedItemArrayMain);
@@ -162,10 +165,13 @@ class ProducedItemController extends Controller
     public function onForReceiveItem($id, $value, $itemKey)
     {
         try {
-            $productionBatch = ProductionBatchModel::find($value['bid']);
-            $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-            $productionActualQuantity->actual_quantity += 1;
-            $productionActualQuantity->save();
+            $producedItems = json_decode(ProducedItemModel::where('production_batch_id', $id)->first()->produced_items, true);
+            if ($producedItems[$itemKey]['status'] != 2) {
+                $productionBatch = ProductionBatchModel::find($value['bid']);
+                $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $productionActualQuantity->actual_quantity += 1;
+                $productionActualQuantity->save();
+            }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
