@@ -33,7 +33,24 @@ class ItemDispositionController extends Controller
         ];
         return $this->updateRecordById(ItemDispositionModel::class, $request, $rules, 'Item Disposition', $id);
     }
-    public function onGetCurrent($type = null, $status)
+    public function onGetAll()
+    {
+        return $this->readRecord(ItemDispositionModel::class, 'Item Disposition');
+    }
+    public function onGetById($id)
+    {
+        return $this->readRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+    }
+    public function onDeleteById($id)
+    {
+        return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+    }
+    public function onChangeStatus($id)
+    {
+        return $this->changeStatusRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+    }
+
+    public function onGetAllCategory($type = null, $status)
     {
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
@@ -59,20 +76,17 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetAll()
+
+    public function onGetCurrent($id)
     {
-        return $this->readRecord(ItemDispositionModel::class, 'Item Disposition');
-    }
-    public function onGetById($id)
-    {
-        return $this->readRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
-    }
-    public function onDeleteById($id)
-    {
-        return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
-    }
-    public function onChangeStatus($id)
-    {
-        return $this->changeStatusRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+        try {
+            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
+            if (count($itemDisposition) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $itemDisposition);
+            }
+            return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 }
