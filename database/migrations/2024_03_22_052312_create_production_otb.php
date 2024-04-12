@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->float('buffer_level');
             $table->float('plotted_quantity');
             $table->integer('actual_quantity')->default(0);
+            $table->integer('actual_secondary_quantity')->default(0);
 
             $table->date('expected_chilled_exp_date')->nullable();
             $table->date('expected_frozen_exp_date')->nullable();
