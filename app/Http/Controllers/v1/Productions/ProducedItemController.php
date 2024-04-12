@@ -170,6 +170,7 @@ class ProducedItemController extends Controller
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $productionActualQuantity->actual_quantity += 1;
+                $productionActualQuantity->actual_secondary_quantity += intval($value['q']);
                 $productionActualQuantity->save();
             }
         } catch (Exception $exception) {
