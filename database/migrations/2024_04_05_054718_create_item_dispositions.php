@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->string('attachment')->nullable();
             $table->tinyInteger('status')->default(1); //  0 = closed , 1 = open
             $table->tinyInteger('production_status')->default(1); //  0 = closed , 1 = open
+            $table->integer('action')->nullable(); //  action status
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->timestamps();

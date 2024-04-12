@@ -100,6 +100,7 @@ class ItemDispositionController extends Controller
                 ->distinct()
                 ->where('production_status', $status)
                 ->where('type', $type)
+                ->whereNotNull('action')
                 ->get(['production_batch_id']);
 
             $batchDisposition = [];
