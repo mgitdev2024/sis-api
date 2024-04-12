@@ -61,7 +61,7 @@ class ProductionBatchController extends Controller
             $productionToBakeAssemble = isset($fields['production_otb_id'])
                 ? ProductionOTBModel::find($fields['production_otb_id'])
                 : ProductionOTAModel::find($fields['production_ota_id']);
-
+            $productionType = $productionBatch->production_otb_id ? 0 : 1;
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
             $producedItems = ProducedItemModel::where('production_batch_id', $productionBatch->id)->first();
@@ -105,6 +105,7 @@ class ProductionBatchController extends Controller
                 $addedProducedItem[$producedItemCount] = $itemArray;
                 $producedItemsArray[$producedItemCount] = $itemArray;
             }
+            $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
             $this->onPrintHistory($productionBatch->id, $producedItemsArray);
@@ -197,6 +198,8 @@ class ProductionBatchController extends Controller
                 ? ProductionOTBModel::find($productionBatch->production_otb_id)
                 : ProductionOTAModel::find($productionBatch->production_ota_id);
 
+            $productionType = $productionBatch->production_otb_id ? 0 : 1;
+
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
 
@@ -232,6 +235,7 @@ class ProductionBatchController extends Controller
                 $secondaryValue -= $primaryPackingSize;
                 $producedItemsArray[$i] = $itemArray;
             }
+            $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
 

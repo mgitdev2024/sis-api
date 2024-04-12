@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('production_batch_id');
             $table->text('produced_items'); // JSON
+            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->tinyInteger('status')->default(1);

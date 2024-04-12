@@ -78,9 +78,13 @@ class ProducedItemController extends Controller
             $producedItemArrayMain = json_decode($producedItemModelMain->produced_items, true);
             foreach ($scannedItem as $value) {
                 $produceItem = null;
+                $productionType = null;
                 if ($value['bid'] == $id) {
                     $producedItemArrayMain[$value['sticker_no']]['status'] = $statusId;
                     $produceItem = $producedItemArrayMain[$value['sticker_no']];
+
+                    $productionType = $producedItemModelMain->production_type;
+
                     if ($statusId == 2) {
                         $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
                     }
@@ -89,7 +93,7 @@ class ProducedItemController extends Controller
                     $producedItemModelOther = $productionBatchOther->producedItem;
                     $producedItemArrayOther = json_decode($producedItemModelOther->produced_items, true);
                     $produceItem = $producedItemArrayOther[$value['sticker_no']];
-
+                    $productionType = $producedItemModelOther->production_type;
                     if ($statusId == 2) {
                         $this->onForReceiveItem($value['bid'], $produceItem, $value['sticker_no']);
                     }
@@ -98,7 +102,7 @@ class ProducedItemController extends Controller
                     $producedItemModelOther->save();
                 }
                 if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $produceItem, $value['sticker_no'], $statusId);
+                    $this->onItemDisposition($createdById, $value['bid'], $produceItem, $value['sticker_no'], $statusId, $productionType);
                 }
 
             }
@@ -142,7 +146,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId)
+    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
     {
         try {
             $type = 1;
@@ -154,6 +158,7 @@ class ProducedItemController extends Controller
             $itemDisposition->production_batch_id = $id;
             $itemDisposition->item_key = $itemKey;
             $itemDisposition->type = $type;
+            $itemDisposition->production_type = $productionType;
             $itemDisposition->produced_items = json_encode([$itemKey => $value]);
 
             $itemDisposition->save();
