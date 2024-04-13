@@ -317,7 +317,6 @@ class ProductionBatchController extends Controller
             DB::rollBack();
             throw new Exception($exception->getMessage());
         }
-
     }
 
     public function onReleaseHoldStatus($producedItem, $productionBatch)
