@@ -35,7 +35,7 @@ class ProducedItemController extends Controller
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
 
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request)
     {
         #region status list
         // 0 => 'Good',
@@ -57,13 +57,13 @@ class ProducedItemController extends Controller
             'scanned_item_qr' => 'required|string',
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
             'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
+            'production_batch_id' => 'nullable|required_if:is_deactivate,1',
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-
         $statusId = isset($fields['status_id']) ? $fields['status_id'] : 0;
         $createdBy = $fields['created_by_id'];
-        return isset($fields['is_deactivate']) ? $this->onDeactivateItem($id, $fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
+        return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
 
     public function onUpdateItemStatus($statusId, $fields, $createdById)
@@ -94,14 +94,14 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onDeactivateItem($id, $fields)
+    public function onDeactivateItem($fields)
     {
         try {
             DB::beginTransaction();
 
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
-            $productionBatch = ProductionBatchModel::find($id);
+            $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
             $producedItemModel = $productionBatch->producedItem;
             $producedItem = $producedItemModel->produced_items;
             $producedItemArray = json_decode($producedItem, true);
