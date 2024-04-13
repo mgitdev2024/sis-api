@@ -12,15 +12,18 @@ return new class extends Migration {
     {
         Schema::create('item_dispositions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('created_by_id');
-            $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->unsignedBigInteger('production_batch_id');
             $table->integer('item_key')->nullable();
-            $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling,
+            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
+            $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling
             $table->string('produced_items');
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
-            $table->tinyInteger('status')->default(1); //  0 = closed , 1 = open,
+            $table->tinyInteger('status')->default(1); //  0 = closed , 1 = open
+            $table->tinyInteger('production_status')->default(1); //  0 = closed , 1 = open
+            $table->integer('action')->nullable(); //  action status
+            $table->unsignedBigInteger('created_by_id');
+            $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->timestamps();
 
             $table->foreign('production_batch_id')->references('id')->on('production_batch');

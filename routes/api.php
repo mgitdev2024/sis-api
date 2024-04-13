@@ -226,7 +226,7 @@ Route::get('v1/item/disposition/category/{id?}/{status}', [App\Http\Controllers\
 Route::get('v1/item/disposition/current/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
 Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAll']);
 Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
-Route::get('v1/item/disposition/status/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onChangeStatus']);
+Route::get('v1/item/disposition/close/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onCloseDisposition']);
 Route::delete('v1/item/disposition/delete/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onDeleteById']);
 #endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {

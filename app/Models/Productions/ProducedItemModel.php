@@ -14,6 +14,7 @@ class ProducedItemModel extends Model
     protected $fillable = [
         'production_batch_id',
         'produced_items',
+        'production_type',
         'created_by_id',
         'updated_by_id',
         'status',
