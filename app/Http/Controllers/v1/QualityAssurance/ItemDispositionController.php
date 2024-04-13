@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
+use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
@@ -98,9 +99,8 @@ class ItemDispositionController extends Controller
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->distinct()
-                ->where('production_status', $status)
+                ->where('status', $status)
                 ->where('type', $type)
-                ->whereNotNull('action')
                 ->get(['production_batch_id']);
 
             $batchDisposition = [];
@@ -108,6 +108,7 @@ class ItemDispositionController extends Controller
             foreach ($itemDisposition as $value) {
                 $batchDisposition[$counter] = [
                     'production_batch_id' => $value->production_batch_id,
+                    'production_batch_number' => ProductionBatchModel::find($value->production_batch_id)->batch_number,
                     'production_orders_to_make' => $value->productionBatch->productionOtb ?? $value->productionBatch->productionOta
                 ];
                 ++$counter;
