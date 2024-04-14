@@ -14,7 +14,7 @@ class DeliveryTypeController extends Controller
     public static function getRules($typeId = null)
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'type' => 'required|string|unique:delivery_types,type,' . $typeId,
             'description' => 'nullable|string',

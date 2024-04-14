@@ -20,7 +20,7 @@ class ProductionOrderController extends Controller
     public static function getRules($orderId = "")
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'reference_number' => 'required|string|unique:production_orders,reference_number,' . $orderId,
             'production_date' => 'required|date_format:Y-m-d',
         ];
@@ -192,16 +192,21 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches($id)
+    public function onGetBatches($id, $order_type)
     {
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
             $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
             $otaIds = $productionOrder->productionOta->pluck('id')->toArray();
-            $productionBatches = ProductionBatchModel::whereIn('production_otb_id', $otbIds)
-                ->orWhereIn('production_ota_id', $otaIds)
-                ->get();
+            $productionBatches = ProductionBatchModel::orderBy('id', 'ASC');
 
+            if (strcasecmp($order_type, 'otb') === 0) {
+                $productionBatches->whereIn('production_otb_id', $otbIds);
+            } else {
+                $productionBatches->whereIn('production_ota_id', $otaIds);
+            }
+
+            $productionBatches = $productionBatches->get();
             $response = [
                 'batches' => $productionBatches,
             ];

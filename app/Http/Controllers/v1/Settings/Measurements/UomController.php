@@ -14,13 +14,13 @@ class UomController extends Controller
     public static function getRules($itemId = null)
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'short_uom' => 'required|string',
             'long_uom' => 'required|string',
         ];
     }
-     public function onCreate(Request $request)
+    public function onCreate(Request $request)
     {
         return $this->createRecord(UomModel::class, $request, $this->getRules(), 'UOM');
     }
