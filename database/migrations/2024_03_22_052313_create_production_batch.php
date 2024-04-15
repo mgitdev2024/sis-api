@@ -24,12 +24,13 @@ return new class extends Migration {
             $table->date('frozen_exp_date')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(0);
+            $table->tinyInteger('status')->default(0); // 0 = In Progress, 1 = On Hold, 2 = Complete
             $table->timestamps();
 
             $table->foreign('created_by_id')->references('id')->on('credentials');
             $table->foreign('updated_by_id')->references('id')->on('credentials');
             $table->foreign('production_otb_id')->references('id')->on('production_otb');
+            $table->foreign('production_ota_id')->references('id')->on('production_ota');
         });
     }
 
