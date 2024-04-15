@@ -15,7 +15,7 @@ class ItemMasterdataController extends Controller
     {
 
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',

@@ -103,7 +103,7 @@ Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\
 Route::get('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
 Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
 Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetCurrent']);
-Route::get('v1/production/order/get/batches/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetBatches']);
+Route::get('v1/production/order/get/batches/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetBatches']);
 #endregion
 
 #region Production OTA
@@ -131,7 +131,7 @@ Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\Producti
 Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetPaginatedList']);
 Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
 Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
-Route::get('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
+Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
 #endregion
 
 #region Production Items
@@ -139,8 +139,7 @@ Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\Production
 Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetPaginatedList']);
 Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
 // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
-Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
-
+Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
 
 #region Category
 Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onCreate']);
@@ -222,6 +221,15 @@ Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHisto
 #endregion
 
 
+#region Item Disposition
+Route::post('v1/item/disposition/update/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onUpdateById']);
+Route::get('v1/item/disposition/category/{type}/{status}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAllCategory']);
+Route::get('v1/item/disposition/current/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
+Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAll']);
+Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
+Route::get('v1/item/disposition/close/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onCloseDisposition']);
+Route::delete('v1/item/disposition/delete/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onDeleteById']);
+#endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });

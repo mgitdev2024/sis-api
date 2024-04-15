@@ -14,7 +14,7 @@ class ItemClassificationController extends Controller
     public static function getRules($itemId = null)
     {
         return [
-            'created_by_id' => 'required|exists:credentials,id',
+            'created_by_id' => 'required',
             'updated_by_id' => 'nullable|exists:credentials,id',
             'name' => 'required|string|unique:item_classifications,name,' . $itemId,
         ];
