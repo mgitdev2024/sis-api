@@ -25,6 +25,8 @@ return new class extends Migration {
             $table->integer('aging_period')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
+            $table->unsignedBigInteger('fulfilled_by_id')->nullable();
+            $table->timestamp('fulfilled_at')->nullable();
             $table->timestamps();
 
             $table->foreign('production_batch_id')->references('id')->on('production_batch');

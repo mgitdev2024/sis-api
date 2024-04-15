@@ -5,7 +5,6 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
-use App\Models\Productions\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use Exception;
@@ -15,25 +14,39 @@ use App\Traits\CrudOperationsTrait;
 class ItemDispositionController extends Controller
 {
     use CrudOperationsTrait;
-    public static function getRules()
-    {
-        return [
-            'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
-            'production_order_id' => 'required|exists:production_orders,id',
-            'item_code' => 'required|string',
-            'production_date' => 'required|date_format:Y-m-d',
-        ];
-    }
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
-            'plotted_quantity' => 'required|integer',
-            'actual_quantity' => 'nullable|integer',
+            'action_status_id' => 'required|integer|in:6,7,8',
+            'aging_period' => 'required|integer',
+            'quantity_update' => 'required_if:action_status_id,8|integer'
         ];
-        return $this->updateRecordById(ItemDispositionModel::class, $request, $rules, 'Item Disposition', $id);
+        // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update
+        $fields = $request->validate($rules);
+        try {
+            DB::beginTransaction();
+            $itemDisposition = ItemDispositionModel::find($id);
+            $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+            $producedItems = json_decode($producedItemModel->produced_items, true);
+            $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
+            if (isset($fields['quantity_update']) && $fields['action_status_id'] == 8) {
+                $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
+            }
+            $producedItemModel->produced_items = json_encode($producedItems);
+            $producedItemModel->save();
+            $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
+            $itemDisposition->aging_period = $fields['aging_period'];
+            $itemDisposition->updated_by_id = $fields['created_by_id'];
+            $itemDisposition->updated_at = now();
+            $itemDisposition->action = $fields['action_status_id'];
+            $itemDisposition->save();
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetAll()
     {
@@ -173,7 +186,6 @@ class ItemDispositionController extends Controller
             foreach ($producedItemArray as $value) {
                 if ($value->sticker_status === 1) {
                     if ($value->status !== 1) {
-
                         $value->prev_status = $value->status;
                     }
                     $value->status = 1;

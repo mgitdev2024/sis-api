@@ -114,6 +114,8 @@ Route::get('v1/production/ota/all', [App\Http\Controllers\v1\Productions\Product
 Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetById']);
 Route::get('v1/production/ota/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onChangeStatus']);
 Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetCurrent']);
+Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetEndorsedByQa']);
+Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onFulfillEndorsement']);
 #endregion
 
 #region Production OTB
@@ -124,6 +126,8 @@ Route::get('v1/production/otb/all', [App\Http\Controllers\v1\Productions\Product
 Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetById']);
 Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);
 Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetCurrent']);
+Route::get('v1/production/otb/endorsement/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetEndorsedByQa']);
+Route::post('v1/production/otb/fulfill/endorsement/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onFulfillEndorsement']);
 #endregion
 #region Production Batch
 Route::post('v1/production/batch/create', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onCreate']);
