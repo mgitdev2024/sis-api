@@ -114,6 +114,8 @@ Route::get('v1/production/ota/all', [App\Http\Controllers\v1\Productions\Product
 Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetById']);
 Route::get('v1/production/ota/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onChangeStatus']);
 Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetCurrent']);
+Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onGetEndorsedByQa']);
+Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\Productions\ProductionOTAController::class, 'onFulfillEndorsement']);
 #endregion
 
 #region Production OTB
@@ -124,6 +126,8 @@ Route::get('v1/production/otb/all', [App\Http\Controllers\v1\Productions\Product
 Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetById']);
 Route::get('v1/production/otb/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onChangeStatus']);
 Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetCurrent']);
+Route::get('v1/production/otb/endorsement/{id?}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onGetEndorsedByQa']);
+Route::post('v1/production/otb/fulfill/endorsement/{id}', [App\Http\Controllers\v1\Productions\ProductionOTBController::class, 'onFulfillEndorsement']);
 #endregion
 #region Production Batch
 Route::post('v1/production/batch/create', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onCreate']);
@@ -131,7 +135,7 @@ Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\Producti
 Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetPaginatedList']);
 Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
 Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
-Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
+// Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
 #endregion
 
 #region Production Items
@@ -140,6 +144,7 @@ Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\Produc
 Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
 // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
 Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
+Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onCheckItemStatus']);
 
 #region Category
 Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onCreate']);
@@ -229,6 +234,7 @@ Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\
 Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
 Route::get('v1/item/disposition/close/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onCloseDisposition']);
 Route::delete('v1/item/disposition/delete/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onDeleteById']);
+Route::post('v1/item/disposition/hold/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onHoldRelease']);
 #endregion
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout

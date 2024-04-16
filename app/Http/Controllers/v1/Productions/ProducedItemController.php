@@ -128,10 +128,11 @@ class ProducedItemController extends Controller
             if ($statusId == 4) {
                 $type = 0;
             }
-            $forQaDisposition = [4, 5];
+            $exclusionArray = [1, 4, 5, 6, 7, 8];
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            if ((!in_array($producedItems[$itemKey]['status'], $forQaDisposition)) && $producedItems[$itemKey]['sticker_status'] != 0) {
+            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
+            if ($flag) {
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
                 $itemDisposition->production_batch_id = $id;
@@ -155,7 +156,9 @@ class ProducedItemController extends Controller
         try {
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            if ($producedItems[$itemKey]['status'] != 2 && $producedItems[$itemKey]['sticker_status'] != 0) {
+            $inclusionArray = [0, 8];
+            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
+            if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $productionActualQuantity->actual_quantity += 1;
@@ -184,6 +187,33 @@ class ProducedItemController extends Controller
 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
+    {
+        $inArrayFlag = count($inclusionArray) > 0 ?
+            in_array($producedItems[$itemKey]['status'], $inclusionArray) :
+            !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
+    }
+
+    public function onCheckItemStatus($id, $item_key)
+    {
+        try {
+            $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
+            if ($producedItem) {
+                $item = json_decode($producedItem->produced_items, true)[$item_key];
+                $data = [
+                    'item_status' => $item['status'],
+                    'sticker_status' => $item['sticker_status']
+                ];
+
+                return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
+            }
+            return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.record_not_found'));
         }
     }
 }

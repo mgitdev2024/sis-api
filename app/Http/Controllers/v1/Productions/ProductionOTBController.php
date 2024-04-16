@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionOTBModel;
+use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
+use DB;
 
 class ProductionOTBController extends Controller
 {
@@ -75,5 +78,55 @@ class ProductionOTBController extends Controller
             }
         }
         return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, 'Production OTB');
+    }
+    public function onGetEndorsedByQa($id = null)
+    {
+        try {
+            $itemDisposition = ItemDispositionModel::with('productionBatch')->where('production_type', 0)->where('production_status', 1);
+
+            if ($id != null) {
+                $itemDisposition->where('id', $id);
+            }
+            $result = $itemDisposition->get();
+            return $this->dataResponse('success', 200, $result);
+        } catch (\Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onFulfillEndorsement(Request $request, $id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'chilled_exp_date' => 'nullable|date',
+            'frozen_exp_date' => 'nullable|date',
+        ]);
+        try {
+            DB::beginTransaction();
+            $itemDisposition = ItemDispositionModel::find($id);
+            $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+            $itemDisposition->fulfilled_at = now();
+            $itemDisposition->production_status = 0;
+            $itemDisposition->save();
+
+            $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+            $producedItems = json_decode($producedItemModel->produced_items, true);
+            $producedItems[$itemDisposition->item_key]['status'] = 9;
+            if (isset($fields['chilled_exp_date'])) {
+                $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];
+            }
+            if (isset($fields['frozen_exp_date'])) {
+                $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
+            }
+
+            $producedItemModel->produced_items = json_encode($producedItems);
+            $producedItemModel->save();
+            DB::commit();
+            return $this->dataResponse('success', 200, ProductionOTBModel::class . ' ' . __('msg.update_success'));
+        } catch (\Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+
     }
 }
