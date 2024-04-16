@@ -128,7 +128,7 @@ class ProducedItemController extends Controller
             if ($statusId == 4) {
                 $type = 0;
             }
-            $exclusionArray = [4, 5, 1];
+            $exclusionArray = [1, 4, 5, 6, 7, 8];
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);

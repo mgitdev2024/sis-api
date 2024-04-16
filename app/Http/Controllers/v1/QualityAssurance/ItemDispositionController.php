@@ -232,4 +232,9 @@ class ItemDispositionController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
+
+    public function onGetOverallStats()
+    {
+        // For QA statistics only
+    }
 }
