@@ -115,7 +115,9 @@ class ProductionOTAController extends Controller
     public function onFulfillEndorsement(Request $request, $id)
     {
         $fields = $request->validate([
-            'created_by_id' => 'required'
+            'created_by_id' => 'required',
+            'chilled_exp_date' => 'nullable|date',
+            'frozen_exp_date' => 'nullable|date',
         ]);
         try {
             $itemStatus = [
@@ -133,6 +135,13 @@ class ProductionOTAController extends Controller
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
             $producedItems[$itemDisposition->item_key]['status'] = $itemStatus[$producedItems[$itemDisposition->item_key]['status']];
+            if (isset($fields['chilled_exp_date'])) {
+                $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];
+            }
+            if (isset($fields['frozen_exp_date'])) {
+                $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
+            }
+
             $producedItemModel->produced_items = json_encode($producedItems);
             $producedItemModel->save();
             DB::commit();
