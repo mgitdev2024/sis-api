@@ -144,6 +144,7 @@ Route::post('v1/produced/items/get', [App\Http\Controllers\v1\Productions\Produc
 Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onGetById']);
 // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onDeactivateItem']);
 Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onChangeStatus']);
+Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\Productions\ProducedItemController::class, 'onCheckItemStatus']);
 
 #region Category
 Route::post('v1/category/create', [App\Http\Controllers\v1\Settings\Category\CategoryController::class, 'onCreate']);
