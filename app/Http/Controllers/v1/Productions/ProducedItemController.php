@@ -197,4 +197,23 @@ class ProducedItemController extends Controller
             !in_array($producedItems[$itemKey]['status'], $exclusionArray);
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
+
+    public function onCheckItemStatus($id, $item_key)
+    {
+        try {
+            $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
+            if ($producedItem) {
+                $item = json_decode($producedItem->produced_items, true)[$item_key];
+                $data = [
+                    'item_status' => $item['status'],
+                    'sticker_status' => $item['sticker_status']
+                ];
+
+                return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
+            }
+            return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.record_not_found'));
+        }
+    }
 }
