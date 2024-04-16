@@ -12,15 +12,19 @@ class ItemDispositionModel extends Model
     protected $table = 'item_dispositions';
 
     protected $fillable = [
-        'created_by_id',
-        'updated_by_id',
         'production_batch_id',
         'item_key',
+        'production_type',
         'type',
         'produced_items',
         'reason',
         'attachment',
-        'status'
+        'status',
+        'production_status',
+        'action',
+        'aging_period',
+        'created_by_id',
+        'updated_by_id'
     ];
     public function productionBatch()
     {

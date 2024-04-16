@@ -131,7 +131,7 @@ class ProducedItemController extends Controller
             $exclusionArray = [4, 5, 1];
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $exclusionArray);
+            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
             if ($flag) {
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
@@ -156,8 +156,8 @@ class ProducedItemController extends Controller
         try {
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            $exclusionArray = [2, 1];
-            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $exclusionArray);
+            $inclusionArray = [0, 8];
+            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
@@ -190,8 +190,11 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $exclusionArray)
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
     {
-        return $producedItems[$itemKey]['sticker_status'] != 0 && !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        $inArrayFlag = count($inclusionArray) > 0 ?
+            in_array($producedItems[$itemKey]['status'], $inclusionArray) :
+            !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 }
