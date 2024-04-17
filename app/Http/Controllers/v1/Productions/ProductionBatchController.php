@@ -36,6 +36,7 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
+        dd($fields);
         try {
             $batch = null;
             DB::beginTransaction();

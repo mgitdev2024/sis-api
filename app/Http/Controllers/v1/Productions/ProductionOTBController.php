@@ -88,7 +88,7 @@ class ProductionOTBController extends Controller
                 $itemDisposition->where('id', $id);
             }
             $result = $itemDisposition->get();
-            return $this->dataResponse('success', 200, $result);
+            return $this->dataResponse('success', 200, ProductionOTBModel::class . ' ' . __('msg.record_found'), $result);
         } catch (\Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
