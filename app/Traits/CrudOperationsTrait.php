@@ -18,7 +18,7 @@ trait CrudOperationsTrait
             $record = new $model();
             $record->fill($fields);
             $record->save();
-            return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
+            return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }

@@ -25,6 +25,7 @@ class ItemMasterdataModel extends Model
     protected $fillable = [
         'item_code',
         'description',
+        'parent_item_id',
         'item_code',
         'item_classification_id',
         'item_variant_type_id',
@@ -116,22 +117,32 @@ class ItemMasterdataModel extends Model
 
     public function getPrimaryConversionLabelAttribute()
     {
-        $primaryConversion = $this->primaryConversion->toArray();
-        $data = [
-            'short_name' => $primaryConversion['conversion_short_uom'],
-            'long_name' => $primaryConversion['conversion_long_uom'],
-        ];
-        return isset($primaryConversion) ? $data : 'n/a';
+        $primaryConversion = $this->primaryConversion;
+
+        if ($primaryConversion !== null) {
+            $data = [
+                'short_name' => $primaryConversion->conversion_short_uom,
+                'long_name' => $primaryConversion->conversion_long_uom,
+            ];
+            return $data;
+        } else {
+            return 'n/a';
+        }
     }
 
     public function getSecondaryConversionLabelAttribute()
     {
-        $secondaryConversion = $this->secondaryConversion->toArray();
-        $data = [
-            'short_name' => $secondaryConversion['conversion_short_uom'],
-            'long_name' => $secondaryConversion['conversion_long_uom'],
-        ];
-        return isset($secondaryConversion) ? $data : 'n/a';
+        $secondaryConversion = $this->secondaryConversion;
+
+        if ($secondaryConversion !== null) {
+            $data = [
+                'short_name' => $secondaryConversion->conversion_short_uom,
+                'long_name' => $secondaryConversion->conversion_long_uom,
+            ];
+            return $data;
+        } else {
+            return 'n/a';
+        }
     }
     public function getPlantLabelAttribute()
     {

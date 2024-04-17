@@ -88,7 +88,7 @@ class ProductionOTBController extends Controller
                 $itemDisposition->where('id', $id);
             }
             $result = $itemDisposition->get();
-            return $this->dataResponse('success', 200, ProductionOTBModel::class . ' ' . __('msg.record_found'), $result);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $result);
         } catch (\Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
@@ -103,26 +103,29 @@ class ProductionOTBController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $itemDisposition = ItemDispositionModel::find($id);
-            $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-            $itemDisposition->fulfilled_at = now();
-            $itemDisposition->production_status = 0;
-            $itemDisposition->save();
+            $itemDisposition = ItemDispositionModel::where('id', $id)->where('production_type', 0)->where('production_status', 1)->first();
+            if ($itemDisposition) {
+                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                $itemDisposition->fulfilled_at = now();
+                $itemDisposition->production_status = 0;
+                $itemDisposition->save();
 
-            $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
-            $producedItems = json_decode($producedItemModel->produced_items, true);
-            $producedItems[$itemDisposition->item_key]['status'] = 9;
-            if (isset($fields['chilled_exp_date'])) {
-                $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];
-            }
-            if (isset($fields['frozen_exp_date'])) {
-                $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
-            }
+                $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+                $producedItems = json_decode($producedItemModel->produced_items, true);
+                $producedItems[$itemDisposition->item_key]['status'] = 9;
+                if (isset($fields['chilled_exp_date'])) {
+                    $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];
+                }
+                if (isset($fields['frozen_exp_date'])) {
+                    $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
+                }
 
-            $producedItemModel->produced_items = json_encode($producedItems);
-            $producedItemModel->save();
-            DB::commit();
-            return $this->dataResponse('success', 200, ProductionOTBModel::class . ' ' . __('msg.update_success'));
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'));
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (\Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 400, $exception->getMessage());
