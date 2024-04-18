@@ -123,7 +123,7 @@ class ProductionOTBController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'));
+                return $this->dataResponse('success', 200, __('msg.update_success'), json_encode($producedItems[$itemDisposition->item_key]));
             }
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (\Exception $exception) {
