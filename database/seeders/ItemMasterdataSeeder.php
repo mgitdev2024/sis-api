@@ -87,6 +87,21 @@ class ItemMasterdataSeeder extends Seeder
                 'chilled_shelf_life' => '3',
                 'frozen_shelf_life' => '3',
             ],
+            [
+                'description' => 'Chocolate Cake Slice',
+                'item_code' => 'CHOC BX SLC',
+                'item_classification_id' => '2',
+                'item_variant_type_id' => '3',
+                'parent_item_id' => '2',
+                'uom_id' => '1',
+                'primary_item_packing_size' => null,
+                'primary_conversion_id' => null,
+                'secondary_item_packing_size' => null,
+                'secondary_conversion_id' => null,
+                'plant_id' => '2',
+                'chilled_shelf_life' => '3',
+                'frozen_shelf_life' => '3',
+            ],
         ];
 
         foreach ($itemMasterdata as $value) {
@@ -97,6 +112,7 @@ class ItemMasterdataSeeder extends Seeder
                 'item_classification_id' => $value['item_classification_id'],
                 'item_variant_type_id' => $value['item_variant_type_id'],
                 'plant_id' => $value['plant_id'],
+                'parent_item_id' => $value['parent_item_id'] ?? null,
                 'chilled_shelf_life' => $value['chilled_shelf_life'],
                 'frozen_shelf_life' => $value['frozen_shelf_life'],
                 'uom_id' => $value['uom_id'],

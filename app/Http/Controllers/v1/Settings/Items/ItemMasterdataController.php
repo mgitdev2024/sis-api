@@ -24,6 +24,7 @@ class ItemMasterdataController extends Controller
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
             'item_classification_id' => 'required|integer|exists:item_classifications,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
+            'parent_item_id' => 'required|integer|exists:item_masterdata,id',
             'uom_id' => 'required|integer|exists:uom,id',
             'primary_item_packing_size' => 'required|integer',
             'primary_conversion_id' => 'required|integer|exists:conversions,id',

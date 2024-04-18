@@ -11,6 +11,7 @@ trait ResponseTrait
             $key = $status === 'success' ? 'data' : 'error_thrown';
             $data_arr[$key] = $data;
         }
+
         $responseKey = $status === 'success' ? 'success' : 'error';
         $response = [$responseKey => $data_arr];
         return response($response, $httpCode);
