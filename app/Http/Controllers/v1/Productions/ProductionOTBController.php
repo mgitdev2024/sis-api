@@ -82,7 +82,10 @@ class ProductionOTBController extends Controller
     public function onGetEndorsedByQa($id = null)
     {
         try {
-            $itemDisposition = ItemDispositionModel::with('productionBatch')->where('production_type', 0)->where('production_status', 1);
+            $itemDisposition = ItemDispositionModel::with('productionBatch')
+                ->where('production_type', 0)
+                ->where('production_status', 1)
+                ->whereNotNull('action');
 
             if ($id != null) {
                 $itemDisposition->where('id', $id);
