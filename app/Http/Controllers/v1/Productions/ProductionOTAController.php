@@ -141,14 +141,15 @@ class ProductionOTAController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
 
-                $this->onSetProductionOrderBatch(
+                $productionItem = $this->onSetProductionOrderBatch(
                     $itemDisposition,
                     $itemDisposition->quantity_update,
                     $fields,
                     $statusFlag
                 );
+                $data = json_decode($productionItem->content(), true)['success']['data']['production_item'];
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'));
+                return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
 
 
@@ -217,7 +218,7 @@ class ProductionOTAController extends Controller
                 'frozen_exp_date' => $fields['frozen_exp_date'] ?? null,
                 'created_by_id' => $fields['created_by_id'],
             ]);
-            $productionBatch->onCreate($productionBatchRequest);
+            return $productionBatch->onCreate($productionBatchRequest);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
