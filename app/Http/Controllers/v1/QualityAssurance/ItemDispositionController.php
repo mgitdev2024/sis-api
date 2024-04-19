@@ -20,7 +20,7 @@ class ItemDispositionController extends Controller
             'created_by_id' => 'required',
             'action_status_id' => 'required|integer|in:6,7,8',
             'aging_period' => 'required|integer',
-            'quantity_update' => 'required_if:action_status_id,8|integer'
+            'quantity_update' => 'required_if:action_status_id,7,8|integer'
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update
         $fields = $request->validate($rules);
@@ -30,12 +30,14 @@ class ItemDispositionController extends Controller
             $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
-            if (isset($fields['quantity_update']) && $fields['action_status_id'] == 8) {
+            if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
             }
             $producedItemModel->produced_items = json_encode($producedItems);
             $producedItemModel->save();
+
             $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
+            $itemDisposition->quantity_update = $fields['quantity_update'] ?? null;
             $itemDisposition->aging_period = $fields['aging_period'];
             $itemDisposition->updated_by_id = $fields['created_by_id'];
             $itemDisposition->updated_at = now();
@@ -156,17 +158,16 @@ class ItemDispositionController extends Controller
             'is_release' => 'required|boolean'
         ]);
         try {
-
             $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
             $productionBatch = $producedItem->productionBatch;
-
+            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
             if ($productionBatch) {
                 DB::beginTransaction();
                 $response = null;
                 if ($fields['is_release']) {
-                    $response = $this->onReleaseHoldStatus($producedItem, $productionBatch);
+                    $response = $this->onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition);
                 } else {
-                    $response = $this->onHoldStatus($producedItem, $productionBatch);
+                    $response = $this->onHoldStatus($producedItem, $productionBatch, $itemDisposition);
                 }
 
                 DB::commit();
@@ -179,7 +180,7 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onHoldStatus($producedItem, $productionBatch)
+    public function onHoldStatus($producedItem, $productionBatch, $itemDisposition)
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
@@ -190,6 +191,11 @@ class ItemDispositionController extends Controller
                     }
                     $value->status = 1;
                 }
+            }
+
+            foreach ($itemDisposition as $disposition) {
+                $disposition->is_release = 0;
+                $disposition->save();
             }
             $productionBatch->status = 1;
             $productionBatch->update();
@@ -205,7 +211,7 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onReleaseHoldStatus($producedItem, $productionBatch)
+    public function onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition)
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
@@ -219,7 +225,10 @@ class ItemDispositionController extends Controller
             if ($productionBatch->productionOrder->status === 1) {
                 $productionBatch->status = 2;
             }
-
+            foreach ($itemDisposition as $disposition) {
+                $disposition->is_release = 1;
+                $disposition->save();
+            }
             $productionBatch->update();
             $producedItem->produced_items = json_encode($producedItemArray);
             $producedItem->update();
