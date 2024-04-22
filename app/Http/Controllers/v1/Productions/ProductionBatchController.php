@@ -36,6 +36,7 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
+        // dd($fields);
         try {
             $batch = null;
             DB::beginTransaction();
@@ -191,9 +192,18 @@ class ProductionBatchController extends Controller
             $quantity = json_decode($productionBatch->quantity, true);
             $data = $quantity;
             $keys = array_keys($data);
-            $primaryValue = intval($quantity[$keys[0]]) ?? 0;
-            $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            $primaryValue = 0;
+            $secondaryValue = 0;
 
+            if (isset($keys[0])) {
+                $primaryValue = intval($quantity[$keys[0]]) ?? 0;
+            }
+
+            if (isset($keys[1])) {
+                $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            } else {
+                $secondaryValue = $primaryValue;
+            }
             $productionToBakeAssemble = $productionBatch->production_otb_id
                 ? ProductionOTBModel::find($productionBatch->production_otb_id)
                 : ProductionOTAModel::find($productionBatch->production_ota_id);
@@ -201,7 +211,7 @@ class ProductionBatchController extends Controller
             $productionType = $productionBatch->production_otb_id ? 0 : 1;
 
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
-            $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
+            $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size) > 0 ? intval($itemMasterdata->primary_item_packing_size) : 1;
 
             $producedItems = new ProducedItemModel();
             $producedItems->production_batch_id = $productionBatch->id;
@@ -239,7 +249,6 @@ class ProductionBatchController extends Controller
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
 
-
             $this->onPrintHistory($productionBatch->id, $producedItemsArray);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();
@@ -265,88 +274,7 @@ class ProductionBatchController extends Controller
     {
         return $this->readRecordById(ProductionBatchModel::class, $id, 'Production Batches');
     }
-    public function onChangeStatus($id, Request $request)
-    {
-        $fields = $request->validate([
-            'is_release' => 'required|boolean'
-        ]);
-        try {
-            $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
-            $productionBatch = $producedItem->productionBatch;
 
-            if ($productionBatch) {
-                DB::beginTransaction();
-                $response = null;
-                if ($fields['is_release']) {
-                    $response = $this->onReleaseHoldStatus($producedItem, $productionBatch);
-                } else {
-                    $response = $this->onHoldStatus($producedItem, $productionBatch);
-                }
-
-                DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), $response);
-            }
-            return $this->dataResponse('error', 200, ProductionBatchModel::class . ' ' . __('msg.record_not_found'));
-        } catch (Exception $exception) {
-            DB::rollBack();
-            return $this->dataResponse('error', 400, $exception->getMessage());
-        }
-    }
-
-    public function onHoldStatus($producedItem, $productionBatch)
-    {
-        try {
-            $producedItemArray = json_decode($producedItem->produced_items);
-            foreach ($producedItemArray as $value) {
-                if ($value->sticker_status === 1) {
-                    if ($value->status !== 1) {
-                        $value->prev_status = $value->status;
-                    }
-                    $value->status = 1;
-                }
-            }
-            $productionBatch->status = 1;
-            $productionBatch->update();
-            $producedItem->produced_items = json_encode($producedItemArray);
-            $producedItem->update();
-            $response = [
-                'status' => $productionBatch->statusLabel
-            ];
-            return $response;
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw new Exception($exception->getMessage());
-        }
-    }
-
-    public function onReleaseHoldStatus($producedItem, $productionBatch)
-    {
-        try {
-            $producedItemArray = json_decode($producedItem->produced_items);
-            foreach ($producedItemArray as $value) {
-                if ($value->sticker_status === 1) {
-                    $value->status = $value->prev_status;
-                }
-            }
-
-            $productionBatch->status = 0;
-            if ($productionBatch->productionOrder->status === 1) {
-                $productionBatch->status = 2;
-            }
-
-            $productionBatch->update();
-            $producedItem->produced_items = json_encode($producedItemArray);
-            $producedItem->update();
-            $response = [
-                'status' => $productionBatch->statusLabel
-            ];
-            return $response;
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw new Exception($exception->getMessage());
-        }
-
-    }
     public function onGetCurrent($id = null, $order_type = null)
     {
         $whereFields = [];

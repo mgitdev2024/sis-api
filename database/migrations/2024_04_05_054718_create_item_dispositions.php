@@ -17,14 +17,18 @@ return new class extends Migration {
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling
             $table->string('produced_items');
+            $table->integer('quantity_update')->nullable();
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
             $table->tinyInteger('status')->default(1); //  0 = closed , 1 = open
             $table->tinyInteger('production_status')->default(1); //  0 = closed , 1 = open
+            $table->tinyInteger('is_release')->default(1); //  0 = hold , 1 = not hold
             $table->integer('action')->nullable(); //  action status
             $table->integer('aging_period')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
+            $table->unsignedBigInteger('fulfilled_by_id')->nullable();
+            $table->timestamp('fulfilled_at')->nullable();
             $table->timestamps();
 
             $table->foreign('production_batch_id')->references('id')->on('production_batch');
