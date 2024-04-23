@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
             $table->tinyInteger('is_reprint')->default(0);
+            $table->tinyInteger('item_disposition_id')->nullable();
             $table->timestamps();
             $table->foreign('production_batch_id')->references('id')->on('production_batch');
         });

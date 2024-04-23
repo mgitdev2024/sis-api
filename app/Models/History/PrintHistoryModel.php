@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Models\History;
+
+use App\Models\Productions\ProductionBatchModel;
+use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 class PrintHistoryModel extends Model
@@ -9,9 +12,20 @@ class PrintHistoryModel extends Model
     protected $table = 'print_history';
     protected $fillable = [
         'production_batch_id',
-        'produce_items',
-        'is_reprint',
+        'produced_items',
         'reason',
         'attachment',
+        'is_reprint',
+        'item_disposition_id',
     ];
+
+    public function productionBatch()
+    {
+        return $this->belongsTo(ProductionBatchModel::class);
+    }
+
+    public function itemDisposition()
+    {
+        return $this->belongsTo(ItemDispositionModel::class);
+    }
 }
