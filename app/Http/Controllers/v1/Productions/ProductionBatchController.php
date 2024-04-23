@@ -73,8 +73,18 @@ class ProductionBatchController extends Controller
             $quantity = json_decode($fields['quantity'], true);
             $data = $quantity;
             $keys = array_keys($data);
-            $primaryValue = intval($quantity[$keys[0]]) ?? 0;
-            $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            $primaryValue = 0;
+            $secondaryValue = 0;
+
+            if (isset($keys[0])) {
+                $primaryValue = intval($quantity[$keys[0]]) ?? 0;
+            }
+
+            if (isset($keys[1])) {
+                $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            } else {
+                $secondaryValue = $primaryValue;
+            }
 
             $stickerMultiplier = $productionBatch->productionOtb ?
                 $productionBatch->productionOtb->itemMasterData->itemVariantType->sticker_multiplier :
