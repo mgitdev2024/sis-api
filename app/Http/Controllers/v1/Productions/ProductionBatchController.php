@@ -113,7 +113,7 @@ class ProductionBatchController extends Controller
             $producedItems->save();
             $this->onPrintHistory(
                 $productionBatch->id,
-                $producedItemsArray,
+                $addedProducedItem,
                 $fields,
             );
             $productionBatchCurrent = json_decode($productionBatch->quantity, true);
