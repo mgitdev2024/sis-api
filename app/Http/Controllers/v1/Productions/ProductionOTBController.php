@@ -127,10 +127,11 @@ class ProductionOTBController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
 
+                $produceItem = [$itemDisposition->item_key];
                 $printHistory = new PrintHistoryController();
                 $printHistoryRequest = new Request([
                     'production_batch_id' => $itemDisposition->production_batch_id,
-                    'produced_items' => json_encode(array_keys($producedItems[$itemDisposition->item_key])),
+                    'produced_items' => json_encode($produceItem),
                     'is_reprint' => 0,
                     'created_by_id' => $fields['created_by_id'],
                     'item_disposition_id' => $id ?? null
