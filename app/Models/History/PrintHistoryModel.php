@@ -18,7 +18,6 @@ class PrintHistoryModel extends Model
         'attachment',
         'is_reprint',
         'item_disposition_id',
-        'is_endorsed_by_qa',
     ];
 
     public function productionBatch()

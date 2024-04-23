@@ -7,6 +7,8 @@ use App\Models\History\PrintHistoryModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use Exception;
+use DB;
+use Storage;
 
 class PrintHistoryController extends Controller
 {
@@ -19,7 +21,6 @@ class PrintHistoryController extends Controller
             'reason' => 'nullable|string',
             'attachment' => 'nullable',
             'is_reprint' => 'required|boolean',
-            'is_endorsed_by_qa' => 'nullable|boolean',
             'item_disposition_id' => 'nullable|integer',
             'created_by_id' => 'required|integer'
         ];
@@ -27,17 +28,24 @@ class PrintHistoryController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->getRules());
-        if ($request->hasFile('attachment')) {
-            dd($request->file('attachment'));
-            $attachmentPath = $request->file('attachment')->store('attachments');
-        }
-        dd('wsal akng napasa');
+
         try {
+            DB::beginTransaction();
             $record = new PrintHistoryModel();
             $record->fill($fields);
+
+
+            if ($request->hasFile('attachment')) {
+                $attachmentPath = $request->file('attachment')->store('public/attachments/print-history');
+                $filepath = 'storage/' . substr($attachmentPath, 7);
+                $record->attachment = $filepath;
+            }
+
             $record->save();
+            DB::commit();
             return $this->dataResponse('success', 201, 'Print History ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }

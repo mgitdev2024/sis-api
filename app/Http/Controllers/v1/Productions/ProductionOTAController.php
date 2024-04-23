@@ -216,6 +216,7 @@ class ProductionOTAController extends Controller
                 'production_ota_id' => $productionOtaId,
                 'batch_type' => $isRetouch,
                 'endorsed_by_qa' => 1,
+                'item_disposition_id' => $itemDisposition->id,
                 'quantity' => json_encode($conversionUnit),
                 'chilled_exp_date' => $fields['chilled_exp_date'] ?? null,
                 'frozen_exp_date' => $fields['frozen_exp_date'] ?? null,
