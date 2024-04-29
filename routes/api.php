@@ -136,7 +136,7 @@ Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\Prod
 Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
 Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
 Route::get('v1/production/batch/metal/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetProductionBatchMetalLine']);
-Route::get('v1/production/batch/print/initial/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onSetInitialPrint']);
+Route::post('v1/production/batch/print/initial/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onSetInitialPrint']);
 // Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
 #endregion
 
