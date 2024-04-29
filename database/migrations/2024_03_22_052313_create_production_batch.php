@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->date('frozen_exp_date')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
+            $table->tinyInteger('is_printed')->default(0); // 0 = Not Printed, 1 = Printed
             $table->tinyInteger('status')->default(0); // 0 = In Progress, 1 = On Hold, 2 = Complete
             $table->timestamps();
 

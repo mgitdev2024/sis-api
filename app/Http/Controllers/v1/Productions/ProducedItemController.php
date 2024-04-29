@@ -108,6 +108,7 @@ class ProducedItemController extends Controller
 
             foreach ($scannedItem as $value) {
                 $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
+                $producedItemArray[$value['sticker_no']]['status'] = null;
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
