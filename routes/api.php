@@ -136,7 +136,7 @@ Route::post('v1/production/batch/get', [App\Http\Controllers\v1\Productions\Prod
 Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetById']);
 Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetCurrent']);
 Route::get('v1/production/batch/metal/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onGetProductionBatchMetalLine']);
-Route::get('v1/production/batch/print/initial/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onSetInitialPrint']);
+Route::post('v1/production/batch/print/initial/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onSetInitialPrint']);
 // Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\Productions\ProductionBatchController::class, 'onChangeStatus']);
 #endregion
 
@@ -231,7 +231,7 @@ Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHisto
 #region Item Disposition
 Route::post('v1/item/disposition/update/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onUpdateById']);
 Route::get('v1/item/disposition/category/{type}/{status}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAllCategory']);
-Route::get('v1/item/disposition/current/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
+Route::get('v1/item/disposition/current/{id?}/{type?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
 Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAll']);
 Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
 Route::get('v1/item/disposition/close/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onCloseDisposition']);
