@@ -143,12 +143,16 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetCurrent($id)
+    public function onGetCurrent($id, $type = null)
     {
         try {
-            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
-            if (count($itemDisposition) > 0) {
-                return $this->dataResponse('success', 200, __('msg.record_found'), $itemDisposition);
+            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id);
+            if ($type != null) {
+                $itemDisposition->where('type', $type);
+            }
+            $data = $itemDisposition->get();
+            if (count($data) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
