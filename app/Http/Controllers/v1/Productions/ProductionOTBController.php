@@ -139,7 +139,7 @@ class ProductionOTBController extends Controller
                 $printHistory->onCreate($printHistoryRequest);
 
                 $data = [
-                    'produced_items' => json_encode($producedItems[$itemDisposition->item_key]),
+                    'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
                     'production_batch_id' => $itemDisposition->production_batch_id
                 ];
                 DB::commit();
