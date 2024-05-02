@@ -15,7 +15,7 @@ class ItemDispositionModel extends Model
         'production_batch_id',
         'item_key',
         'production_type',
-        'type',
+        'type', // 0 = for investigation, 1 = for sampling
         'produced_items',
         'reason',
         'attachment',

@@ -137,8 +137,13 @@ class ProductionOTBController extends Controller
                     'item_disposition_id' => $id ?? null
                 ]);
                 $printHistory->onCreate($printHistoryRequest);
+
+                $data = [
+                    'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
+                    'production_batch_id' => $itemDisposition->production_batch_id
+                ];
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), json_encode($producedItems[$itemDisposition->item_key]));
+                return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (\Exception $exception) {

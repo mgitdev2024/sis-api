@@ -2,15 +2,18 @@
 
 namespace App\Traits;
 
+use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
+use App\Traits\HistoricalLogTrait;
 use Illuminate\Database\QueryException;
 use Symfony\Component\HttpFoundation\Response;
 use DB;
+use Illuminate\Http\Request;
 
 trait CrudOperationsTrait
 {
-    use ResponseTrait;
+    use ResponseTrait, HistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
@@ -18,6 +21,7 @@ trait CrudOperationsTrait
             $record = new $model();
             $record->fill($fields);
             $record->save();
+            $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -32,6 +36,7 @@ trait CrudOperationsTrait
             if ($record) {
                 $fields['updated_by_id'] = $fields['created_by_id'];
                 $record->update($fields);
+                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));

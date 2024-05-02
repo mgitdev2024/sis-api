@@ -20,6 +20,8 @@ class ProductionBatchModel extends Model
         'batch_number',
         'batch_type',
         'quantity',
+        'actual_quantity',
+        'actual_secondary_quantity',
         'chilled_exp_date',
         'frozen_exp_date',
         'created_by_id',
@@ -75,7 +77,7 @@ class ProductionBatchModel extends Model
             $response = [
                 'item_code' => $production_ota_label['item_code'],
                 'plotted_quantity' => $production_ota_label['plotted_quantity'],
-                'actual_quantity' => $production_ota_label['plotted_quantity'],
+                'actual_quantity' => $production_ota_label['actual_quantity'],
             ];
         }
         return $response;
@@ -89,7 +91,7 @@ class ProductionBatchModel extends Model
             $response = [
                 'item_code' => $production_otb_label['item_code'],
                 'plotted_quantity' => $production_otb_label['plotted_quantity'],
-                'actual_quantity' => $production_otb_label['plotted_quantity'],
+                'actual_quantity' => $production_otb_label['actual_quantity'],
             ];
         }
         return $response;

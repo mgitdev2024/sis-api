@@ -326,5 +326,38 @@ class ProductionBatchController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
+
+    public function onGetProductionBatchMetalLine($orderType)
+    {
+        try {
+            // 0 = otb, 1 = ota
+            $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
+            $productionBatch = ProductionBatchModel::with('productionOrder')
+                ->whereNotNull($orderTypeString)
+                ->whereHas('productionOrder', function ($query) {
+                    $query->where('status', '=', 0);
+                })
+                ->get();
+
+            if (count($productionBatch) > 0) {
+                return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $productionBatch);
+            }
+            return $this->dataResponse('error', 200, 'Production Batch ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
+    }
+
+    public function onSetInitialPrint($id)
+    {
+        try {
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionBatch->is_printed = 1;
+            $productionBatch->save();
+            return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
+    }
 }
 

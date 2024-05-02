@@ -113,11 +113,14 @@ class ItemDispositionController extends Controller
     public function onGetAllCategory($type = null, $status)
     {
         try {
-            $itemDisposition = ItemDispositionModel::select('production_batch_id', DB::raw('count(*) as count'))
+            $itemDisposition = ItemDispositionModel::select('production_batch_id', 'is_release', DB::raw('count(*) as count'))
                 ->with('productionBatch')
                 ->where('status', $status)
                 ->where('type', $type)
-                ->groupBy('production_batch_id')
+                ->groupBy([
+                    'production_batch_id',
+                    'is_release'
+                ])
                 ->get();
             $batchDisposition = [];
             $counter = 0;
@@ -125,6 +128,7 @@ class ItemDispositionController extends Controller
                 $batchDisposition[$counter] = [
                     'production_batch_id' => $value->production_batch_id,
                     'quantity' => $value->count,
+                    'is_release' => $value->is_release,
                     'production_batch_number' => ProductionBatchModel::find($value->production_batch_id)->batch_number,
                     'production_orders_to_make' => $value->productionBatch->productionOtb ?? $value->productionBatch->productionOta
                 ];
@@ -139,12 +143,16 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetCurrent($id)
+    public function onGetCurrent($id, $type = null)
     {
         try {
-            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
-            if (count($itemDisposition) > 0) {
-                return $this->dataResponse('success', 200, __('msg.record_found'), $itemDisposition);
+            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id);
+            if ($type != null) {
+                $itemDisposition->where('type', $type);
+            }
+            $data = $itemDisposition->get();
+            if (count($data) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
