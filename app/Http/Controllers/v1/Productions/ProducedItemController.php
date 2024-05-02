@@ -211,7 +211,8 @@ class ProducedItemController extends Controller
                 $item = json_decode($producedItem->produced_items, true)[$item_key];
                 $data = [
                     'item_status' => $item['status'],
-                    'sticker_status' => $item['sticker_status']
+                    'sticker_status' => $item['sticker_status'],
+                    'production_order_status' => $producedItem->productionBatch->productionOrder->status
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
