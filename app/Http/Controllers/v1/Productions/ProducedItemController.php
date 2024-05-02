@@ -161,6 +161,10 @@ class ProducedItemController extends Controller
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
+                $productionBatch->actual_quantity += 1;
+                $productionBatch->actual_secondary_quantity += intval($value['q']);
+                $productionBatch->save();
+
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $productionActualQuantity->actual_quantity += 1;
                 $productionActualQuantity->actual_secondary_quantity += intval($value['q']);
@@ -207,7 +211,8 @@ class ProducedItemController extends Controller
                 $item = json_decode($producedItem->produced_items, true)[$item_key];
                 $data = [
                     'item_status' => $item['status'],
-                    'sticker_status' => $item['sticker_status']
+                    'sticker_status' => $item['sticker_status'],
+                    'production_order_status' => $producedItem->productionBatch->productionOrder->status
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
