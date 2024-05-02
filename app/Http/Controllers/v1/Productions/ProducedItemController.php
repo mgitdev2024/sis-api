@@ -161,6 +161,10 @@ class ProducedItemController extends Controller
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
+                $productionBatch->actual_quantity += 1;
+                $productionBatch->actual_secondary_quantity += intval($value['q']);
+                $productionBatch->save();
+
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $productionActualQuantity->actual_quantity += 1;
                 $productionActualQuantity->actual_secondary_quantity += intval($value['q']);
