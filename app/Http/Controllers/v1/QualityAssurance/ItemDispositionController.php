@@ -8,6 +8,7 @@ use App\Models\Productions\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 use DB;
 use App\Traits\CrudOperationsTrait;
 
@@ -96,8 +97,11 @@ class ItemDispositionController extends Controller
                     }
                     $producedItemData->produced_items = json_encode($producedItems);
                     $producedItemData->save();
+
+
                     $items->status = 0;
                     $items->production_status = 0;
+                    $items->aging_period = $items->created_at->diffInDays(Carbon::now());
                     $items->save();
                 }
                 DB::commit();
