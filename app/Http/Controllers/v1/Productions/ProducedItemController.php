@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\Warehouse\WarehouseReceivingModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use Exception;
@@ -83,6 +84,11 @@ class ProducedItemController extends Controller
                 } else {
                     $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no']);
                 }
+            }
+
+            // For Warehouse Receiving
+            if ($statusId == 2) {
+                $this->onWarehouseReceiveItem($scannedItem, $createdById);
             }
 
             DB::commit();
@@ -222,4 +228,54 @@ class ProducedItemController extends Controller
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.record_not_found'));
         }
     }
+
+    public function onWarehouseReceiveItem($scannedItem, $createdById)
+    {
+        try {
+            $warehouseReferenceNo = WarehouseReceivingModel::onGenerateWarehouseReceiveReferenceNumber();
+            $currentBatchId = null;
+            $itemsToTransfer = [];
+            foreach ($scannedItem as $value) {
+                $currentBatchId = $value['bid'];
+                $currentStickerNo = $value['sticker_no'];
+
+                $productionBatch = ProductionBatchModel::find($currentBatchId);
+                $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
+                $skuType = $productionBatch->productionOta->itemMasterdata->itemClassification->name ?? $productionBatch->productionOtb->itemMasterdata->itemClassification->name;
+                $productionOrderId = $productionBatch->productionOrder->id;
+                if (isset($itemsToTransfer[$currentBatchId])) {
+                    $itemsToTransfer[$currentBatchId]['qty']++;
+                } else {
+                    $itemsToTransfer[$currentBatchId] = [
+                        'production_order_id' => $currentStickerNo,
+                        'sticker_no' => $currentStickerNo,
+                        'item_code' => $itemCode,
+                        'sku_type' => $skuType,
+                        'qty' => 1
+                    ];
+                }
+            }
+
+            DB::beginTransaction();
+
+            foreach ($itemsToTransfer as $value) {
+                $warehouseReceive = new WarehouseReceivingModel();
+                $warehouseReceive->reference_number = $warehouseReferenceNo;
+                $warehouseReceive->production_order_id = $productionOrderId;
+                $warehouseReceive->produced_items = json_encode($itemsToTransfer);
+                $warehouseReceive->item_code = $value['item_code'];
+                $warehouseReceive->sku_type = $value['sku_type'];
+                $warehouseReceive->quantity = $value['qty'];
+                $warehouseReceive->created_by_id = $createdById;
+                $warehouseReceive->save();
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw new Exception($exception->getMessage());
+        }
+
+    }
 }
+
+
