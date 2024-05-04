@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use App\Models\Productions\ProductionOrderModel;

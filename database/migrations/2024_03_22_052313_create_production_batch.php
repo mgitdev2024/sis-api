@@ -20,10 +20,13 @@ return new class extends Migration {
             $table->integer('batch_number');
             $table->tinyInteger('batch_type');
             $table->string('quantity');
+            $table->integer('actual_quantity')->default(0);
+            $table->integer('actual_secondary_quantity')->default(0);
             $table->date('chilled_exp_date')->nullable();
             $table->date('frozen_exp_date')->nullable();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
+            $table->tinyInteger('is_printed')->default(0); // 0 = Not Printed, 1 = Printed
             $table->tinyInteger('status')->default(0); // 0 = In Progress, 1 = On Hold, 2 = Complete
             $table->timestamps();
 

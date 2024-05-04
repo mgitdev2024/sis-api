@@ -150,7 +150,11 @@ class ProductionOTAController extends Controller
                     $fields,
                     $statusFlag
                 );
-                $data = json_decode($productionItem->content(), true)['success']['data']['production_item'];
+
+                $data = [
+                    'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
+                    'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                ];
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
@@ -216,6 +220,7 @@ class ProductionOTAController extends Controller
                 'production_ota_id' => $productionOtaId,
                 'batch_type' => $isRetouch,
                 'endorsed_by_qa' => 1,
+                'item_disposition_id' => $itemDisposition->id,
                 'quantity' => json_encode($conversionUnit),
                 'chilled_exp_date' => $fields['chilled_exp_date'] ?? null,
                 'frozen_exp_date' => $fields['frozen_exp_date'] ?? null,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\History\PrintHistoryController;
 use App\Models\History\PrintHistoryModel;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
@@ -27,6 +28,7 @@ class ProductionBatchController extends Controller
             'production_otb_id' => 'nullable|exists:production_otb,id',
             'batch_type' => 'required|integer|in:0,1',
             'endorsed_by_qa' => 'required|integer|in:0,1',
+            'item_disposition_id' => 'required_if:endorsed_by_qa,1|integer',
             'quantity' => 'required',
             'chilled_exp_date' => 'nullable|date',
             'frozen_exp_date' => 'nullable|date',
@@ -71,8 +73,18 @@ class ProductionBatchController extends Controller
             $quantity = json_decode($fields['quantity'], true);
             $data = $quantity;
             $keys = array_keys($data);
-            $primaryValue = intval($quantity[$keys[0]]) ?? 0;
-            $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            $primaryValue = 0;
+            $secondaryValue = 0;
+
+            if (isset($keys[0])) {
+                $primaryValue = intval($quantity[$keys[0]]) ?? 0;
+            }
+
+            if (isset($keys[1])) {
+                $secondaryValue = intval($quantity[$keys[1]]) ?? 0;
+            } else {
+                $secondaryValue = $primaryValue;
+            }
 
             $stickerMultiplier = $productionBatch->productionOtb ?
                 $productionBatch->productionOtb->itemMasterData->itemVariantType->sticker_multiplier :
@@ -109,7 +121,11 @@ class ProductionBatchController extends Controller
             $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
-            $this->onPrintHistory($productionBatch->id, $producedItemsArray);
+            $this->onPrintHistory(
+                $productionBatch->id,
+                $addedProducedItem,
+                $fields,
+            );
             $productionBatchCurrent = json_decode($productionBatch->quantity, true);
             $toBeAddedQuantity = json_decode($fields['quantity'], true);
 
@@ -166,7 +182,12 @@ class ProductionBatchController extends Controller
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
-                'production_item' => $this->onGenerateProducedItems($productionBatch, $fields['batch_type'], $endorsedQA)->produced_items
+                'production_item' => $this->onGenerateProducedItems(
+                    $productionBatch,
+                    $fields['batch_type'],
+                    $endorsedQA,
+                    $fields
+                )->produced_items
             ];
             return $data;
         } catch (Exception $exception) {
@@ -175,17 +196,17 @@ class ProductionBatchController extends Controller
 
     }
 
-    public function onGenerateProducedItems($productionBatch, $batchType, $endorsedQA)
+    public function onGenerateProducedItems($productionBatch, $batchType, $endorsedQA, $fields)
     {
         try {
-            return $this->onInitialProducedItems($productionBatch, $batchType, $endorsedQA);
+            return $this->onInitialProducedItems($productionBatch, $batchType, $endorsedQA, $fields);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
 
     }
 
-    public function onInitialProducedItems($productionBatch, $batchType, $endorsedQA)
+    public function onInitialProducedItems($productionBatch, $batchType, $endorsedQA, $fields)
     {
         try {
 
@@ -249,7 +270,7 @@ class ProductionBatchController extends Controller
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
 
-            $this->onPrintHistory($productionBatch->id, $producedItemsArray);
+            $this->onPrintHistory($productionBatch->id, $producedItemsArray, $fields);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();
             return $producedItems;
@@ -287,15 +308,55 @@ class ProductionBatchController extends Controller
         return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
     }
 
-    public function onPrintHistory($batchId, $producedItems)
+    public function onPrintHistory($batchId, $producedItems, $fields)
     {
+
         try {
-            $printHistory = new PrintHistoryModel();
-            $printHistory->production_batch_id = $batchId;
-            $printHistory->produced_items = json_encode($producedItems);
-            $printHistory->save();
+            $printHistory = new PrintHistoryController();
+            $printHistoryRequest = new Request([
+                'production_batch_id' => $batchId,
+                'produced_items' => json_encode(array_keys($producedItems)),
+                'is_reprint' => 0,
+                'created_by_id' => $fields['created_by_id'],
+                'item_disposition_id' => $fields['item_disposition_id'] ?? null
+            ]);
+
+            $printHistory->onCreate($printHistoryRequest);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onGetProductionBatchMetalLine($orderType)
+    {
+        try {
+            // 0 = otb, 1 = ota
+            $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
+            $productionBatch = ProductionBatchModel::with('productionOrder')
+                ->whereNotNull($orderTypeString)
+                ->whereHas('productionOrder', function ($query) {
+                    $query->where('status', '=', 0);
+                })
+                ->get();
+
+            if (count($productionBatch) > 0) {
+                return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $productionBatch);
+            }
+            return $this->dataResponse('error', 200, 'Production Batch ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
+    }
+
+    public function onSetInitialPrint($id)
+    {
+        try {
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionBatch->is_printed = 1;
+            $productionBatch->save();
+            return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
 }
