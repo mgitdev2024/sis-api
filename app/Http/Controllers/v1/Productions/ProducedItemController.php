@@ -26,11 +26,11 @@ class ProducedItemController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Item');
     }
-    public function onGetAll()
+    public function onGetAll(Request $request)
     {
         return $this->readRecord(ProducedItemModel::class, 'Produced Item');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
@@ -66,7 +66,7 @@ class ProducedItemController extends Controller
         return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
 
-    public function onUpdateItemStatus($statusId, $fields, $createdById)
+    public function onUpdateItemStatus($statusId, $fields, $createdById,Request $request)
     {
         try {
             DB::beginTransaction();
@@ -94,7 +94,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onDeactivateItem($fields)
+    public function onDeactivateItem($fields,Request $request)
     {
         try {
             DB::beginTransaction();
@@ -121,7 +121,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
+    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType,Request $request)
     {
         try {
             $type = 1;
@@ -151,7 +151,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onForReceiveItem($id, $value, $itemKey)
+    public function onForReceiveItem($id, $value, $itemKey,Request $request)
     {
         try {
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
@@ -174,7 +174,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey)
+    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey,Request $request)
     {
         try {
             $producedItemModel = $productionBatch->producedItem;
@@ -190,7 +190,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray,Request $request)
     {
         $inArrayFlag = count($inclusionArray) > 0 ?
             in_array($producedItems[$itemKey]['status'], $inclusionArray) :
@@ -198,7 +198,7 @@ class ProducedItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($id, $item_key)
+    public function onCheckItemStatus($id, $item_key,Request $request)
     {
         try {
             $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();

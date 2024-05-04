@@ -38,15 +38,15 @@ class ProductionOrderController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
-    public function onGetAll()
+    public function onGetAll(Request $request)
     {
         return $this->readRecord(ProductionOrderModel::class, 'Production Order');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus($id,Request $request)
     {
         try {
             $productionOrder = ProductionOrderModel::find($id);
@@ -217,7 +217,7 @@ class ProductionOrderController extends Controller
 }
 
 
-// public function onDeleteById($id)
+// public function onDeleteById($id,Request $request)
 // {
 //     return $this->deleteRecordById(ProductionOrderModel::class, $id, 'Production Order');
 // }

@@ -34,23 +34,22 @@ class SubCategoryController extends Controller
         $searchableFields = ['sub_category_code','sub_category_name'];
         return $this->readPaginatedRecord(SubCategoryModel::class, $request, $searchableFields, 'Sub Category');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
-        return $this->readRecord(SubCategoryModel::class, 'Sub Category');
+        return $this->readRecord(SubCategoryModel::class, $request,'Sub Category');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
-        return $this->readRecordById(SubCategoryModel::class, $id, 'Sub Category');
+        return $this->readRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id,Request $request)
     {
-        return $this->deleteRecordById(SubCategoryModel::class, $id, 'Sub Category');
+        return $this->deleteRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
     }
-    public function onGetChildByParentId($id)
+    public function onGetChildByParentId($id,Request $request)
     {
-        return $this->readRecordByParentId(SubCategoryModel::class, $id, 'Sub Category', 'category_id');
+        return $this->readRecordByParentId(SubCategoryModel::class, $id, $request,'Sub Category', 'category_id');
     }
-
     public function onGetPaginatedChildByParentId(Request $request, $id)
     {
         $searchableFields = ['name'];

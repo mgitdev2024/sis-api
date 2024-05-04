@@ -11,6 +11,7 @@ use Exception;
 class PrintHistoryController extends Controller
 {
     use CrudOperationsTrait;
+
     public function getRules()
     {
         return [
@@ -26,16 +27,7 @@ class PrintHistoryController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(PrintHistoryModel::class, $request, $this->getRules(), 'Print History');
-    }
-    public function onUpdateById(Request $request, $id)
-    {
-        return $this->updateRecordById(PrintHistoryModel::class, $request, $this->getRules(), 'Print History', $id);
-    }
-    public function onGetPaginatedList(Request $request)
-    {
-        $searchableFields = ['production_batch_id'];
-        return $this->readPaginatedRecord(PrintHistoryModel::class, $request, $searchableFields, 'Print History');
+        $this->authenticateToken($request->bearerToken());
         $fields = $request->validate($this->getRules());
         if ($request->hasFile('attachment')) {
             dd($request->file('attachment'));
@@ -51,11 +43,12 @@ class PrintHistoryController extends Controller
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
-    public function onGetAll()
+    public function onGetAll(Request $request)
     {
-        return $this->readRecord(PrintHistoryModel::class, 'Print History');
+        return $this->readRecord(PrintHistoryModel::class,$request, 'Print History');
     }
-    public function onGetCurrent($id)
+
+    public function onGetCurrent($id,Request $request)
     {
         $whereFields = [];
         if ($id != null) {
@@ -63,14 +56,10 @@ class PrintHistoryController extends Controller
                 'production_batch_id' => $id
             ];
         }
-        return $this->readCurrentRecord(PrintHistoryModel::class, $id, $whereFields, null, null, 'Print History');
+        return $this->readCurrentRecord(PrintHistoryModel::class, $id, $whereFields, null, null,$request, 'Print History');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
-        return $this->readRecordById(PrintHistoryModel::class, $id, 'Print History');
-    }
-    public function onDeleteById($id)
-    {
-        return $this->deleteRecordById(PrintHistoryModel::class, $id, 'Print History');
+        return $this->readRecordById(PrintHistoryModel::class, $id, $request,'Print History');
     }
 }

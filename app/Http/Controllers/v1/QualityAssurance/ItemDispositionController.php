@@ -50,15 +50,15 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
         return $this->readRecord(ItemDispositionModel::class, 'Item Disposition');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
         return $this->readRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id,Request $request)
     {
         return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
     }

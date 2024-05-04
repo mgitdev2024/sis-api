@@ -7,6 +7,7 @@ use App\Models\Settings\ItemMovementModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
+
 class ItemMovementController extends Controller
 {
     use CrudOperationsTrait;
@@ -35,16 +36,16 @@ class ItemMovementController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(ItemMovementModel::class, $request, $searchableFields, 'Item Movement');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
-        return $this->readRecord(ItemMovementModel::class, 'Item Movement');
+        return $this->readRecord(ItemMovementModel::class, $request, 'Item Movement');
     }
-    public function onGetById($id)
+    public function onGetById($id, Request $request)
     {
-        return $this->readRecordById(ItemMovementModel::class, $id, 'Item Movement');
+        return $this->readRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id, Request $request)
     {
-        return $this->deleteRecordById(ItemMovementModel::class, $id, 'Item Movement');
+        return $this->deleteRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
     }
 }
