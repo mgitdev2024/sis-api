@@ -291,7 +291,7 @@ class ProductionBatchController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionBatchModel::class, $request, $searchableFields, 'Production Batches');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
         return $this->readRecordById(ProductionBatchModel::class, $id, 'Production Batches');
     }

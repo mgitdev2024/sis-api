@@ -44,19 +44,19 @@ class ProductionOTBController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
         return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
         return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id,Request $request)
     {
         return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus($id,Request $request)
     {
         return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }

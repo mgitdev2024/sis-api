@@ -34,20 +34,20 @@ class ConversionController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ConversionModel::class, $request, $searchableFields, 'Conversions');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
-        return $this->readRecord(ConversionModel::class, 'Conversions');
+        return $this->readRecord(ConversionModel::class, $request, 'Conversions');
     }
-    public function onGetById($id)
+    public function onGetById($id, Request $request)
     {
-        return $this->readRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->readRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id, Request $request)
     {
-        return $this->deleteRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->deleteRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus($id, Request $request)
     {
-        return $this->changeStatusRecordById(ConversionModel::class, $id, 'Conversions');
+        return $this->changeStatusRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
 }

@@ -33,20 +33,20 @@ class UomController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(UomModel::class, $request, $searchableFields, 'UOM');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
-        return $this->readRecord(UomModel::class, 'UOM');
+        return $this->readRecord(UomModel::class,$request, 'UOM');
     }
-    public function onGetById($id)
+    public function onGetById($id,Request $request)
     {
-        return $this->readRecordById(UomModel::class, $id, 'UOM');
+        return $this->readRecordById(UomModel::class, $id,$request, 'UOM');
     }
-    public function onDeleteById($id)
+    public function onDeleteById($id,Request $request)
     {
-        return $this->deleteRecordById(UomModel::class, $id, 'UOM');
+        return $this->deleteRecordById(UomModel::class, $id,$request, 'UOM');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus($id,Request $request)
     {
-        return $this->changeStatusRecordById(UomModel::class, $id, 'UOM');
+        return $this->changeStatusRecordById(UomModel::class, $id,$request, 'UOM');
     }
 }
