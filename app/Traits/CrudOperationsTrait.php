@@ -2,23 +2,23 @@
 
 namespace App\Traits;
 
+use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
-use Illuminate\Database\QueryException;
-use Symfony\Component\HttpFoundation\Response;
-use DB;
-
 trait CrudOperationsTrait
 {
-    use ResponseTrait;
+    use ResponseTrait, HistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record->fill($fields);
             $record->save();
-            return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
+            $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
+            return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
@@ -26,12 +26,15 @@ trait CrudOperationsTrait
     public function updateRecordById($model, $request, $rules, $modelName, $id)
     {
         $fields = $request->validate($rules);
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record = $model::find($id);
             if ($record) {
                 $fields['updated_by_id'] = $fields['created_by_id'];
                 $record->update($fields);
+                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -41,6 +44,8 @@ trait CrudOperationsTrait
     }
     public function readPaginatedRecord($model, $request, $searchableFields, $modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $fields = $request->validate([
                 'display' => 'nullable|integer',
@@ -60,10 +65,10 @@ trait CrudOperationsTrait
                         }
                     });
                 });
-            if (isset ($fields['type'])) {
+            if (isset($fields['type'])) {
                 $query->where('type', $fields['type']);
             }
-            if (isset ($request['is_pinned'])) {
+            if (isset($request['is_pinned'])) {
                 $query->where('is_pinned', $request['is_pinned']);
             }
             // $dataList = $query->limit($display)->offset($offset)->get();
@@ -91,20 +96,12 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName)
+    public function readRecord($model,$request = null, $modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $dataList = $model::get();
-            /*  $reconstructedList = [];
-             foreach ($dataList as $key => $value) {
-                 $data = $model::findOrFail($value->id);
-                 $response = $data->toArray();
-                 $response['created_by_id'] = $data->createdBy->first_name . ' ' . $data->createdBy->middle_name . ' ' . $data->createdBy->last_name;
-                 if (isset($data->updated_by_id)) {
-                     $response['updated_by_id'] = $data->updatedBy->first_name . ' ' . $data->updatedBy->middle_name . ' ' . $data->updatedBy->last_name;
-                 }
-                 $reconstructedList[] = $response;
-             } */
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -113,16 +110,13 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName)
+    public function readRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $data = $model::find($id);
             if ($data) {
-                /*   $response = $data->toArray();
-                  $response['created_by_id'] = $data->createdBy->first_name . ' ' . $data->createdBy->middle_name . ' ' . $data->createdBy->last_name;
-                  if (isset($data->updated_by_id)) {
-                      $response['updated_by_id'] = $data->updatedBy->first_name . ' ' . $data->updatedBy->middle_name . ' ' . $data->updatedBy->last_name;
-                  } */
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
@@ -130,15 +124,32 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
-    public function readCurrentRecord($model, $id, $whereFields, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
-            $productionOrder = $model::orderBy('id', 'ASC');
+            $data = $model::orderBy('id', 'ASC');
             foreach ($whereFields as $field => $value) {
-                $productionOrder->where($field, $value);
+                if (is_array($value)) {
+                    $data->where(function ($query) use ($field, $value) {
+                        foreach ($value as $whereValue) {
+                            $query->orWhere($field, $whereValue);
+                        }
+                    });
+                } else {
+                    $data->where($field, $value);
+                }
             }
-            $dataList = $productionOrder->get();
+            if ($orderFields) {
+                foreach ($orderFields as $field => $value) {
+                    $data->orderBy($field, $value);
+                }
+            }
+            if ($withFields != null) {
+                $data->with($withFields);
+            }
+            $dataList = $data->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -147,9 +158,10 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
-    public function changeStatusRecordById($model, $id, $modelName)
+    public function changeStatusRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $data = $model::find($id);
             if ($data) {
@@ -163,9 +175,10 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
-    public function deleteRecordById($model, $id, $modelName)
+    public function deleteRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $deletedRows = $model::destroy($id);
             if ($deletedRows) {
@@ -175,6 +188,14 @@ trait CrudOperationsTrait
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
+    }
+
+    public function authenticateToken($token)
+    {
+        // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
+        $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
+        if (!isset($response['success']))
+        abort($this->dataResponse('error', 400, 'Unauthorized access'));
     }
 }
 
