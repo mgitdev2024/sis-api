@@ -78,11 +78,11 @@ class ProducedItemController extends Controller
                 $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
                 $productionType = $productionBatch->producedItem->production_type;
                 if ($statusId == 2) {
-                    $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no']);
+                    $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
                     $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $statusId, $productionType);
                 } else {
-                    $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no']);
+                    $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no'], $createdById);
                 }
             }
 
@@ -90,7 +90,6 @@ class ProducedItemController extends Controller
             if ($statusId == 2) {
                 $this->onWarehouseReceiveItem($scannedItem, $createdById);
             }
-
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -115,6 +114,7 @@ class ProducedItemController extends Controller
             foreach ($scannedItem as $value) {
                 $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
                 $producedItemArray[$value['sticker_no']]['status'] = null;
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $fields['created_by_id'], 1, $value['sticker_no']);
             }
 
             $producedItemModel->produced_items = json_encode($producedItemArray);
@@ -152,13 +152,14 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
 
-    public function onForReceiveItem($id, $value, $itemKey)
+    public function onForReceiveItem($id, $value, $itemKey, $createdById)
     {
         try {
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
@@ -179,13 +180,14 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
 
-    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey)
+    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey, $createdById)
     {
         try {
             $producedItemModel = $productionBatch->producedItem;
@@ -194,6 +196,7 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
             }
 
         } catch (Exception $exception) {
@@ -268,6 +271,7 @@ class ProducedItemController extends Controller
                 $warehouseReceive->quantity = $value['qty'];
                 $warehouseReceive->created_by_id = $createdById;
                 $warehouseReceive->save();
+                $this->createProductionHistoricalLog(WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive, $createdById, 1);
             }
             DB::commit();
         } catch (Exception $exception) {

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 trait HistoricalLogTrait
 {
     use ResponseTrait;
-    public function createProductionHistoricalLog($entityModel, $entityId, $data, $createdById, $action)
+    public function createProductionHistoricalLog($entityModel, $entityId, $data, $createdById, $action, $itemKey = null)
     {
         try {
             $productionHistoricalLog = new ProductionHistoricalLogController();
@@ -18,6 +18,7 @@ trait HistoricalLogTrait
                 'created_by_id' => $createdById,
                 'entity_model' => $entityModel,
                 'entity_id' => $entityId,
+                'item_key' => $itemKey,
                 'data' => json_encode($data),
                 'action' => $action
             ]);

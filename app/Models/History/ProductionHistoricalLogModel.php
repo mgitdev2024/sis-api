@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionHistoricalLogModel extends Model
 {
     use HasFactory;
+    protected $table = 'production_historical_logs';
     protected $fillable = [
         'entity_model',
         'entity_id',

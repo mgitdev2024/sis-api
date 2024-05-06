@@ -26,7 +26,7 @@ class ProductionBatchModel extends Model
         'frozen_exp_date',
         'created_by_id',
         'updated_by_id',
-        'status',
+        'status', // 0 = In Progress, 1 = On Hold, 2 = Complete
     ];
 
     public function createdBy()

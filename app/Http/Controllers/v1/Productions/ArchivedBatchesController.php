@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ArchivedBatchesModel;
+use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
@@ -40,7 +41,7 @@ class ArchivedBatchesController extends Controller
 
             $record = new ArchivedBatchesModel();
             $record->fill($fields);
-            $record->production_order_id = $productionBatch->id;
+            $record->production_order_id = $productionBatch->productionOrder->id;
             $record->batch_number = $productionBatch->batch_number;
             $record->production_type = $productionBatch->production_ota_id != null ? 1 : 0;
             $record->production_batch_data = json_encode($productionBatch);
@@ -51,6 +52,8 @@ class ArchivedBatchesController extends Controller
                 $record->attachment = $filepath;
             }
             $record->save();
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 2);
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 2);
             $producedItems->delete();
             $productionBatch->delete();
             DB::commit();
