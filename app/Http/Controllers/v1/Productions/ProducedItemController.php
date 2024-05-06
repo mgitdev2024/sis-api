@@ -29,11 +29,11 @@ class ProducedItemController extends Controller
     }
     public function onGetAll(Request $request)
     {
-        return $this->readRecord(ProducedItemModel::class, 'Produced Item');
+        return $this->readRecord(ProducedItemModel::class, $request, 'Produced Item');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById(Request $request, $id)
     {
-        return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
+        return $this->readRecordById(ProducedItemModel::class, $id, $request, 'Produced Item');
     }
 
     public function onChangeStatus(Request $request)
