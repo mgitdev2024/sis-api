@@ -12,7 +12,7 @@ use App\Traits\CrudOperationsTrait;
 class WarehouseReceivingController extends Controller
 {
     use CrudOperationsTrait;
-    public function onGetCurrent($status)
+    public function onGetCurrent(Request $request, $status)
     {
         $whereFields = [
             'status' => $status // 0, 1
@@ -21,10 +21,10 @@ class WarehouseReceivingController extends Controller
         $orderFields = [
             'reference_number' => 'ASC'
         ];
-        return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, 'Warehouse Receiving');
+        return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, $request, 'Warehouse Receiving');
     }
-    public function onGetById($id)
+    public function onGetById(Request $request, $id)
     {
-        return $this->readRecordById(WarehouseReceivingModel::class, $id, 'Warehouse Receiving');
+        return $this->readRecordById(WarehouseReceivingModel::class, $id, $request, 'Warehouse Receiving');
     }
 }
