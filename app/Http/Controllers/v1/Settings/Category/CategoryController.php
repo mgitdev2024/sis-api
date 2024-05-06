@@ -39,11 +39,11 @@ class CategoryController extends Controller
     {
         return $this->readRecord(CategoryModel::class, $request,'Category');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(CategoryModel::class, $id, $request,'Category');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(CategoryModel::class, $id, $request,'Category');
     }

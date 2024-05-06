@@ -40,11 +40,11 @@ class ItemMovementController extends Controller
     {
         return $this->readRecord(ItemMovementModel::class, $request, 'Item Movement');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
     }

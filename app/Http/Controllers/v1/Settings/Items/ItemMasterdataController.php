@@ -61,15 +61,15 @@ class ItemMasterdataController extends Controller
     {
         return $this->readRecord(ItemMasterdataModel::class, $request, 'Item Masterdata');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }

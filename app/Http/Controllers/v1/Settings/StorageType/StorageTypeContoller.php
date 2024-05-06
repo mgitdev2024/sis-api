@@ -40,11 +40,11 @@ class StorageTypeContoller extends Controller
     {
         return $this->readRecord(StorageTypeModel::class, $request, 'Storage Type');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(StorageTypeModel::class, $id, $request, 'Storage Type');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(StorageTypeModel::class, $id, $request, 'Storage Type');
     }

@@ -36,15 +36,15 @@ class ItemClassificationController extends Controller
     {
         return $this->readRecord(ItemClassificationModel::class, $request, 'Item Classification');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
     }

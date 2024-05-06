@@ -38,15 +38,15 @@ class DeliveryTypeController extends Controller
     {
         return $this->readRecord(DeliveryTypeModel::class, $request,'Delivery Type');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
     }

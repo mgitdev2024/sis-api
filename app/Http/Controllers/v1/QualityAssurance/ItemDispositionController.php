@@ -17,6 +17,8 @@ class ItemDispositionController extends Controller
     use CrudOperationsTrait;
     public function onUpdateById(Request $request, $id)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $rules = [
             'created_by_id' => 'required',
             'action_status_id' => 'required|integer|in:6,7,8',
@@ -53,17 +55,17 @@ class ItemDispositionController extends Controller
     }
     public function onGetall(Request $request)
     {
-        return $this->readRecord(ItemDispositionModel::class, 'Item Disposition');
+        return $this->readRecord(ItemDispositionModel::class,$request, 'Item Disposition');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
-        return $this->readRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+        return $this->readRecordById(ItemDispositionModel::class, $id, $request,'Item Disposition');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
-        return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
+        return $this->deleteRecordById(ItemDispositionModel::class, $id, $request,'Item Disposition');
     }
-    public function onCloseDisposition($id)
+    public function onCloseDisposition(Request $request,$id)
     {
         #region status list
         // 0 => 'Good',
@@ -80,6 +82,8 @@ class ItemDispositionController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             // status to be excluded
             $triggerReviewedStatus = [6, 7, 8, 9, 11, 12];
@@ -114,8 +118,11 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetAllCategory($type = null, $status)
+    public function onGetAllCategory(Request $request,$type = null, $status)
     {
+
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $itemDisposition = ItemDispositionModel::select('production_batch_id', 'is_release', DB::raw('count(*) as count'))
                 ->with('productionBatch')
@@ -147,8 +154,10 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetCurrent($id, $type = null)
+    public function onGetCurrent(Request $request,$id, $type = null)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $itemDisposition = ItemDispositionModel::where('production_batch_id', $id);
             if ($type != null) {
@@ -164,8 +173,10 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onHoldRelease($id, Request $request)
+    public function onHoldRelease(Request $request,$id)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $fields = $request->validate([
             'is_release' => 'required|boolean'
         ]);

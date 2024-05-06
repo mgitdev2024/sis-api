@@ -56,7 +56,7 @@ class PrintHistoryController extends Controller
         return $this->readRecord(PrintHistoryModel::class,$request, 'Print History');
     }
 
-    public function onGetCurrent($id,Request $request)
+    public function onGetCurrent(Request $request,$id)
     {
         $whereFields = [];
         if ($id != null) {
@@ -66,7 +66,7 @@ class PrintHistoryController extends Controller
         }
         return $this->readCurrentRecord(PrintHistoryModel::class, $id, $whereFields, null, null,$request, 'Print History');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(PrintHistoryModel::class, $id, $request,'Print History');
     }

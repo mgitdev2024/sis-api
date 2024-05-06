@@ -37,15 +37,15 @@ class UomController extends Controller
     {
         return $this->readRecord(UomModel::class,$request, 'UOM');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(UomModel::class, $id,$request, 'UOM');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(UomModel::class, $id,$request, 'UOM');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(UomModel::class, $id,$request, 'UOM');
     }

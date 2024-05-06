@@ -38,15 +38,15 @@ class SubCategoryController extends Controller
     {
         return $this->readRecord(SubCategoryModel::class, $request,'Sub Category');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
     }
-    public function onGetChildByParentId($id,Request $request)
+    public function onGetChildByParentId(Request $request,$id)
     {
         return $this->readRecordByParentId(SubCategoryModel::class, $id, $request,'Sub Category', 'category_id');
     }

@@ -39,11 +39,11 @@ class ZoneController extends Controller
     {
         return $this->readRecord(ZoneModel::class, $request, 'Zone');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ZoneModel::class, $id, $request, 'Zone');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(ZoneModel::class, $id, $request, 'Zone');
     }

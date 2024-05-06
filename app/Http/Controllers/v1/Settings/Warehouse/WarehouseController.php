@@ -40,11 +40,11 @@ class WarehouseController extends Controller
     {
         return $this->readRecord(WarehouseLocationModel::class, $request, 'Warehouse Location');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(WarehouseLocationModel::class, $id, $request, 'Warehouse Location');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(WarehouseLocationModel::class, $id, $request, 'Warehouse Location');
     }

@@ -30,7 +30,7 @@ class ProducedItemController extends Controller
     {
         return $this->readRecord(ProducedItemModel::class, 'Produced Item');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ProducedItemModel::class, $id, 'Produced Item');
     }
@@ -52,7 +52,8 @@ class ProducedItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
-
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $rules = [
             'scanned_item_qr' => 'required|string',
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
@@ -66,7 +67,7 @@ class ProducedItemController extends Controller
         return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
 
-    public function onUpdateItemStatus($statusId, $fields, $createdById,Request $request)
+    public function onUpdateItemStatus($statusId, $fields, $createdById)
     {
         try {
             DB::beginTransaction();
@@ -94,7 +95,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onDeactivateItem($fields,Request $request)
+    public function onDeactivateItem($fields)
     {
         try {
             DB::beginTransaction();
@@ -122,7 +123,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType,Request $request)
+    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
     {
         try {
             $type = 1;
@@ -152,7 +153,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onForReceiveItem($id, $value, $itemKey,Request $request)
+    public function onForReceiveItem($id, $value, $itemKey)
     {
         try {
             $producedItemModel = ProducedItemModel::where('production_batch_id', $id)->first();
@@ -179,7 +180,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey,Request $request)
+    public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey)
     {
         try {
             $producedItemModel = $productionBatch->producedItem;
@@ -195,7 +196,7 @@ class ProducedItemController extends Controller
         }
     }
 
-    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray,Request $request)
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
     {
         $inArrayFlag = count($inclusionArray) > 0 ?
             in_array($producedItems[$itemKey]['status'], $inclusionArray) :
@@ -203,7 +204,7 @@ class ProducedItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($id, $item_key,Request $request)
+    public function onCheckItemStatus($id, $item_key)
     {
         try {
             $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();

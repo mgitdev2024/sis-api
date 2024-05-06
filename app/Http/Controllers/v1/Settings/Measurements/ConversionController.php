@@ -38,15 +38,15 @@ class ConversionController extends Controller
     {
         return $this->readRecord(ConversionModel::class, $request, 'Conversions');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }

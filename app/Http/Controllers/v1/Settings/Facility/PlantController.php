@@ -40,15 +40,15 @@ class PlantController extends Controller
     {
         return $this->readRecord(PlantModel::class, $request, 'Plant');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(PlantModel::class, $id, $request, 'Plant');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(PlantModel::class, $id, $request, 'Plant');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
         return $this->changeStatusRecordById(PlantModel::class, $id, $request, 'Plant');
     }

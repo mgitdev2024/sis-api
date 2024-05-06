@@ -44,24 +44,25 @@ class ProductionOTBController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
     }
-    public function onGetall(Request $request)
+    public function onGetAll(Request $request)
     {
-        return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
+        return $this->readRecord(ProductionOTBModel::class, $request, 'Production OTB');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById(Request $request,$id)
     {
-        return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
+        return $this->readRecordById(ProductionOTBModel::class, $id, $request, 'Production OTB');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById(Request $request,$id)
     {
-        return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
+        return $this->deleteRecordById(ProductionOTBModel::class, $id, $request, 'Production OTB');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
-        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB');
+        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, $request, 'Production OTB');
     }
-    public function onGetCurrent($id = null)
+    public function onGetCurrent(Request $request,$id = null, )
     {
+        
         $whereFields = [];
         if ($id != null) {
             $whereFields = [
@@ -69,7 +70,7 @@ class ProductionOTBController extends Controller
             ];
         } else {
             $productionOrder = new ProductionOrderController();
-            $currentProductionOrder = $productionOrder->onGetCurrent();
+            $currentProductionOrder = $productionOrder->onGetCurrent($request);
 
             $whereFields = [];
             if (isset($currentProductionOrder->getOriginalContent()['success'])) {
@@ -78,10 +79,12 @@ class ProductionOTBController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, 'Production OTB');
+        return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, $request, 'Production OTB');
     }
-    public function onGetEndorsedByQa($id = null)
+    public function onGetEndorsedByQa(Request $request,$id = null)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where('production_type', 0)
@@ -100,6 +103,8 @@ class ProductionOTBController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',

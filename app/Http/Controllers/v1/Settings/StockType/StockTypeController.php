@@ -41,11 +41,11 @@ class StockTypeController extends Controller
     {
         return $this->readRecord(StockTypeModel::class, $request, 'Stock Type');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById(Request $request,$id)
     {
         return $this->readRecordById(StockTypeModel::class, $id, $request, 'Stock Type');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById(Request $request,$id)
     {
         return $this->deleteRecordById(StockTypeModel::class, $id, $request, 'Stock Type');
     }

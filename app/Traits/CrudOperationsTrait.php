@@ -98,7 +98,13 @@ trait CrudOperationsTrait
     }
     public function readRecord($model,$request = null, $modelName)
     {
+        if($request->bearerToken() === null){
+            abort($this->dataResponse('error', 400, 'Unauthorized access'));
+        }
         $token = $request->bearerToken();
+        if(!isset($token)){
+            abort($this->dataResponse('error', 400, 'Unauthorized access'));
+        }
         $this->authenticateToken($token);
         try {
             $dataList = $model::get();
@@ -124,7 +130,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request = null,$modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request ,$modelName)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
@@ -189,7 +195,6 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function authenticateToken($token)
     {
         // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
