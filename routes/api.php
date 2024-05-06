@@ -245,6 +245,18 @@ Route::post('v1/history/print/create', [App\Http\Controllers\v1\History\PrintHis
 Route::get('v1/history/print/all', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetAll']);
 Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetById']);
 #endregion
+
+#region Warehouse Receiving
+Route::get('v1/warehouse/receive/current/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
+Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetById']);
+#endregion
+
+#region Archived Batches
+Route::post('v1/production/batch/archives/data/{id}', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onArchiveBatch']);
+Route::get('v1/production/batch/archives/current', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onGetCurrent']);
+Route::get('v1/production/batch/archives/get/{id?}', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onGetById']);
+#endregion
+
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });

@@ -136,17 +136,20 @@ trait CrudOperationsTrait
         $this->authenticateToken($token);
         try {
             $data = $model::orderBy('id', 'ASC');
-            foreach ($whereFields as $field => $value) {
-                if (is_array($value)) {
-                    $data->where(function ($query) use ($field, $value) {
-                        foreach ($value as $whereValue) {
-                            $query->orWhere($field, $whereValue);
-                        }
-                    });
-                } else {
-                    $data->where($field, $value);
+            if ($whereFields) {
+                foreach ($whereFields as $field => $value) {
+                    if (is_array($value)) {
+                        $data->where(function ($query) use ($field, $value) {
+                            foreach ($value as $whereValue) {
+                                $query->orWhere($field, $whereValue);
+                            }
+                        });
+                    } else {
+                        $data->where($field, $value);
+                    }
                 }
             }
+
             if ($orderFields) {
                 foreach ($orderFields as $field => $value) {
                     $data->orderBy($field, $value);

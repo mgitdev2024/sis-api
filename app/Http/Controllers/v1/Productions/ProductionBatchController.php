@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\Productions;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
 use App\Models\History\PrintHistoryModel;
+use App\Models\Productions\ArchivedBatchesModel;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
