@@ -5,18 +5,14 @@ namespace App\Traits;
 use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
-use App\Traits\HistoricalLogTrait;
-use Illuminate\Database\QueryException;
-use Symfony\Component\HttpFoundation\Response;
-use DB;
-use Illuminate\Http\Request;
-
 trait CrudOperationsTrait
 {
     use ResponseTrait, HistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record->fill($fields);
@@ -29,6 +25,8 @@ trait CrudOperationsTrait
     public function updateRecordById($model, $request, $rules, $modelName, $id)
     {
         $fields = $request->validate($rules);
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record = $model::find($id);
@@ -45,6 +43,8 @@ trait CrudOperationsTrait
     }
     public function readPaginatedRecord($model, $request, $searchableFields, $modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $fields = $request->validate([
                 'display' => 'nullable|integer',
@@ -95,20 +95,18 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName)
+    public function readRecord($model,$request = null, $modelName)
     {
+        if($request->bearerToken() === null){
+            abort($this->dataResponse('error', 400, 'Unauthorized access'));
+        }
+        $token = $request->bearerToken();
+        if(!isset($token)){
+            abort($this->dataResponse('error', 400, 'Unauthorized access'));
+        }
+        $this->authenticateToken($token);
         try {
             $dataList = $model::get();
-            /*  $reconstructedList = [];
-             foreach ($dataList as $key => $value) {
-                 $data = $model::findOrFail($value->id);
-                 $response = $data->toArray();
-                 $response['created_by_id'] = $data->createdBy->first_name . ' ' . $data->createdBy->middle_name . ' ' . $data->createdBy->last_name;
-                 if (isset($data->updated_by_id)) {
-                     $response['updated_by_id'] = $data->updatedBy->first_name . ' ' . $data->updatedBy->middle_name . ' ' . $data->updatedBy->last_name;
-                 }
-                 $reconstructedList[] = $response;
-             } */
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -117,16 +115,13 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName)
+    public function readRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $data = $model::find($id);
             if ($data) {
-                /*   $response = $data->toArray();
-                  $response['created_by_id'] = $data->createdBy->first_name . ' ' . $data->createdBy->middle_name . ' ' . $data->createdBy->last_name;
-                  if (isset($data->updated_by_id)) {
-                      $response['updated_by_id'] = $data->updatedBy->first_name . ' ' . $data->updatedBy->middle_name . ' ' . $data->updatedBy->last_name;
-                  } */
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
@@ -134,9 +129,10 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request ,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
@@ -170,8 +166,10 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $modelName)
+    public function changeStatusRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $data = $model::find($id);
             if ($data) {
@@ -185,9 +183,10 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
-    public function deleteRecordById($model, $id, $modelName)
+    public function deleteRecordById($model, $id, $request = null,$modelName)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $deletedRows = $model::destroy($id);
             if ($deletedRows) {
@@ -197,6 +196,13 @@ trait CrudOperationsTrait
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
+    }
+    public function authenticateToken($token)
+    {
+        // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
+        $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
+        if (!isset($response['success']))
+        abort($this->dataResponse('error', 400, 'Unauthorized access'));
     }
 }
 

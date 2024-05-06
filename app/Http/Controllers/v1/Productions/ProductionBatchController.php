@@ -38,6 +38,8 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         // dd($fields);
         try {
             $batch = null;
@@ -292,12 +294,12 @@ class ProductionBatchController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionBatchModel::class, $request, $searchableFields, 'Production Batches');
     }
-    public function onGetById($id)
+    public function onGetById(Request $request,$id)
     {
-        return $this->readRecordById(ProductionBatchModel::class, $id, 'Production Batches');
+        return $this->readRecordById(ProductionBatchModel::class, $id,$request, 'Production Batches');
     }
 
-    public function onGetCurrent($id = null, $order_type = null)
+    public function onGetCurrent(Request $request,$id = null, $order_type = null)
     {
         $whereFields = [];
         if (strcasecmp($order_type, 'otb') === 0) {
@@ -306,7 +308,7 @@ class ProductionBatchController extends Controller
             $whereFields['production_ota_id'] = $id;
         }
         $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null,$request,'Production Batches');
     }
 
     public function onPrintHistory($batchId, $producedItems, $fields)

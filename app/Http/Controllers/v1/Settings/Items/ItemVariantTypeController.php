@@ -32,20 +32,20 @@ class ItemVariantTypeController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ItemVariantTypeModel::class, $request, $searchableFields, 'Item Variant Type');
     }
-    public function onGetAll()
+    public function onGetall(Request $request)
     {
-        return $this->readRecord(ItemVariantTypeModel::class, 'Item Variant Type');
+        return $this->readRecord(ItemVariantTypeModel::class, $request, 'Item Variant Type');
     }
-    public function onGetById($id)
+    public function onGetById(Request $request,$id)
     {
-        return $this->readRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
+        return $this->readRecordById(ItemVariantTypeModel::class, $id, $request, 'Item Variant Type');
     }
-    public function onDeleteById($id)
+    public function onDeleteById(Request $request,$id)
     {
-        return $this->deleteRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
+        return $this->deleteRecordById(ItemVariantTypeModel::class, $id, $request, 'Item Variant Type');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request,$id)
     {
-        return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
+        return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id, $request, 'Item Variant Type');
     }
 }

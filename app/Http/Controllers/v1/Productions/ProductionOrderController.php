@@ -39,22 +39,16 @@ class ProductionOrderController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
-    public function onGetAll()
+    public function onGetAll(Request $request)
     {
-        return $this->readRecord(ProductionOrderModel::class, 'Production Order');
+        return $this->readRecord(ProductionOrderModel::class, $request, 'Production Order');
     }
-    public function onGetById($id)
+    public function onGetById(Request $request, $id)
     {
-        return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
+        return $this->readRecordById(ProductionOrderModel::class, $id, $request, 'Production Order');
     }
-    public function onChangeStatus(Request $request, $id)
+    public function onChangeStatus(Request $request, Request $request, $id)
     {
-        $fields = $request->validate([
-            [
-                'created_by_id' => 'required',
-            ]
-        ]);
-
         try {
             $productionOrder = ProductionOrderModel::find($id);
             if ($productionOrder) {
@@ -86,7 +80,7 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetCurrent($filter = null)
+    public function onGetCurrent(Request $request, $filter = null)
     {
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
@@ -103,10 +97,13 @@ class ProductionOrderController extends Controller
         $orderFields = [
             "production_date" => "ASC",
         ];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, $request, 'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
+
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $request->validate([
             'bulk_data' => 'required',
             'created_by_id' => 'required'
@@ -200,8 +197,10 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches($id, $order_type)
+    public function onGetBatches(Request $request, $id, $order_type)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
             $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
@@ -225,7 +224,7 @@ class ProductionOrderController extends Controller
 }
 
 
-// public function onDeleteById($id)
+// public function onDeleteById(Request $request,$id)
 // {
 //     return $this->deleteRecordById(ProductionOrderModel::class, $id, 'Production Order');
 // }

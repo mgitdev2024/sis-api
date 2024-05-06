@@ -14,21 +14,21 @@ use Exception;
 class ArchivedBatchesController extends Controller
 {
     use CrudOperationsTrait;
-    public function onGetCurrent()
+    public function onGetCurrent(Request $request)
     {
         $orderFields = [
             'created_at' => 'ASC'
         ];
-        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields, 'Archived Batches');
+        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields,$request, 'Archived Batches');
     }
-    public function onGetById($id)
+    public function onGetById(Request $request,$id)
     {
-        return $this->readRecordById(ArchivedBatchesModel::class, $id, 'Archived Batches');
+        return $this->readRecordById(ArchivedBatchesModel::class, $id,$request, 'Archived Batches');
     }
-
-
     public function onArchiveBatch(Request $request, $id)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $fields = $request->validate([
             'created_by_id' => 'required',
             'reason' => 'required',
