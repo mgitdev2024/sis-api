@@ -36,16 +36,16 @@ class ItemMovementController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(ItemMovementModel::class, $request, $searchableFields, 'Item Movement');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ItemMovementModel::class, $request, 'Item Movement');
+        return $this->readRecord(ItemMovementModel::class, 'Item Movement');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
+        return $this->readRecordById(ItemMovementModel::class, $id, 'Item Movement');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemMovementModel::class, $id, $request, 'Item Movement');
+        return $this->deleteRecordById(ItemMovementModel::class, $id, 'Item Movement');
     }
 }

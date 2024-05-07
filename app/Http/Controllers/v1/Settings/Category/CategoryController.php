@@ -35,16 +35,16 @@ class CategoryController extends Controller
         $searchableFields = ['category_code', 'category_name'];
         return $this->readPaginatedRecord(CategoryModel::class, $request, $searchableFields, 'Category');
     }
-    public function onGetAll(Request $request)
+    public function onGetAll()
     {
-        return $this->readRecord(CategoryModel::class, $request,'Category');
+        return $this->readRecord(CategoryModel::class,'Category');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(CategoryModel::class, $id, $request,'Category');
+        return $this->readRecordById(CategoryModel::class, $id,'Category');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(CategoryModel::class, $id, $request,'Category');
+        return $this->deleteRecordById(CategoryModel::class, $id,'Category');
     }
 }

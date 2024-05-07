@@ -36,16 +36,16 @@ class StorageTypeContoller extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(StorageTypeModel::class, $request, $searchableFields, 'Storage Type');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(StorageTypeModel::class, $request, 'Storage Type');
+        return $this->readRecord(StorageTypeModel::class, 'Storage Type');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(StorageTypeModel::class, $id, $request, 'Storage Type');
+        return $this->readRecordById(StorageTypeModel::class, $id, 'Storage Type');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(StorageTypeModel::class, $id, $request, 'Storage Type');
+        return $this->deleteRecordById(StorageTypeModel::class, $id, 'Storage Type');
     }
 }

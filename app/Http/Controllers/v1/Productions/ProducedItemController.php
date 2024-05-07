@@ -27,13 +27,13 @@ class ProducedItemController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProducedItemModel::class, $request, $searchableFields, 'Produced Item');
     }
-    public function onGetAll(Request $request)
+    public function onGetAll()
     {
-        return $this->readRecord(ProducedItemModel::class, $request, 'Produced Item');
+        return $this->readRecord(ProducedItemModel::class,  'Produced Item');
     }
-    public function onGetById(Request $request, $id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ProducedItemModel::class, $id, $request, 'Produced Item');
+        return $this->readRecordById(ProducedItemModel::class, $id,  'Produced Item');
     }
 
     public function onChangeStatus(Request $request)
@@ -53,8 +53,7 @@ class ProducedItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
         $rules = [
             'scanned_item_qr' => 'required|string',
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
