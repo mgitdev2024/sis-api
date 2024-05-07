@@ -42,15 +42,6 @@ class ItemMasterdata extends Model
         'updated_by_id',
         'status',
     ];
-    /*    public function createdBy()
-       {
-           return $this->belongsTo(Credential::class, 'created_by_id');
-       }
-       public function updatedBy()
-       {
-           return $this->belongsTo(Credential::class, 'updated_by_id');
-       }
-    */
     public function itemClassification()
     {
         return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');

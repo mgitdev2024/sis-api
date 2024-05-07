@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
+
 trait CrudOperationsTrait
 {
     use ResponseTrait, HistoricalLogTrait;
@@ -95,13 +96,13 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model,$request = null, $modelName)
+    public function readRecord($model, $request = null, $modelName)
     {
-        if($request->bearerToken() === null){
+        if ($request->bearerToken() === null) {
             abort($this->dataResponse('error', 400, 'Unauthorized access'));
         }
         $token = $request->bearerToken();
-        if(!isset($token)){
+        if (!isset($token)) {
             abort($this->dataResponse('error', 400, 'Unauthorized access'));
         }
         $this->authenticateToken($token);
@@ -115,7 +116,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $request = null,$modelName)
+    public function readRecordById($model, $id, $request = null, $modelName)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
@@ -129,7 +130,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request ,$modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request, $modelName)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
@@ -166,7 +167,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $request = null,$modelName)
+    public function changeStatusRecordById($model, $id, $request = null, $modelName)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
@@ -183,7 +184,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function deleteRecordById($model, $id, $request = null,$modelName)
+    public function deleteRecordById($model, $id, $request = null, $modelName)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
@@ -200,9 +201,9 @@ trait CrudOperationsTrait
     public function authenticateToken($token)
     {
         // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
-        $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
-        if (!isset($response['success']))
-        abort($this->dataResponse('error', 400, 'Unauthorized access'));
+        // $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
+        // if (!isset($response['success']))
+        // abort($this->dataResponse('error', 400, 'Unauthorized access'));
     }
 }
 

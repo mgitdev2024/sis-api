@@ -15,7 +15,7 @@ class ConversionController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'conversion_short_uom' => 'required|string',
             'conversion_long_uom' => 'required|string',
         ];
@@ -38,15 +38,15 @@ class ConversionController extends Controller
     {
         return $this->readRecord(ConversionModel::class, $request, 'Conversions');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById(Request $request, $id)
     {
         return $this->readRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById(Request $request, $id)
     {
         return $this->deleteRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus(Request $request, $id)
     {
         return $this->changeStatusRecordById(ConversionModel::class, $id, $request, 'Conversions');
     }

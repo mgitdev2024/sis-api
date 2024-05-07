@@ -15,7 +15,7 @@ class PlantController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'short_name' => 'required|string|unique:plants,short_name,' . $itemId,
             'long_name' => 'required|string|unique:plants,long_name,' . $itemId,
             'description' => 'nullable|string',
@@ -40,15 +40,15 @@ class PlantController extends Controller
     {
         return $this->readRecord(PlantModel::class, $request, 'Plant');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById(Request $request, $id)
     {
         return $this->readRecordById(PlantModel::class, $id, $request, 'Plant');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById(Request $request, $id)
     {
         return $this->deleteRecordById(PlantModel::class, $id, $request, 'Plant');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus(Request $request, $id)
     {
         return $this->changeStatusRecordById(PlantModel::class, $id, $request, 'Plant');
     }

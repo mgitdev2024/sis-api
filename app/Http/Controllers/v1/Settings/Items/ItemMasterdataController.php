@@ -16,7 +16,7 @@ class ItemMasterdataController extends Controller
 
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
             'chilled_shelf_life' => 'nullable|integer',
@@ -61,15 +61,15 @@ class ItemMasterdataController extends Controller
     {
         return $this->readRecord(ItemMasterdataModel::class, $request, 'Item Masterdata');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById(Request $request, $id)
     {
         return $this->readRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById(Request $request, $id)
     {
         return $this->deleteRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus(Request $request, $id)
     {
         return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
     }

@@ -28,7 +28,6 @@ class PrintHistoryController extends Controller
     }
     public function onCreate(Request $request)
     {
-        $this->authenticateToken($request->bearerToken());
         $fields = $request->validate($this->getRules());
 
         try {
@@ -53,10 +52,10 @@ class PrintHistoryController extends Controller
     }
     public function onGetAll(Request $request)
     {
-        return $this->readRecord(PrintHistoryModel::class,$request, 'Print History');
+        return $this->readRecord(PrintHistoryModel::class, $request, 'Print History');
     }
 
-    public function onGetCurrent(Request $request,$id)
+    public function onGetCurrent(Request $request, $id)
     {
         $whereFields = [];
         if ($id != null) {
@@ -64,10 +63,10 @@ class PrintHistoryController extends Controller
                 'production_batch_id' => $id
             ];
         }
-        return $this->readCurrentRecord(PrintHistoryModel::class, $id, $whereFields, null, null,$request, 'Print History');
+        return $this->readCurrentRecord(PrintHistoryModel::class, $id, $whereFields, null, null, $request, 'Print History');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById(Request $request, $id)
     {
-        return $this->readRecordById(PrintHistoryModel::class, $id, $request,'Print History');
+        return $this->readRecordById(PrintHistoryModel::class, $id, $request, 'Print History');
     }
 }

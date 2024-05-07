@@ -38,7 +38,7 @@ class ProductionOTAController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];
@@ -65,7 +65,7 @@ class ProductionOTAController extends Controller
     {
         return $this->changeStatusRecordById(ProductionOTAModel::class, $id, $request, 'Production OTA');
     }
-    public function onGetCurrent(Request $request,$id = null)
+    public function onGetCurrent(Request $request, $id = null)
     {
         $whereFields = [];
         if ($id != null) {
@@ -83,9 +83,9 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null,$request, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, $request, 'Production OTA');
     }
-    public function onGetEndorsedByQa(Request $request,$id = null)
+    public function onGetEndorsedByQa(Request $request, $id = null)
     {
         $token = $request->bearerToken();
         $this->authenticateToken($token);
