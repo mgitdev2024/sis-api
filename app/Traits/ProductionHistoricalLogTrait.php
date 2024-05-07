@@ -7,7 +7,7 @@ use Exception;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 
-trait HistoricalLogTrait
+trait ProductionHistoricalLogTrait
 {
     use ResponseTrait;
     public function createProductionHistoricalLog($entityModel, $entityId, $data, $createdById, $action, $itemKey = null)

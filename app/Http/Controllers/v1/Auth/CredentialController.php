@@ -28,7 +28,7 @@ class CredentialController extends Controller
             if (!$userExist) {
                 User::insert([
                     'employee_id' => $fields['employee_id'],
-                    'position' => $fields['position'],
+                    'position' => $fields['position'] ?? null,
                     'user_access' => $fields['user_access'] ?? null,
                 ]);
             }

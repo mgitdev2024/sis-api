@@ -36,18 +36,18 @@ class ConversionController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ConversionModel::class,'Conversions');
+        return $this->readRecord(ConversionModel::class, 'Conversions');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ConversionModel::class, $id,'Conversions');
+        return $this->readRecordById(ConversionModel::class, $id, 'Conversions');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ConversionModel::class, $id,'Conversions');
+        return $this->deleteRecordById(ConversionModel::class, $id, 'Conversions');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ConversionModel::class, $id,'Conversions');
+        return $this->changeStatusRecordById(ConversionModel::class, $id, 'Conversions', $request);
     }
 }

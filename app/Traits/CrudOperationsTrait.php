@@ -8,7 +8,7 @@ use App\Traits\ResponseTrait;
 
 trait CrudOperationsTrait
 {
-    use ResponseTrait, HistoricalLogTrait;
+    use ResponseTrait, ProductionHistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
@@ -16,6 +16,7 @@ trait CrudOperationsTrait
             $record = new $model();
             $record->fill($fields);
             $record->save();
+            $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -90,7 +91,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model,$modelName)
+    public function readRecord($model, $modelName)
     {
         try {
             $dataList = $model::get();
@@ -149,14 +150,18 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $modelName)
+    public function changeStatusRecordById($model, $id, $modelName, $request)
     {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
         try {
             $data = $model::find($id);
             if ($data) {
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
+                $this->createProductionHistoricalLog($model, $model->id, $data, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));

@@ -22,8 +22,12 @@ class ProductionHistoricalLogController extends Controller
     }
     public function onCreate(Request $request)
     {
+        $fields = $request->validate($this->getRules());
         try {
-            return $this->createRecord(ProductionHistoricalLogModel::class, $request, $this->getRules(), 'Production Historical Log');
+            $record = new ProductionHistoricalLogModel();
+            $record->fill($fields);
+            $record->save();
+            return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $record);
         } catch (\Exception $exception) {
             dd($exception);
             return response()->json([
