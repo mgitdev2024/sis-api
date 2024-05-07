@@ -15,7 +15,7 @@ class ConversionController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'conversion_short_uom' => 'required|string',
             'conversion_long_uom' => 'required|string',
         ];
@@ -34,20 +34,20 @@ class ConversionController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ConversionModel::class, $request, $searchableFields, 'Conversions');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ConversionModel::class, $request, 'Conversions');
+        return $this->readRecord(ConversionModel::class,'Conversions');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ConversionModel::class, $id, $request, 'Conversions');
+        return $this->readRecordById(ConversionModel::class, $id,'Conversions');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ConversionModel::class, $id, $request, 'Conversions');
+        return $this->deleteRecordById(ConversionModel::class, $id,'Conversions');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ConversionModel::class, $id, $request, 'Conversions');
+        return $this->changeStatusRecordById(ConversionModel::class, $id,'Conversions');
     }
 }

@@ -15,7 +15,7 @@ class DeliveryTypeController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'type' => 'required|string|unique:delivery_types,type,' . $typeId,
             'description' => 'nullable|string',
         ];
@@ -34,20 +34,20 @@ class DeliveryTypeController extends Controller
         $searchableFields = ['type', 'description'];
         return $this->readPaginatedRecord(DeliveryTypeModel::class, $request, $searchableFields, 'Delivery Type');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(DeliveryTypeModel::class, $request,'Delivery Type');
+        return $this->readRecord(DeliveryTypeModel::class, 'Delivery Type');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
-        return $this->readRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->readRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->deleteRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
 }

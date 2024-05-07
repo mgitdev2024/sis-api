@@ -51,15 +51,15 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
         return $this->readRecord(ItemDispositionModel::class, 'Item Disposition');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
         return $this->readRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById($id)
     {
         return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
     }
@@ -80,6 +80,7 @@ class ItemDispositionController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
+    
         try {
             // status to be excluded
             $triggerReviewedStatus = [6, 7, 8, 9, 11, 12];
@@ -164,7 +165,7 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onHoldRelease($id, Request $request)
+    public function onHoldRelease(Request $request,$id)
     {
         $fields = $request->validate([
             'is_release' => 'required|boolean'

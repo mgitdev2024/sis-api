@@ -28,8 +28,8 @@ return new class extends Migration {
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
 
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
             $table->foreign('production_order_id')->references('id')->on('production_orders');
             $table->foreign('item_code')->references('item_code')->on('item_masterdata');
             $table->foreign('delivery_type')->references('type')->on('delivery_types');

@@ -22,6 +22,14 @@ class ProductionHistoricalLogController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ProductionHistoricalLogModel::class, $request, $this->getRules(), 'Production Historical Log');
+        try {
+            return $this->createRecord(ProductionHistoricalLogModel::class, $request, $this->getRules(), 'Production Historical Log');
+        } catch (\Exception $exception) {
+            dd($exception);
+            return response()->json([
+                'message' => 'Something went wrong'
+            ], 500);
+        }
+
     }
 }

@@ -39,22 +39,25 @@ class ProductionOrderController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
-    public function onGetAll(Request $request)
+    public function onGetAll()
     {
         return $this->readRecord(ProductionOrderModel::class, 'Production Order');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request,$id)
     {
+        $fields = $request->validate([
+            'created_by_id' => 'required'
+        ]);
         try {
             $productionOrder = ProductionOrderModel::find($id);
             if ($productionOrder) {
                 DB::beginTransaction();
                 $response = $productionOrder->toArray();
-                $response['status'] = 1;
+                $response['status'] = !$response['status'];
                 $productionOrder->update($response);
 
                 $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
@@ -63,13 +66,14 @@ class ProductionOrderController extends Controller
                     ->orWhereIn('production_ota_id', $otaIds)
                     ->get();
 
+                $batchStatus = $response['status'] == 1 ? 2 : 0;
                 foreach ($productionBatches as $batch) {
                     if ($batch->status !== 1) {
-                        $batch->status = 2;
+                        $batch->status = $batchStatus;
                         $batch->update();
                     }
                 }
-
+                $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $fields['created_by_id'], 1);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
@@ -79,7 +83,7 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetCurrent($filter = null)
+    public function onGetCurrent(Request $request,$filter = null)
     {
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
@@ -96,7 +100,7 @@ class ProductionOrderController extends Controller
         $orderFields = [
             "production_date" => "ASC",
         ];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields,  'Production Order');
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -193,7 +197,7 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches($id, $order_type)
+    public function onGetBatches(Request $request ,$id, $order_type)
     {
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
@@ -218,7 +222,7 @@ class ProductionOrderController extends Controller
 }
 
 
-// public function onDeleteById($id,Request $request)
+// public function onDeleteById(Request $request,$id)
 // {
 //     return $this->deleteRecordById(ProductionOrderModel::class, $id, 'Production Order');
 // }

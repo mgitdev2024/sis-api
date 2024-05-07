@@ -38,7 +38,7 @@ class ProductionOTAController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];
@@ -49,21 +49,21 @@ class ProductionOTAController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTAModel::class, $request, $searchableFields, 'Production OTA');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ProductionOTAModel::class, 'Production OTA');
+        return $this->readRecord(ProductionOTAModel::class,'Production OTA');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById( $id)
     {
-        return $this->readRecordById(ProductionOTAModel::class, $id, 'Production OTA');
+        return $this->readRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById( $id)
     {
-        return $this->deleteRecordById(ProductionOTAModel::class, $id, 'Production OTA');
+        return $this->deleteRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus( $id)
     {
-        return $this->changeStatusRecordById(ProductionOTAModel::class, $id, 'Production OTA');
+        return $this->changeStatusRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
     public function onGetCurrent($id = null)
     {
@@ -83,10 +83,11 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null,'Production OTA');
     }
     public function onGetEndorsedByQa($id = null)
     {
+        
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where('production_type', 1)
@@ -105,6 +106,7 @@ class ProductionOTAController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
+        
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',
