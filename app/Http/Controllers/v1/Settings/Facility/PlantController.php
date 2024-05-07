@@ -15,7 +15,7 @@ class PlantController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'short_name' => 'required|string|unique:plants,short_name,' . $itemId,
             'long_name' => 'required|string|unique:plants,long_name,' . $itemId,
             'description' => 'nullable|string',

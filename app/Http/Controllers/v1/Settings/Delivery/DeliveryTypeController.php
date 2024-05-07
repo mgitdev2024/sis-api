@@ -15,7 +15,7 @@ class DeliveryTypeController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'type' => 'required|string|unique:delivery_types,type,' . $typeId,
             'description' => 'nullable|string',
         ];

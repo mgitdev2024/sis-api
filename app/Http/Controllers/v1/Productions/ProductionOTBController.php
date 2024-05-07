@@ -18,7 +18,7 @@ class ProductionOTBController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
             'production_date' => 'required|date_format:Y-m-d',
@@ -33,7 +33,7 @@ class ProductionOTBController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];
@@ -62,7 +62,7 @@ class ProductionOTBController extends Controller
     }
     public function onGetCurrent($id = null, )
     {
-        
+
         $whereFields = [];
         if ($id != null) {
             $whereFields = [
@@ -81,7 +81,7 @@ class ProductionOTBController extends Controller
         }
         return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, 'Production OTB');
     }
-    public function onGetEndorsedByQa(Request $request,$id = null)
+    public function onGetEndorsedByQa(Request $request, $id = null)
     {
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')

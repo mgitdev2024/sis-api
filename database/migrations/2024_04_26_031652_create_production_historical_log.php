@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('production_historical_log', function (Blueprint $table) {
+        Schema::create('production_historical_logs', function (Blueprint $table) {
             $table->id();
             $table->string('entity_model');
             $table->integer('entity_id');

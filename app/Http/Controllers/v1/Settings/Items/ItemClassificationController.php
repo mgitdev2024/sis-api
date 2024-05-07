@@ -15,7 +15,7 @@ class ItemClassificationController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'name' => 'required|string|unique:item_classifications,name,' . $itemId,
         ];
     }

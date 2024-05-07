@@ -3,34 +3,48 @@
 namespace App\Http\Controllers\v1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ResponseTrait;
-use App\Models\CredentialModel;
+use DB;
 
 class CredentialController extends Controller
 {
     use ResponseTrait;
+
     public function onLogin(Request $request)
     {
         $fields = $request->validate([
             'employee_id' => 'required',
-            'password' => 'required|min:6',
+            'position' => 'required|string',
+            'user_access' => 'nullable|string',
         ]);
-        $logged_user = CredentialModel::where('employee_id', '=', $fields['employee_id'])->first();
+        try {
+            DB::beginTransaction();
+            $userExist = User::where('employee_id', $fields['employee_id'])->first();
 
-        if (!Auth::attempt($fields)) {
-            return $this->dataResponse('error', 404, __('msg.employee_not_found'));
+            if (!$userExist) {
+                User::insert([
+                    'employee_id' => $fields['employee_id'],
+                    'position' => $fields['position'],
+                    'user_access' => $fields['user_access'] ?? null,
+                ]);
+            }
+
+            $userId = User::where('employee_id', $fields['employee_id'])->first()->id;
+            Auth::loginUsingId($userId);
+            $token = auth()->user()->createToken('appToken')->plainTextToken;
+            DB::commit();
+            $data = [
+                'token' => $token,
+            ];
+            return $this->dataResponse('success', 200, __('msg.login_success'), $data);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        if ($logged_user->status == 0) {
-            return $this->dataResponse('error', 404, 'Login failed: account has been suspended. Please contact IT Support for assistance.');
-        }
-        $token = auth()->user()->createToken('appToken')->plainTextToken;
-        $data = [
-            'token' => $token,
-        ];
-        return $this->dataResponse('success', 200, __('msg.login_success'), $data);
     }
 
     public function onLogout()
@@ -42,4 +56,5 @@ class CredentialController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
 }

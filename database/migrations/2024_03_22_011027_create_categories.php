@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -18,8 +17,8 @@ return new class extends Migration
             $table->string('category_code');
             $table->string('category_name');
             $table->tinyInteger('status')->default(1);
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
             $table->timestamps();
         });
         Schema::create('sub_categories', function (Blueprint $table) {
@@ -30,8 +29,8 @@ return new class extends Migration
             $table->string('sub_category_code');
             $table->string('sub_category_name');
             $table->tinyInteger('status')->default(1);
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
             $table->timestamps();
         });
     }

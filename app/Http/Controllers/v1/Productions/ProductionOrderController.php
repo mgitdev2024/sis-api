@@ -49,12 +49,15 @@ class ProductionOrderController extends Controller
     }
     public function onChangeStatus($id)
     {
+
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         try {
             $productionOrder = ProductionOrderModel::find($id);
             if ($productionOrder) {
                 DB::beginTransaction();
                 $response = $productionOrder->toArray();
-                $response['status'] = 1;
+                $response['status'] = !$response['status'];
                 $productionOrder->update($response);
 
                 $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
@@ -63,13 +66,14 @@ class ProductionOrderController extends Controller
                     ->orWhereIn('production_ota_id', $otaIds)
                     ->get();
 
+                $batchStatus = $response['status'] == 1 ? 2 : 0;
                 foreach ($productionBatches as $batch) {
                     if ($batch->status !== 1) {
-                        $batch->status = 2;
+                        $batch->status = $batchStatus;
                         $batch->update();
                     }
                 }
-
+                $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $fields['created_by_id'], 1);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
@@ -79,8 +83,10 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetCurrent($filter = null)
+    public function onGetCurrent(Request $request,$filter = null)
     {
+        $token = $request->bearerToken();
+        $this->authenticateToken($token);
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
         if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
@@ -193,7 +199,7 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches($id, $order_type)
+    public function onGetBatches(Request $request ,$id, $order_type)
     {
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {

@@ -28,7 +28,6 @@ class PrintHistoryController extends Controller
     }
     public function onCreate(Request $request)
     {
-        $this->authenticateToken($request->bearerToken());
         $fields = $request->validate($this->getRules());
 
         try {
@@ -56,7 +55,7 @@ class PrintHistoryController extends Controller
         return $this->readRecord(PrintHistoryModel::class, 'Print History');
     }
 
-    public function onGetCurrent($id)
+    public function onGetCurrent(Request $request,$id)
     {
         $whereFields = [];
         if ($id != null) {

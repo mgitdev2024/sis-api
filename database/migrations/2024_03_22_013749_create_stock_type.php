@@ -18,8 +18,8 @@ return new class extends Migration
             $table->tinyInteger('status')->default(1);
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
             $table->timestamps();
         });
     }

@@ -4,8 +4,7 @@ namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Models\History\PrintHistoryModel;
-use App\Models\Productions\ArchivedBatchesModel;
+use App\Traits\HistoricalLogTrait;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
@@ -19,7 +18,7 @@ use App\Traits\CrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait;
+    use CrudOperationsTrait, HistoricalLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {
@@ -123,6 +122,7 @@ class ProductionBatchController extends Controller
             $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 1);
             $this->onPrintHistory(
                 $productionBatch->id,
                 $addedProducedItem,
@@ -136,7 +136,7 @@ class ProductionBatchController extends Controller
             }
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
-
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
                 'production_batch' => $productionBatch,
@@ -180,7 +180,7 @@ class ProductionBatchController extends Controller
             $productionBatch->save();
 
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
-
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
@@ -271,7 +271,7 @@ class ProductionBatchController extends Controller
             $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
-
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 1);
             $this->onPrintHistory($productionBatch->id, $producedItemsArray, $fields);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();
