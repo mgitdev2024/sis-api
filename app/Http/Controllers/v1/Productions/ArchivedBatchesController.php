@@ -13,21 +13,20 @@ use Exception;
 class ArchivedBatchesController extends Controller
 {
     use CrudOperationsTrait;
-    public function onGetCurrent(Request $request)
+    public function onGetCurrent()
     {
         $orderFields = [
             'created_at' => 'ASC'
         ];
-        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields,$request, 'Archived Batches');
+        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields, 'Archived Batches');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ArchivedBatchesModel::class, $id,$request, 'Archived Batches');
+        return $this->readRecordById(ArchivedBatchesModel::class, $id, 'Archived Batches');
     }
     public function onArchiveBatch(Request $request, $id)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
         $fields = $request->validate([
             'created_by_id' => 'required',
             'reason' => 'required',
@@ -37,7 +36,6 @@ class ArchivedBatchesController extends Controller
             DB::beginTransaction();
             $productionBatch = ProductionBatchModel::find($id);
             $producedItems = $productionBatch->producedItem;
-
             $record = new ArchivedBatchesModel();
             $record->fill($fields);
             $record->production_order_id = $productionBatch->id;

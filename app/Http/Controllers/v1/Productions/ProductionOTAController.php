@@ -49,23 +49,23 @@ class ProductionOTAController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTAModel::class, $request, $searchableFields, 'Production OTA');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ProductionOTAModel::class, $request, 'Production OTA');
+        return $this->readRecord(ProductionOTAModel::class,'Production OTA');
     }
-    public function onGetById(Request $request, $id)
+    public function onGetById( $id)
     {
-        return $this->readRecordById(ProductionOTAModel::class, $id, $request, 'Production OTA');
+        return $this->readRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
-    public function onDeleteById(Request $request, $id)
+    public function onDeleteById( $id)
     {
-        return $this->deleteRecordById(ProductionOTAModel::class, $id, $request, 'Production OTA');
+        return $this->deleteRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
-    public function onChangeStatus(Request $request, $id)
+    public function onChangeStatus( $id)
     {
-        return $this->changeStatusRecordById(ProductionOTAModel::class, $id, $request, 'Production OTA');
+        return $this->changeStatusRecordById(ProductionOTAModel::class, $id,'Production OTA');
     }
-    public function onGetCurrent(Request $request,$id = null)
+    public function onGetCurrent($id = null)
     {
         $whereFields = [];
         if ($id != null) {
@@ -74,7 +74,7 @@ class ProductionOTAController extends Controller
             ];
         } else {
             $productionOrder = new ProductionOrderController();
-            $currentProductionOrder = $productionOrder->onGetCurrent($request);
+            $currentProductionOrder = $productionOrder->onGetCurrent();
 
             $whereFields = [];
             if (isset($currentProductionOrder->getOriginalContent()['success'])) {
@@ -83,12 +83,11 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null,$request, 'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null,'Production OTA');
     }
-    public function onGetEndorsedByQa(Request $request,$id = null)
+    public function onGetEndorsedByQa($id = null)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where('production_type', 1)
@@ -107,8 +106,7 @@ class ProductionOTAController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',

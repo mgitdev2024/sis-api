@@ -34,20 +34,20 @@ class DeliveryTypeController extends Controller
         $searchableFields = ['type', 'description'];
         return $this->readPaginatedRecord(DeliveryTypeModel::class, $request, $searchableFields, 'Delivery Type');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(DeliveryTypeModel::class, $request,'Delivery Type');
+        return $this->readRecord(DeliveryTypeModel::class, 'Delivery Type');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->readRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->deleteRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id,$request, 'Delivery Type');
+        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
 }

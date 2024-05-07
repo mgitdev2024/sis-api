@@ -32,20 +32,20 @@ class ItemClassificationController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(ItemClassificationModel::class, $request, $searchableFields, 'Item Classification');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ItemClassificationModel::class, $request, 'Item Classification');
+        return $this->readRecord(ItemClassificationModel::class,  'Item Classification');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
+        return $this->readRecordById(ItemClassificationModel::class, $id,  'Item Classification');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
+        return $this->deleteRecordById(ItemClassificationModel::class, $id,  'Item Classification');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ItemClassificationModel::class, $id, $request, 'Item Classification');
+        return $this->changeStatusRecordById(ItemClassificationModel::class, $id,  'Item Classification');
     }
 }

@@ -36,20 +36,20 @@ class PlantController extends Controller
         $searchableFields = ['short_name', 'long_name'];
         return $this->readPaginatedRecord(PlantModel::class, $request, $searchableFields, 'Plant');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(PlantModel::class, $request, 'Plant');
+        return $this->readRecord(PlantModel::class,  'Plant');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->readRecordById(PlantModel::class, $id,  'Plant');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->deleteRecordById(PlantModel::class, $id,  'Plant');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->changeStatusRecordById(PlantModel::class, $id,  'Plant');
     }
 }
