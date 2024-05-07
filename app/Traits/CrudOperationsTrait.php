@@ -5,14 +5,13 @@ namespace App\Traits;
 use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
+
 trait CrudOperationsTrait
 {
     use ResponseTrait, HistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
-        
-        
         try {
             $record = new $model();
             $record->fill($fields);
@@ -25,8 +24,6 @@ trait CrudOperationsTrait
     public function updateRecordById($model, $request, $rules, $modelName, $id)
     {
         $fields = $request->validate($rules);
-        
-        
         try {
             $record = new $model();
             $record = $model::find($id);
@@ -43,8 +40,6 @@ trait CrudOperationsTrait
     }
     public function readPaginatedRecord($model, $request, $searchableFields, $modelName)
     {
-        
-        
         try {
             $fields = $request->validate([
                 'display' => 'nullable|integer',
@@ -95,9 +90,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model,$request = null, $modelName)
+    public function readRecord($model,$modelName)
     {
-   
         try {
             $dataList = $model::get();
             if ($dataList->isNotEmpty()) {
@@ -108,10 +102,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $request = null,$modelName)
+    public function readRecordById($model, $id, $modelName)
     {
-        
-        
         try {
             $data = $model::find($id);
             if ($data) {
@@ -122,10 +114,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request ,$modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
     {
-        
-        
         try {
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
@@ -159,10 +149,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $request = null,$modelName)
+    public function changeStatusRecordById($model, $id, $modelName)
     {
-        
-        
         try {
             $data = $model::find($id);
             if ($data) {
@@ -176,10 +164,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function deleteRecordById($model, $id, $request = null,$modelName)
+    public function deleteRecordById($model, $id, $modelName)
     {
-        
-        
         try {
             $deletedRows = $model::destroy($id);
             if ($deletedRows) {
@@ -189,13 +175,6 @@ trait CrudOperationsTrait
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
-    }
-    public function authenticateToken($token)
-    {
-        // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
-        // $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
-        // if (!isset($response['success']))
-        // abort($this->dataResponse('error', 400, 'Unauthorized access'));
     }
 }
 

@@ -29,14 +29,8 @@ class ProductionBatchModel extends Model
         'status', // 0 = In Progress, 1 = On Hold, 2 = Complete
     ];
 
-    public function createdBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'created_by_id');
-    }
-    public function updatedBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
-    }
+
+
 
     public function productionOtb()
     {

@@ -16,7 +16,7 @@ class ItemMasterdataController extends Controller
 
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
             'chilled_shelf_life' => 'nullable|integer',
@@ -57,27 +57,27 @@ class ItemMasterdataController extends Controller
         $searchableFields = ['name', 'item_code'];
         return $this->readPaginatedRecord(ItemMasterdataModel::class, $request, $searchableFields, 'Item Masterdata');
     }
-    public function onGetAll(Request $request)
+    public function onGetAll()
     {
-        return $this->readRecord(ItemMasterdataModel::class, $request, 'Item Masterdata');
+        return $this->readRecord(ItemMasterdataModel::class, 'Item Masterdata');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
+        return $this->readRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
+        return $this->deleteRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, $request, 'Item Masterdata');
+        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onGetCurrent($id = null, Request $request)
+    public function onGetCurrent($id = null)
     {
         $whereFields = [
             'item_code' => $id
         ];
-        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, $request, 'Item Masterdata');
+        return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
     }
 }

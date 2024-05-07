@@ -15,7 +15,7 @@ class UomController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'short_uom' => 'required|string',
             'long_uom' => 'required|string',
         ];
@@ -33,20 +33,20 @@ class UomController extends Controller
         $searchableFields = ['name'];
         return $this->readPaginatedRecord(UomModel::class, $request, $searchableFields, 'UOM');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(UomModel::class,$request, 'UOM');
+        return $this->readRecord(UomModel::class, 'UOM');
     }
-    public function onGetById(Request $request,$id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(UomModel::class, $id,$request, 'UOM');
+        return $this->readRecordById(UomModel::class, $id, 'UOM');
     }
-    public function onDeleteById(Request $request,$id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(UomModel::class, $id,$request, 'UOM');
+        return $this->deleteRecordById(UomModel::class, $id, 'UOM');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus($id)
     {
-        return $this->changeStatusRecordById(UomModel::class, $id,$request, 'UOM');
+        return $this->changeStatusRecordById(UomModel::class, $id, 'UOM');
     }
 }

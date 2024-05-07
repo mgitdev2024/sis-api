@@ -19,13 +19,7 @@ class UomModel extends Model
         'status',
     ];
 
-    public function createdBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'created_by_id');
-    }
 
-    public function updatedBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
-    }
+
+
 }
