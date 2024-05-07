@@ -47,11 +47,11 @@ class ProductionOrderController extends Controller
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request,$id)
     {
-
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        $fields = $request->validate([
+            'created_by_id' => 'required'
+        ]);
         try {
             $productionOrder = ProductionOrderModel::find($id);
             if ($productionOrder) {
@@ -85,8 +85,6 @@ class ProductionOrderController extends Controller
     }
     public function onGetCurrent(Request $request,$filter = null)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
         if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
