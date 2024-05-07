@@ -18,13 +18,12 @@ class CredentialController extends Controller
     {
         $fields = $request->validate([
             'employee_id' => 'required',
-            'position' => 'required|string',
+            'position' => 'nullable|string',
             'user_access' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
             $userExist = User::where('employee_id', $fields['employee_id'])->first();
-
             if (!$userExist) {
                 User::insert([
                     'employee_id' => $fields['employee_id'],
@@ -32,7 +31,6 @@ class CredentialController extends Controller
                     'user_access' => $fields['user_access'] ?? null,
                 ]);
             }
-
             $userId = User::where('employee_id', $fields['employee_id'])->first()->id;
             Auth::loginUsingId($userId);
             $token = auth()->user()->createToken('appToken')->plainTextToken;
