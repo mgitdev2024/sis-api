@@ -19,7 +19,7 @@ class ArchivedBatchesController extends Controller
         $orderFields = [
             'created_at' => 'ASC'
         ];
-        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields,$request, 'Archived Batches');
+        return $this->readCurrentRecord(ArchivedBatchesModel::class, null, null, null, $orderFields, $request, 'Archived Batches');
     }
     public function onGetById(Request $request,$id)
     {
@@ -27,8 +27,8 @@ class ArchivedBatchesController extends Controller
     }
     public function onArchiveBatch(Request $request, $id)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $fields = $request->validate([
             'created_by_id' => 'required',
             'reason' => 'required',

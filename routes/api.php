@@ -100,7 +100,7 @@ Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\Producti
 Route::post('v1/production/order/paginated', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetPaginatedList']);
 Route::get('v1/production/order/all', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetAll']);
 Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetById']);
-Route::get('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
+Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
 Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
 Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetCurrent']);
 Route::get('v1/production/order/get/batches/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetBatches']);

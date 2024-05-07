@@ -83,8 +83,8 @@ class ProductionOTBController extends Controller
     }
     public function onGetEndorsedByQa(Request $request,$id = null)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where('production_type', 0)
@@ -103,8 +103,8 @@ class ProductionOTBController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',

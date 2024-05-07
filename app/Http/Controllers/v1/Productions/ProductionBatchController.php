@@ -38,8 +38,8 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         // dd($fields);
         try {
             $batch = null;

@@ -49,8 +49,6 @@ class ProductionOrderController extends Controller
     }
     public function onChangeStatus(Request $request, $id)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         $fields = $request->validate([
             'created_by_id' => 'required'
         ]);
@@ -87,8 +85,8 @@ class ProductionOrderController extends Controller
     }
     public function onGetCurrent(Request $request, $filter = null)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
         if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
@@ -109,8 +107,8 @@ class ProductionOrderController extends Controller
     public function onBulkUploadProductionOrder(Request $request)
     {
 
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $request->validate([
             'bulk_data' => 'required',
             'created_by_id' => 'required'
@@ -206,8 +204,8 @@ class ProductionOrderController extends Controller
 
     public function onGetBatches(Request $request, $id, $order_type)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
             $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();

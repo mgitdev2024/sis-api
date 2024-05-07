@@ -53,8 +53,8 @@ class ProducedItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        
+        
         $rules = [
             'scanned_item_qr' => 'required|string',
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
