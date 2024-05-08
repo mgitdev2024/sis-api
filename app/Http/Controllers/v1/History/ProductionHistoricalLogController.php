@@ -16,6 +16,7 @@ class ProductionHistoricalLogController extends Controller
             'created_by_id' => 'required',
             'entity_model' => 'required',
             'entity_id' => 'required',
+            'item_key' => 'nullable',
             'data' => 'required',
             'action' => 'required|in:0,1,2',
         ];
@@ -30,10 +31,25 @@ class ProductionHistoricalLogController extends Controller
             return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $record);
         } catch (\Exception $exception) {
             dd($exception);
-            return response()->json([
-                'message' => 'Something went wrong'
-            ], 500);
+            return $this->dataResponse('error', 400, 'Production Historical Log ' . __('msg.create_failed'));
         }
+    }
+    public function onGetCurrent(Request $request)
+    {
+        $fields = $request->validate([
+            'entity_id' => 'nullable',
+            'entity_model' => 'nullable',
+            'item_key' => 'nullable',
+        ]);
 
+        $whereFields = [];
+        if (isset($fields['entity_id'])) {
+            $whereFields = [
+                'entity_id' => $fields['entity_id'],
+                'entity_model' => $fields['entity_model'],
+                'item_key' => $fields['item_key'],
+            ];
+        }
+        return $this->readCurrentRecord(ProductionHistoricalLogModel::class, null, $whereFields, null, null, 'Production History Log');
     }
 }

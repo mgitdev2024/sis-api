@@ -22,6 +22,7 @@ trait ProductionHistoricalLogTrait
                 'data' => json_encode($data),
                 'action' => $action
             ]);
+
             $productionHistoricalLog->onCreate($productionHistoricalRequest);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));

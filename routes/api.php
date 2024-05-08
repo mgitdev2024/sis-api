@@ -262,4 +262,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/production/batch/archives/current', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onGetCurrent']);
     Route::get('v1/production/batch/archives/get/{id?}', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onGetById']);
     #endregion
+
+    #region Production History Log
+    Route::post('v1/history/log/production/current/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetCurrent']);
+    Route::get('v1/history/log/production/get/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetById']);
+    #endregion
 });

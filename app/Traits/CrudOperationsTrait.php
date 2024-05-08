@@ -117,7 +117,6 @@ trait CrudOperationsTrait
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false)
     {
         try {
-
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
                 foreach ($whereFields as $field => $value) {
