@@ -207,13 +207,13 @@ class ItemDispositionController extends Controller
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
-            foreach ($producedItemArray as $value) {
+            foreach ($producedItemArray as $key => $value) {
                 if ($value->sticker_status === 1) {
                     if ($value->status !== 1) {
                         $value->prev_status = $value->status;
                     }
                     $value->status = 1;
-                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $value['sticker_no']);
+                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $key);
                 }
             }
 
@@ -242,10 +242,11 @@ class ItemDispositionController extends Controller
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
-            foreach ($producedItemArray as $value) {
-                if ($value->sticker_status === 1) {
+            foreach ($producedItemArray as $key => $value) {
+          
+                if ($value->sticker_status === 1) { 
                     $value->status = $value->prev_status;
-                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $value['sticker_no']);
+                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $key);
                 }
             }
 
