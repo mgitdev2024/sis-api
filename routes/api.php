@@ -15,16 +15,18 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::get('v1/run-migrations-and-seed', function () {
-    // Artisan::call('migrate', ["--force" => true]);
-    Artisan::call('migrate:fresh', ["--force" => true]);
-    Artisan::call('db:seed', ["--force" => true]);
-    return 'Migrations and Seed completed successfully!';
-});
 
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+
+    Route::get('v1/run-migrations-and-seed', function () {
+        // Artisan::call('migrate', ["--force" => true]);
+        Artisan::call('migrate:fresh', ["--force" => true]);
+        Artisan::call('db:seed', ["--force" => true]);
+        return 'Migrations and Seed completed successfully!';
+    });
+    
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
     #region Item Classifications
