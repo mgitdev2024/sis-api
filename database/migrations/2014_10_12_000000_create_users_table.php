@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('employee_id');
-            $table->string('position');
+            $table->string('position')->nullable();
             $table->text('user_access')->nullable();
             $table->rememberToken();
             $table->timestamps();
