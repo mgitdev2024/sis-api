@@ -14,9 +14,9 @@ return new class extends Migration {
             $table->id();
             $table->string('employee_id');
             $table->string('prefix')->nullable();
-            $table->string('first_name');
-            $table->string('middle_name');
-            $table->string('last_name');
+            $table->string('first_name')->nullable();
+            $table->string('middle_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('suffix')->nullable();
             $table->string('position')->nullable();
             $table->text('user_access')->nullable();

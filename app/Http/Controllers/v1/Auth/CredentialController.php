@@ -19,9 +19,9 @@ class CredentialController extends Controller
         $fields = $request->validate([
             'employee_id' => 'required',
             'prefix' => 'nullable|string',
-            'first_name' => 'required|string',
-            'middle_name' => 'required|string',
-            'last_name' => 'required|string',
+            'first_name' => 'nullable|string',
+            'middle_name' => 'nullable|string',
+            'last_name' => 'nullable|string',
             'suffix' => 'nullable|string',
             'position' => 'nullable|string',
             'user_access' => 'nullable|string',
