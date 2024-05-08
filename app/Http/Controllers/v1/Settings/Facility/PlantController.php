@@ -38,18 +38,18 @@ class PlantController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(PlantModel::class,  'Plant');
+        return $this->readRecord(PlantModel::class, 'Plant');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(PlantModel::class, $id,  'Plant');
+        return $this->readRecordById(PlantModel::class, $id, 'Plant');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(PlantModel::class, $id,  'Plant');
+        return $this->deleteRecordById(PlantModel::class, $id, 'Plant');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(PlantModel::class, $id,  'Plant');
+        return $this->changeStatusRecordById(PlantModel::class, $id, 'Plant', $request);
     }
 }

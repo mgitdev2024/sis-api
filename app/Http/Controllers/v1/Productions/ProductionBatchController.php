@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Traits\HistoricalLogTrait;
+use App\Traits\ProductionHistoricalLogTrait;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
@@ -18,7 +18,7 @@ use App\Traits\CrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait, HistoricalLogTrait;
+    use CrudOperationsTrait, ProductionHistoricalLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {
@@ -38,7 +38,7 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
-        
+
         // dd($fields);
         try {
             $batch = null;
@@ -307,7 +307,7 @@ class ProductionBatchController extends Controller
             $whereFields['production_ota_id'] = $id;
         }
         $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null,'Production Batches');
+        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
     }
 
     public function onPrintHistory($batchId, $producedItems, $fields)

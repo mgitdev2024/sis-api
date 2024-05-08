@@ -11,10 +11,11 @@ use Exception;
 use Carbon\Carbon;
 use DB;
 use App\Traits\CrudOperationsTrait;
+use App\Traits\ProductionHistoricalLogTrait;
 
 class ItemDispositionController extends Controller
 {
-    use CrudOperationsTrait;
+    use CrudOperationsTrait, ProductionHistoricalLogTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
@@ -27,6 +28,7 @@ class ItemDispositionController extends Controller
         $fields = $request->validate($rules);
         try {
             DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
             $itemDisposition = ItemDispositionModel::find($id);
             $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
@@ -36,6 +38,7 @@ class ItemDispositionController extends Controller
             }
             $producedItemModel->produced_items = json_encode($producedItems);
             $producedItemModel->save();
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
 
             $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
             $itemDisposition->quantity_update = $fields['quantity_update'] ?? null;
@@ -44,6 +47,7 @@ class ItemDispositionController extends Controller
             $itemDisposition->updated_at = now();
             $itemDisposition->action = $fields['action_status_id'];
             $itemDisposition->save();
+            $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition, $createdById, 1, $itemDisposition->item_key);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
@@ -63,7 +67,7 @@ class ItemDispositionController extends Controller
     {
         return $this->deleteRecordById(ItemDispositionModel::class, $id, 'Item Disposition');
     }
-    public function onCloseDisposition($id)
+    public function onCloseDisposition(Request $request, $id)
     {
         #region status list
         // 0 => 'Good',
@@ -80,9 +84,12 @@ class ItemDispositionController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         #endregion
-    
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
         try {
             // status to be excluded
+            $createdById = $fields['created_by_id'];
             $triggerReviewedStatus = [6, 7, 8, 9, 11, 12];
             $itemBatches = ItemDispositionModel::where('production_batch_id', $id)->get();
             DB::beginTransaction();
@@ -104,6 +111,7 @@ class ItemDispositionController extends Controller
                     $items->production_status = 0;
                     $items->aging_period = $items->created_at->diffInDays(Carbon::now());
                     $items->save();
+                    $this->createProductionHistoricalLog(ItemDispositionModel::class, $items->id, $items, $createdById, 1, $items['item_key']);
                 }
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
@@ -165,12 +173,14 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onHoldRelease(Request $request,$id)
+    public function onHoldRelease(Request $request, $id)
     {
         $fields = $request->validate([
-            'is_release' => 'required|boolean'
+            'is_release' => 'required|boolean',
+            'created_by_id' => 'required'
         ]);
         try {
+            $createdById = $fields['created_by_id'];
             $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
             $productionBatch = $producedItem->productionBatch;
             $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
@@ -178,22 +188,22 @@ class ItemDispositionController extends Controller
                 DB::beginTransaction();
                 $response = null;
                 if ($fields['is_release']) {
-                    $response = $this->onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition);
+                    $response = $this->onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition, $createdById);
                 } else {
-                    $response = $this->onHoldStatus($producedItem, $productionBatch, $itemDisposition);
+                    $response = $this->onHoldStatus($producedItem, $productionBatch, $itemDisposition, $createdById);
                 }
 
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
-            return $this->dataResponse('error', 200, ProductionBatchModel::class . ' ' . __('msg.record_not_found'));
+            return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 
-    public function onHoldStatus($producedItem, $productionBatch, $itemDisposition)
+    public function onHoldStatus($producedItem, $productionBatch, $itemDisposition, $createdById)
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
@@ -203,17 +213,21 @@ class ItemDispositionController extends Controller
                         $value->prev_status = $value->status;
                     }
                     $value->status = 1;
+                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $value['sticker_no']);
                 }
             }
 
             foreach ($itemDisposition as $disposition) {
                 $disposition->is_release = 0;
                 $disposition->save();
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $disposition->id, $disposition, $createdById, 1, $disposition->item_key);
             }
             $productionBatch->status = 1;
             $productionBatch->update();
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $createdById, 1);
             $producedItem->produced_items = json_encode($producedItemArray);
             $producedItem->update();
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $producedItem, $createdById, 1);
             $response = [
                 'status' => $productionBatch->statusLabel
             ];
@@ -224,13 +238,14 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition)
+    public function onReleaseHoldStatus($producedItem, $productionBatch, $itemDisposition, $createdById)
     {
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
             foreach ($producedItemArray as $value) {
                 if ($value->sticker_status === 1) {
                     $value->status = $value->prev_status;
+                    $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $value['sticker_no']);
                 }
             }
 
@@ -241,10 +256,13 @@ class ItemDispositionController extends Controller
             foreach ($itemDisposition as $disposition) {
                 $disposition->is_release = 1;
                 $disposition->save();
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $disposition->id, $disposition, $createdById, 1, $disposition->item_key);
             }
             $productionBatch->update();
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $createdById, 1);
             $producedItem->produced_items = json_encode($producedItemArray);
             $producedItem->update();
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $producedItem, $createdById, 1);
             $response = [
                 'status' => $productionBatch->statusLabel
             ];

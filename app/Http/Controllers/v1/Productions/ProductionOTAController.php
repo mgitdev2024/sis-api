@@ -51,19 +51,19 @@ class ProductionOTAController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ProductionOTAModel::class,'Production OTA');
+        return $this->readRecord(ProductionOTAModel::class, 'Production OTA');
     }
-    public function onGetById( $id)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOTAModel::class, $id,'Production OTA');
+        return $this->readRecordById(ProductionOTAModel::class, $id, 'Production OTA');
     }
-    public function onDeleteById( $id)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ProductionOTAModel::class, $id,'Production OTA');
+        return $this->deleteRecordById(ProductionOTAModel::class, $id, 'Production OTA');
     }
-    public function onChangeStatus( $id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ProductionOTAModel::class, $id,'Production OTA');
+        return $this->changeStatusRecordById(ProductionOTAModel::class, $id, 'Production OTA', $request);
     }
     public function onGetCurrent($id = null)
     {
@@ -83,11 +83,11 @@ class ProductionOTAController extends Controller
                 ];
             }
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null,'Production OTA');
+        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
     }
     public function onGetEndorsedByQa($id = null)
     {
-        
+
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where('production_type', 1)
@@ -106,7 +106,7 @@ class ProductionOTAController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
-        
+
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',

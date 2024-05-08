@@ -34,18 +34,18 @@ class ItemVariantTypeController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ItemVariantTypeModel::class,'Item Variant Type');
+        return $this->readRecord(ItemVariantTypeModel::class, 'Item Variant Type');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemVariantTypeModel::class, $id,'Item Variant Type');
+        return $this->readRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemVariantTypeModel::class, $id,'Item Variant Type');
+        return $this->deleteRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id,'Item Variant Type');
+        return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type', $request);
     }
 }

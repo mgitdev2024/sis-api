@@ -46,19 +46,19 @@ class ProductionOTBController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ProductionOTBModel::class,  'Production OTB');
+        return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB', $request);
     }
     public function onGetCurrent($id = null, )
     {
