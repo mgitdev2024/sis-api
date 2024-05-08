@@ -18,7 +18,12 @@ class CredentialController extends Controller
     {
         $fields = $request->validate([
             'employee_id' => 'required',
-            'position' => 'required|string',
+            'prefix' => 'nullable|string',
+            'first_name' => 'required|string',
+            'middle_name' => 'required|string',
+            'last_name' => 'required|string',
+            'suffix' => 'nullable|string',
+            'position' => 'nullable|string',
             'user_access' => 'nullable|string',
         ]);
         try {
@@ -28,6 +33,11 @@ class CredentialController extends Controller
             if (!$userExist) {
                 User::insert([
                     'employee_id' => $fields['employee_id'],
+                    'prefix' => $fields['prefix'],
+                    'first_name' => $fields['first_name'],
+                    'middle_name' => $fields['middle_name'],
+                    'last_name' => $fields['last_name'],
+                    'suffix' => $fields['suffix'],
                     'position' => $fields['position'] ?? null,
                     'user_access' => $fields['user_access'] ?? null,
                 ]);
