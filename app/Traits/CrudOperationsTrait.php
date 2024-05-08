@@ -30,7 +30,7 @@ trait CrudOperationsTrait
             $record = $model::find($id);
             if ($record) {
                 $record->update($fields);
-                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
+                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -114,18 +114,27 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false)
     {
         try {
+
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
                 foreach ($whereFields as $field => $value) {
                     if (is_array($value)) {
-                        $data->where(function ($query) use ($field, $value) {
-                            foreach ($value as $whereValue) {
-                                $query->orWhere($field, $whereValue);
-                            }
-                        });
+                        if ($triggerOr) {
+                            $data->orWhere(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
+                        } else {
+                            $data->where(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
+                        }
                     } else {
                         $data->where($field, $value);
                     }
@@ -141,6 +150,7 @@ trait CrudOperationsTrait
                 $data->with($withFields);
             }
             $dataList = $data->get();
+
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }

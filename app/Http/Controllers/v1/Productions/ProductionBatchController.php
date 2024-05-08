@@ -310,9 +310,9 @@ class ProductionBatchController extends Controller
             }
 
             $result = $data->get();
-            $activeStickers = 0;
-            $inactiveStickers = 0;
             foreach ($result as $value) {
+                $activeStickers = 0;
+                $inactiveStickers = 0;
                 $producedItems = json_decode($value->producedItem->produced_items, true);
                 foreach ($producedItems as $key => $items) {
                     if ($items['sticker_status'] == 1) {
@@ -321,7 +321,8 @@ class ProductionBatchController extends Controller
                         ++$inactiveStickers;
                     }
                 }
-                dd($producedItems);
+                $value->active_stickers = $activeStickers;
+                $value->inactive_stickers = $inactiveStickers;
             }
             if (count($result) > 0) {
                 return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $result);

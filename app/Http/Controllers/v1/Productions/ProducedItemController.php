@@ -18,6 +18,7 @@ class ProducedItemController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
+            'updated_by_id' => 'required',
             'chilled_exp_date' => 'required|date',
         ];
         return $this->updateRecordById(ProducedItemModel::class, $request, $rules, 'Produced Item', $id);

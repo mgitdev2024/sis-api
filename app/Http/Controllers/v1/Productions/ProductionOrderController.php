@@ -95,12 +95,13 @@ class ProductionOrderController extends Controller
             $today = new \DateTime('today');
             $tomorrow = new \DateTime('tomorrow');
             $whereFields['production_date'] = [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')];
+            $whereFields['status'] = [0];
         }
 
         $orderFields = [
             "production_date" => "ASC",
         ];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
