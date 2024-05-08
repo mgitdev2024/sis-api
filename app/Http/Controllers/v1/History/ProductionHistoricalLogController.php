@@ -39,7 +39,7 @@ class ProductionHistoricalLogController extends Controller
         $fields = $request->validate([
             'entity_id' => 'nullable',
             'entity_model' => 'nullable',
-            'item_key' => 'nullable',
+            'is_item_key' => 'nullable|boolean',
         ]);
 
         $whereFields = [];
@@ -47,9 +47,17 @@ class ProductionHistoricalLogController extends Controller
             $whereFields = [
                 'entity_id' => $fields['entity_id'],
                 'entity_model' => $fields['entity_model'],
-                'item_key' => $fields['item_key'],
             ];
         }
-        return $this->readCurrentRecord(ProductionHistoricalLogModel::class, null, $whereFields, null, null, 'Production History Log');
+
+        $notNullFields = null;
+        if (isset($fields['is_item_key'])) {
+            $notNullFields = [
+                'item_key'
+            ];
+        }
+
+
+        return $this->readCurrentRecord(ProductionHistoricalLogModel::class, null, $whereFields, null, null, 'Production History Log', false, $notNullFields);
     }
 }

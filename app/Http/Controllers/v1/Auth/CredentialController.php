@@ -32,11 +32,11 @@ class CredentialController extends Controller
             if (!$userExist) {
                 User::insert([
                     'employee_id' => $fields['employee_id'],
-                    'prefix' => $fields['prefix'],
+                    'prefix' => $fields['prefix'] ?? null,
                     'first_name' => $fields['first_name'],
                     'middle_name' => $fields['middle_name'],
                     'last_name' => $fields['last_name'],
-                    'suffix' => $fields['suffix'],
+                    'suffix' => $fields['suffix'] ?? null,
                     'position' => $fields['position'] ?? null,
                     'user_access' => $fields['user_access'] ?? null,
                 ]);
