@@ -153,7 +153,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
-                    $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
+                    $this->createProductionHistoricalLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -177,7 +177,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTA->created_by_id = $createdById;
                     $productionOTA->save();
-                    $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOTA->id, $productionOTA, $createdById, 0);
+                    $this->createProductionHistoricalLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA, $createdById, 0);
                 }
             }
             $response = [

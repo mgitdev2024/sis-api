@@ -114,10 +114,9 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
-
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
                 foreach ($whereFields as $field => $value) {
@@ -141,6 +140,17 @@ trait CrudOperationsTrait
                 }
             }
 
+            if ($notNullFields) {
+                if ($triggerOr) {
+                    foreach ($notNullFields as $field) {
+                        $data->orWhereNotNull($field);
+                    }
+                } else {
+                    foreach ($notNullFields as $field) {
+                        $data->whereNotNull($field);
+                    }
+                }
+            }
             if ($orderFields) {
                 foreach ($orderFields as $field => $value) {
                     $data->orderBy($field, $value);
@@ -150,7 +160,6 @@ trait CrudOperationsTrait
                 $data->with($withFields);
             }
             $dataList = $data->get();
-
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }

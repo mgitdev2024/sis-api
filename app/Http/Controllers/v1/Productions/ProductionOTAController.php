@@ -127,7 +127,7 @@ class ProductionOTAController extends Controller
                 $itemDisposition->fulfilled_at = now();
                 $itemDisposition->production_status = 0;
                 $itemDisposition->save();
-
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition, $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
@@ -144,7 +144,7 @@ class ProductionOTAController extends Controller
 
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $productionItem = $this->onSetProductionOrderBatch(
                     $itemDisposition,
                     $itemDisposition->quantity_update,
@@ -195,6 +195,7 @@ class ProductionOTAController extends Controller
                     $productionOtaId = $value->id;
                     $value->save();
                     $isExist = true;
+                    $this->createProductionHistoricalLog(ProductionOTAModel::class, $value->id, $value, $fields['created_by_id'], 1);
                     break;
                 }
             }
