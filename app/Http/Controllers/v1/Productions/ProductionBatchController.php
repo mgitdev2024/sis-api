@@ -284,6 +284,7 @@ class ProductionBatchController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
+            'updated_by_id' => 'required',
             'chilled_exp_date' => 'required|date',
         ];
         return $this->updateRecordById(ProductionBatchModel::class, $request, $rules, 'Production Batches', $id);
@@ -300,14 +301,35 @@ class ProductionBatchController extends Controller
 
     public function onGetCurrent($id = null, $order_type = null)
     {
-        $whereFields = [];
-        if (strcasecmp($order_type, 'otb') === 0) {
-            $whereFields['production_otb_id'] = $id;
-        } else {
-            $whereFields['production_ota_id'] = $id;
+        try {
+            $data = ProductionBatchModel::orderBy('id', 'ASC');
+            if (strcasecmp($order_type, 'otb') == 0) {
+                $data->where('production_otb_id', $id);
+            } else if (strcasecmp($order_type, 'ota') == 0) {
+                $data->where('production_ota_id', $id);
+            }
+
+            $result = $data->get();
+            $activeStickers = 0;
+            $inactiveStickers = 0;
+            foreach ($result as $value) {
+                $producedItems = json_decode($value->producedItem->produced_items, true);
+                foreach ($producedItems as $key => $items) {
+                    if ($items['sticker_status'] == 1) {
+                        ++$activeStickers;
+                    } else {
+                        ++$inactiveStickers;
+                    }
+                }
+                dd($producedItems);
+            }
+            if (count($result) > 0) {
+                return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $result);
+            }
+            return $this->dataResponse('error', 200, 'Production Batch ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
     }
 
     public function onPrintHistory($batchId, $producedItems, $fields)

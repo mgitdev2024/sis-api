@@ -26,7 +26,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Artisan::call('db:seed', ["--force" => true]);
         return 'Migrations and Seed completed successfully!';
     });
-    
+
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
     #region Item Classifications

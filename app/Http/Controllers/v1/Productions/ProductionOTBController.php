@@ -32,8 +32,7 @@ class ProductionOTBController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'created_by_id' => 'required',
-            'updated_by_id' => 'nullable',
+            'updated_by_id' => 'required',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];

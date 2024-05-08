@@ -29,7 +29,6 @@ trait CrudOperationsTrait
             $record = new $model();
             $record = $model::find($id);
             if ($record) {
-                $fields['updated_by_id'] = $fields['created_by_id'];
                 $record->update($fields);
                 $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
