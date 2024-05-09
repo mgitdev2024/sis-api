@@ -7,7 +7,7 @@ use Exception;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 
-trait HistoricalLogTrait
+trait ProductionHistoricalLogTrait
 {
     use ResponseTrait;
     public function createProductionHistoricalLog($entityModel, $entityId, $data, $createdById, $action, $itemKey = null)
@@ -22,6 +22,7 @@ trait HistoricalLogTrait
                 'data' => json_encode($data),
                 'action' => $action
             ]);
+
             $productionHistoricalLog->onCreate($productionHistoricalRequest);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));

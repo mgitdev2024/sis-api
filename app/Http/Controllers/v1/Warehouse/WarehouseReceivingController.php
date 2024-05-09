@@ -21,7 +21,7 @@ class WarehouseReceivingController extends Controller
         $orderFields = [
             'reference_number' => 'ASC'
         ];
-        return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, 'Warehouse Receiving');
+        return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, null, 'Warehouse Receiving');
     }
     public function onGetById($id)
     {
