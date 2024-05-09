@@ -34,18 +34,18 @@ class ItemClassificationController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ItemClassificationModel::class,  'Item Classification');
+        return $this->readRecord(ItemClassificationModel::class, 'Item Classification');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemClassificationModel::class, $id,  'Item Classification');
+        return $this->readRecordById(ItemClassificationModel::class, $id, 'Item Classification');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ItemClassificationModel::class, $id,  'Item Classification');
+        return $this->deleteRecordById(ItemClassificationModel::class, $id, 'Item Classification');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ItemClassificationModel::class, $id,  'Item Classification');
+        return $this->changeStatusRecordById(ItemClassificationModel::class, $id, 'Item Classification', $request);
     }
 }

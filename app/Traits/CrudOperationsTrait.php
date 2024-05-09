@@ -8,7 +8,7 @@ use App\Traits\ResponseTrait;
 
 trait CrudOperationsTrait
 {
-    use ResponseTrait, HistoricalLogTrait;
+    use ResponseTrait, ProductionHistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
@@ -16,6 +16,7 @@ trait CrudOperationsTrait
             $record = new $model();
             $record->fill($fields);
             $record->save();
+            $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -28,9 +29,8 @@ trait CrudOperationsTrait
             $record = new $model();
             $record = $model::find($id);
             if ($record) {
-                $fields['updated_by_id'] = $fields['created_by_id'];
                 $record->update($fields);
-                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
+                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -90,7 +90,7 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model,$modelName)
+    public function readRecord($model, $modelName)
     {
         try {
             $dataList = $model::get();
@@ -114,24 +114,43 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
             $data = $model::orderBy('id', 'ASC');
             if ($whereFields) {
                 foreach ($whereFields as $field => $value) {
                     if (is_array($value)) {
-                        $data->where(function ($query) use ($field, $value) {
-                            foreach ($value as $whereValue) {
-                                $query->orWhere($field, $whereValue);
-                            }
-                        });
+                        if ($triggerOr) {
+                            $data->orWhere(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
+                        } else {
+                            $data->where(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
+                        }
                     } else {
                         $data->where($field, $value);
                     }
                 }
             }
 
+            if ($notNullFields) {
+                if ($triggerOr) {
+                    foreach ($notNullFields as $field) {
+                        $data->orWhereNotNull($field);
+                    }
+                } else {
+                    foreach ($notNullFields as $field) {
+                        $data->whereNotNull($field);
+                    }
+                }
+            }
             if ($orderFields) {
                 foreach ($orderFields as $field => $value) {
                     $data->orderBy($field, $value);
@@ -149,14 +168,18 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $modelName)
+    public function changeStatusRecordById($model, $id, $modelName, $request)
     {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
         try {
             $data = $model::find($id);
             if ($data) {
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
+                $this->createProductionHistoricalLog($model, $model->id, $data, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));

@@ -45,8 +45,8 @@ class UomController extends Controller
     {
         return $this->deleteRecordById(UomModel::class, $id, 'UOM');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(UomModel::class, $id, 'UOM');
+        return $this->changeStatusRecordById(UomModel::class, $id, 'UOM', $request);
     }
 }

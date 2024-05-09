@@ -32,8 +32,7 @@ class ProductionOTBController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'created_by_id' => 'required',
-            'updated_by_id' => 'nullable',
+            'updated_by_id' => 'required',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];
@@ -46,19 +45,19 @@ class ProductionOTBController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ProductionOTBModel::class,  'Production OTB');
+        return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ProductionOTBModel::class, $id,  'Production OTB');
+        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB', $request);
     }
     public function onGetCurrent($id = null, )
     {
@@ -114,6 +113,7 @@ class ProductionOTBController extends Controller
                 $itemDisposition->fulfilled_at = now();
                 $itemDisposition->production_status = 0;
                 $itemDisposition->save();
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition, $fields['created_by_id'], 1, $itemDisposition->item_key);
 
                 $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
                 $producedItems = json_decode($producedItemModel->produced_items, true);
@@ -127,6 +127,7 @@ class ProductionOTBController extends Controller
 
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
 
                 $produceItem = [$itemDisposition->item_key];
                 $printHistory = new PrintHistoryController();

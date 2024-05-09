@@ -46,8 +46,8 @@ class DeliveryTypeController extends Controller
     {
         return $this->deleteRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type');
+        return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type', $request);
     }
 }

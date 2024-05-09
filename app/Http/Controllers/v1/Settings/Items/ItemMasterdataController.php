@@ -69,9 +69,9 @@ class ItemMasterdataController extends Controller
     {
         return $this->deleteRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onChangeStatus($id)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
+        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata', $request);
     }
     public function onGetCurrent($id = null)
     {

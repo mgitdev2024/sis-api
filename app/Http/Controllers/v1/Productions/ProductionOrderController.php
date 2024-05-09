@@ -47,7 +47,7 @@ class ProductionOrderController extends Controller
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-    public function onChangeStatus(Request $request,$id)
+    public function onChangeStatus(Request $request, $id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
@@ -83,7 +83,7 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetCurrent(Request $request,$filter = null)
+    public function onGetCurrent($filter = null)
     {
         $whereFields = [];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
@@ -95,12 +95,13 @@ class ProductionOrderController extends Controller
             $today = new \DateTime('today');
             $tomorrow = new \DateTime('tomorrow');
             $whereFields['production_date'] = [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')];
+            $whereFields['status'] = [0];
         }
 
         $orderFields = [
             "production_date" => "ASC",
         ];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields,  'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -120,6 +121,7 @@ class ProductionOrderController extends Controller
             $productionOrder->production_date = $productionDate;
             $productionOrder->created_by_id = $request->created_by_id;
             $productionOrder->save();
+            $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $createdById, 0);
             foreach ($bulkUploadData as $value) {
                 $productionOTA = new ProductionOTAModel();
                 $productionOTB = new ProductionOTBModel();
@@ -151,6 +153,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
+                    $this->createProductionHistoricalLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -174,6 +177,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTA->created_by_id = $createdById;
                     $productionOTA->save();
+                    $this->createProductionHistoricalLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA, $createdById, 0);
                 }
             }
             $response = [
@@ -197,7 +201,7 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches(Request $request ,$id, $order_type)
+    public function onGetBatches(Request $request, $id, $order_type)
     {
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
