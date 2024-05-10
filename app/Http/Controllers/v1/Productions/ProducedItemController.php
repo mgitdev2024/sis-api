@@ -154,7 +154,7 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -182,7 +182,7 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -198,7 +198,7 @@ class ProducedItemController extends Controller
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItemModel, $createdById, 1, $itemKey);
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
 
         } catch (Exception $exception) {
