@@ -40,6 +40,7 @@ class ProductionHistoricalLogController extends Controller
             'entity_id' => 'nullable',
             'entity_model' => 'nullable',
             'is_item_key' => 'nullable|boolean',
+            'item_key' => 'nullable',
         ]);
 
         $whereFields = [];
@@ -48,6 +49,12 @@ class ProductionHistoricalLogController extends Controller
                 'entity_id' => $fields['entity_id'],
                 'entity_model' => $fields['entity_model'],
             ];
+
+            if (isset($fields['is_item_key'])) {
+                $whereFields = [
+                    'item_key' => $fields['item_key']
+                ];
+            }
         }
 
         $notNullFields = null;

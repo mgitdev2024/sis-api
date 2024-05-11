@@ -243,8 +243,8 @@ class ItemDispositionController extends Controller
         try {
             $producedItemArray = json_decode($producedItem->produced_items);
             foreach ($producedItemArray as $key => $value) {
-          
-                if ($value->sticker_status === 1) { 
+
+                if ($value->sticker_status === 1) {
                     $value->status = $value->prev_status;
                     $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItem->id, $value, $createdById, 1, $key);
                 }
@@ -274,8 +274,41 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetOverallStats()
+    public function onGetOverallStats(Request $request)
     {
-        // For QA statistics only
+        $fields = $request->validate([
+            'start_date' => 'nullable|date',
+            'range_date' => 'nullable|required_if:start_date,null|date',
+        ]);
+        try {
+            // 4 => 'For Investigation',
+            // 5 => 'For Sampling',
+            // 6 => 'For Retouch',
+            // 7 => 'For Slice',
+            // 8 => 'For Sticker Update',
+            // 9 => 'Sticker Updated',
+            // 10 => 'Reviewed',
+            // 11 => 'Retouched',
+            // 12 => 'Sliced',
+            $results = ItemDispositionModel::selectRaw('
+                    SUM(CASE WHEN production_status = 1 AND action IS NULL THEN 1 ELSE 0 END) as for_review,
+                    SUM(CASE WHEN production_status = 1 AND type = 0 AND action IS NULL THEN 1 ELSE 0 END) as for_investigation,
+                    SUM(CASE WHEN production_status = 1 AND type = 1 AND action IS NULL THEN 1 ELSE 0 END) as for_sampling,
+                    SUM(CASE WHEN production_status = 1 AND action IS NULL THEN 1 ELSE 0 END) as for_sampling,
+                    SUM(CASE WHEN production_status = 1 AND action = 6 THEN 1 ELSE 0 END) as for_retouch,
+                    SUM(CASE WHEN production_status = 1 AND action = 7 THEN 1 ELSE 0 END) as for_slice,
+                    SUM(CASE WHEN production_status = 1 AND action = 8 THEN 1 ELSE 0 END) as for_sticker_update,
+                    SUM(CASE WHEN production_status = 0 AND action = 8 THEN 1 ELSE 0 END) as sticker_updated,
+                    SUM(CASE WHEN production_status = 0 AND action IS NULL THEN 1 ELSE 0 END) as reviewed,
+                    SUM(CASE WHEN production_status = 0 AND action = 6 THEN 1 ELSE 0 END) as retouched,
+                    SUM(CASE WHEN production_status = 0 AND action = 7 THEN 1 ELSE 0 END) as sliced
+                ')
+                ->whereDate('created_at', $fields['start_date'])
+                ->first();
+            return $this->dataResponse('success', 200, __('msg.update_success'), $results);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 }
