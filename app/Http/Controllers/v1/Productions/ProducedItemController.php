@@ -252,7 +252,7 @@ class ProducedItemController extends Controller
                     $itemsToTransfer[$currentBatchId]['qty']++;
                 } else {
                     $itemsToTransfer[$currentBatchId] = [
-                        'production_order_id' => $currentStickerNo,
+                        'production_order_id' => $productionOrderId,
                         'sticker_no' => $currentStickerNo,
                         'item_code' => $itemCode,
                         'sku_type' => $skuType,
