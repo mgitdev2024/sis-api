@@ -253,6 +253,7 @@ class ProducedItemController extends Controller
                 } else {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,
+                        'batch_id' => $currentBatchId,
                         'sticker_no' => $currentStickerNo,
                         'item_code' => $itemCode,
                         'sku_type' => $skuType,
@@ -263,11 +264,11 @@ class ProducedItemController extends Controller
 
             DB::beginTransaction();
 
-            foreach ($itemsToTransfer as $value) {
+            foreach ($itemsToTransfer as $key => $value) {
                 $warehouseReceive = new WarehouseReceivingModel();
                 $warehouseReceive->reference_number = $warehouseReferenceNo;
-                $warehouseReceive->production_order_id = $productionOrderId;
-                $warehouseReceive->produced_items = json_encode($itemsToTransfer);
+                $warehouseReceive->production_order_id = $value['productionOrderId'];
+                $warehouseReceive->produced_items = json_encode($itemsToTransfer[$key]);
                 $warehouseReceive->item_code = $value['item_code'];
                 $warehouseReceive->sku_type = $value['sku_type'];
                 $warehouseReceive->quantity = $value['qty'];
