@@ -74,6 +74,11 @@ class ProducedItemController extends Controller
             DB::beginTransaction();
             $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
+
+            // For Warehouse Receiving
+            if ($statusId == 2) {
+                $this->onWarehouseReceiveItem($scannedItem, $createdById);
+            }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
@@ -87,10 +92,6 @@ class ProducedItemController extends Controller
                 }
             }
 
-            // For Warehouse Receiving
-            if ($statusId == 2) {
-                $this->onWarehouseReceiveItem($scannedItem, $createdById);
-            }
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -248,6 +249,9 @@ class ProducedItemController extends Controller
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemClassification->name ?? $productionBatch->productionOtb->itemMasterdata->itemClassification->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
+                $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
+                $inclusionArray = [0, 8];
+                $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
                 } else {
@@ -257,7 +261,9 @@ class ProducedItemController extends Controller
                         'sticker_no' => $currentStickerNo,
                         'item_code' => $itemCode,
                         'sku_type' => $skuType,
-                        'qty' => 1
+                        'qty' => 1,
+                        'flag' => $flag,
+                        'item' => [$currentStickerNo => $producedItems[$currentStickerNo]]
                     ];
                 }
             }
@@ -265,16 +271,18 @@ class ProducedItemController extends Controller
             DB::beginTransaction();
 
             foreach ($itemsToTransfer as $key => $value) {
-                $warehouseReceive = new WarehouseReceivingModel();
-                $warehouseReceive->reference_number = $warehouseReferenceNo;
-                $warehouseReceive->production_order_id = $value['productionOrderId'];
-                $warehouseReceive->produced_items = json_encode($itemsToTransfer[$key]);
-                $warehouseReceive->item_code = $value['item_code'];
-                $warehouseReceive->sku_type = $value['sku_type'];
-                $warehouseReceive->quantity = $value['qty'];
-                $warehouseReceive->created_by_id = $createdById;
-                $warehouseReceive->save();
-                $this->createProductionHistoricalLog(WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive, $createdById, 0);
+                if ($value['flag']) {
+                    $warehouseReceive = new WarehouseReceivingModel();
+                    $warehouseReceive->reference_number = $warehouseReferenceNo;
+                    $warehouseReceive->production_order_id = $value['production_order_id'];
+                    $warehouseReceive->produced_items = json_encode($value['item']);
+                    $warehouseReceive->item_code = $value['item_code'];
+                    $warehouseReceive->sku_type = $value['sku_type'];
+                    $warehouseReceive->quantity = $value['qty'];
+                    $warehouseReceive->created_by_id = $createdById;
+                    $warehouseReceive->save();
+                    $this->createProductionHistoricalLog(WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive, $createdById, 0);
+                }
             }
             DB::commit();
         } catch (Exception $exception) {
