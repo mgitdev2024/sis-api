@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('production_historical_logs', function (Blueprint $table) {
             $table->id();
+            // $table->string('transaction_no')->nullable();
             $table->string('entity_model');
             $table->integer('entity_id');
             $table->integer('item_key')->nullable();
