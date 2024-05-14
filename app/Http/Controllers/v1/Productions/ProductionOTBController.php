@@ -18,7 +18,7 @@ class ProductionOTBController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'production_order_id' => 'required|exists:production_orders,id',
             'item_code' => 'required|string',
             'production_date' => 'required|date_format:Y-m-d',
@@ -32,8 +32,7 @@ class ProductionOTBController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
-            'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'required',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
         ];
@@ -44,24 +43,25 @@ class ProductionOTBController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOTBModel::class, $request, $searchableFields, 'Production OTB');
     }
-    public function onGetall(Request $request)
+    public function onGetAll()
     {
         return $this->readRecord(ProductionOTBModel::class, 'Production OTB');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
         return $this->readRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById($id)
     {
         return $this->deleteRecordById(ProductionOTBModel::class, $id, 'Production OTB');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB');
+        return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB', $request);
     }
-    public function onGetCurrent($id = null)
+    public function onGetCurrent($id = null, )
     {
+
         $whereFields = [];
         if ($id != null) {
             $whereFields = [
@@ -80,7 +80,7 @@ class ProductionOTBController extends Controller
         }
         return $this->readCurrentRecord(ProductionOTBModel::class, $id, $whereFields, null, null, 'Production OTB');
     }
-    public function onGetEndorsedByQa($id = null)
+    public function onGetEndorsedByQa(Request $request, $id = null)
     {
         try {
             $itemDisposition = ItemDispositionModel::with('productionBatch')
@@ -113,6 +113,7 @@ class ProductionOTBController extends Controller
                 $itemDisposition->fulfilled_at = now();
                 $itemDisposition->production_status = 0;
                 $itemDisposition->save();
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition, $fields['created_by_id'], 1, $itemDisposition->item_key);
 
                 $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
                 $producedItems = json_decode($producedItemModel->produced_items, true);
@@ -126,6 +127,7 @@ class ProductionOTBController extends Controller
 
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
 
                 $produceItem = [$itemDisposition->item_key];
                 $printHistory = new PrintHistoryController();

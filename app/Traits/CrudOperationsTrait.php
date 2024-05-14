@@ -5,14 +5,13 @@ namespace App\Traits;
 use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
+
 trait CrudOperationsTrait
 {
-    use ResponseTrait, HistoricalLogTrait;
+    use ResponseTrait, ProductionHistoricalLogTrait;
     public function createRecord($model, $request, $rules, $modelName)
     {
         $fields = $request->validate($rules);
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record->fill($fields);
@@ -26,15 +25,12 @@ trait CrudOperationsTrait
     public function updateRecordById($model, $request, $rules, $modelName, $id)
     {
         $fields = $request->validate($rules);
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $record = new $model();
             $record = $model::find($id);
             if ($record) {
-                $fields['updated_by_id'] = $fields['created_by_id'];
                 $record->update($fields);
-                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 1);
+                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -44,8 +40,6 @@ trait CrudOperationsTrait
     }
     public function readPaginatedRecord($model, $request, $searchableFields, $modelName)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $fields = $request->validate([
                 'display' => 'nullable|integer',
@@ -96,10 +90,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model,$request = null, $modelName)
+    public function readRecord($model, $modelName)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $dataList = $model::get();
             if ($dataList->isNotEmpty()) {
@@ -110,10 +102,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $request = null,$modelName)
+    public function readRecordById($model, $id, $modelName)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $data = $model::find($id);
             if ($data) {
@@ -124,21 +114,41 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $request = null,$modelName)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $data = $model::orderBy('id', 'ASC');
-            foreach ($whereFields as $field => $value) {
-                if (is_array($value)) {
-                    $data->where(function ($query) use ($field, $value) {
-                        foreach ($value as $whereValue) {
-                            $query->orWhere($field, $whereValue);
+            if ($whereFields) {
+                foreach ($whereFields as $field => $value) {
+                    if (is_array($value)) {
+                        if ($triggerOr) {
+                            $data->orWhere(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
+                        } else {
+                            $data->where(function ($query) use ($field, $value) {
+                                foreach ($value as $whereValue) {
+                                    $query->orWhere($field, $whereValue);
+                                }
+                            });
                         }
-                    });
+                    } else {
+                        $data->where($field, $value);
+                    }
+                }
+            }
+
+            if ($notNullFields) {
+                if ($triggerOr) {
+                    foreach ($notNullFields as $field) {
+                        $data->orWhereNotNull($field);
+                    }
                 } else {
-                    $data->where($field, $value);
+                    foreach ($notNullFields as $field) {
+                        $data->whereNotNull($field);
+                    }
                 }
             }
             if ($orderFields) {
@@ -158,16 +168,18 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function changeStatusRecordById($model, $id, $request = null,$modelName)
+    public function changeStatusRecordById($model, $id, $modelName, $request)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
         try {
             $data = $model::find($id);
             if ($data) {
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
+                $this->createProductionHistoricalLog($model, $model->id, $data, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
@@ -175,10 +187,8 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function deleteRecordById($model, $id, $request = null,$modelName)
+    public function deleteRecordById($model, $id, $modelName)
     {
-        $token = $request->bearerToken();
-        $this->authenticateToken($token);
         try {
             $deletedRows = $model::destroy($id);
             if ($deletedRows) {
@@ -188,14 +198,6 @@ trait CrudOperationsTrait
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
-    }
-
-    public function authenticateToken($token)
-    {
-        // $response = \Http::withToken($token)->get('http://127.0.0.1:8000/api/token/check');
-        $response = \Http::withToken($token)->get('https://api-test.onemarygrace.com/api/token/check');
-        if (!isset($response['success']))
-        abort($this->dataResponse('error', 400, 'Unauthorized access'));
     }
 }
 

@@ -19,14 +19,8 @@ class ProductionOrderModel extends Model
         'status',
     ];
 
-    public function createdBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'created_by_id');
-    }
-    public function updatedBy()
-    {
-        return $this->belongsTo(CredentialModel::class, 'updated_by_id');
-    }
+
+
     public function productionOta()
     {
         return $this->hasMany(ProductionOTAModel::class, 'production_order_id', 'id');

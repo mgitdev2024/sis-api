@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Models\History\PrintHistoryModel;
+use App\Traits\ProductionHistoricalLogTrait;
 use App\Models\Productions\ProducedItemModel;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Productions\ProductionOTBModel;
@@ -18,7 +18,7 @@ use App\Traits\CrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait;
+    use CrudOperationsTrait, ProductionHistoricalLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {
@@ -38,6 +38,7 @@ class ProductionBatchController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate($this->onGetRules());
+
         // dd($fields);
         try {
             $batch = null;
@@ -117,10 +118,12 @@ class ProductionBatchController extends Controller
                 $secondaryValue -= $primaryPackingSize;
                 $addedProducedItem[$producedItemCount] = $itemArray;
                 $producedItemsArray[$producedItemCount] = $itemArray;
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, [$producedItemCount => $itemArray], $fields['created_by_id'], 1, $producedItemCount);
             }
             $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 1);
             $this->onPrintHistory(
                 $productionBatch->id,
                 $addedProducedItem,
@@ -134,7 +137,7 @@ class ProductionBatchController extends Controller
             }
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
-
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
                 'production_batch' => $productionBatch,
@@ -178,7 +181,7 @@ class ProductionBatchController extends Controller
             $productionBatch->save();
 
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
-
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 0);
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
@@ -270,6 +273,10 @@ class ProductionBatchController extends Controller
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
 
+            foreach ($producedItemsArray as $key => $value) {
+                $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, [$key => $value], $fields['created_by_id'], 0, $key);
+            }
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 0);
             $this->onPrintHistory($productionBatch->id, $producedItemsArray, $fields);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();
@@ -282,6 +289,7 @@ class ProductionBatchController extends Controller
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
+            'updated_by_id' => 'required',
             'chilled_exp_date' => 'required|date',
         ];
         return $this->updateRecordById(ProductionBatchModel::class, $request, $rules, 'Production Batches', $id);
@@ -291,21 +299,43 @@ class ProductionBatchController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionBatchModel::class, $request, $searchableFields, 'Production Batches');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
         return $this->readRecordById(ProductionBatchModel::class, $id, 'Production Batches');
     }
 
     public function onGetCurrent($id = null, $order_type = null)
     {
-        $whereFields = [];
-        if (strcasecmp($order_type, 'otb') === 0) {
-            $whereFields['production_otb_id'] = $id;
-        } else {
-            $whereFields['production_ota_id'] = $id;
+        try {
+            $data = ProductionBatchModel::orderBy('id', 'ASC');
+            if (strcasecmp($order_type, 'otb') == 0) {
+                $data->where('production_otb_id', $id);
+            } else if (strcasecmp($order_type, 'ota') == 0) {
+                $data->where('production_ota_id', $id);
+            }
+
+            $result = $data->get();
+            foreach ($result as $value) {
+                $activeStickers = 0;
+                $inactiveStickers = 0;
+                $producedItems = json_decode($value->producedItem->produced_items, true);
+                foreach ($producedItems as $key => $items) {
+                    if ($items['sticker_status'] == 1) {
+                        ++$activeStickers;
+                    } else {
+                        ++$inactiveStickers;
+                    }
+                }
+                $value->active_stickers = $activeStickers;
+                $value->inactive_stickers = $inactiveStickers;
+            }
+            if (count($result) > 0) {
+                return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $result);
+            }
+            return $this->dataResponse('error', 200, 'Production Batch ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        $withFields = ['producedItem'];
-        return $this->readCurrentRecord(ProductionBatchModel::class, $id, $whereFields, $withFields, null, 'Production Batches');
     }
 
     public function onPrintHistory($batchId, $producedItems, $fields)

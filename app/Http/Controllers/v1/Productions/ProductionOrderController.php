@@ -39,22 +39,25 @@ class ProductionOrderController extends Controller
         $searchableFields = ['reference_number', 'production_date'];
         return $this->readPaginatedRecord(ProductionOrderModel::class, $request, $searchableFields, 'Production Order');
     }
-    public function onGetAll(Request $request)
+    public function onGetAll()
     {
         return $this->readRecord(ProductionOrderModel::class, 'Production Order');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
         return $this->readRecordById(ProductionOrderModel::class, $id, 'Production Order');
     }
-    public function onChangeStatus($id,Request $request)
+    public function onChangeStatus(Request $request, $id)
     {
+        $fields = $request->validate([
+            'created_by_id' => 'required'
+        ]);
         try {
             $productionOrder = ProductionOrderModel::find($id);
             if ($productionOrder) {
                 DB::beginTransaction();
                 $response = $productionOrder->toArray();
-                $response['status'] = 1;
+                $response['status'] = !$response['status'];
                 $productionOrder->update($response);
 
                 $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
@@ -63,13 +66,14 @@ class ProductionOrderController extends Controller
                     ->orWhereIn('production_ota_id', $otaIds)
                     ->get();
 
+                $batchStatus = $response['status'] == 1 ? 2 : 0;
                 foreach ($productionBatches as $batch) {
                     if ($batch->status !== 1) {
-                        $batch->status = 2;
+                        $batch->status = $batchStatus;
                         $batch->update();
                     }
                 }
-
+                $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $fields['created_by_id'], 1);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
@@ -91,12 +95,13 @@ class ProductionOrderController extends Controller
             $today = new \DateTime('today');
             $tomorrow = new \DateTime('tomorrow');
             $whereFields['production_date'] = [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')];
+            $whereFields['status'] = [0];
         }
 
         $orderFields = [
             "production_date" => "ASC",
         ];
-        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order');
+        return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
     public function onBulkUploadProductionOrder(Request $request)
     {
@@ -116,6 +121,7 @@ class ProductionOrderController extends Controller
             $productionOrder->production_date = $productionDate;
             $productionOrder->created_by_id = $request->created_by_id;
             $productionOrder->save();
+            $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $createdById, 0);
             foreach ($bulkUploadData as $value) {
                 $productionOTA = new ProductionOTAModel();
                 $productionOTB = new ProductionOTBModel();
@@ -124,6 +130,8 @@ class ProductionOrderController extends Controller
                 $itemClassification = $itemMasterdata
                     ->itemClassification
                     ->name;
+                $bufferLevel = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
+                $requestedQuantity = intval($value['quantity']);
                 if (strcasecmp($itemClassification, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -132,12 +140,14 @@ class ProductionOrderController extends Controller
                         $duplicates[] = $value['item_code'];
                         continue;
                     }
+
                     $productionOTB->production_order_id = $productionOrder->id;
                     $productionOTB->delivery_type = $value['delivery_type'];
                     $productionOTB->item_code = $value['item_code'];
-                    $productionOTB->requested_quantity = $value['quantity'];
-                    $productionOTB->buffer_level = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
-                    $productionOTB->plotted_quantity = $value['total'];
+                    $productionOTB->requested_quantity = $requestedQuantity;
+                    $productionOTB->buffer_level = $bufferLevel;
+                    $productionOTB->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTB->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }
@@ -147,6 +157,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
+                    $this->createProductionHistoricalLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -158,9 +169,9 @@ class ProductionOrderController extends Controller
                     }
                     $productionOTA->production_order_id = $productionOrder->id;
                     $productionOTA->item_code = $value['item_code'];
-                    $productionOTA->requested_quantity = $value['quantity'];
-                    $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
-                    $productionOTA->plotted_quantity = $value['total'];
+                    $productionOTA->requested_quantity = $requestedQuantity;
+                    $productionOTA->buffer_level = $bufferLevel;
+                    $productionOTA->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTA->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }
@@ -170,6 +181,7 @@ class ProductionOrderController extends Controller
 
                     $productionOTA->created_by_id = $createdById;
                     $productionOTA->save();
+                    $this->createProductionHistoricalLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA, $createdById, 0);
                 }
             }
             $response = [
@@ -193,7 +205,7 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches($id, $order_type)
+    public function onGetBatches(Request $request, $id, $order_type)
     {
         $productionOrder = ProductionOrderModel::find($id);
         if ($productionOrder) {
@@ -218,7 +230,7 @@ class ProductionOrderController extends Controller
 }
 
 
-// public function onDeleteById($id,Request $request)
+// public function onDeleteById(Request $request,$id)
 // {
 //     return $this->deleteRecordById(ProductionOrderModel::class, $id, 'Production Order');
 // }

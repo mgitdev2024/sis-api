@@ -35,16 +35,16 @@ class ZoneController extends Controller
         $searchableFields = ['name', 'description'];
         return $this->readPaginatedRecord(ZoneModel::class, $request, $searchableFields, 'Zone');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(ZoneModel::class, $request, 'Zone');
+        return $this->readRecord(ZoneModel::class,'Zone');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById($id)
     {
-        return $this->readRecordById(ZoneModel::class, $id, $request, 'Zone');
+        return $this->readRecordById(ZoneModel::class, $id,'Zone');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ZoneModel::class, $id, $request, 'Zone');
+        return $this->deleteRecordById(ZoneModel::class, $id,'Zone');
     }
 }

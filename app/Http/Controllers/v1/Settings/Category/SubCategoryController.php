@@ -34,25 +34,25 @@ class SubCategoryController extends Controller
         $searchableFields = ['sub_category_code','sub_category_name'];
         return $this->readPaginatedRecord(SubCategoryModel::class, $request, $searchableFields, 'Sub Category');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(SubCategoryModel::class, $request,'Sub Category');
+        return $this->readRecord(SubCategoryModel::class, 'Sub Category');
     }
-    public function onGetById($id,Request $request)
+    public function onGetById($id)
     {
-        return $this->readRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
+        return $this->readRecordById(SubCategoryModel::class, $id, 'Sub Category');
     }
-    public function onDeleteById($id,Request $request)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(SubCategoryModel::class, $id, $request,'Sub Category');
+        return $this->deleteRecordById(SubCategoryModel::class, $id, 'Sub Category');
     }
-    public function onGetChildByParentId($id,Request $request)
+    public function onGetChildByParentId($id)
     {
-        return $this->readRecordByParentId(SubCategoryModel::class, $id, $request,'Sub Category', 'category_id');
+        return $this->readRecordByParentId(SubCategoryModel::class, $id, 'Sub Category', 'category_id');
     }
-    public function onGetPaginatedChildByParentId(Request $request, $id)
+    public function onGetPaginatedChildByParentId( $id)
     {
         $searchableFields = ['name'];
-        return $this->readPaginatedRecordByID(SubCategoryModel::class, $request, $searchableFields, 'Sub Category', 'category_id', $id);
+        return $this->readPaginatedRecordByID(SubCategoryModel::class,  $searchableFields, 'Sub Category', 'category_id', $id);
     }
 }

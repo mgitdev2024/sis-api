@@ -32,8 +32,8 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->foreign('production_batch_id')->references('id')->on('production_batch');
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
         });
     }
 

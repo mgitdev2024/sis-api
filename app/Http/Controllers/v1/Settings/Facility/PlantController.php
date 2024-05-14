@@ -15,7 +15,7 @@ class PlantController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'updated_by_id' => 'nullable|exists:credentials,id',
+            'updated_by_id' => 'nullable',
             'short_name' => 'required|string|unique:plants,short_name,' . $itemId,
             'long_name' => 'required|string|unique:plants,long_name,' . $itemId,
             'description' => 'nullable|string',
@@ -36,20 +36,20 @@ class PlantController extends Controller
         $searchableFields = ['short_name', 'long_name'];
         return $this->readPaginatedRecord(PlantModel::class, $request, $searchableFields, 'Plant');
     }
-    public function onGetall(Request $request)
+    public function onGetall()
     {
-        return $this->readRecord(PlantModel::class, $request, 'Plant');
+        return $this->readRecord(PlantModel::class, 'Plant');
     }
-    public function onGetById($id, Request $request)
+    public function onGetById($id)
     {
-        return $this->readRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->readRecordById(PlantModel::class, $id, 'Plant');
     }
-    public function onDeleteById($id, Request $request)
+    public function onDeleteById($id)
     {
-        return $this->deleteRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->deleteRecordById(PlantModel::class, $id, 'Plant');
     }
-    public function onChangeStatus($id, Request $request)
+    public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(PlantModel::class, $id, $request, 'Plant');
+        return $this->changeStatusRecordById(PlantModel::class, $id, 'Plant', $request);
     }
 }

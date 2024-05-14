@@ -18,8 +18,8 @@ return new class extends Migration {
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
 
-            $table->foreign('created_by_id')->references('id')->on('credentials');
-            $table->foreign('updated_by_id')->references('id')->on('credentials');
+
+
         });
     }
 
