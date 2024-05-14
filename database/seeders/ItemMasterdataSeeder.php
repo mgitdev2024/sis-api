@@ -28,8 +28,8 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => 6,
                 'secondary_conversion_id' => 1,
                 'plant_id' => '2',
-                'chilled_shelf_life' => '3',
-                'frozen_shelf_life' => '3',
+                'chilled_shelf_life' => '7',
+                'frozen_shelf_life' => null,
             ],
             [
                 'description' => 'Chocolate Cake',
