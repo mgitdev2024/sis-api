@@ -47,9 +47,9 @@ class ProductionOTAModel extends Model
         return isset($production_label) ? $production_label['reference_number'] : 'n/a';
     }
 
-    public function getItemClassificationLabelAttribute()
+    public function getItemCategoryLabelAttribute()
     {
-        $itemClassification = $this->itemMasterData->itemClassification->toArray();
-        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
+        $itemCategory = $this->itemMasterData->itemCategory->toArray();
+        return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
 }

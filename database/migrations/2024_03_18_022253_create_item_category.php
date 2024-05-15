@@ -10,16 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('item_classifications', function (Blueprint $table) {
+        Schema::create('item_category', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
             $table->string('name');
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
-
-
-
         });
     }
 
@@ -28,6 +25,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_classifications');
+        Schema::dropIfExists('item_category');
     }
 };
