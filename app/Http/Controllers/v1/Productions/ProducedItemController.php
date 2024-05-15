@@ -247,7 +247,7 @@ class ProducedItemController extends Controller
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
-                $skuType = $productionBatch->productionOta->itemMasterdata->itemClassification->name ?? $productionBatch->productionOtb->itemMasterdata->itemClassification->name;
+                $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
                 $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
                 $inclusionArray = [0, 8];

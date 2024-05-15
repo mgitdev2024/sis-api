@@ -29,14 +29,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
-    #region Item Classifications
-    Route::post('v1/item/classification/create', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onCreate']);
-    Route::post('v1/item/classification/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onUpdateById']);
-    Route::post('v1/item/classification/get', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetPaginatedList']);
-    Route::get('v1/item/classification/all', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetAll']);
-    Route::get('v1/item/classification/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetById']);
-    Route::post('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onChangeStatus']);
-    Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onDeleteById']);
+    #region Item Category
+    Route::post('v1/item/category/create', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onCreate']);
+    Route::post('v1/item/category/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onUpdateById']);
+    Route::post('v1/item/category/get', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/category/all', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetAll']);
+    Route::get('v1/item/category/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetById']);
+    Route::post('v1/item/category/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onChangeStatus']);
+    Route::delete('v1/item/category/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onDeleteById']);
     #endregion
 
     #region Item Variant Type
@@ -50,6 +50,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Item Masterdata
+    Route::post('v1/item/masterdata/bulk', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onBulk']);
     Route::post('v1/item/masterdata/create', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onCreate']);
     Route::post('v1/item/masterdata/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onUpdateById']);
     Route::post('v1/item/masterdata/paginated', [App\Http\Controllers\v1\Settings\Items\ItemMasterdataController::class, 'onGetPaginatedList']);
@@ -107,7 +108,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/production/order/all', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetAll']);
     Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetById']);
     Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onChangeStatus']);
-    Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulkUploadProductionOrder']);
+    Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetCurrent']);
     Route::get('v1/production/order/get/batches/{id?}/{order_type?}', [App\Http\Controllers\v1\Productions\ProductionOrderController::class, 'onGetBatches']);
     #endregion

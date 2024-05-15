@@ -14,7 +14,7 @@ class ItemMasterdataModel extends Model
     use HasFactory;
     protected $table = 'item_masterdata';
     protected $appends = [
-        'item_classification_label',
+        'item_category_label',
         'item_variant_type_label',
         'uom_label',
         'primary_conversion_label',
@@ -63,9 +63,9 @@ class ItemMasterdataModel extends Model
         $stockRotationTypeLabel = array("FIFO", "FEFO");
         return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
-    public function itemClassification()
+    public function itemCategory()
     {
-        return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');
+        return $this->belongsTo(ItemCategoryModel::class, 'item_category_id', 'id');
     }
     public function itemVariantType()
     {
@@ -87,10 +87,10 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(PlantModel::class, 'plant_id', 'id');
     }
-    public function getItemClassificationLabelAttribute()
+    public function getItemCategoryLabelAttribute()
     {
-        $itemClassification = $this->itemClassification->toArray();
-        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
+        $itemCategory = $this->itemCategory->toArray();
+        return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
 
     public function getItemVariantTypeLabelAttribute()

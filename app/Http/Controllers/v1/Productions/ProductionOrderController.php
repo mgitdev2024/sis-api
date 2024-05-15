@@ -103,7 +103,7 @@ class ProductionOrderController extends Controller
         ];
         return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
-    public function onBulkUploadProductionOrder(Request $request)
+    public function onBulk(Request $request)
     {
         $request->validate([
             'bulk_data' => 'required',
@@ -127,14 +127,15 @@ class ProductionOrderController extends Controller
                 $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
-                $itemClassification = $itemMasterdata
-                    ->itemClassification
+                $itemCategory = $itemMasterdata
+                    ->itemCategory
                     ->name;
                 $bufferLevel = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                 $requestedQuantity = intval($value['quantity']);
-                if (strcasecmp($itemClassification, 'Breads') === 0) {
+                if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
+                        ->where('delivery_type', $value['delivery_type'])
                         ->exists();
                     if ($existingOTB) {
                         $duplicates[] = $value['item_code'];
