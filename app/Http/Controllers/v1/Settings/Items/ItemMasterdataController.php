@@ -115,10 +115,9 @@ class ItemMasterdataController extends Controller
                 $record->save();
             }
             DB::commit();
-            return $this->dataResponse('success', 201, 'Print History ' . __('msg.create_success'), $record);
+            return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }

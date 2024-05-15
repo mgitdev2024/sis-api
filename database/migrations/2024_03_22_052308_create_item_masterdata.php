@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('item_masterdata', function (Blueprint $table) {
             $table->id();
-            $table->string('item_code')->index();
+            $table->string('item_code')->unique()->index();
             $table->string('description');
             $table->unsignedBigInteger('item_category_id')->nullable();
             $table->unsignedBigInteger('item_classification_id')->nullable();
