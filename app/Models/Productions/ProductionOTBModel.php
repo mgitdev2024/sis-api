@@ -12,7 +12,7 @@ class ProductionOTBModel extends Model
 {
     use HasFactory;
     protected $table = 'production_otb';
-    protected $appends = ['production_label', 'item_classification_label'];
+    protected $appends = ['production_label', 'item_category_label'];
     protected $fillable = [
         'production_order_id',
         'delivery_type',
@@ -52,7 +52,7 @@ class ProductionOTBModel extends Model
         return isset($production_label) ? $production_label['reference_number'] : 'n/a';
     }
 
-    public function getItemClassificationLabelAttribute()
+    public function getItemCategoryLabelAttribute()
     {
         $itemCategory = $this->itemMasterData->itemCategory->toArray();
         return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
