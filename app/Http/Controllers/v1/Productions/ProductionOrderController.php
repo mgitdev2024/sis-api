@@ -135,6 +135,7 @@ class ProductionOrderController extends Controller
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
+                        ->where('delivery_type', $value['delivery_type'])
                         ->exists();
                     if ($existingOTB) {
                         $duplicates[] = $value['item_code'];

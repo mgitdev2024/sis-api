@@ -52,7 +52,7 @@ class ProductionOTBModel extends Model
         return isset($production_label) ? $production_label['reference_number'] : 'n/a';
     }
 
-    public function getItemCategoryLabelAttribute()
+    public function getItemClassificationLabelAttribute()
     {
         $itemCategory = $this->itemMasterData->itemCategory->toArray();
         return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
