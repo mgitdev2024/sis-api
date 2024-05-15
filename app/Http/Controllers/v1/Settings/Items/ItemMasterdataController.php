@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
+use DB;
+use Exception;
 
 class ItemMasterdataController extends Controller
 {
@@ -22,7 +24,7 @@ class ItemMasterdataController extends Controller
             'chilled_shelf_life' => 'nullable|integer',
             'category_id' => 'required|integer|exists:categories,id',
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
-            'item_classification_id' => 'required|integer|exists:item_classifications,id',
+            'item_classification_id' => 'required|integer|exists:item_category,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
             'parent_item_id' => 'required|integer|exists:item_masterdata,id',
             'uom_id' => 'required|integer|exists:uom,id',
@@ -79,5 +81,51 @@ class ItemMasterdataController extends Controller
             'item_code' => $id
         ];
         return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
+    }
+
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($fields['bulk_data'], true);
+            $createdById = $fields['created_by_id'];
+            foreach ($bulkUploadData as $data) {
+                $record = new ItemMasterdataModel();
+                $record->item_code = $data['item_code'];
+                $record->description = $data['description'];
+                $record->item_category_id = $data['item_category_id'];
+                $record->item_classification_id = $data['item_classification_id'];
+                $record->item_variant_type_id = $data['item_variant_type_id'];
+                $record->storage_type_id = $data['storage_type_id'];
+                $record->uom_id = $data['uom_id'];
+                $record->primary_item_packing_size = $data['primary_item_packing_size'];
+                $record->primary_conversion_id = $data['primary_conversion_id'];
+                $record->secondary_item_packing_size = $data['secondary_item_packing_size'];
+                $record->secondary_conversion_id = $data['secondary_conversion_id'];
+                $record->chilled_shelf_life = $data['chilled_shelf_life'];
+                $record->frozen_shelf_life = $data['frozen_shelf_life'];
+                $record->ambient_shelf_life = $data['ambient_shelf_life'];
+                $record->created_by_id = $createdById;
+                $record->plant_id = $data['plant_id'];
+                $record->parent_item_id = $this->onGetParentId($data['parent_code']);
+                $record->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Print History ' . __('msg.create_success'), $record);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            dd($exception);
+            return $this->dataResponse('error', 400, __('msg.create_failed'));
+        }
+    }
+
+    public function onGetParentId($value)
+    {
+        $item = ItemMasterdataModel::where('item_code', $value)->first();
+        return $item->id ?? null;
     }
 }

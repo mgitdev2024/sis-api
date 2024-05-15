@@ -22,9 +22,11 @@ class DatabaseSeeder extends Seeder
         $this->call([PlantSeeder::class]);
         $this->call([UomSeeder::class]);
         $this->call([ConversionSeeder::class]);
+        $this->call([StorageTypeSeeder::class]);
+        $this->call([ItemCategorySeeder::class]);
         $this->call([ItemClassificationSeeder::class]);
         $this->call([ItemVariantTypeSeeder::class]);
         $this->call([DeliveryTypeSeeder::class]);
-        $this->call([ItemMasterdataSeeder::class]);
+        // $this->call([ItemMasterdataSeeder::class]);
     }
 }

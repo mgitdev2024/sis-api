@@ -22,16 +22,16 @@ class ConversionSeeder extends Seeder
                 'conversion_long_uom' => 'Pieces',
             ],
             [
-                'conversion_short_uom' => 'Pcs',
-                'conversion_long_uom' => 'Pieces',
+                'conversion_short_uom' => 'Box',
+                'conversion_long_uom' => 'Box',
             ],
             [
-                'conversion_short_uom' => 'Pcs',
-                'conversion_long_uom' => 'Pieces',
+                'conversion_short_uom' => 'Clmshl',
+                'conversion_long_uom' => 'Clamshell',
             ],
             [
-                'conversion_short_uom' => 'Pcs',
-                'conversion_long_uom' => 'Pieces',
+                'conversion_short_uom' => 'POB',
+                'conversion_long_uom' => 'Pasta Oval Box',
             ],
         ];
 

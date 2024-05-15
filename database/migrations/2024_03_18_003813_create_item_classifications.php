@@ -10,23 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('storage_type', function (Blueprint $table) {
+        Schema::create('item_classifications', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description')->nullable();
-            $table->tinyInteger('status')->default(1);
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-
-
+            $table->string('name');
+            $table->tinyInteger('status')->default(1);
             $table->timestamps();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('storage_type');
+        Schema::dropIfExists('item_classifications');
     }
 };
