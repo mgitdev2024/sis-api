@@ -12,7 +12,7 @@ class ProductionOTAModel extends Model
     use HasFactory;
 
     protected $table = 'production_ota';
-    protected $appends = ['production_label', 'item_classification_label'];
+    protected $appends = ['production_label', 'item_category_label'];
     protected $fillable = [
         'production_order_id',
         'item_code',

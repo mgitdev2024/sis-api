@@ -50,4 +50,12 @@ class DeliveryTypeController extends Controller
     {
         return $this->changeStatusRecordById(DeliveryTypeModel::class, $id, 'Delivery Type', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(DeliveryTypeModel::class, 'Delivery Type', $fields);
+    }
 }

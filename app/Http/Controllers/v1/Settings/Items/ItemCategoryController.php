@@ -48,4 +48,12 @@ class ItemCategoryController extends Controller
     {
         return $this->changeStatusRecordById(ItemCategoryModel::class, $id, 'Item Category', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(ItemCategoryModel::class, 'Item Category', $fields);
+    }
 }

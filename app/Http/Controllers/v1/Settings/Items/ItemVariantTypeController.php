@@ -48,4 +48,12 @@ class ItemVariantTypeController extends Controller
     {
         return $this->changeStatusRecordById(ItemVariantTypeModel::class, $id, 'Item Variant Type', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(ItemVariantTypeModel::class, 'Item Variant Type', $fields);
+    }
 }

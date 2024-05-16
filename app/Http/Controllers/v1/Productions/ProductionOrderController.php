@@ -135,6 +135,7 @@ class ProductionOrderController extends Controller
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
+                        ->where('delivery_type', $value['delivery_type'])
                         ->exists();
                     if ($existingOTB) {
                         $duplicates[] = $value['item_code'];
@@ -154,7 +155,9 @@ class ProductionOrderController extends Controller
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
                     }
-
+                    if ($itemMasterdata->ambient_shell_life) {
+                        $productionOTB->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
+                    }
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
                     $this->createProductionHistoricalLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
@@ -177,6 +180,9 @@ class ProductionOrderController extends Controller
                     }
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
+                    }
+                    if ($itemMasterdata->ambient_shell_life) {
+                        $productionOTA->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
                     }
 
                     $productionOTA->created_by_id = $createdById;

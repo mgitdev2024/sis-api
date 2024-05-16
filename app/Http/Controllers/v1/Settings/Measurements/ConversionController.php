@@ -50,4 +50,12 @@ class ConversionController extends Controller
     {
         return $this->changeStatusRecordById(ConversionModel::class, $id, 'Conversions', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(ConversionModel::class, 'Conversion', $fields);
+    }
 }

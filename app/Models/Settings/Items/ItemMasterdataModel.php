@@ -5,6 +5,7 @@ namespace App\Models\Settings\Items;
 use App\Models\Settings\Facility\PlantModel;
 use App\Models\Settings\Measurements\ConversionModel;
 use App\Models\Settings\Measurements\UomModel;
+use App\Models\Settings\StorageTypeModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CredentialModel;
@@ -74,6 +75,10 @@ class ItemMasterdataModel extends Model
     public function uom()
     {
         return $this->belongsTo(UomModel::class, 'uom_id', 'id');
+    }
+    public function storageType()
+    {
+        return $this->belongsTo(StorageTypeModel::class, 'storage_type_id', 'id');
     }
     public function primaryConversion()
     {

@@ -52,4 +52,12 @@ class PlantController extends Controller
     {
         return $this->changeStatusRecordById(PlantModel::class, $id, 'Plant', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(PlantModel::class, 'Plant', $fields);
+    }
 }
