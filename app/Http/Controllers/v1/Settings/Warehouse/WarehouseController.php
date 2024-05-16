@@ -48,4 +48,12 @@ class WarehouseController extends Controller
     {
         return $this->deleteRecordById(WarehouseLocationModel::class, $id, 'Warehouse Location');
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(WarehouseLocationModel::class, 'Warehouse Location', $fields);
+    }
 }

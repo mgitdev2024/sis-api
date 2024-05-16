@@ -48,4 +48,12 @@ class StorageTypeContoller extends Controller
     {
         return $this->deleteRecordById(StorageTypeModel::class, $id, 'Storage Type');
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(StorageTypeModel::class, 'Storage Type', $fields);
+    }
 }

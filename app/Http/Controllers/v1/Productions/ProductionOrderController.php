@@ -103,7 +103,7 @@ class ProductionOrderController extends Controller
         ];
         return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
-    public function onBulkUploadProductionOrder(Request $request)
+    public function onBulk(Request $request)
     {
         $request->validate([
             'bulk_data' => 'required',
@@ -127,23 +127,28 @@ class ProductionOrderController extends Controller
                 $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
-                $itemClassification = $itemMasterdata
-                    ->itemClassification
+                $itemCategory = $itemMasterdata
+                    ->itemCategory
                     ->name;
-                if (strcasecmp($itemClassification, 'Breads') === 0) {
+                $bufferLevel = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
+                $requestedQuantity = intval($value['quantity']);
+                if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
+                        ->where('delivery_type', $value['delivery_type'])
                         ->exists();
                     if ($existingOTB) {
                         $duplicates[] = $value['item_code'];
                         continue;
                     }
+
                     $productionOTB->production_order_id = $productionOrder->id;
                     $productionOTB->delivery_type = $value['delivery_type'];
                     $productionOTB->item_code = $value['item_code'];
-                    $productionOTB->requested_quantity = $value['quantity'];
-                    $productionOTB->buffer_level = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
-                    $productionOTB->plotted_quantity = $value['total'];
+                    $productionOTB->requested_quantity = $requestedQuantity;
+                    $productionOTB->buffer_level = $bufferLevel;
+                    $productionOTB->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTB->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }
@@ -165,9 +170,9 @@ class ProductionOrderController extends Controller
                     }
                     $productionOTA->production_order_id = $productionOrder->id;
                     $productionOTA->item_code = $value['item_code'];
-                    $productionOTA->requested_quantity = $value['quantity'];
-                    $productionOTA->buffer_level = floatval($value['buffer_level']) / 100;
-                    $productionOTA->plotted_quantity = $value['total'];
+                    $productionOTA->requested_quantity = $requestedQuantity;
+                    $productionOTA->buffer_level = $bufferLevel;
+                    $productionOTA->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTA->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }

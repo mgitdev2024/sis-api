@@ -39,14 +39,22 @@ class StockTypeController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(StockTypeModel::class,'Stock Type');
+        return $this->readRecord(StockTypeModel::class, 'Stock Type');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(StockTypeModel::class, $id,'Stock Type');
+        return $this->readRecordById(StockTypeModel::class, $id, 'Stock Type');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(StockTypeModel::class, $id,'Stock Type');
+        return $this->deleteRecordById(StockTypeModel::class, $id, 'Stock Type');
+    }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(StockTypeModel::class, 'Stock Type', $fields);
     }
 }

@@ -33,9 +33,9 @@ class CredentialController extends Controller
                 User::insert([
                     'employee_id' => $fields['employee_id'],
                     'prefix' => $fields['prefix'] ?? null,
-                    'first_name' => $fields['first_name'],
-                    'middle_name' => $fields['middle_name'],
-                    'last_name' => $fields['last_name'],
+                    'first_name' => $fields['first_name'] ?? null,
+                    'middle_name' => $fields['middle_name'] ?? null,
+                    'last_name' => $fields['last_name'] ?? null,
                     'suffix' => $fields['suffix'] ?? null,
                     'position' => $fields['position'] ?? null,
                     'user_access' => $fields['user_access'] ?? null,
