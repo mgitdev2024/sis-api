@@ -38,7 +38,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item/category/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onChangeStatus']);
     Route::delete('v1/item/category/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onDeleteById']);
     Route::post('v1/item/category/bulk', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onBulk']);
+    #endregion
 
+    #region Item Classification
+    Route::post('v1/item/classification/create', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onCreate']);
+    Route::post('v1/item/classification/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onUpdateById']);
+    Route::post('v1/item/classification/get', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/classification/all', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetAll']);
+    Route::get('v1/item/classification/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetById']);
+    Route::post('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onChangeStatus']);
+    Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onDeleteById']);
+    Route::post('v1/item/classification/bulk', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onBulk']);
     #endregion
 
     #region Item Variant Type
