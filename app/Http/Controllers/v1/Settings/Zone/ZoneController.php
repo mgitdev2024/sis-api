@@ -37,14 +37,23 @@ class ZoneController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ZoneModel::class,'Zone');
+        return $this->readRecord(ZoneModel::class, 'Zone');
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ZoneModel::class, $id,'Zone');
+        return $this->readRecordById(ZoneModel::class, $id, 'Zone');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(ZoneModel::class, $id,'Zone');
+        return $this->deleteRecordById(ZoneModel::class, $id, 'Zone');
+    }
+
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(ZoneModel::class, 'Zone', $fields);
     }
 }

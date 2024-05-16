@@ -70,6 +70,7 @@ class ProductionBatchModel extends Model
         if (isset($production_ota_label)) {
             $response = [
                 'item_code' => $production_ota_label['item_code'],
+                'storage_type' => $production_ota_label->itemMasterdata->storageType['name'],
                 'plotted_quantity' => $production_ota_label['plotted_quantity'],
                 'actual_quantity' => $production_ota_label['actual_quantity'],
             ];
@@ -84,6 +85,7 @@ class ProductionBatchModel extends Model
         if (isset($production_otb_label)) {
             $response = [
                 'item_code' => $production_otb_label['item_code'],
+                'storage_type' => $production_otb_label->itemMasterdata->storageType['name'],
                 'plotted_quantity' => $production_otb_label['plotted_quantity'],
                 'actual_quantity' => $production_otb_label['actual_quantity'],
             ];
