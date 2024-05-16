@@ -53,8 +53,7 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.create_success'), $batch);
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
-            return $this->dataResponse('error', 400, __('msg.create_failed'));
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 
@@ -237,7 +236,6 @@ class ProductionBatchController extends Controller
 
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size) > 0 ? intval($itemMasterdata->primary_item_packing_size) : 1;
-
             $producedItems = new ProducedItemModel();
             $producedItems->production_batch_id = $productionBatch->id;
             $producedItems->created_by_id = $productionBatch->created_by_id;
@@ -256,6 +254,9 @@ class ProductionBatchController extends Controller
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
 
+                if ($itemQuantity <= 0) {
+                    throw new Exception("Quantity discrepancy detected. Please check Item Masterdata for this item");
+                }
                 $itemArray = [
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
