@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
 use Exception;
 use App\Traits\ResponseTrait;
+use DB;
 
 trait CrudOperationsTrait
 {
@@ -196,6 +197,27 @@ trait CrudOperationsTrait
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.delete_failed'));
         } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function bulkUpload($model, $modelName, $request)
+    {
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($request['bulk_data'], true);
+            $createdById = $request['created_by_id'];
+
+            foreach ($bulkUploadData as $data) {
+                $record = new $model();
+                $record->fill($data);
+                $record->created_by_id = $createdById;
+                $record->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::beginTransaction();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

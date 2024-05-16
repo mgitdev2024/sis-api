@@ -49,4 +49,12 @@ class UomController extends Controller
     {
         return $this->changeStatusRecordById(UomModel::class, $id, 'UOM', $request);
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(UomModel::class, 'UOM', $fields);
+    }
 }
