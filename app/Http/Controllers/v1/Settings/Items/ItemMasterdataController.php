@@ -95,23 +95,23 @@ class ItemMasterdataController extends Controller
             $createdById = $fields['created_by_id'];
             foreach ($bulkUploadData as $data) {
                 $record = new ItemMasterdataModel();
-                $record->item_code = $data['item_code'];
-                $record->description = $data['description'];
-                $record->item_category_id = $data['item_category_id'];
-                $record->item_classification_id = $data['item_classification_id'];
-                $record->item_variant_type_id = $data['item_variant_type_id'];
-                $record->storage_type_id = $data['storage_type_id'];
-                $record->uom_id = $data['uom_id'];
-                $record->primary_item_packing_size = $data['primary_item_packing_size'];
-                $record->primary_conversion_id = $data['primary_conversion_id'];
-                $record->secondary_item_packing_size = $data['secondary_item_packing_size'];
-                $record->secondary_conversion_id = $data['secondary_conversion_id'];
-                $record->chilled_shelf_life = $data['chilled_shelf_life'];
-                $record->frozen_shelf_life = $data['frozen_shelf_life'];
-                $record->ambient_shelf_life = $data['ambient_shelf_life'];
+                $record->item_code = $this->onCheckValue($data['item_code']);
+                $record->description = $this->onCheckValue($data['description']);
+                $record->item_category_id = $this->onCheckValue($data['item_category_id']);
+                $record->item_classification_id = $this->onCheckValue($data['item_classification_id']);
+                $record->item_variant_type_id = $this->onCheckValue($data['item_variant_type_id']);
+                $record->storage_type_id = $this->onCheckValue($data['storage_type_id']);
+                $record->uom_id = $this->onCheckValue($data['uom_id']);
+                $record->primary_item_packing_size = $this->onCheckValue($data['primary_item_packing_size']);
+                $record->primary_conversion_id = $this->onCheckValue($data['primary_conversion_id']);
+                $record->secondary_item_packing_size = $this->onCheckValue($data['secondary_item_packing_size']);
+                $record->secondary_conversion_id = $this->onCheckValue($data['secondary_conversion_id']);
+                $record->chilled_shelf_life = $this->onCheckValue($data['chilled_shelf_life']);
+                $record->frozen_shelf_life = $this->onCheckValue($data['frozen_shelf_life']);
+                $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
-                $record->plant_id = $data['plant_id'];
-                $record->parent_item_id = $this->onGetParentId($data['parent_code']);
+                $record->plant_id = $this->onCheckValue($data['plant_id']);
+                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_id']));
                 $record->save();
             }
             DB::commit();
@@ -126,5 +126,10 @@ class ItemMasterdataController extends Controller
     {
         $item = ItemMasterdataModel::where('item_code', $value)->first();
         return $item->id ?? null;
+    }
+
+    public function onCheckValue($value)
+    {
+        return $value == '' ? null : $value;
     }
 }
