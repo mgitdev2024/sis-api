@@ -164,6 +164,7 @@ class ProductionBatchController extends Controller
             $endorsedQA = $fields['endorsed_by_qa'];
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $productionToBakeAssemble->expected_chilled_exp_date;
             $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $productionToBakeAssemble->expected_frozen_exp_date;
+            $fields['ambient_exp_date'] = $productionToBakeAssemble->expected_ambient_exp_date;
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
