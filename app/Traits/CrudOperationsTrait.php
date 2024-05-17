@@ -10,12 +10,17 @@ use DB;
 trait CrudOperationsTrait
 {
     use ResponseTrait, ProductionHistoricalLogTrait;
-    public function createRecord($model, $request, $rules, $modelName)
+    public function createRecord($model, $request, $rules, $modelName, $path = null)
     {
         $fields = $request->validate($rules);
         try {
             $record = new $model();
             $record->fill($fields);
+            if ($request->hasFile('attachment')) {
+                $attachmentPath = $request->file('attachment')->store($path);
+                $filepath = 'storage/' . substr($attachmentPath, 7);
+                $record->attachment = $filepath;
+            }
             $record->save();
             $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);

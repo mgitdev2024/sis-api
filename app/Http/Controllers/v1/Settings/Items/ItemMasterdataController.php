@@ -43,12 +43,12 @@ class ItemMasterdataController extends Controller
             'dimension' => 'nullable|string',
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
-            'image' => 'nullable|string',
+            'attachment' => 'nullable|string',
         ];
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata');
+        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata', 'public/attachments/item-masterdata');
     }
     public function onUpdateById(Request $request, $id)
     {
