@@ -111,14 +111,14 @@ class ItemMasterdataController extends Controller
                 $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
                 $record->plant_id = $this->onCheckValue($data['plant_id']);
-                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_id']));
+                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
                 $record->save();
             }
             DB::commit();
             return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, __('msg.create_failed'));
+            return $this->dataResponse('error', 400,__('msg.create_failed'));
         }
     }
 
