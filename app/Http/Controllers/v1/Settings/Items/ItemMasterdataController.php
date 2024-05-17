@@ -43,12 +43,12 @@ class ItemMasterdataController extends Controller
             'dimension' => 'nullable|string',
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
-            'image' => 'nullable|string',
+            'attachment' => 'nullable|string',
         ];
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata');
+        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata', 'public/attachments/item-masterdata');
     }
     public function onUpdateById(Request $request, $id)
     {
@@ -111,13 +111,14 @@ class ItemMasterdataController extends Controller
                 $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
                 $record->plant_id = $this->onCheckValue($data['plant_id']);
-                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_id']));
+                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
                 $record->save();
             }
             DB::commit();
             return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
