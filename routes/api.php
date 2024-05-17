@@ -32,7 +32,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region Item Category
     Route::post('v1/item/category/create', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onCreate']);
     Route::post('v1/item/category/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onUpdateById']);
-    Route::post('v1/item/category/get', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetPaginatedList']);
+    Route::post('v1/item/category/paginated', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetPaginatedList']);
     Route::get('v1/item/category/all', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetAll']);
     Route::get('v1/item/category/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onGetById']);
     Route::post('v1/item/category/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onChangeStatus']);
@@ -43,7 +43,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region Item Classification
     Route::post('v1/item/classification/create', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onCreate']);
     Route::post('v1/item/classification/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onUpdateById']);
-    Route::post('v1/item/classification/get', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetPaginatedList']);
+    Route::post('v1/item/classification/paginated', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetPaginatedList']);
     Route::get('v1/item/classification/all', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetAll']);
     Route::get('v1/item/classification/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onGetById']);
     Route::post('v1/item/classification/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemClassificationController::class, 'onChangeStatus']);
@@ -54,8 +54,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region Item Variant Type
     Route::post('v1/item/variant/type/create', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onCreate']);
     Route::post('v1/item/variant/type/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onUpdateById']);
-    Route::post('v1/item/variant/type/get', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetPaginatedList']);
-    Route::get('v1/item/variant/all', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetAll']);
+    Route::post('v1/item/variant/type/paginated', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/variant/type/all', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetAll']);
     Route::get('v1/item/variant/type/get/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onGetById']);
     Route::post('v1/item/variant/type/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onChangeStatus']);
     Route::delete('v1/item/variant/type/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemVariantTypeController::class, 'onDeleteById']);
@@ -208,7 +208,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item_movement/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onUpdateById']);
     Route::post('v1/item_movement/paginated', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetPaginatedList']);
     Route::get('v1/item_movement/all', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetAll']);
-    Route::get('v1/item_movement/{id?}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetById']);
+    Route::get('v1/item_movement/get/{id?}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onGetById']);
     Route::post('v1/item_movement/status/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onChangeStatus']);
     Route::delete('v1/item_movement/delete/{id}', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onDeleteById']);
     Route::post('v1/item_movement/bulk', [App\Http\Controllers\v1\Settings\Items\ItemMovementController::class, 'onBulk']);
@@ -220,7 +220,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/stock_type/update/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onUpdateById']);
     Route::post('v1/stock_type/paginated', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetPaginatedList']);
     Route::get('v1/stock_type/all', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetAll']);
-    Route::get('v1/stock_type/{id?}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetById']);
+    Route::get('v1/stock_type/get/{id?}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onGetById']);
     Route::post('v1/stock_type/status/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onChangeStatus']);
     Route::delete('v1/stock_type/delete/{id}', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onDeleteById']);
     Route::post('v1/stock_type/bulk', [App\Http\Controllers\v1\Settings\StockType\StockTypeController::class, 'onBulk']);
@@ -232,7 +232,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage_type/update/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onUpdateById']);
     Route::post('v1/storage_type/paginated', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetPaginatedList']);
     Route::get('v1/storage_type/all', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetAll']);
-    Route::get('v1/storage_type/{id?}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetById']);
+    Route::get('v1/storage_type/get/{id?}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onGetById']);
     Route::post('v1/storage_type/status/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onChangeStatus']);
     Route::delete('v1/storage_type/delete/{id}', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onDeleteById']);
     Route::post('v1/storage_type/bulk', [App\Http\Controllers\v1\Settings\StorageType\StorageTypeContoller::class, 'onBulk']);
@@ -243,7 +243,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/warehouse_location/update/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onUpdateById']);
     Route::post('v1/warehouse_location/paginated', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetPaginatedList']);
     Route::get('v1/warehouse_location/all', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetAll']);
-    Route::get('v1/warehouse_location/{id?}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetById']);
+    Route::get('v1/warehouse_location/get/{id?}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onGetById']);
     Route::post('v1/warehouse_location/status/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onChangeStatus']);
     Route::delete('v1/warehouse_location/delete/{id}', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onDeleteById']);
     Route::post('v1/warehouse_location/bulk', [App\Http\Controllers\v1\Settings\Warehouse\WarehouseController::class, 'onBulk']);
@@ -254,7 +254,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/zone/update/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onUpdateById']);
     Route::post('v1/zone/paginated', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetPaginatedList']);
     Route::get('v1/zone/all', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetAll']);
-    Route::get('v1/zone/{id?}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetById']);
+    Route::get('v1/zone/get/{id?}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onGetById']);
     Route::post('v1/zone/status/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onChangeStatus']);
     Route::delete('v1/zone/delete/{id}', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onDeleteById']);
     Route::post('v1/zone/bulk', [App\Http\Controllers\v1\Settings\Zone\ZoneController::class, 'onBulk']);
