@@ -31,7 +31,7 @@ return new class extends Migration {
             $table->string('dimension')->nullable();
             $table->integer('is_qa_required')->nullable();
             $table->integer('is_qa_disposal')->nullable();
-            $table->string('image')->nullable();
+            $table->string('attachment')->nullable();
             $table->integer('primary_item_packing_size')->nullable();
             $table->unsignedBigInteger('primary_conversion_id')->nullable();
             $table->integer('secondary_item_packing_size')->nullable();
