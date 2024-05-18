@@ -106,6 +106,7 @@ class ProductionBatchModel extends Model
 
     public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
     {
+        date_default_timezone_set('Asia/Manila');
         $itemCode = str_replace(' ', '', $itemCode);
         $monthCode = chr(date('n') + 64);
         $day = date('j');
