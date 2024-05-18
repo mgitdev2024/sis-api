@@ -14,6 +14,7 @@ class WarehouseReceivingModel extends Model
     protected $fillable = [
         'reference_number',
         'production_order_id',
+        'batch_number',
         'item_code',
         'produced_items',
         'quantity',
