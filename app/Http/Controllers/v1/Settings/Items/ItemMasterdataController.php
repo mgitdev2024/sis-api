@@ -44,6 +44,7 @@ class ItemMasterdataController extends Controller
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
             'attachment' => 'nullable|string',
+            'consumer_instruction' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -110,6 +111,7 @@ class ItemMasterdataController extends Controller
                 $record->frozen_shelf_life = $this->onCheckValue($data['frozen_shelf_life']);
                 $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
+                $record->consumer_instruction = $this->onCheckValue($data['consumer_instruction']);
                 $record->plant_id = $this->onCheckValue($data['plant_id']);
                 $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
                 $record->save();

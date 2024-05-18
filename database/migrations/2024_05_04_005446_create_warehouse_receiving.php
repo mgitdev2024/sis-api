@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number');
             $table->unsignedBigInteger('production_order_id');
+            $table->integer('batch_number');
             $table->string('item_code');
             $table->text('produced_items');
             $table->integer('quantity');
