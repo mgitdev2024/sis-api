@@ -21,7 +21,7 @@ class ItemMasterdataModel extends Model
         'primary_conversion_label',
         'secondary_conversion_label',
         'plant_label',
-        'consumer_instructions_label',
+        'consumer_instruction_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
@@ -68,8 +68,8 @@ class ItemMasterdataModel extends Model
     }
     public function getConsumerInstructionLabelAttribute()
     {
-        $consumerInstructionLabel = array("KEEP CHILLED", "KEEP FROZEN", "REHEAT BEFORE SERVING");
-        return $consumerInstructionLabel[$this->consumer_instruction];
+        $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
+        return $this->consumer_instruction == null ? null : $consumerInstructionLabel[$this->consumer_instruction];
     }
     public function itemCategory()
     {
