@@ -287,11 +287,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetById']);
     #endregion
 
-    #region Warehouse Receiving
-    Route::get('v1/warehouse/receive/current/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
-    Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetById']);
-    #endregion
-
     #region Archived Batches
     Route::post('v1/production/batch/archives/data/{id}', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onArchiveBatch']);
     Route::get('v1/production/batch/archives/current', [App\Http\Controllers\v1\Productions\ArchivedBatchesController::class, 'onGetCurrent']);
@@ -302,4 +297,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/history/log/production/current/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetCurrent']);
     Route::get('v1/history/log/production/get/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetById']);
     #endregion
+
+    #region Warehouse Receiving
+    Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
+    Route::get('v1/warehouse/receive/current/{reference_number}/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
+    Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetById']);
+    #endregion
+
 });

@@ -246,6 +246,7 @@ class ProducedItemController extends Controller
                 $currentStickerNo = $value['sticker_no'];
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
+                $batchNumber = $productionBatch->batch_number;
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
@@ -254,10 +255,12 @@ class ProducedItemController extends Controller
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
+                    array_push($itemsToTransfer[$currentBatchId]['item'], [$currentStickerNo => $producedItems[$currentStickerNo]]);
                 } else {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,
                         'batch_id' => $currentBatchId,
+                        'batch_number' => $batchNumber,
                         'sticker_no' => $currentStickerNo,
                         'item_code' => $itemCode,
                         'sku_type' => $skuType,
@@ -267,7 +270,6 @@ class ProducedItemController extends Controller
                     ];
                 }
             }
-
             DB::beginTransaction();
 
             foreach ($itemsToTransfer as $key => $value) {
@@ -275,6 +277,7 @@ class ProducedItemController extends Controller
                     $warehouseReceive = new WarehouseReceivingModel();
                     $warehouseReceive->reference_number = $warehouseReferenceNo;
                     $warehouseReceive->production_order_id = $value['production_order_id'];
+                    $warehouseReceive->batch_number = $value['batch_number'];
                     $warehouseReceive->produced_items = json_encode($value['item']);
                     $warehouseReceive->item_code = $value['item_code'];
                     $warehouseReceive->sku_type = $value['sku_type'];
