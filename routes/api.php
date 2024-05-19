@@ -300,7 +300,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Warehouse Receiving
     Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
-    Route::get('v1/warehouse/receive/current/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
+    Route::get('v1/warehouse/receive/current/{reference_number}/{status}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\Warehouse\WarehouseReceivingController::class, 'onGetById']);
     #endregion
 

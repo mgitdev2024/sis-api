@@ -39,9 +39,10 @@ class WarehouseReceivingController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetCurrent($status)
+    public function onGetCurrent($referenceNumber, $status)
     {
         $whereFields = [
+            'reference_number' => $referenceNumber,
             'status' => $status // 0, 1
         ];
 
