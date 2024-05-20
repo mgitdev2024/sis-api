@@ -21,7 +21,7 @@ class ItemMasterdataModel extends Model
         'primary_conversion_label',
         'secondary_conversion_label',
         'plant_label',
-        'consumer_instruction_label',
+        'consumer_instructions_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
@@ -53,7 +53,7 @@ class ItemMasterdataModel extends Model
         'shelf_life',
         'plant_id',
         'image',
-        'consumer_instruction',
+        'consumer_instructions',
         'created_by_id',
         'updated_by_id',
         'status',
@@ -66,10 +66,28 @@ class ItemMasterdataModel extends Model
         $stockRotationTypeLabel = array("FIFO", "FEFO");
         return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
-    public function getConsumerInstructionLabelAttribute()
+    public function getConsumerInstructionsLabelAttribute()
     {
-        $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
-        return $this->consumer_instruction == null ? null : $consumerInstructionLabel[$this->consumer_instruction];
+        $consumerInstructionLabel = [
+            1 => "KEEP CHILLED",
+            2 => "KEEP FROZEN",
+            3 => "REHEAT BEFORE SERVING"
+        ];
+
+        if (is_null($this->consumer_instructions)) {
+            return null;
+        }
+
+        $consumerInstructionsArr = json_decode($this->consumer_instructions, true);
+        if (is_array($consumerInstructionsArr)) {
+            $labels = array_map(function ($value) use ($consumerInstructionLabel) {
+                return $consumerInstructionLabel[$value] ?? null;
+            }, $consumerInstructionsArr);
+
+            return $labels;
+        }
+
+        return $consumerInstructionLabel[$this->consumer_instructions] ?? null;
     }
     public function itemCategory()
     {

@@ -255,7 +255,7 @@ class ProducedItemController extends Controller
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
-                    array_push($itemsToTransfer[$currentBatchId]['item'], [$currentStickerNo => $producedItems[$currentStickerNo]]);
+                    array_push($itemsToTransfer[$currentBatchId]['item'], $producedItems[$currentStickerNo]);
                 } else {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,
