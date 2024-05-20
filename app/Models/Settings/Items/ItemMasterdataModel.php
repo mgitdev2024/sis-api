@@ -80,15 +80,29 @@ class ItemMasterdataModel extends Model
 
         $consumerInstructionsArr = json_decode($this->consumer_instructions, true);
         if (is_array($consumerInstructionsArr)) {
-            $labels = array_map(function ($value) use ($consumerInstructionLabel) {
-                return $consumerInstructionLabel[$value] ?? null;
-            }, $consumerInstructionsArr);
+            $labels = [
+                'refrigerate' => [],
+                'reheat' => null
+            ];
+
+            foreach ($consumerInstructionsArr as $value) {
+                if ($value == 1 || $value == 2) {
+                    $labels['refrigerate'] = $consumerInstructionLabel[$value];
+                } elseif ($value == 3) {
+                    $labels['reheat'] = $consumerInstructionLabel[$value];
+                }
+            }
+
+            if (empty($labels['refrigerate'])) {
+                unset($labels['refrigerate']);
+            }
 
             return $labels;
         }
 
-        return $consumerInstructionLabel[$this->consumer_instructions] ?? null;
+        return null;
     }
+
     public function itemCategory()
     {
         return $this->belongsTo(ItemCategoryModel::class, 'item_category_id', 'id');
