@@ -28,7 +28,7 @@ class WarehouseReceivingController extends Controller
             foreach ($itemDisposition as $value) {
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
-                    'quantity' => $this->onTotalQuantity(json_decode($value->produced_items, true)),
+                    'quantity' => count(json_decode($value->produced_items, true)),
                     'batch_count' => $value->batch_count,
                 ];
                 ++$counter;
@@ -40,15 +40,6 @@ class WarehouseReceivingController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
-    }
-
-    public function onTotalQuantity($value)
-    {
-        $total = 0;
-        foreach ($value as $item) {
-            $total += $item['q'];
-        }
-        return $total;
     }
     public function onGetCurrent($referenceNumber, $status)
     {
