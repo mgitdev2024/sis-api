@@ -16,7 +16,11 @@ class WarehouseReceivingController extends Controller
     public function onGetAllCategory($status)
     {
         try {
-            $itemDisposition = WarehouseReceivingModel::select('reference_number', DB::raw('count(*) as batch_count'))
+            $itemDisposition = WarehouseReceivingModel::select(
+                'reference_number',
+                DB::raw('count(*) as batch_count'),
+                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count')
+            )
                 ->where('status', $status)
                 ->groupBy([
                     'reference_number',
@@ -28,6 +32,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'batch_count' => $value->batch_count,
+                    'quantity' => $value->produced_items_count,
                 ];
                 ++$counter;
             }
