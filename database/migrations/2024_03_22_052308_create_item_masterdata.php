@@ -39,7 +39,7 @@ return new class extends Migration {
             $table->integer('ambient_shelf_life')->nullable();
             $table->integer('chilled_shelf_life')->nullable();
             $table->integer('frozen_shelf_life')->nullable();
-            $table->integer('consumer_instruction')->nullable();
+            $table->text('consumer_instructions')->nullable();
 
             $table->unsignedBigInteger('plant_id');
             $table->unsignedBigInteger('created_by_id');

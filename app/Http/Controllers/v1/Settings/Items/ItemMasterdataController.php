@@ -44,7 +44,7 @@ class ItemMasterdataController extends Controller
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
             'attachment' => 'nullable|string',
-            'consumer_instruction' => 'nullable|integer',
+            'consumer_instructions' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -78,9 +78,13 @@ class ItemMasterdataController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $whereFields = [
-            'item_code' => $id
-        ];
+        $whereFields = null;
+        if ($id != null) {
+            $whereFields = [
+                'item_code' => $id
+            ];
+        }
+
         return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
     }
 
@@ -111,7 +115,7 @@ class ItemMasterdataController extends Controller
                 $record->frozen_shelf_life = $this->onCheckValue($data['frozen_shelf_life']);
                 $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
-                $record->consumer_instruction = $this->onCheckValue($data['consumer_instruction']);
+                $record->consumer_instructions = $this->onCheckConsumerInstruction($data['chilled'], $data['frozen'], $data['reheat']);
                 $record->plant_id = $this->onCheckValue($data['plant_id']);
                 $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
                 $record->save();
@@ -134,5 +138,23 @@ class ItemMasterdataController extends Controller
     public function onCheckValue($value)
     {
         return $value == '' ? null : $value;
+    }
+
+    public function onCheckConsumerInstruction($isKeepChilled, $isKeepFrozen, $isReheat)
+    {
+        // $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
+        $result = [];
+
+        if (strcasecmp($isKeepChilled, 'true') == 0) {
+            $result[] = 1;
+        }
+        if (strcasecmp($isKeepFrozen, 'true') == 0) {
+            $result[] = 2;
+        }
+        if (strcasecmp($isReheat, 'true') == 0) {
+            $result[] = 3;
+        }
+
+        return !empty($result) ? json_encode($result) : null;
     }
 }
