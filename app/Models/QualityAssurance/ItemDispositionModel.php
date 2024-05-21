@@ -10,7 +10,7 @@ class ItemDispositionModel extends Model
 {
     use HasFactory;
     protected $table = 'item_dispositions';
-
+    protected $appends = ['item_variant_label'];
     protected $fillable = [
         'production_batch_id',
         'item_key',
@@ -29,5 +29,14 @@ class ItemDispositionModel extends Model
     public function productionBatch()
     {
         return $this->belongsTo(ProductionBatchModel::class);
+    }
+
+    public function getItemVariantLabelAttribute()
+    {
+        $otbItems = $this->productionBatch->productionOtb->itemMasterdata ?? null;
+        $otaItems = $this->productionBatch->productionOta->itemMasterdata ?? null;
+        $itemMasterdata = $otbItems ?? $otaItems;
+        $itemVariantType = $itemMasterdata->itemVariantType->toArray();
+        return isset($itemVariantType) ? $itemVariantType['name'] : null;
     }
 }

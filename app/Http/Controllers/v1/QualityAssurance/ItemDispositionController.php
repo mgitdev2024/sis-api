@@ -30,11 +30,17 @@ class ItemDispositionController extends Controller
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
             $itemDisposition = ItemDispositionModel::find($id);
+            $otbItems = $itemDisposition->productionBatch->productionOtb->itemMasterdata ?? null;
+            $otaItems = $itemDisposition->productionBatch->productionOta->itemMasterdata ?? null;
+            $itemMasterdata = $otbItems ?? $otaItems;
+            $itemVariantType = $itemMasterdata->item_variant_type_id;
             $producedItemModel = ProducedItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
+            } else if ($fields['action_status_id'] == 7 && $itemVariantType != 3) {
+                return $this->dataResponse('error', 200, 'This item cannot be sliced');
             }
             $producedItemModel->produced_items = json_encode($producedItems);
             $producedItemModel->save();
@@ -167,7 +173,7 @@ class ItemDispositionController extends Controller
             if (count($data) > 0) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-            return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
+            return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }

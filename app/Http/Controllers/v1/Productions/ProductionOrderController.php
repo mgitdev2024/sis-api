@@ -155,8 +155,8 @@ class ProductionOrderController extends Controller
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
                     }
-                    if ($itemMasterdata->ambient_shell_life) {
-                        $productionOTB->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
+                    if ($itemMasterdata->ambient_shelf_life) {
+                        $productionOTB->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shelf_life . ' days'));
                     }
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
@@ -181,8 +181,8 @@ class ProductionOrderController extends Controller
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
                     }
-                    if ($itemMasterdata->ambient_shell_life) {
-                        $productionOTA->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
+                    if ($itemMasterdata->ambient_shelf_life) {
+                        $productionOTA->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shelf_life . ' days'));
                     }
 
                     $productionOTA->created_by_id = $createdById;
