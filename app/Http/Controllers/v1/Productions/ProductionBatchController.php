@@ -33,6 +33,7 @@ class ProductionBatchController extends Controller
             'production_date' => 'nullable|date',
             'chilled_exp_date' => 'nullable|date',
             'frozen_exp_date' => 'nullable|date',
+            'ambient_exp_date' => 'nullable|date',
             'created_by_id' => 'required',
         ];
     }
@@ -150,18 +151,26 @@ class ProductionBatchController extends Controller
 
     public function onGetExpirationDate($productionDate, $productionToBakeAssemble)
     {
-        $chilledExpDate = $productionToBakeAssemble->expected_chilled_exp_date;
-        $frozenExpDate = $productionToBakeAssemble->expected_frozen_exp_date;
-        $itemData = $productionToBakeAssemble->itemMasterdata;
-        if ($productionDate != null) {
-            $chilledExpDate = $itemData->chilled_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->chilled_shelf_life . ' days', strtotime($productionDate))) : null;
-            $frozenExpDate = $itemData->frozen_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->frozen_shelf_life . ' days', strtotime($productionDate))) : null;
+        try {
+            $chilledExpDate = $productionToBakeAssemble->expected_chilled_exp_date;
+            $frozenExpDate = $productionToBakeAssemble->expected_frozen_exp_date;
+            $ambientExpDate = $productionToBakeAssemble->expected_ambient_exp_date;
+            $itemData = $productionToBakeAssemble->itemMasterdata;
+            if ($productionDate != null) {
+                $chilledExpDate = $itemData->chilled_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->chilled_shelf_life . ' days', strtotime($productionDate))) : null;
+                $frozenExpDate = $itemData->frozen_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->frozen_shelf_life . ' days', strtotime($productionDate))) : null;
+                $ambientExpDate = $itemData->ambient_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->ambient_shelf_life . ' days', strtotime($productionDate))) : null;
+            }
+            $data = [
+                'chilled_exp' => $chilledExpDate,
+                'frozen_exp' => $frozenExpDate,
+                'ambient_exp' => $ambientExpDate
+            ];
+            return $data;
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
         }
-        $data = [
-            'chilled_exp' => $chilledExpDate,
-            'frozen_exp' => $frozenExpDate
-        ];
-        return $data;
+
     }
     public function onInitialBatch($fields)
     {
@@ -180,7 +189,7 @@ class ProductionBatchController extends Controller
             $expirationDate = $this->onGetExpirationDate($productionDate, $productionToBakeAssemble);
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $expirationDate['chilled_exp'];
             $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $expirationDate['frozen_exp'];
-            $fields['ambient_exp_date'] = $productionToBakeAssemble->expected_ambient_exp_date;
+            $fields['ambient_exp_date'] = $fields['ambient_exp_date'] ?? $expirationDate['ambient_exp'];
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;

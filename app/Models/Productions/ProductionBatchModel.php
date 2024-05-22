@@ -24,6 +24,7 @@ class ProductionBatchModel extends Model
         'actual_secondary_quantity',
         'chilled_exp_date',
         'frozen_exp_date',
+        'ambient_exp_date',
         'created_by_id',
         'updated_by_id',
         'status', // 0 = In Progress, 1 = On Hold, 2 = Complete
