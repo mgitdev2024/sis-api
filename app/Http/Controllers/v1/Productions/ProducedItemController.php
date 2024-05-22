@@ -150,7 +150,7 @@ class ProducedItemController extends Controller
                 $itemDisposition->production_type = $productionType;
                 $itemDisposition->produced_items = json_encode([$itemKey => $value]);
                 $itemDisposition->save();
-                $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition, $createdById, 1, $itemKey);
+                $this->createProductionHistoricalLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemKey);
 
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
@@ -284,7 +284,7 @@ class ProducedItemController extends Controller
                     $warehouseReceive->quantity = $value['qty'];
                     $warehouseReceive->created_by_id = $createdById;
                     $warehouseReceive->save();
-                    $this->createProductionHistoricalLog(WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive, $createdById, 0);
+                    $this->createProductionHistoricalLog(WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
                 }
             }
             DB::commit();
