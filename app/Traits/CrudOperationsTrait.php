@@ -22,7 +22,7 @@ trait CrudOperationsTrait
                 $record->attachment = $filepath;
             }
             $record->save();
-            $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['created_by_id'], 0);
+            $this->createProductionHistoricalLog($model, $record->id, $fields->getAttributes(), $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -36,7 +36,7 @@ trait CrudOperationsTrait
             $record = $model::find($id);
             if ($record) {
                 $record->update($fields);
-                $this->createProductionHistoricalLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
+                $this->createProductionHistoricalLog($model, $record->id, $fields->getAttributes(), $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -185,7 +185,7 @@ trait CrudOperationsTrait
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
-                $this->createProductionHistoricalLog($model, $model->id, $data, $fields['created_by_id'], 1);
+                $this->createProductionHistoricalLog($model, $model->id, $data->getAttributes(), $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));

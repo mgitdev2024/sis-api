@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('last_name')->nullable();
             $table->string('suffix')->nullable();
             $table->string('position')->nullable();
-            $table->text('user_access')->nullable();
+            $table->longText('user_access')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
