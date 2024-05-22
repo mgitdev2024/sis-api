@@ -187,7 +187,8 @@ class ProductionBatchController extends Controller
             $batchCode = ProductionBatchModel::generateBatchCode(
                 $itemCode,
                 $deliveryType,
-                $batchNumber
+                $batchNumber,
+                $productionDate
             );
             $productionBatch = new ProductionBatchModel();
             $productionBatch->fill($fields);

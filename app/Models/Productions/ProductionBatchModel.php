@@ -104,12 +104,13 @@ class ProductionBatchModel extends Model
         return $label;
     }
 
-    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
+    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $productionDate = null)
     {
         date_default_timezone_set('Asia/Manila');
+        $timestamp = $productionDate != null ? strtotime($productionDate) : time();
         $itemCode = str_replace(' ', '', $itemCode);
-        $monthCode = chr(date('n') + 64);
-        $day = date('j');
+        $monthCode = chr(date('n', $timestamp) + 64);
+        $day = date('j', $timestamp);
 
         $batchCode = $monthCode . $day . '-' . $itemCode . str_pad($batchNumber, 2, '0', STR_PAD_LEFT);
 
