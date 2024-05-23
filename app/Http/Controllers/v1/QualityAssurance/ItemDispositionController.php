@@ -39,7 +39,7 @@ class ItemDispositionController extends Controller
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-            } else if ($fields['action_status_id'] == 7 && $itemVariantType != 3) {
+            } else if ($fields['action_status_id'] == 7 && $itemVariantType != 1) {
                 return $this->dataResponse('error', 200, 'This item cannot be sliced');
             }
             $producedItemModel->produced_items = json_encode($producedItems);
