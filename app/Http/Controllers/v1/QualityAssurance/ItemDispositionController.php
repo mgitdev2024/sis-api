@@ -39,7 +39,7 @@ class ItemDispositionController extends Controller
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-            } else if ($fields['action_status_id'] == 7 && $itemVariantType != 3) {
+            } else if ($fields['action_status_id'] == 7 && $itemVariantType != 1) {
                 return $this->dataResponse('error', 200, 'This item cannot be sliced');
             }
             $producedItemModel->produced_items = json_encode($producedItems);
@@ -171,6 +171,12 @@ class ItemDispositionController extends Controller
             }
             $data = $itemDisposition->get();
             if (count($data) > 0) {
+                foreach ($data as $value) {
+                    $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
+                    $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->conversion_long_uom ?? null;
+
+                    $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
+                }
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));

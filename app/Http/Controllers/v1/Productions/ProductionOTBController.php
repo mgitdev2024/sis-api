@@ -129,7 +129,7 @@ class ProductionOTBController extends Controller
                 $producedItemModel->save();
                 $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
 
-                $produceItem = [$itemDisposition->item_key];
+                $produceItem = $producedItems[$itemDisposition->item_key];
                 $printHistory = new PrintHistoryController();
                 $printHistoryRequest = new Request([
                     'production_batch_id' => $itemDisposition->production_batch_id,
