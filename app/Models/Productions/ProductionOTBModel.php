@@ -28,10 +28,6 @@ class ProductionOTBModel extends Model
         'status',
     ];
 
-
-
-
-
     public function productionOrder()
     {
         return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
