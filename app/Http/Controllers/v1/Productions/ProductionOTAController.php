@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Productions\ProducedItemModel;
-use App\Models\Productions\ProductionOrderModel;
+use App\Http\Controllers\v1\History\PrintHistoryController;
 use App\Models\Productions\ProductionOTAModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\Settings\Items\ItemMasterdataModel;
@@ -115,6 +115,7 @@ class ProductionOTAController extends Controller
             $itemStatusArr = [
                 '6' => 11, // retouch
                 '7' => 12, // slice
+                '8' => 9, // sticker updated
             ];
             DB::beginTransaction();
             $itemDisposition = ItemDispositionModel::where('id', $id)
@@ -145,17 +146,39 @@ class ProductionOTAController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
-                $productionItem = $this->onSetProductionOrderBatch(
-                    $itemDisposition,
-                    $itemDisposition->quantity_update,
-                    $fields,
-                    $statusFlag
-                );
 
-                $data = [
-                    'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                    'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
-                ];
+                $data = null;
+                if ($itemStatus == 9) {
+
+                    $produceItem = $producedItems[$itemDisposition->item_key];
+                    $printHistory = new PrintHistoryController();
+                    $printHistoryRequest = new Request([
+                        'production_batch_id' => $itemDisposition->production_batch_id,
+                        'produced_items' => json_encode($produceItem),
+                        'is_reprint' => 0,
+                        'created_by_id' => $fields['created_by_id'],
+                        'item_disposition_id' => $id ?? null
+                    ]);
+                    $printHistory->onCreate($printHistoryRequest);
+
+                    $data = [
+                        'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
+                        'production_batch_id' => $itemDisposition->production_batch_id
+                    ];
+                } else {
+                    $productionItem = $this->onSetProductionOrderBatch(
+                        $itemDisposition,
+                        $itemDisposition->quantity_update,
+                        $fields,
+                        $statusFlag
+                    );
+
+                    $data = [
+                        'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
+                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                    ];
+                }
+
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
