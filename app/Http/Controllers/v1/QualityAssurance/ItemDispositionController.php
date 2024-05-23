@@ -171,6 +171,12 @@ class ItemDispositionController extends Controller
             }
             $data = $itemDisposition->get();
             if (count($data) > 0) {
+                foreach ($data as $value) {
+                    $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
+                    $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->conversion_long_uom ?? null;
+
+                    $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
+                }
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
