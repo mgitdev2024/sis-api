@@ -13,7 +13,6 @@ use Storage;
 class PrintHistoryController extends Controller
 {
     use CrudOperationsTrait;
-
     public function getRules()
     {
         return [
