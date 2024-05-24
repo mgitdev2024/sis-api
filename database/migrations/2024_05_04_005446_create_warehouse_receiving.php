@@ -14,8 +14,9 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number');
             $table->unsignedBigInteger('production_order_id');
+            $table->integer('batch_number');
             $table->string('item_code');
-            $table->text('produced_items');
+            $table->longText('produced_items');
             $table->integer('quantity');
             $table->string('sku_type');
             $table->tinyInteger('status')->default(0); // 0 = not yet received, 1 = received

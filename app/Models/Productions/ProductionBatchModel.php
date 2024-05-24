@@ -24,6 +24,7 @@ class ProductionBatchModel extends Model
         'actual_secondary_quantity',
         'chilled_exp_date',
         'frozen_exp_date',
+        'ambient_exp_date',
         'created_by_id',
         'updated_by_id',
         'status', // 0 = In Progress, 1 = On Hold, 2 = Complete
@@ -70,6 +71,7 @@ class ProductionBatchModel extends Model
         if (isset($production_ota_label)) {
             $response = [
                 'item_code' => $production_ota_label['item_code'],
+                'storage_type' => $production_ota_label->itemMasterdata->storageType['name'],
                 'plotted_quantity' => $production_ota_label['plotted_quantity'],
                 'actual_quantity' => $production_ota_label['actual_quantity'],
             ];
@@ -84,6 +86,7 @@ class ProductionBatchModel extends Model
         if (isset($production_otb_label)) {
             $response = [
                 'item_code' => $production_otb_label['item_code'],
+                'storage_type' => $production_otb_label->itemMasterdata->storageType['name'],
                 'plotted_quantity' => $production_otb_label['plotted_quantity'],
                 'actual_quantity' => $production_otb_label['actual_quantity'],
             ];
@@ -102,11 +105,13 @@ class ProductionBatchModel extends Model
         return $label;
     }
 
-    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber)
+    public static function generateBatchCode($itemCode, $deliveryType, $batchNumber, $productionDate = null)
     {
+        date_default_timezone_set('Asia/Manila');
+        $timestamp = $productionDate != null ? strtotime($productionDate) : time();
         $itemCode = str_replace(' ', '', $itemCode);
-        $monthCode = chr(date('n') + 64);
-        $day = date('j');
+        $monthCode = chr(date('n', $timestamp) + 64);
+        $day = date('j', $timestamp);
 
         $batchCode = $monthCode . $day . '-' . $itemCode . str_pad($batchNumber, 2, '0', STR_PAD_LEFT);
 

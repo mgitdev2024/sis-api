@@ -22,6 +22,7 @@ return new class extends Migration {
             $table->string('quantity');
             $table->integer('actual_quantity')->default(0);
             $table->integer('actual_secondary_quantity')->default(0);
+            $table->date('ambient_exp_date')->nullable();
             $table->date('chilled_exp_date')->nullable();
             $table->date('frozen_exp_date')->nullable();
             $table->unsignedBigInteger('created_by_id');

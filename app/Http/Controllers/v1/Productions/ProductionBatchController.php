@@ -30,8 +30,10 @@ class ProductionBatchController extends Controller
             'endorsed_by_qa' => 'required|integer|in:0,1',
             'item_disposition_id' => 'required_if:endorsed_by_qa,1|integer',
             'quantity' => 'required',
+            'production_date' => 'nullable|date',
             'chilled_exp_date' => 'nullable|date',
             'frozen_exp_date' => 'nullable|date',
+            'ambient_exp_date' => 'nullable|date',
             'created_by_id' => 'required',
         ];
     }
@@ -53,8 +55,7 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.create_success'), $batch);
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
-            return $this->dataResponse('error', 400, __('msg.create_failed'));
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 
@@ -67,7 +68,7 @@ class ProductionBatchController extends Controller
                 : ProductionOTAModel::find($fields['production_ota_id']);
             $productionType = $productionBatch->production_otb_id ? 0 : 1;
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
-            $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size);
+            $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size) > 0 ? intval($itemMasterdata->primary_item_packing_size) : 1;
             $producedItems = ProducedItemModel::where('production_batch_id', $productionBatch->id)->first();
 
             $endorsedQA = $fields['endorsed_by_qa'];
@@ -86,7 +87,6 @@ class ProductionBatchController extends Controller
             } else {
                 $secondaryValue = $primaryValue;
             }
-
             $stickerMultiplier = $productionBatch->productionOtb ?
                 $productionBatch->productionOtb->itemMasterData->itemVariantType->sticker_multiplier :
                 ($productionBatch->productionOta ?
@@ -123,7 +123,7 @@ class ProductionBatchController extends Controller
             $producedItems->production_type = $productionType;
             $producedItems->produced_items = json_encode($producedItemsArray);
             $producedItems->save();
-            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 1);
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 1);
             $this->onPrintHistory(
                 $productionBatch->id,
                 $addedProducedItem,
@@ -137,7 +137,7 @@ class ProductionBatchController extends Controller
             }
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
-            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 1);
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
                 'production_batch' => $productionBatch,
@@ -149,6 +149,29 @@ class ProductionBatchController extends Controller
         }
     }
 
+    public function onGetExpirationDate($productionDate, $productionToBakeAssemble)
+    {
+        try {
+            $chilledExpDate = $productionToBakeAssemble->expected_chilled_exp_date;
+            $frozenExpDate = $productionToBakeAssemble->expected_frozen_exp_date;
+            $ambientExpDate = $productionToBakeAssemble->expected_ambient_exp_date;
+            $itemData = $productionToBakeAssemble->itemMasterdata;
+            if ($productionDate != null) {
+                $chilledExpDate = $itemData->chilled_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->chilled_shelf_life . ' days', strtotime($productionDate))) : null;
+                $frozenExpDate = $itemData->frozen_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->frozen_shelf_life . ' days', strtotime($productionDate))) : null;
+                $ambientExpDate = $itemData->ambient_shelf_life != null ? date('Y-m-d', strtotime('+' . $itemData->ambient_shelf_life . ' days', strtotime($productionDate))) : null;
+            }
+            $data = [
+                'chilled_exp' => $chilledExpDate,
+                'frozen_exp' => $frozenExpDate,
+                'ambient_exp' => $ambientExpDate
+            ];
+            return $data;
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+
+    }
     public function onInitialBatch($fields)
     {
         try {
@@ -162,15 +185,19 @@ class ProductionBatchController extends Controller
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
             $endorsedQA = $fields['endorsed_by_qa'];
-            $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $productionToBakeAssemble->expected_chilled_exp_date;
-            $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $productionToBakeAssemble->expected_frozen_exp_date;
+            $productionDate = $fields['production_date'] ?? null;
+            $expirationDate = $this->onGetExpirationDate($productionDate, $productionToBakeAssemble);
+            $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $expirationDate['chilled_exp'];
+            $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $expirationDate['frozen_exp'];
+            $fields['ambient_exp_date'] = $fields['ambient_exp_date'] ?? $expirationDate['ambient_exp'];
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
             $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
             $batchCode = ProductionBatchModel::generateBatchCode(
                 $itemCode,
                 $deliveryType,
-                $batchNumber
+                $batchNumber,
+                $productionDate
             );
             $productionBatch = new ProductionBatchModel();
             $productionBatch->fill($fields);
@@ -181,7 +208,7 @@ class ProductionBatchController extends Controller
             $productionBatch->save();
 
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
-            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 0);
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
             $data = [
                 'item_name' => $itemName->description,
                 'production_batch' => $productionBatch,
@@ -236,7 +263,6 @@ class ProductionBatchController extends Controller
 
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size) > 0 ? intval($itemMasterdata->primary_item_packing_size) : 1;
-
             $producedItems = new ProducedItemModel();
             $producedItems->production_batch_id = $productionBatch->id;
             $producedItems->created_by_id = $productionBatch->created_by_id;
@@ -255,6 +281,9 @@ class ProductionBatchController extends Controller
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
 
+                if ($itemQuantity <= 0) {
+                    throw new Exception("Quantity discrepancy detected. Please check Item Masterdata for this item");
+                }
                 $itemArray = [
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
@@ -276,7 +305,7 @@ class ProductionBatchController extends Controller
             foreach ($producedItemsArray as $key => $value) {
                 $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, [$key => $value], $fields['created_by_id'], 0, $key);
             }
-            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 0);
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 0);
             $this->onPrintHistory($productionBatch->id, $producedItemsArray, $fields);
             $productionBatch->produced_item_id = $producedItems->id;
             $productionBatch->save();

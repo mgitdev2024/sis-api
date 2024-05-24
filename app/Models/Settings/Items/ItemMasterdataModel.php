@@ -5,6 +5,7 @@ namespace App\Models\Settings\Items;
 use App\Models\Settings\Facility\PlantModel;
 use App\Models\Settings\Measurements\ConversionModel;
 use App\Models\Settings\Measurements\UomModel;
+use App\Models\Settings\StorageTypeModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CredentialModel;
@@ -14,12 +15,13 @@ class ItemMasterdataModel extends Model
     use HasFactory;
     protected $table = 'item_masterdata';
     protected $appends = [
-        'item_classification_label',
+        'item_category_label',
         'item_variant_type_label',
         'uom_label',
         'primary_conversion_label',
         'secondary_conversion_label',
         'plant_label',
+        'consumer_instructions_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
@@ -51,6 +53,7 @@ class ItemMasterdataModel extends Model
         'shelf_life',
         'plant_id',
         'image',
+        'consumer_instructions',
         'created_by_id',
         'updated_by_id',
         'status',
@@ -63,9 +66,46 @@ class ItemMasterdataModel extends Model
         $stockRotationTypeLabel = array("FIFO", "FEFO");
         return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
-    public function itemClassification()
+    public function getConsumerInstructionsLabelAttribute()
     {
-        return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');
+        $consumerInstructionLabel = [
+            1 => "KEEP CHILLED",
+            2 => "KEEP FROZEN",
+            3 => "REHEAT BEFORE SERVING"
+        ];
+
+        if (is_null($this->consumer_instructions)) {
+            return null;
+        }
+
+        $consumerInstructionsArr = json_decode($this->consumer_instructions, true);
+        if (is_array($consumerInstructionsArr)) {
+            $labels = [
+                'refrigerate' => [],
+                'reheat' => null
+            ];
+
+            foreach ($consumerInstructionsArr as $value) {
+                if ($value == 1 || $value == 2) {
+                    $labels['refrigerate'] = $consumerInstructionLabel[$value];
+                } elseif ($value == 3) {
+                    $labels['reheat'] = $consumerInstructionLabel[$value];
+                }
+            }
+
+            if (empty($labels['refrigerate'])) {
+                unset($labels['refrigerate']);
+            }
+
+            return $labels;
+        }
+
+        return null;
+    }
+
+    public function itemCategory()
+    {
+        return $this->belongsTo(ItemCategoryModel::class, 'item_category_id', 'id');
     }
     public function itemVariantType()
     {
@@ -74,6 +114,10 @@ class ItemMasterdataModel extends Model
     public function uom()
     {
         return $this->belongsTo(UomModel::class, 'uom_id', 'id');
+    }
+    public function storageType()
+    {
+        return $this->belongsTo(StorageTypeModel::class, 'storage_type_id', 'id');
     }
     public function primaryConversion()
     {
@@ -87,10 +131,10 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(PlantModel::class, 'plant_id', 'id');
     }
-    public function getItemClassificationLabelAttribute()
+    public function getItemCategoryLabelAttribute()
     {
-        $itemClassification = $this->itemClassification->toArray();
-        return isset($itemClassification) ? $itemClassification['name'] : 'n/a';
+        $itemCategory = $this->itemCategory->toArray();
+        return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
 
     public function getItemVariantTypeLabelAttribute()

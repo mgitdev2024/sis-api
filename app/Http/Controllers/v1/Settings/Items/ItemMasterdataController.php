@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
+use DB;
+use Exception;
 
 class ItemMasterdataController extends Controller
 {
@@ -22,7 +24,7 @@ class ItemMasterdataController extends Controller
             'chilled_shelf_life' => 'nullable|integer',
             'category_id' => 'required|integer|exists:categories,id',
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
-            'item_classification_id' => 'required|integer|exists:item_classifications,id',
+            'item_classification_id' => 'required|integer|exists:item_category,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
             'parent_item_id' => 'required|integer|exists:item_masterdata,id',
             'uom_id' => 'required|integer|exists:uom,id',
@@ -41,12 +43,13 @@ class ItemMasterdataController extends Controller
             'dimension' => 'nullable|string',
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
-            'image' => 'nullable|string',
+            'attachment' => 'nullable|string',
+            'consumer_instructions' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata');
+        return $this->createRecord(ItemMasterdataModel::class, $request, $this->getRules(), 'Item Masterdata', 'public/attachments/item-masterdata');
     }
     public function onUpdateById(Request $request, $id)
     {
@@ -75,9 +78,82 @@ class ItemMasterdataController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $whereFields = [
-            'item_code' => $id
-        ];
+        $whereFields = null;
+        if ($id != null) {
+            $whereFields = [
+                'item_code' => $id
+            ];
+        }
+
         return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
+    }
+
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($fields['bulk_data'], true);
+            $createdById = $fields['created_by_id'];
+            foreach ($bulkUploadData as $data) {
+                $record = new ItemMasterdataModel();
+                $record->item_code = $this->onCheckValue($data['item_code']);
+                $record->description = $this->onCheckValue($data['description']);
+                $record->item_category_id = $this->onCheckValue($data['item_category_id']);
+                $record->item_classification_id = $this->onCheckValue($data['item_classification_id']);
+                $record->item_variant_type_id = $this->onCheckValue($data['item_variant_type_id']);
+                $record->storage_type_id = $this->onCheckValue($data['storage_type_id']);
+                $record->uom_id = $this->onCheckValue($data['uom_id']);
+                $record->primary_item_packing_size = $this->onCheckValue($data['primary_item_packing_size']);
+                $record->primary_conversion_id = $this->onCheckValue($data['primary_conversion_id']);
+                $record->secondary_item_packing_size = $this->onCheckValue($data['secondary_item_packing_size']);
+                $record->secondary_conversion_id = $this->onCheckValue($data['secondary_conversion_id']);
+                $record->chilled_shelf_life = $this->onCheckValue($data['chilled_shelf_life']);
+                $record->frozen_shelf_life = $this->onCheckValue($data['frozen_shelf_life']);
+                $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
+                $record->created_by_id = $createdById;
+                $record->consumer_instructions = $this->onCheckConsumerInstruction($data['chilled'], $data['frozen'], $data['reheat']);
+                $record->plant_id = $this->onCheckValue($data['plant_id']);
+                $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
+                $record->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400,__('msg.create_failed'));
+        }
+    }
+
+    public function onGetParentId($value)
+    {
+        $item = ItemMasterdataModel::where('item_code', $value)->first();
+        return $item->id ?? null;
+    }
+
+    public function onCheckValue($value)
+    {
+        return $value == '' ? null : $value;
+    }
+
+    public function onCheckConsumerInstruction($isKeepChilled, $isKeepFrozen, $isReheat)
+    {
+        // $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
+        $result = [];
+
+        if (strcasecmp($isKeepChilled, 'true') == 0) {
+            $result[] = 1;
+        }
+        if (strcasecmp($isKeepFrozen, 'true') == 0) {
+            $result[] = 2;
+        }
+        if (strcasecmp($isReheat, 'true') == 0) {
+            $result[] = 3;
+        }
+
+        return !empty($result) ? json_encode($result) : null;
     }
 }

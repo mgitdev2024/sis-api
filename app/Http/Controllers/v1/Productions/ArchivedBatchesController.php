@@ -27,7 +27,7 @@ class ArchivedBatchesController extends Controller
     }
     public function onArchiveBatch(Request $request, $id)
     {
-        
+
         $fields = $request->validate([
             'created_by_id' => 'required',
             'reason' => 'required',
@@ -50,8 +50,8 @@ class ArchivedBatchesController extends Controller
                 $record->attachment = $filepath;
             }
             $record->save();
-            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch, $fields['created_by_id'], 2);
-            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems, $fields['created_by_id'], 2);
+            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 2);
+            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 2);
             $producedItems->delete();
             $productionBatch->delete();
             DB::commit();

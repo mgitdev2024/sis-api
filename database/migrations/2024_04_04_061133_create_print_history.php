@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('print_history', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_batch_id');
-            $table->text('produced_items');
+            $table->longText('produced_items');
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
             $table->tinyInteger('is_reprint')->default(0);

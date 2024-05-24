@@ -33,6 +33,14 @@ class UomSeeder extends Seeder
                 'short_uom' => 'Set',
                 'long_uom' => 'Set',
             ],
+            [
+                'short_uom' => 'Clmshl',
+                'long_uom' => 'Clamshell',
+            ],
+            [
+                'short_uom' => 'POB ',
+                'long_uom' => 'Pasta Oval Box',
+            ],
         ];
 
         foreach ($conversionUnits as $value) {

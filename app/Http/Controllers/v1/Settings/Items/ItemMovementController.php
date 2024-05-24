@@ -48,4 +48,12 @@ class ItemMovementController extends Controller
     {
         return $this->deleteRecordById(ItemMovementModel::class, $id, 'Item Movement');
     }
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'bulk_data' => 'required'
+        ]);
+        return $this->bulkUpload(ItemMovementModel::class, 'Item Movement', $fields);
+    }
 }
