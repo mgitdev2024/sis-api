@@ -50,8 +50,8 @@ class ArchivedBatchesController extends Controller
                 $record->attachment = $filepath;
             }
             $record->save();
-            $this->createProductionHistoricalLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 2);
-            $this->createProductionHistoricalLog(ProducedItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 2);
+            $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 2);
+            $this->createProductionLog(ProducedItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 2);
             $producedItems->delete();
             $productionBatch->delete();
             DB::commit();

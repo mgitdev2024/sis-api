@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
             $table->foreign('production_order_id')->references('id')->on('production_orders');
+
         });
     }
 
