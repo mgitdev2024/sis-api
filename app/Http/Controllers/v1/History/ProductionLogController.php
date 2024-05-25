@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\v1\History;
 
 use App\Http\Controllers\Controller;
-use App\Models\History\ProductionHistoricalLogModel;
+use App\Models\History\ProductionLogModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 
-class ProductionHistoricalLogController extends Controller
+class ProductionLogController extends Controller
 {
     use CrudOperationsTrait;
     public static function getRules()
@@ -25,7 +25,7 @@ class ProductionHistoricalLogController extends Controller
     {
         $fields = $request->validate($this->getRules());
         try {
-            $record = new ProductionHistoricalLogModel();
+            $record = new ProductionLogModel();
             $record->fill($fields);
             $record->save();
             return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $record);
@@ -43,28 +43,22 @@ class ProductionHistoricalLogController extends Controller
             'item_key' => 'nullable',
         ]);
 
-        $whereFields = [];
+        $query = \DB::table('production_logs');
+
         if (isset($fields['entity_id'])) {
-            $whereFields = [
-                'entity_id' => $fields['entity_id'],
-                'entity_model' => $fields['entity_model'],
-            ];
-
-            if (isset($fields['is_item_key'])) {
-                $whereFields = [
-                    'item_key' => $fields['item_key']
-                ];
-            }
+            $query->where('entity_id', $fields['entity_id'])
+                ->where('entity_model', $fields['entity_model']);
+        }
+        if (isset($fields['item_key'])) {
+            $query->where('item_key', $fields['item_key']);
+        }
+        if (isset($fields['is_item_key']) && !$fields['is_item_key']) {
+            $query->whereNull('item_key');
+        } else if (isset($fields['is_item_key']) && $fields['is_item_key']) {
+            $query->whereNotNull('item_key');
         }
 
-        $notNullFields = null;
-        if (isset($fields['is_item_key'])) {
-            $notNullFields = [
-                'item_key'
-            ];
-        }
-
-
-        return $this->readCurrentRecord(ProductionHistoricalLogModel::class, null, $whereFields, null, null, 'Production History Log', false, $notNullFields);
+        $results = $query->get();
+        return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $results);
     }
 }

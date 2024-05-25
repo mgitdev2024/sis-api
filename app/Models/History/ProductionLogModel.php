@@ -5,10 +5,10 @@ namespace App\Models\History;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionHistoricalLogModel extends Model
+class ProductionLogModel extends Model
 {
     use HasFactory;
-    protected $table = 'production_historical_logs';
+    protected $table = 'production_logs';
     protected $fillable = [
         'entity_model',
         'entity_id',
