@@ -19,6 +19,7 @@ class ProductionOTBModel extends Model
         'item_code',
         'requested_quantity',
         'buffer_level',
+        'buffer_quantity',
         'expected_chilled_exp_date',
         'expected_frozen_exp_date',
         'plotted_quantity',

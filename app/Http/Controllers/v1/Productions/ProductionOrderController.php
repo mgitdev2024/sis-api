@@ -130,8 +130,9 @@ class ProductionOrderController extends Controller
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
-                $bufferLevel = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                 $requestedQuantity = intval($value['quantity']);
+                $bufferLevel = $value['buffer_quantity'] ? round((intval($value['buffer_quantity']) / $requestedQuantity) * 100, 2) : 0;
+                $bufferQuantity = intval($value['buffer_quantity']);
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -147,7 +148,8 @@ class ProductionOrderController extends Controller
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $requestedQuantity;
                     $productionOTB->buffer_level = $bufferLevel;
-                    $productionOTB->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+                    $productionOTB->buffer_quantity = $bufferQuantity;
+                    $productionOTB->plotted_quantity = $requestedQuantity + $bufferQuantity;
 
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTB->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
@@ -174,7 +176,8 @@ class ProductionOrderController extends Controller
                     $productionOTA->item_code = $value['item_code'];
                     $productionOTA->requested_quantity = $requestedQuantity;
                     $productionOTA->buffer_level = $bufferLevel;
-                    $productionOTA->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+                    $productionOTA->buffer_quantity = $bufferQuantity;
+                    $productionOTA->plotted_quantity = $requestedQuantity + $bufferQuantity;
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTA->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }
