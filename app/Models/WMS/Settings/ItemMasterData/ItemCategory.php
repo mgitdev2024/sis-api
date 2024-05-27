@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Models\Settings\Items;
+namespace App\Models\WMS\Settings\ItemMasterData;
 
-use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemCategoryModel extends Model
+class ItemCategory extends Model
 {
     use HasFactory;
-
-    protected $table = 'item_category';
+    protected $table = 'item_categories';
     protected $fillable = [
         'code',
         'name',
@@ -18,7 +16,4 @@ class ItemCategoryModel extends Model
         'updated_by_id',
         'status'
     ];
-
-
-
 }

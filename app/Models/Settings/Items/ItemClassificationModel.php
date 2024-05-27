@@ -10,7 +10,10 @@ class ItemClassificationModel extends Model
     use HasFactory;
     protected $table = 'item_classifications';
     protected $fillable = [
-        'name',
+        'code',
+        'short_name',
+        'long_name',
+        'description',
         'created_by_id',
         'updated_by_id',
         'status'

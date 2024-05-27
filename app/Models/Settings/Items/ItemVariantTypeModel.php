@@ -12,8 +12,9 @@ class ItemVariantTypeModel extends Model
 
     protected $table = 'item_variant_types';
     protected $fillable = [
+        'code',
+        'short_name',
         'name',
-        'sticker_multiplier',
         'created_by_id',
         'updated_by_id',
         'status'
