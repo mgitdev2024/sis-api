@@ -294,8 +294,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Production History Log
-    Route::post('v1/history/log/production/current/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetCurrent']);
-    Route::get('v1/history/log/production/get/{id?}', [App\Http\Controllers\v1\History\ProductionHistoricalLogController::class, 'onGetById']);
+    Route::post('v1/history/log/production/current/{id?}', [App\Http\Controllers\v1\History\ProductionLogController::class, 'onGetCurrent']);
+    Route::get('v1/history/log/production/get/{id?}', [App\Http\Controllers\v1\History\ProductionLogController::class, 'onGetById']);
     #endregion
 
     #region Warehouse Receiving

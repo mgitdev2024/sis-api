@@ -35,7 +35,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CR 6",
@@ -54,7 +56,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "EQ 12",
@@ -73,7 +77,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => 30,
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "EQ 6",
@@ -92,7 +98,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => 30,
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "MM 12",
@@ -111,7 +119,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "MM 6",
@@ -130,7 +140,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CR PCS",
@@ -149,7 +161,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "EQ PCS",
@@ -168,7 +182,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => 30,
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "MM PCS",
@@ -187,7 +203,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "EQ MN",
@@ -206,7 +224,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => 30,
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "MEQ 12",
@@ -225,7 +245,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CR FZ PCS",
@@ -244,7 +266,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "EQ FZ PCS",
@@ -263,7 +287,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 1,
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "TRUE",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "PD",
@@ -282,7 +308,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 15,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CTI WH",
@@ -301,7 +329,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CTI MN",
@@ -320,7 +350,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 7,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CTI SL",
@@ -339,7 +371,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CH WH",
@@ -358,7 +392,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 15,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CH MN",
@@ -377,7 +413,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 15,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CH SL",
@@ -396,7 +434,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "VT WH",
@@ -415,7 +455,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 12,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "VT MN",
@@ -434,7 +476,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 12,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "VT SL",
@@ -453,7 +497,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TR WH",
@@ -472,7 +518,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 16,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TR MN",
@@ -491,7 +539,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 16,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TR SL",
@@ -510,7 +560,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CM WH",
@@ -529,7 +581,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 11,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CM MN",
@@ -548,7 +602,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 11,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CM SL",
@@ -567,7 +623,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "SW WH",
@@ -586,7 +644,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 6,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "SW SL",
@@ -605,7 +665,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "SSCV WH",
@@ -624,7 +686,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 9,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "SSCV MN",
@@ -643,7 +707,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 9,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "SSCV SL",
@@ -662,7 +728,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CC WH",
@@ -681,7 +749,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 10,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "CC MN",
@@ -700,7 +770,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 10,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "CC SL",
@@ -719,7 +791,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "LI  WH",
@@ -738,7 +812,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 15,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "LI SL",
@@ -757,7 +833,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "BA WH",
@@ -776,7 +854,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 12,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "BA SL",
@@ -795,7 +875,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "MB WH",
@@ -814,7 +896,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 12,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "MB SL",
@@ -833,7 +917,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "",
+                    "frozen" => "TRUE"
                 ],
                 [
                     "item_code" => "TAS WH",
@@ -852,7 +938,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 16,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TAS MN",
@@ -871,7 +959,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 16,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TAS SL",
@@ -890,7 +980,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => 2,
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CK WH",
@@ -909,7 +1001,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 12,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "CK SL",
@@ -928,7 +1022,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "FC LF",
@@ -947,7 +1043,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 365,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "FC SL",
@@ -966,7 +1064,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 90,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TRC MN",
@@ -985,7 +1085,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 16,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "BR 8",
@@ -996,15 +1098,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 4,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 8,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 12,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "BR 4",
@@ -1015,15 +1119,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 5,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 4,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 12,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "FFG 8",
@@ -1034,15 +1140,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 4,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 8,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 10,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "FFG 4",
@@ -1053,15 +1161,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 5,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 4,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 10,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LMS 8",
@@ -1072,15 +1182,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 4,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 8,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 12,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LMS 4",
@@ -1091,15 +1203,17 @@ class ItemMasterdataSeeder extends Seeder
                     "item_variant_type_id" => 5,
                     "storage_type_id" => 1,
                     "uom_id" => 3,
-                    "primary_item_packing_size" => "",
-                    "primary_conversion_id" => "",
+                    "primary_item_packing_size" => 4,
+                    "primary_conversion_id" => 1,
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_id" => "",
                     "plant_id" => 2,
                     "ambient_shelf_life" => 12,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "BD LF",
@@ -1118,7 +1232,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 10,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "AP WH",
@@ -1137,7 +1253,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 12,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "AP MN",
@@ -1156,7 +1274,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 12,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LGB",
@@ -1175,7 +1295,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 30,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LGDC",
@@ -1194,7 +1316,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 30,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LGQB",
@@ -1213,7 +1337,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 30,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "LGRC",
@@ -1232,7 +1358,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => 30,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TLC WH",
@@ -1251,7 +1379,9 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 10,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ],
                 [
                     "item_code" => "TLC SL",
@@ -1270,10 +1400,11 @@ class ItemMasterdataSeeder extends Seeder
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 2,
                     "frozen_shelf_life" => "",
-                    "consumer_instruction" => ""
+                    "reheat" => "",
+                    "chilled" => "TRUE",
+                    "frozen" => ""
                 ]
             ];
-
 
 
         foreach ($itemMasterdata as $value) {
@@ -1295,7 +1426,7 @@ class ItemMasterdataSeeder extends Seeder
                 'secondary_item_packing_size' => $value['secondary_item_packing_size'] == "" ? null : $value['secondary_item_packing_size'],
                 'primary_conversion_id' => $value['primary_conversion_id'] == "" ? null : $value['primary_conversion_id'],
                 'secondary_conversion_id' => $value['secondary_conversion_id'] == "" ? null : $value['secondary_conversion_id'],
-                'consumer_instruction' => $value['consumer_instruction'] == "" ? null : $value['consumer_instruction'],
+                'consumer_instructions' => $this->onCheckConsumerInstruction($value['chilled'], $value['frozen'], $value['reheat']),
             ]);
         }
     }
@@ -1304,5 +1435,23 @@ class ItemMasterdataSeeder extends Seeder
     {
         $item = ItemMasterdataModel::where('item_code', $value)->first();
         return $item->id ?? null;
+    }
+
+    public function onCheckConsumerInstruction($isKeepChilled, $isKeepFrozen, $isReheat)
+    {
+        // $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
+        $result = [];
+
+        if (strcasecmp($isKeepChilled, 'true') == 0) {
+            $result[] = 1;
+        }
+        if (strcasecmp($isKeepFrozen, 'true') == 0) {
+            $result[] = 2;
+        }
+        if (strcasecmp($isReheat, 'true') == 0) {
+            $result[] = 3;
+        }
+
+        return !empty($result) ? json_encode($result) : null;
     }
 }

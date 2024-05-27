@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Productions;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
+use App\Http\Controllers\v1\History\ProductionLogController;
 use App\Models\Productions\ProductionBatchModel;
 use App\Models\Settings\Items\ItemMasterdataModel;
 use App\Models\Productions\ProductionOrderModel;
@@ -73,7 +73,7 @@ class ProductionOrderController extends Controller
                         $batch->update();
                     }
                 }
-                $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $fields['created_by_id'], 1);
+                $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $fields['created_by_id'], 1);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
@@ -121,7 +121,7 @@ class ProductionOrderController extends Controller
             $productionOrder->production_date = $productionDate;
             $productionOrder->created_by_id = $request->created_by_id;
             $productionOrder->save();
-            $this->createProductionHistoricalLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder, $createdById, 0);
+            $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $createdById, 0);
             foreach ($bulkUploadData as $value) {
                 $productionOTA = new ProductionOTAModel();
                 $productionOTB = new ProductionOTBModel();
@@ -130,8 +130,9 @@ class ProductionOrderController extends Controller
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
-                $bufferLevel = floatval(str_replace('%', '', $value['buffer_level'])) / 100;
                 $requestedQuantity = intval($value['quantity']);
+                $bufferLevel = $value['buffer_quantity'] ? round((intval($value['buffer_quantity']) / $requestedQuantity) * 100, 2) : 0;
+                $bufferQuantity = intval($value['buffer_quantity']);
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -147,7 +148,8 @@ class ProductionOrderController extends Controller
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $requestedQuantity;
                     $productionOTB->buffer_level = $bufferLevel;
-                    $productionOTB->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+                    $productionOTB->buffer_quantity = $bufferQuantity;
+                    $productionOTB->plotted_quantity = $requestedQuantity + $bufferQuantity;
 
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTB->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
@@ -155,12 +157,12 @@ class ProductionOrderController extends Controller
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
                     }
-                    if ($itemMasterdata->ambient_shell_life) {
-                        $productionOTB->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
+                    if ($itemMasterdata->ambient_shelf_life) {
+                        $productionOTB->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shelf_life . ' days'));
                     }
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
-                    $this->createProductionHistoricalLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB, $createdById, 0);
+                    $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
@@ -174,20 +176,21 @@ class ProductionOrderController extends Controller
                     $productionOTA->item_code = $value['item_code'];
                     $productionOTA->requested_quantity = $requestedQuantity;
                     $productionOTA->buffer_level = $bufferLevel;
-                    $productionOTA->plotted_quantity = round(($requestedQuantity * $bufferLevel) + $requestedQuantity);
+                    $productionOTA->buffer_quantity = $bufferQuantity;
+                    $productionOTA->plotted_quantity = $requestedQuantity + $bufferQuantity;
                     if ($itemMasterdata->chilled_shelf_life) {
                         $productionOTA->expected_chilled_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->chilled_shelf_life . ' days'));
                     }
                     if ($itemMasterdata->frozen_shelf_life) {
                         $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->frozen_shelf_life . ' days'));
                     }
-                    if ($itemMasterdata->ambient_shell_life) {
-                        $productionOTA->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shell_life . ' days'));
+                    if ($itemMasterdata->ambient_shelf_life) {
+                        $productionOTA->expected_ambient_exp_date = date('Y-m-d', strtotime($productionDate . ' + ' . $itemMasterdata->ambient_shelf_life . ' days'));
                     }
 
                     $productionOTA->created_by_id = $createdById;
                     $productionOTA->save();
-                    $this->createProductionHistoricalLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA, $createdById, 0);
+                    $this->createProductionLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA->getAttributes(), $createdById, 0);
                 }
             }
             $response = [

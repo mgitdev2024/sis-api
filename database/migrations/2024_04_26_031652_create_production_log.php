@@ -10,13 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('production_historical_logs', function (Blueprint $table) {
+        Schema::create('production_logs', function (Blueprint $table) {
             $table->id();
             // $table->string('transaction_no')->nullable();
             $table->string('entity_model');
             $table->integer('entity_id');
             $table->integer('item_key')->nullable();
-            $table->text('data');
+            $table->longText('data');
             $table->tinyInteger('action'); // 0 = Create, 1 = Update, 2 = Delete
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
@@ -29,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('production_historical_log');
+        Schema::dropIfExists('production_logs');
     }
 };

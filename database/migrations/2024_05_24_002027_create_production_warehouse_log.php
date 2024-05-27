@@ -10,19 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('produced_items', function (Blueprint $table) {
+        Schema::create('production_warehouse_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('production_batch_id');
-            $table->longText('produced_items'); // JSON
-            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
+            $table->string('reference_model')->nullable();
+            $table->integer('reference_id')->nullable();
+            $table->string('entity_model');
+            $table->integer('entity_id');
+            $table->integer('item_key')->nullable();
+            $table->longText('data');
+            $table->tinyInteger('action'); // 0 = Create, 1 = Update, 2 = Delete
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(1);
             $table->timestamps();
-
-
-
-            $table->foreign('production_batch_id')->references('id')->on('production_batch');
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('produced_items');
+        Schema::dropIfExists('production_warehouse_logs');
     }
 };

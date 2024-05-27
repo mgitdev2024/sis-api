@@ -15,8 +15,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('production_order_id');
             $table->integer('batch_number');
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
-            $table->text('production_batch_data');
-            $table->text('produced_items_data');
+            $table->longText('production_batch_data');
+            $table->longText('produced_items_data');
             $table->string('reason');
             $table->text('attachment')->nullable();
             $table->tinyInteger('status')->default(0); // 0 = deleted, 1 = activated
@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
             $table->foreign('production_order_id')->references('id')->on('production_orders');
+
         });
     }
 
