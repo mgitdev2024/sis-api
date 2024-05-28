@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemDeliveryTypeModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_delivery_types';
+    protected $table = 'wms_item_delivery_types';
     protected $fillable = [
         'code',
         'name',

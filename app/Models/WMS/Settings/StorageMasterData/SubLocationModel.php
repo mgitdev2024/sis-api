@@ -9,7 +9,7 @@ class SubLocationModel extends Model
 {
     use HasFactory;
     
-    protected $table = 'storage_sub_locations';
+    protected $table = 'wms_storage_sub_locations';
     protected $fillable = [
         'facility_id',
         'warehouse_id',

@@ -15,9 +15,9 @@ class ItemVariantTypeController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:item_variant_types,code,' . $itemId,
-            'short_name' => 'required|string|unique:item_variant_types,short_name,' . $itemId,
-            'name' => 'required|string|unique:item_variant_types,name,' . $itemId,
+            'code' => 'required|string|unique:wms_item_variant_types,code,' . $itemId,
+            'short_name' => 'required|string|unique:wms_item_variant_types,short_name,' . $itemId,
+            'name' => 'required|string|unique:wms_item_variant_types,name,' . $itemId,
         ];
     }
     public function onCreate(Request $request)

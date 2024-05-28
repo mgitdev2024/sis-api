@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemConversionModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_conversions';
+    protected $table = 'wms_item_conversions';
     protected $fillable = [
         'code',
         'created_by_id',

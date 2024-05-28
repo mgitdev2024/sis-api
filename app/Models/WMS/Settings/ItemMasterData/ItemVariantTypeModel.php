@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemVariantTypeModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_variant_types';
+    protected $table = 'wms_item_variant_types';
     protected $fillable = [
         'code',
         'short_name',

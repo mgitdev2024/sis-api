@@ -15,9 +15,9 @@ class ItemMovementController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:item_movements,code,' . $itemId,
-            'short_name' => 'required|string|unique:item_movements,short_name,' . $itemId,
-            'long_name' => 'required|string|unique:item_movements,long_name,' . $itemId,
+            'code' => 'required|string|unique:wms_item_movements,code,' . $itemId,
+            'short_name' => 'required|string|unique:wms_item_movements,short_name,' . $itemId,
+            'long_name' => 'required|string|unique:wms_item_movements,long_name,' . $itemId,
             'description' => 'string|nullable',
         ];
     }

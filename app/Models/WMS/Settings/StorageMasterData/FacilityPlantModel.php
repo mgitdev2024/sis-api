@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FacilityPlantModel extends Model
 {
     use HasFactory;
-    protected $table = 'storage_facility_plants';
+    protected $table = 'wms_storage_facility_plants';
     protected $fillable = [
         'code',
         'short_name',

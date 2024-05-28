@@ -15,8 +15,8 @@ class ItemDeliveryTypeController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'name' => 'required|string|unique:item_delivery_types,name,' . $itemId,
-            'code' => 'required|string|unique:item_delivery_types,code,' . $itemId,
+            'name' => 'required|string|unique:wms_item_delivery_types,name,' . $itemId,
+            'code' => 'required|string|unique:wms_item_delivery_types,code,' . $itemId,
             'description' => 'string|nullable',
 
         ];

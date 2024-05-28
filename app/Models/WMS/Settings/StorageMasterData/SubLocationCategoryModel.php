@@ -9,7 +9,7 @@ class SubLocationCategoryModel extends Model
 {
     use HasFactory;
     
-    protected $table = 'storage_sub_location_categories';
+    protected $table = 'wms_storage_sub_location_categories';
     protected $fillable = [
         'code',
         'number',

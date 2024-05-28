@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class MovingStorageModel extends Model
 {
     use HasFactory;
-    protected $table = 'storage_moving_storages';
+    protected $table = 'wms_storage_moving_storages';
     protected $fillable = [
         'facility_id',
         'warehouse_id',

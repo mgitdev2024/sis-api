@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemMovementModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_movements';
+    protected $table = 'wms_item_movements';
     protected $fillable = [
         'created_by_id',
         'updated_by_id',
