@@ -14,8 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->string('short_uom');
-            $table->string('long_uom');
+            $table->string('short_name');
+            $table->string('long_name');
             $table->tinyInteger('status')->default(1);
             $table->timestamps();
 

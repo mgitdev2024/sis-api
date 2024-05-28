@@ -14,8 +14,8 @@ class UomModel extends Model
     protected $fillable = [
         'created_by_id',
         'updated_by_id',
-        'short_uom',
-        'long_uom',
+        'short_name',
+        'long_name',
         'status',
     ];
 

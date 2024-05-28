@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\MosSeeder;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,36 +18,36 @@ class UomSeeder extends Seeder
         $createdById = 1;
         $conversionUnits = [
             [
-                'short_uom' => 'Pcs',
-                'long_uom' => 'Piece',
+                'short_name' => 'Pcs',
+                'long_name' => 'Piece',
             ],
             [
-                'short_uom' => 'Pck',
-                'long_uom' => 'Pack',
+                'short_name' => 'Pck',
+                'long_name' => 'Pack',
             ],
             [
-                'short_uom' => 'Box',
-                'long_uom' => 'Box',
+                'short_name' => 'Box',
+                'long_name' => 'Box',
             ],
             [
-                'short_uom' => 'Set',
-                'long_uom' => 'Set',
+                'short_name' => 'Set',
+                'long_name' => 'Set',
             ],
             [
-                'short_uom' => 'Clmshl',
-                'long_uom' => 'Clamshell',
+                'short_name' => 'Clmshl',
+                'long_name' => 'Clamshell',
             ],
             [
-                'short_uom' => 'POB ',
-                'long_uom' => 'Pasta Oval Box',
+                'short_name' => 'POB ',
+                'long_name' => 'Pasta Oval Box',
             ],
         ];
 
         foreach ($conversionUnits as $value) {
             UomModel::create([
                 'created_by_id' => $createdById,
-                'short_uom' => $value['short_uom'],
-                'long_uom' => $value['long_uom'],
+                'short_name' => $value['short_name'],
+                'long_name' => $value['long_name'],
             ]);
         }
     }

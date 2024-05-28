@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
-
+Route::post('v1/user/access', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccess']);
+Route::post('v1/user/access/update', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onUpdateAccess']);
+Route::post('v1/user/access/remove', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onRemoveAccess']);
+Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('v1/run-migrations-and-seed', function () {
@@ -29,6 +32,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
+    #region Access Management
     #region Item Category
     Route::post('v1/item/category/create', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onCreate']);
     Route::post('v1/item/category/update/{id}', [App\Http\Controllers\v1\Settings\Items\ItemCategoryController::class, 'onUpdateById']);

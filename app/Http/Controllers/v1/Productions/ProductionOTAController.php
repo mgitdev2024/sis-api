@@ -237,7 +237,7 @@ class ProductionOTAController extends Controller
             }
             $itemConversion = ItemMasterdataModel::where('item_code', $itemCode)->first();
             $conversionUnit = [
-                $itemConversion->uom->long_uom => $quantity
+                $itemConversion->uom->long_name => $quantity
             ];
 
             $productionBatch = new ProductionBatchController();

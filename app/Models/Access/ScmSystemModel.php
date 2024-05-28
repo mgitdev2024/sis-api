@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Models\Settings;
+namespace App\Models\Access;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CategoryModel extends Model
+class ScmSystemModel extends Model
 {
     use HasFactory;
-    protected $table = 'categories';
+    protected $table = 'scm_systems';
     protected $fillable = [
+        'name',
+        'code',
+        'description',
+        'status',
         'created_by_id',
         'updated_by_id',
-        'category_code',
-        'category_name',
-        'status'
     ];
 }

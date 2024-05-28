@@ -1,12 +1,13 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\MosSeeder;
 
+use App\Models\Settings\StorageTypeModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Settings\Items\ItemCategoryModel;
 
-class ItemCategorySeeder extends Seeder
+class StorageTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,27 +16,21 @@ class ItemCategorySeeder extends Seeder
      */
     public function run()
     {
-        $classifications = [
+        $storageType = [
             [
-                'name' => 'Breads',
+                'name' => 'Ambient',
             ],
             [
-                'name' => 'Cakes',
+                'name' => 'Chilled',
             ],
             [
-                'name' => 'Pastries',
-            ],
-            [
-                'name' => 'Loaves',
-            ],
-            [
-                'name' => 'Others',
+                'name' => 'Frozen',
             ],
         ];
         $createdById = 1;
 
-        foreach ($classifications as $value) {
-            ItemCategoryModel::create([
+        foreach ($storageType as $value) {
+            StorageTypeModel::create([
                 'created_by_id' => $createdById,
                 'name' => $value['name']
             ]);

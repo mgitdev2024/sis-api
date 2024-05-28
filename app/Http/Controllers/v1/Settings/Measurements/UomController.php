@@ -16,8 +16,8 @@ class UomController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'short_uom' => 'required|string',
-            'long_uom' => 'required|string',
+            'short_name' => 'required|string',
+            'long_name' => 'required|string',
         ];
     }
     public function onCreate(Request $request)

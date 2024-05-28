@@ -147,8 +147,8 @@ class ItemMasterdataModel extends Model
     {
         $uom = $this->uom->toArray();
         $data = [
-            'short_name' => $uom['short_uom'],
-            'long_name' => $uom['long_uom'],
+            'short_name' => $uom['short_name'],
+            'long_name' => $uom['long_name'],
         ];
         return isset($uom) ? $data : 'n/a';
     }
@@ -159,8 +159,8 @@ class ItemMasterdataModel extends Model
 
         if ($primaryConversion !== null) {
             $data = [
-                'short_name' => $primaryConversion->conversion_short_uom,
-                'long_name' => $primaryConversion->conversion_long_uom,
+                'short_name' => $primaryConversion->conversion_short_name,
+                'long_name' => $primaryConversion->conversion_long_name,
             ];
             return $data;
         } else {
@@ -174,8 +174,8 @@ class ItemMasterdataModel extends Model
 
         if ($secondaryConversion !== null) {
             $data = [
-                'short_name' => $secondaryConversion->conversion_short_uom,
-                'long_name' => $secondaryConversion->conversion_long_uom,
+                'short_name' => $secondaryConversion->conversion_short_name,
+                'long_name' => $secondaryConversion->conversion_long_name,
             ];
             return $data;
         } else {

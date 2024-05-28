@@ -10,17 +10,15 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('conversions', function (Blueprint $table) {
+        Schema::create('scm_systems', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('code');
+            $table->string('description')->nullable();
+            $table->tinyInteger('status')->default(1);
             $table->unsignedBigInteger('created_by_id');
             $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->string('conversion_short_name');
-            $table->string('conversion_long_name');
-            $table->tinyInteger('status')->default(1);
             $table->timestamps();
-
-
-
         });
     }
 
@@ -29,6 +27,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('conversions');
+        Schema::dropIfExists('scm_systems');
     }
 };

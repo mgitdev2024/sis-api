@@ -1,12 +1,12 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\MosSeeder;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Settings\Items\ItemClassificationModel;
+use App\Models\Settings\Items\ItemCategoryModel;
 
-class ItemClassificationSeeder extends Seeder
+class ItemCategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -17,16 +17,25 @@ class ItemClassificationSeeder extends Seeder
     {
         $classifications = [
             [
-                'name' => 'Finish Goods',
+                'name' => 'Breads',
             ],
             [
-                'name' => 'Raw Materials',
-            ]
+                'name' => 'Cakes',
+            ],
+            [
+                'name' => 'Pastries',
+            ],
+            [
+                'name' => 'Loaves',
+            ],
+            [
+                'name' => 'Others',
+            ],
         ];
         $createdById = 1;
 
         foreach ($classifications as $value) {
-            ItemClassificationModel::create([
+            ItemCategoryModel::create([
                 'created_by_id' => $createdById,
                 'name' => $value['name']
             ]);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\MosSeeder;
 
 use App\Models\Settings\Facility\PlantModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;

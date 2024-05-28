@@ -3,6 +3,19 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\MosSeeder\ScmSystemSeeder;
+use Database\Seeders\MosSeeder\ModulePermissionSeeder;
+use Database\Seeders\MosSeeder\SubModulePermissionSeeder;
+use Database\Seeders\MosSeeder\CredentialSeeder;
+use Database\Seeders\MosSeeder\PlantSeeder;
+use Database\Seeders\MosSeeder\UomSeeder;
+use Database\Seeders\MosSeeder\ConversionSeeder;
+use Database\Seeders\MosSeeder\StorageTypeSeeder;
+use Database\Seeders\MosSeeder\ItemCategorySeeder;
+use Database\Seeders\MosSeeder\ItemClassificationSeeder;
+use Database\Seeders\MosSeeder\ItemVariantTypeSeeder;
+use Database\Seeders\MosSeeder\DeliveryTypeSeeder;
+use Database\Seeders\MosSeeder\ItemMasterdataSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,21 +25,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-        $this->call([CredentialSeeder::class]);
-        $this->call([PlantSeeder::class]);
-        $this->call([UomSeeder::class]);
-        $this->call([ConversionSeeder::class]);
-        $this->call([StorageTypeSeeder::class]);
-        $this->call([ItemCategorySeeder::class]);
-        $this->call([ItemClassificationSeeder::class]);
-        $this->call([ItemVariantTypeSeeder::class]);
-        $this->call([DeliveryTypeSeeder::class]);
-        $this->call([ItemMasterdataSeeder::class]);
+        #region MOS Seeder
+        $this->call([
+            ScmSystemSeeder::class,
+            ModulePermissionSeeder::class,
+            SubModulePermissionSeeder::class,
+            CredentialSeeder::class,
+            PlantSeeder::class,
+            UomSeeder::class,
+            ConversionSeeder::class,
+            StorageTypeSeeder::class,
+            ItemCategorySeeder::class,
+            ItemClassificationSeeder::class,
+            ItemVariantTypeSeeder::class,
+            DeliveryTypeSeeder::class,
+            ItemMasterdataSeeder::class,
+        ]);
+        #endregion
     }
 }

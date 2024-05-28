@@ -173,7 +173,7 @@ class ItemDispositionController extends Controller
             if (count($data) > 0) {
                 foreach ($data as $value) {
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
-                    $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->conversion_long_uom ?? null;
+                    $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->conversion_long_name ?? null;
 
                     $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
                 }

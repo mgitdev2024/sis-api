@@ -13,8 +13,8 @@ class ConversionModel extends Model
     protected $fillable = [
         'created_by_id',
         'updated_by_id',
-        'conversion_short_uom',
-        'conversion_long_uom',
+        'conversion_short_name',
+        'conversion_long_name',
         'status',
     ];
 

@@ -16,8 +16,8 @@ class ConversionController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'conversion_short_uom' => 'required|string',
-            'conversion_long_uom' => 'required|string',
+            'conversion_short_name' => 'required|string',
+            'conversion_long_name' => 'required|string',
         ];
     }
 
