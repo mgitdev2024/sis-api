@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('item_masterdata', function (Blueprint $table) {
+     /*    Schema::create('item_masterdata', function (Blueprint $table) {
             $table->id();
             $table->string('item_code')->unique()->index();
             $table->string('description');
@@ -61,7 +61,7 @@ return new class extends Migration {
             $table->foreign('primary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
             $table->foreign('secondary_conversion_id')->references('id')->on('conversions')->onDelete('restrict');
 
-        });
+        }); */
     }
 
     /**

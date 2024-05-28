@@ -1,22 +1,20 @@
 <?php
 
-namespace App\Models\Settings\Measurements;
+namespace App\Models\WMS\Settings\ItemMasterData;
 
-use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UomModel extends Model
+class ItemVariantTypeModel extends Model
 {
     use HasFactory;
-
-    protected $table = 'uom';
+    protected $table = 'item_variant_types';
     protected $fillable = [
+        'code',
+        'short_name',
+        'name',
         'created_by_id',
         'updated_by_id',
-        'short_uom',
-        'long_uom',
-        'status',
+        'status'
     ];
-
 }
