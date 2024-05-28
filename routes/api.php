@@ -254,9 +254,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
 
-
-
-
     #region Print History
     Route::post('v1/history/print/create', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onCreate']);
     Route::post('v1/history/print/update/{id}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onUpdateById']);
