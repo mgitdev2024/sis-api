@@ -1,22 +1,21 @@
 <?php
 
-namespace App\Models\Settings\Measurements;
+namespace App\Models\WMS\Settings\ItemMasterData;
 
-use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UomModel extends Model
+class ItemMovementModel extends Model
 {
     use HasFactory;
-
-    protected $table = 'uom';
+    protected $table = 'item_movements';
     protected $fillable = [
         'created_by_id',
         'updated_by_id',
+        'code',
         'short_name',
         'long_name',
-        'status',
+        'description',
+        'status'
     ];
-
 }

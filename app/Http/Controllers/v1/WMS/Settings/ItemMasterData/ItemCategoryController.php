@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\v1\Settings\Items;
+namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings\Items\ItemCategoryModel;
-use Illuminate\Http\Request;
+use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
 use App\Traits\CrudOperationsTrait;
+use Illuminate\Http\Request;
 
 class ItemCategoryController extends Controller
 {
     use CrudOperationsTrait;
-
     public static function getRules($itemId = null)
     {
         return [
@@ -30,7 +29,7 @@ class ItemCategoryController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['name'];
+        $searchableFields = ['name','code'];
         return $this->readPaginatedRecord(ItemCategoryModel::class, $request, $searchableFields, 'Item Category');
     }
     public function onGetall()

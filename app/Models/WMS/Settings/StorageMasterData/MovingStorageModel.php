@@ -1,19 +1,22 @@
 <?php
 
-namespace App\Models\Settings\Items;
+namespace App\Models\WMS\Settings\StorageMasterData;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemClassificationModel extends Model
+class MovingStorageModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_classifications';
+    protected $table = 'storage_moving_storages';
     protected $fillable = [
+        'facility_id',
+        'warehouse_id',
+        'zone_id',
+        'sub_location_category_id',
         'code',
         'short_name',
         'long_name',
-        'description',
         'created_by_id',
         'updated_by_id',
         'status'

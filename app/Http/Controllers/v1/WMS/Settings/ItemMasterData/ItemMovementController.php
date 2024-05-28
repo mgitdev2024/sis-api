@@ -1,27 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\v1\Settings\Items;
+namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings\ItemMovementModel;
-use Illuminate\Http\Request;
+use App\Models\WMS\Settings\ItemMasterData\ItemMovementModel;
 use App\Traits\CrudOperationsTrait;
-use App\Traits\ResponseTrait;
+use Illuminate\Http\Request;
 
 class ItemMovementController extends Controller
 {
     use CrudOperationsTrait;
-    use ResponseTrait;
-    public static function getRules()
+    public static function getRules($itemId = null)
     {
         return [
-            // |exists:personal_informations,id
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
-            'status' => 'nullable|integer',
-
+            'code' => 'required|string|unique:item_movements,code,' . $itemId,
+            'short_name' => 'required|string|unique:item_movements,short_name,' . $itemId,
+            'long_name' => 'required|string|unique:item_movements,long_name,' . $itemId,
+            'description' => 'string|nullable',
         ];
     }
     public function onCreate(Request $request)
@@ -30,11 +27,11 @@ class ItemMovementController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemMovementModel::class, $request, $this->getRules(), 'Item Movement', $id);
+        return $this->updateRecordById(ItemMovementModel::class, $request, $this->getRules($id), 'Item Movement', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['name', 'description'];
+        $searchableFields = ['code','short_name', 'long_name'];
         return $this->readPaginatedRecord(ItemMovementModel::class, $request, $searchableFields, 'Item Movement');
     }
     public function onGetall()
@@ -48,6 +45,10 @@ class ItemMovementController extends Controller
     public function onDeleteById($id)
     {
         return $this->deleteRecordById(ItemMovementModel::class, $id, 'Item Movement');
+    }
+    public function onChangeStatus(Request $request, $id)
+    {
+        return $this->changeStatusRecordById(ItemMovementModel::class, $id, 'Item Movement', $request);
     }
     public function onBulk(Request $request)
     {

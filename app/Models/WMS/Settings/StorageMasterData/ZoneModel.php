@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Models\Settings\Items;
+namespace App\Models\WMS\Settings\StorageMasterData;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemClassificationModel extends Model
+class ZoneModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_classifications';
+    protected $table = 'storage_zones';
     protected $fillable = [
+        'facility_id',
+        'warehouse_id',
         'code',
+        'storage_type_id',
         'short_name',
         'long_name',
         'description',

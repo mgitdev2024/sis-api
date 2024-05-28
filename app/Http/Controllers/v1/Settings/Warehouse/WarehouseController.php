@@ -17,6 +17,7 @@ class WarehouseController extends Controller
         return [
             // |exists:personal_informations,id
             'created_by_id' => 'required',
+            'updated_by_id' => 'nullable',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
             'status' => 'nullable|integer',

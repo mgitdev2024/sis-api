@@ -1,24 +1,19 @@
 <?php
 
-namespace App\Models\Settings\Items;
+namespace App\Models\WMS\Settings\ItemMasterData;
 
-use App\Models\CredentialModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemCategoryModel extends Model
+class ItemVariantTypeMultiplierModel extends Model
 {
     use HasFactory;
-
-    protected $table = 'item_category';
+    protected $table = 'item_variant_type_multipliers';
     protected $fillable = [
-        'code',
-        'name',
+        'item_variant_type_id',
+        'multiplier',
         'created_by_id',
         'updated_by_id',
         'status'
     ];
-
-
-
 }
