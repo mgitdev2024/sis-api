@@ -122,7 +122,7 @@ return new class extends Migration
         Schema::create('wms_storage_sub_locations', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->integer('qty');
+            $table->integer('qty')->nullable();
             $table->unsignedBigInteger('facility_id');
             $table->unsignedBigInteger('warehouse_id');
             $table->unsignedBigInteger('zone_id');
