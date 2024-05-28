@@ -10,8 +10,8 @@ class ItemCategoryModel extends Model
     use HasFactory;
     protected $table = 'item_categories';
     protected $fillable = [
-        'code',
         'name',
+        'code',
         'created_by_id',
         'updated_by_id',
         'status'

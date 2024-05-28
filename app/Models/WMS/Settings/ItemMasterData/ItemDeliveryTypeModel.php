@@ -5,7 +5,7 @@ namespace App\Models\WMS\Settings\ItemMasterData;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ItemDeliveryType extends Model
+class ItemDeliveryTypeModel extends Model
 {
     use HasFactory;
     protected $table = 'item_delivery_types';
@@ -17,5 +17,4 @@ class ItemDeliveryType extends Model
         'updated_by_id',
         'status',
     ];
-    
 }
