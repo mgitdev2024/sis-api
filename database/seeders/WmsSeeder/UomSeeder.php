@@ -1,7 +1,8 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Settings\Measurements\UomModel;
@@ -18,34 +19,41 @@ class UomSeeder extends Seeder
         $createdById = 1;
         $conversionUnits = [
             [
+                'code' => 'UOM-PCS',
                 'short_name' => 'Pcs',
                 'long_name' => 'Piece',
             ],
             [
+                'code' => 'UOM-PCK',
                 'short_name' => 'Pck',
                 'long_name' => 'Pack',
             ],
             [
+                'code' => 'UOM-BOX',
                 'short_name' => 'Box',
                 'long_name' => 'Box',
             ],
             [
+                'code' => 'UOM-SET',
                 'short_name' => 'Set',
                 'long_name' => 'Set',
             ],
             [
+                'code' => 'UOM-CLM',
                 'short_name' => 'Clmshl',
                 'long_name' => 'Clamshell',
             ],
             [
+                'code' => 'UOM-POB',
                 'short_name' => 'POB ',
                 'long_name' => 'Pasta Oval Box',
             ],
         ];
 
         foreach ($conversionUnits as $value) {
-            UomModel::create([
+            ItemUomModel::create([
                 'created_by_id' => $createdById,
+                'code' => $value['code'],
                 'short_name' => $value['short_name'],
                 'long_name' => $value['long_name'],
             ]);

@@ -3,19 +3,20 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Database\Seeders\MosSeeder\ScmSystemSeeder;
-use Database\Seeders\MosSeeder\ModulePermissionSeeder;
-use Database\Seeders\MosSeeder\SubModulePermissionSeeder;
-use Database\Seeders\MosSeeder\CredentialSeeder;
-use Database\Seeders\MosSeeder\PlantSeeder;
-use Database\Seeders\MosSeeder\UomSeeder;
-use Database\Seeders\MosSeeder\ConversionSeeder;
-use Database\Seeders\MosSeeder\StorageTypeSeeder;
-use Database\Seeders\MosSeeder\ItemCategorySeeder;
-use Database\Seeders\MosSeeder\ItemClassificationSeeder;
-use Database\Seeders\MosSeeder\ItemVariantTypeSeeder;
-use Database\Seeders\MosSeeder\DeliveryTypeSeeder;
-use Database\Seeders\MosSeeder\ItemMasterdataSeeder;
+use Database\Seeders\CredentialSeeder;
+use Database\Seeders\WmsSeeder\ItemVariantTypeMultiplierSeeder;
+use Database\Seeders\WmsSeeder\ScmSystemSeeder;
+use Database\Seeders\WmsSeeder\ModulePermissionSeeder;
+use Database\Seeders\WmsSeeder\SubModulePermissionSeeder;
+use Database\Seeders\WmsSeeder\PlantSeeder;
+use Database\Seeders\WmsSeeder\UomSeeder;
+use Database\Seeders\WmsSeeder\ConversionSeeder;
+use Database\Seeders\WmsSeeder\StorageTypeSeeder;
+use Database\Seeders\WmsSeeder\ItemCategorySeeder;
+use Database\Seeders\WmsSeeder\ItemClassificationSeeder;
+use Database\Seeders\WmsSeeder\ItemVariantTypeSeeder;
+use Database\Seeders\WmsSeeder\DeliveryTypeSeeder;
+use Database\Seeders\WmsSeeder\ItemMasterdataSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -25,12 +26,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        #region MOS Seeder
+        #region Credential Seeder
+        $this->call([
+            CredentialSeeder::class
+        ]);
+        #endregion
+
+        #region WMS Seeder
         $this->call([
             ScmSystemSeeder::class,
             ModulePermissionSeeder::class,
             SubModulePermissionSeeder::class,
-            CredentialSeeder::class,
             PlantSeeder::class,
             UomSeeder::class,
             ConversionSeeder::class,
@@ -39,6 +45,7 @@ class DatabaseSeeder extends Seeder
             ItemClassificationSeeder::class,
             ItemVariantTypeSeeder::class,
             DeliveryTypeSeeder::class,
+            ItemVariantTypeMultiplierSeeder::class,
             ItemMasterdataSeeder::class,
         ]);
         #endregion

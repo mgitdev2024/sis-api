@@ -19,14 +19,14 @@ class ItemMasterdataController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'item_code' => 'required|string|unique:item_masterdata,item_code,' . $itemId,
+            'item_code' => 'required|string|unique:wms_item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
             'chilled_shelf_life' => 'nullable|integer',
             'category_id' => 'required|integer|exists:categories,id',
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
             'item_classification_id' => 'required|integer|exists:item_category,id',
             'item_variant_type_id' => 'required|integer|exists:item_variant_types,id',
-            'parent_item_id' => 'required|integer|exists:item_masterdata,id',
+            'parent_item_id' => 'required|integer|exists:wms_item_masterdata,id',
             'uom_id' => 'required|integer|exists:uom,id',
             'primary_item_packing_size' => 'required|integer',
             'primary_conversion_id' => 'required|integer|exists:conversions,id',
@@ -124,7 +124,7 @@ class ItemMasterdataController extends Controller
             return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400,__('msg.create_failed'));
+            return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Settings\Items\ItemCategoryModel;
+use \App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
 
 class ItemCategorySeeder extends Seeder
 {
@@ -17,18 +17,23 @@ class ItemCategorySeeder extends Seeder
     {
         $classifications = [
             [
+                'code' => 'CAT-BRE',
                 'name' => 'Breads',
             ],
             [
+                'code' => 'CAT-CAK',
                 'name' => 'Cakes',
             ],
             [
+                'code' => 'CAT-PAS',
                 'name' => 'Pastries',
             ],
             [
+                'code' => 'CAT-LOA',
                 'name' => 'Loaves',
             ],
             [
+                'code' => 'CAT-OTH',
                 'name' => 'Others',
             ],
         ];
@@ -36,6 +41,8 @@ class ItemCategorySeeder extends Seeder
 
         foreach ($classifications as $value) {
             ItemCategoryModel::create([
+
+                'code' => $value['code'],
                 'created_by_id' => $createdById,
                 'name' => $value['name']
             ]);

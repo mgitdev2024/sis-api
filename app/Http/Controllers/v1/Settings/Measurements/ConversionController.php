@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Measurements;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings\Measurements\ConversionModel;
+use App\Models\WMS\Settings\ItemMasterData\Measurements\ConversionModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 

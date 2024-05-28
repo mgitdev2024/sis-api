@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
 use App\Models\Access\ScmSystemModel;
 use Illuminate\Database\Seeder;

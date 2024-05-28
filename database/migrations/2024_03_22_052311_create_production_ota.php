@@ -31,7 +31,7 @@ return new class extends Migration {
 
 
             $table->foreign('production_order_id')->references('id')->on('production_orders');
-            $table->foreign('item_code')->references('item_code')->on('item_masterdata');
+            $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
         });
     }
 

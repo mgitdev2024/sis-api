@@ -15,7 +15,7 @@ class SchemaHelper
     }
     public static function addCodeShortLongNameColumns(Blueprint $table)
     {
-        $table->string('code')->nullable();
+        $table->string('code');
         $table->string('short_name')->nullable();
         $table->string('long_name')->nullable();
     }

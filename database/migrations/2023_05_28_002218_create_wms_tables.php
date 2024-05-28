@@ -5,17 +5,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-   
+return new class extends Migration {
+
     public function up(): void
     {
         #region Item Master Data Settings
         Schema::create('wms_item_delivery_types', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->string('name');
-            $table->string('description');
+            $table->string('name')->index();
+            $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
 
@@ -24,13 +23,13 @@ return new class extends Migration
             $table->string('code');
             $table->string('name');
             SchemaHelper::addCommonColumns($table);
-            
+
         });
 
         Schema::create('wms_item_classifications', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
 
@@ -43,9 +42,9 @@ return new class extends Migration
         Schema::create('wms_item_movements', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
-            
+
         });
 
         Schema::create('wms_item_stock_types', function (Blueprint $table) {
@@ -66,7 +65,7 @@ return new class extends Migration
             $table->string('short_name');
             $table->string('name');
             SchemaHelper::addCommonColumns($table);
-           
+
         });
 
         Schema::create('wms_item_variant_type_multipliers', function (Blueprint $table) {
@@ -85,21 +84,21 @@ return new class extends Migration
         Schema::create('wms_storage_types', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
 
         Schema::create('wms_storage_facility_plants', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
 
         Schema::create('wms_storage_warehouses', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->unsignedBigInteger('facility_id');
             SchemaHelper::addCommonColumns($table);
             $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
@@ -108,7 +107,7 @@ return new class extends Migration
         Schema::create('wms_storage_zones', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->unsignedBigInteger('facility_id');
             $table->unsignedBigInteger('warehouse_id');
             $table->unsignedBigInteger('storage_type_id');
@@ -127,7 +126,7 @@ return new class extends Migration
             $table->unsignedBigInteger('warehouse_id');
             $table->unsignedBigInteger('zone_id');
             SchemaHelper::addCommonColumns($table);
-           
+
             $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
             $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
             $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
@@ -140,7 +139,7 @@ return new class extends Migration
             $table->integer('has_layer');
             $table->unsignedBigInteger('sub_location_id');
             SchemaHelper::addCommonColumns($table);
-            
+
             $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
 
@@ -150,7 +149,7 @@ return new class extends Migration
             $table->integer('max');
             $table->unsignedBigInteger('sub_location_category_id');
             SchemaHelper::addCommonColumns($table);
-        
+
             // $table->foreign('sub_location_category_id')->references('id')->on('wms_storage_sub_location_categories');
         });
 
@@ -197,7 +196,7 @@ return new class extends Migration
         Schema::dropIfExists('wms_storage_sub_location_category_layers');
         Schema::dropIfExists('wms_storage_moving_storages');
 
-        
-  
+
+
     }
 };

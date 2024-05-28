@@ -16,7 +16,7 @@ class DeliveryTypeController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'type' => 'required|string|unique:delivery_types,type,' . $typeId,
+            'type' => 'required|string|unique:wms_item_delivery_types,type,' . $typeId,
             'description' => 'nullable|string',
         ];
     }

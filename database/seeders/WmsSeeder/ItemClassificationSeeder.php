@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Settings\Items\ItemClassificationModel;
 
 class ItemClassificationSeeder extends Seeder
 {
@@ -17,10 +17,14 @@ class ItemClassificationSeeder extends Seeder
     {
         $classifications = [
             [
-                'name' => 'Finish Goods',
+                'code' => 'CLS-FG',
+                'short_name' => 'FG',
+                'long_name' => 'Finish Goods',
             ],
             [
-                'name' => 'Raw Materials',
+                'code' => 'CLS-RM',
+                'short_name' => 'FG',
+                'long_name' => 'Raw Materials',
             ]
         ];
         $createdById = 1;
@@ -28,7 +32,8 @@ class ItemClassificationSeeder extends Seeder
         foreach ($classifications as $value) {
             ItemClassificationModel::create([
                 'created_by_id' => $createdById,
-                'name' => $value['name']
+                'code' => $value['code'],
+                'short_name' => $value['short_name']
             ]);
         }
     }

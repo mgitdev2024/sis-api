@@ -1,10 +1,10 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemDeliveryTypeModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Settings\Delivery\DeliveryTypeModel;
 
 class DeliveryTypeSeeder extends Seeder
 {
@@ -18,24 +18,24 @@ class DeliveryTypeSeeder extends Seeder
         $createdById = 1;
         $classifications = [
             [
-                'type' => '1D',
-                'description' => 'First Delivery'
+                'code' => '1D',
+                'name' => 'First Delivery'
             ],
             [
-                'type' => '2D',
-                'description' => 'Second Delivery'
+                'code' => '2D',
+                'name' => 'Second Delivery'
             ],
             [
-                'type' => '3D',
-                'description' => 'Third Delivery'
+                'code' => '3D',
+                'name' => 'Third Delivery'
             ],
         ];
 
         foreach ($classifications as $value) {
-            DeliveryTypeModel::create([
+            ItemDeliveryTypeModel::create([
                 'created_by_id' => $createdById,
-                'type' => $value['type'],
-                'description' => $value['description'],
+                'code' => $value['code'],
+                'name' => $value['name'],
             ]);
         }
     }

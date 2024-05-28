@@ -1,13 +1,13 @@
 <?php
 
-namespace Database\Seeders\MosSeeder;
+namespace Database\Seeders\WmsSeeder;
 
+use App\Models\Access\ModulePermissionModel;
 use App\Models\Access\ScmSystemModel;
-use App\Models\Access\SubModulePermissionModel;
 use Illuminate\Database\Seeder;
 use App\Models\CredentialModel;
 
-class SubModulePermissionSeeder extends Seeder
+class ModulePermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -17,13 +17,12 @@ class SubModulePermissionSeeder extends Seeder
     public function run()
     {
         $createdById = 1;
-        $createdById = 1;
         $scmSystem = [
             [
-                'module_permission_id' => 2,
-                'name' => 'Team Leader OTA',
-                'code' => 'SCM-TEM-LEA-OTA',
-                'description' => 'Submodule of Team Leader OTA',
+                'scm_system_id' => 1,
+                'name' => 'Supply Planner',
+                'code' => 'SCM-SUP-PLA',
+                'description' => 'Module for Supply Planner. Initial step for SCM-SUP-PLA',
                 'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_view' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_create' => ["0000", 5182, 5358, 6208, 6233],
@@ -31,10 +30,10 @@ class SubModulePermissionSeeder extends Seeder
                 'allow_delete' => ["0000", 5182, 5358, 6208, 6233],
             ],
             [
-                'module_permission_id' => 2,
-                'name' => 'Team Leader OTB',
-                'code' => 'SCM-TEM-PLA-OTB',
-                'description' => 'Submodule of Team Leader OTB',
+                'scm_system_id' => 1,
+                'name' => 'Team Leader',
+                'code' => 'SCM-TEM-LEA',
+                'description' => 'Module for Team Leader.',
                 'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_view' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_create' => ["0000", 5182, 5358, 6208, 6233],
@@ -42,10 +41,10 @@ class SubModulePermissionSeeder extends Seeder
                 'allow_delete' => ["0000", 5182, 5358, 6208, 6233],
             ],
             [
-                'module_permission_id' => 3,
-                'name' => 'Line Staff OTA',
-                'code' => 'SCM-LIN-STA-OTA',
-                'description' => 'Submodule of Line Staff OTA',
+                'scm_system_id' => 1,
+                'name' => 'Line Staff',
+                'code' => 'SCM-LIN-STA',
+                'description' => 'Module for Line Staff.',
                 'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_view' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_create' => ["0000", 5182, 5358, 6208, 6233],
@@ -53,10 +52,21 @@ class SubModulePermissionSeeder extends Seeder
                 'allow_delete' => ["0000", 5182, 5358, 6208, 6233],
             ],
             [
-                'module_permission_id' => 3,
-                'name' => 'Line Staff OTB',
-                'code' => 'SCM-LIN-STA-OTB',
-                'description' => 'Submodule of Line Staff OTB',
+                'scm_system_id' => 1,
+                'name' => 'Quality Assurance',
+                'code' => 'SCM-QUA-ASS',
+                'description' => 'Module for Quality Assurance.',
+                'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
+                'allow_view' => ["0000", 5182, 5358, 6208, 6233],
+                'allow_create' => ["0000", 5182, 5358, 6208, 6233],
+                'allow_update' => ["0000", 5182, 5358, 6208, 6233],
+                'allow_delete' => ["0000", 5182, 5358, 6208, 6233],
+            ],
+            [
+                'scm_system_id' => 1,
+                'name' => 'Warehouse',
+                'code' => 'SCM-WAR-HSE',
+                'description' => 'Module for Warehouse.',
                 'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_view' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_create' => ["0000", 5182, 5358, 6208, 6233],
@@ -66,16 +76,16 @@ class SubModulePermissionSeeder extends Seeder
         ];
 
         foreach ($scmSystem as $value) {
-            SubModulePermissionModel::create([
-                'module_permission_id' => $value['module_permission_id'],
+            ModulePermissionModel::create([
+                'scm_system_id' => $value['scm_system_id'],
                 'name' => $value['name'],
                 'code' => $value['code'],
-                'description' => json_encode($value['description']),
                 'is_enabled' => json_encode($value['is_enabled']),
                 'allow_view' => json_encode($value['allow_view']),
                 'allow_create' => json_encode($value['allow_create']),
                 'allow_update' => json_encode($value['allow_update']),
                 'allow_delete' => json_encode($value['allow_delete']),
+                'description' => json_encode($value['description']),
                 'created_by_id' => $createdById,
             ]);
         }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Settings\Items;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings\Items\ItemVariantTypeModel;
+use App\Models\WMS\Settings\Items\ItemVariantTypeModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 

@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Models\Settings\Items;
+namespace App\Models\WMS\Settings\ItemMasterData;
 
-use App\Models\Settings\Facility\PlantModel;
-use App\Models\WMS\Settings\ItemMasterData\Measurements\ConversionModel;
-use App\Models\Settings\Measurements\UomModel;
-use App\Models\Settings\StorageTypeModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemConversionModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
+use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
+use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\CredentialModel;
 
 class ItemMasterdataModel extends Model
 {
@@ -113,7 +114,7 @@ class ItemMasterdataModel extends Model
     }
     public function uom()
     {
-        return $this->belongsTo(UomModel::class, 'uom_id', 'id');
+        return $this->belongsTo(ItemUomModel::class, 'uom_id', 'id');
     }
     public function storageType()
     {
@@ -121,15 +122,15 @@ class ItemMasterdataModel extends Model
     }
     public function primaryConversion()
     {
-        return $this->belongsTo(ConversionModel::class, 'primary_conversion_id', 'id');
+        return $this->belongsTo(ItemConversionModel::class, 'primary_conversion_id', 'id');
     }
     public function secondaryConversion()
     {
-        return $this->belongsTo(ConversionModel::class, 'secondary_conversion_id', 'id');
+        return $this->belongsTo(ItemConversionModel::class, 'secondary_conversion_id', 'id');
     }
     public function plant()
     {
-        return $this->belongsTo(PlantModel::class, 'plant_id', 'id');
+        return $this->belongsTo(FacilityPlantModel::class, 'plant_id', 'id');
     }
     public function getItemCategoryLabelAttribute()
     {

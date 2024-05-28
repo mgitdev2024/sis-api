@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('item_masterdata', function (Blueprint $table) {
+        Schema::create('wms_item_masterdata', function (Blueprint $table) {
             $table->id();
             $table->string('item_code')->unique()->index();
             $table->string('description');
@@ -48,16 +48,16 @@ return new class extends Migration {
             $table->timestamps();
 
 
-            $table->foreign('item_category_id')->references('id')->on('item_categories')->onDelete('restrict');
-            $table->foreign('item_classification_id')->references('id')->on('item_classifications')->onDelete('restrict');
-            $table->foreign('item_variant_type_id')->references('id')->on('item_variant_types')->onDelete('restrict');
-            $table->foreign('plant_id')->references('id')->on('storage_facility_plants')->onDelete('restrict');
-            $table->foreign('uom_id')->references('id')->on('item_uoms')->onDelete('restrict');
-            $table->foreign('storage_type_id')->references('id')->on('storage_types')->onDelete('restrict');
-            $table->foreign('stock_type_id')->references('id')->on('item_stock_types')->onDelete('restrict');
-            $table->foreign('item_movement_id')->references('id')->on('item_movements')->onDelete('restrict');
-            $table->foreign('primary_conversion_id')->references('id')->on('item_conversions')->onDelete('restrict');
-            $table->foreign('secondary_conversion_id')->references('id')->on('item_conversions')->onDelete('restrict');
+            $table->foreign('item_category_id')->references('id')->on('wms_item_categories')->onDelete('restrict');
+            $table->foreign('item_classification_id')->references('id')->on('wms_item_classifications')->onDelete('restrict');
+            $table->foreign('item_variant_type_id')->references('id')->on('wms_item_variant_types')->onDelete('restrict');
+            $table->foreign('plant_id')->references('id')->on('wms_storage_facility_plants')->onDelete('restrict');
+            $table->foreign('uom_id')->references('id')->on('wms_item_uoms')->onDelete('restrict');
+            $table->foreign('storage_type_id')->references('id')->on('wms_storage_types')->onDelete('restrict');
+            $table->foreign('stock_type_id')->references('id')->on('wms_item_stock_types')->onDelete('restrict');
+            $table->foreign('item_movement_id')->references('id')->on('wms_item_movements')->onDelete('restrict');
+            $table->foreign('primary_conversion_id')->references('id')->on('wms_item_conversions')->onDelete('restrict');
+            $table->foreign('secondary_conversion_id')->references('id')->on('wms_item_conversions')->onDelete('restrict');
 
         });
     }
@@ -67,6 +67,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_masterdata');
+        Schema::dropIfExists('wms_item_masterdata');
     }
 };
