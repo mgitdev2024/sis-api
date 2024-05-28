@@ -22,7 +22,6 @@ class SubLocationController extends Controller
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
             'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
             'zone_id' => 'required|integer|exists:wms_storage_zones,id',
-
         ];
     }
     public function onCreate(Request $request)
