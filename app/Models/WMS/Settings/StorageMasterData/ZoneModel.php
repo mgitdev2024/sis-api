@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ZoneModel extends Model
 {
     use HasFactory;
-    protected $table = 'storage_zones';
+    protected $table = 'wms_storage_zones';
     protected $fillable = [
         'facility_id',
         'warehouse_id',

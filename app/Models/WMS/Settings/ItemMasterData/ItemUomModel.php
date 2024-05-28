@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemUomModel extends Model
 {
     use HasFactory;
-    protected $table = 'item_uoms';
+    protected $table = 'wms_item_uoms';
     protected $fillable = [
         'code',
         'created_by_id',

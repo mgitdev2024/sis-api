@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         #region Item Master Data Settings
-        Schema::create('item_delivery_types', function (Blueprint $table) {
+        Schema::create('wms_item_delivery_types', function (Blueprint $table) {
             $table->id();
             $table->string('code');
             $table->string('name');
@@ -19,7 +19,7 @@ return new class extends Migration
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('item_categories', function (Blueprint $table) {
+        Schema::create('wms_item_categories', function (Blueprint $table) {
             $table->id();
             $table->string('code');
             $table->string('name');
@@ -27,20 +27,20 @@ return new class extends Migration
             
         });
 
-        Schema::create('item_classifications', function (Blueprint $table) {
+        Schema::create('wms_item_classifications', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('item_conversions', function (Blueprint $table) {
+        Schema::create('wms_item_conversions', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('item_movements', function (Blueprint $table) {
+        Schema::create('wms_item_movements', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
@@ -48,19 +48,19 @@ return new class extends Migration
             
         });
 
-        Schema::create('item_stock_types', function (Blueprint $table) {
+        Schema::create('wms_item_stock_types', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('item_uoms', function (Blueprint $table) {
+        Schema::create('wms_item_uoms', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('item_variant_types', function (Blueprint $table) {
+        Schema::create('wms_item_variant_types', function (Blueprint $table) {
             $table->id();
             $table->string('code');
             $table->string('short_name');
@@ -69,42 +69,43 @@ return new class extends Migration
            
         });
 
-        Schema::create('item_variant_type_multipliers', function (Blueprint $table) {
+        Schema::create('wms_item_variant_type_multipliers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('item_variant_type_id');
             $table->integer('multiplier');
             SchemaHelper::addCommonColumns($table);
-            $table->foreign('item_variant_type_id')->references('id')->on('item_variant_types');
+            $table->foreign('item_variant_type_id')->references('id')->on('wms_item_variant_types');
         });
+
 
         #endregion
 
         #region Storage Master Data
 
-        Schema::create('storage_types', function (Blueprint $table) {
+        Schema::create('wms_storage_types', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('storage_facility_plants', function (Blueprint $table) {
+        Schema::create('wms_storage_facility_plants', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('storage_warehouses', function (Blueprint $table) {
+        Schema::create('wms_storage_warehouses', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
             $table->unsignedBigInteger('facility_id');
             SchemaHelper::addCommonColumns($table);
-            $table->foreign('facility_id')->references('id')->on('storage_facility_plants');
+            $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
         });
 
-        Schema::create('storage_zones', function (Blueprint $table) {
+        Schema::create('wms_storage_zones', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->string('description');
@@ -113,12 +114,12 @@ return new class extends Migration
             $table->unsignedBigInteger('storage_type_id');
             SchemaHelper::addCommonColumns($table);
 
-            $table->foreign('facility_id')->references('id')->on('storage_facility_plants');
-            $table->foreign('warehouse_id')->references('id')->on('storage_warehouses');
-            $table->foreign('storage_type_id')->references('id')->on('storage_types');
+            $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
+            $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
+            $table->foreign('storage_type_id')->references('id')->on('wms_storage_types');
         });
 
-        Schema::create('storage_sub_locations', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_locations', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->integer('qty');
@@ -127,12 +128,12 @@ return new class extends Migration
             $table->unsignedBigInteger('zone_id');
             SchemaHelper::addCommonColumns($table);
            
-            $table->foreign('facility_id')->references('id')->on('storage_facility_plants');
-            $table->foreign('warehouse_id')->references('id')->on('storage_warehouses');
-            $table->foreign('zone_id')->references('id')->on('storage_zones');
+            $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
+            $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
+            $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
         });
 
-        Schema::create('storage_sub_location_categories', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_location_categories', function (Blueprint $table) {
             $table->id();
             $table->string('code');
             $table->integer('number');
@@ -140,20 +141,20 @@ return new class extends Migration
             $table->unsignedBigInteger('sub_location_id');
             SchemaHelper::addCommonColumns($table);
             
-            $table->foreign('sub_location_id')->references('id')->on('storage_sub_locations');
+            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
 
-        Schema::create('storage_sub_location_category_layers', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_location_category_layers', function (Blueprint $table) {
             $table->id();
             $table->integer('min');
             $table->integer('max');
             $table->unsignedBigInteger('sub_location_category_id');
             SchemaHelper::addCommonColumns($table);
         
-            // $table->foreign('sub_location_category_id')->references('id')->on('storage_sub_location_categories');
+            // $table->foreign('sub_location_category_id')->references('id')->on('wms_storage_sub_location_categories');
         });
 
-        Schema::create('storage_moving_storages', function (Blueprint $table) {
+        Schema::create('wms_storage_moving_storages', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->unsignedBigInteger('facility_id');
@@ -161,10 +162,10 @@ return new class extends Migration
             $table->unsignedBigInteger('zone_id');
             $table->unsignedBigInteger('sub_location_category_id');
             SchemaHelper::addCommonColumns($table);
-            $table->foreign('facility_id')->references('id')->on('storage_facility_plants');
-            $table->foreign('warehouse_id')->references('id')->on('storage_warehouses');
-            $table->foreign('zone_id')->references('id')->on('storage_zones');
-            $table->foreign('sub_location_category_id')->references('id')->on('storage_sub_location_categories');
+            $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
+            $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
+            $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
+            $table->foreign('sub_location_category_id')->references('id')->on('wms_storage_sub_location_categories');
         });
 
         #endregion
@@ -176,25 +177,25 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_categories');
-        Schema::dropIfExists('item_classifications');
-        Schema::dropIfExists('item_conversions');
-        Schema::dropIfExists('item_movements');
-        Schema::dropIfExists('item_stock_types');
-        Schema::dropIfExists('item_uoms');
-        Schema::dropIfExists('item_variant_types');
-        Schema::dropIfExists('item_variant_type_multipliers');
-        Schema::dropIfExists('item_delivery_types');
+        Schema::dropIfExists('wms_item_categories');
+        Schema::dropIfExists('wms_item_classifications');
+        Schema::dropIfExists('wms_item_conversions');
+        Schema::dropIfExists('wms_item_movements');
+        Schema::dropIfExists('wms_item_stock_types');
+        Schema::dropIfExists('wms_item_uoms');
+        Schema::dropIfExists('wms_item_variant_types');
+        Schema::dropIfExists('wms_item_variant_type_multipliers');
+        Schema::dropIfExists('wms_item_delivery_types');
 
 
-        Schema::dropIfExists('storage_types');
-        Schema::dropIfExists('storage_facility_plants');
-        Schema::dropIfExists('storage_warehouses');
-        Schema::dropIfExists('storage_zones');
-        Schema::dropIfExists('storage_sub_locations');
-        Schema::dropIfExists('storage_sub_location_categories');
-        Schema::dropIfExists('storage_sub_location_category_layers');
-        Schema::dropIfExists('storage_moving_storages');
+        Schema::dropIfExists('wms_storage_types');
+        Schema::dropIfExists('wms_storage_facility_plants');
+        Schema::dropIfExists('wms_storage_warehouses');
+        Schema::dropIfExists('wms_storage_zones');
+        Schema::dropIfExists('wms_storage_sub_locations');
+        Schema::dropIfExists('wms_storage_sub_location_categories');
+        Schema::dropIfExists('wms_storage_sub_location_category_layers');
+        Schema::dropIfExists('wms_storage_moving_storages');
 
         
   

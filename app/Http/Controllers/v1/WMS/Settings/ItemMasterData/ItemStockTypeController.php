@@ -15,9 +15,9 @@ class ItemStockTypeController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:item_stock_types,code,' . $itemId,
-            'short_name' => 'required|string|unique:item_stock_types,short_name,' . $itemId,
-            'long_name' => 'required|string|unique:item_stock_types,long_name,' . $itemId,
+            'code' => 'required|string|unique:wms_item_stock_types,code,' . $itemId,
+            'short_name' => 'required|string|unique:wms_item_stock_types,short_name,' . $itemId,
+            'long_name' => 'required|string|unique:wms_item_stock_types,long_name,' . $itemId,
         ];
     }
     public function onCreate(Request $request)

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SubLocationCategoryLayerModel extends Model
 {
     use HasFactory;
-    protected $table = 'storage_sub_location_category_layers';
+    protected $table = 'wms_storage_sub_location_category_layers';
     protected $fillable = [
         'sub_location_category_id',
         'min',

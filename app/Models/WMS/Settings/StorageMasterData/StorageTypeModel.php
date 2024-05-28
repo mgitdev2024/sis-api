@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class StorageTypeModel extends Model
 {
     use HasFactory;
-    protected $table = 'storage_types';
+    protected $table = 'wms_storage_types';
     protected $fillable = [
         'code',
         'short_name',

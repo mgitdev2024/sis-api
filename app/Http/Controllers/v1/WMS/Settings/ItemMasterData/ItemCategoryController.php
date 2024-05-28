@@ -15,8 +15,8 @@ class ItemCategoryController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'name' => 'required|string|unique:item_categories,name,' . $itemId,
-            'code' => 'required|string|unique:item_categories,code,' . $itemId,
+            'name' => 'required|string|unique:wms_item_categories,name,' . $itemId,
+            'code' => 'required|string|unique:wms_item_categories,code,' . $itemId,
         ];
     }
     public function onCreate(Request $request)

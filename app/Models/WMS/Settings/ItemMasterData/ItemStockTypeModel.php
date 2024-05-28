@@ -9,7 +9,7 @@ class ItemStockTypeModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'item_stock_types';
+    protected $table = 'wms_item_stock_types';
     protected $fillable = [
         'code',
         'short_name',
