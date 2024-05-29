@@ -33,7 +33,7 @@ class SubModulePermissionSeeder extends Seeder
             [
                 'module_permission_id' => 2,
                 'name' => 'Team Leader OTB',
-                'code' => 'SCM-TEM-PLA-OTB',
+                'code' => 'SCM-TEM-LEA-OTB',
                 'description' => 'Submodule of Team Leader OTB',
                 'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
                 'allow_view' => ["0000", 5182, 5358, 6208, 6233],
