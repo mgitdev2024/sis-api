@@ -12,8 +12,8 @@ return new class extends Migration {
         #region Item Master Data Settings
         Schema::create('wms_item_delivery_types', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
-            $table->string('name')->index();
+            $table->string('code')->index();
+            $table->string('name');
             $table->string('description')->nullable();
             SchemaHelper::addCommonColumns($table);
         });

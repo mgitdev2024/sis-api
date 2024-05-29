@@ -2,7 +2,7 @@
 
 namespace App\Models\History;
 
-use App\Models\Productions\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +18,7 @@ class PrintHistoryModel extends Model
         'attachment',
         'is_reprint',
         'item_disposition_id',
+        'created_by_id',
     ];
 
     public function productionBatch()

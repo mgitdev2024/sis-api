@@ -17,4 +17,9 @@ class ItemVariantTypeModel extends Model
         'updated_by_id',
         'status'
     ];
+
+    public function stickerMultiplier()
+    {
+        return $this->belongsTo(ItemVariantTypeMultiplierModel::class, 'id', 'item_variant_type_id');
+    }
 }

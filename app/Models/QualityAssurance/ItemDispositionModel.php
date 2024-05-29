@@ -2,7 +2,7 @@
 
 namespace App\Models\QualityAssurance;
 
-use App\Models\Productions\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

@@ -55,7 +55,7 @@ return new class extends Migration {
 
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
-            $table->foreign('delivery_type')->references('name')->on('wms_item_delivery_types');
+            $table->foreign('delivery_type')->references('code')->on('wms_item_delivery_types');
 
         });
 
@@ -64,7 +64,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('production_otb_id')->nullable();
             $table->unsignedBigInteger('production_ota_id')->nullable();
             $table->unsignedBigInteger('production_order_id');
-            $table->unsignedBigInteger('produced_item_id')->nullable();
+            $table->unsignedBigInteger('production_item_id')->nullable();
             $table->string('batch_code');
             $table->integer('batch_number');
             $table->tinyInteger('batch_type');

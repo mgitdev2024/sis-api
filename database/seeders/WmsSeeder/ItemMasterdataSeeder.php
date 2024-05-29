@@ -4,7 +4,7 @@ namespace Database\Seeders\WmsSeeder;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Settings\Items\ItemMasterdataModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 
 class ItemMasterdataSeeder extends Seeder
 {
