@@ -113,23 +113,24 @@ class AccessManagementController extends Controller
         try {
             $modulePermissionList = ModulePermissionModel::with('subModulePermissions')->get();
             $permissionList = [];
+
             foreach ($modulePermissionList as $module) {
                 $subModuleArr = [];
+
                 foreach ($module->subModulePermissions as $subModule) {
-                    $subModuleContainer[$subModule['code']] = [
+                    $subModuleArr[$subModule['code']] = [
                         'name' => $subModule['name'],
                         'is_enabled' => $this->onIsEnabled($subModule['is_enabled'], $id),
                     ];
-                    $subModuleArr[] = $subModuleContainer;
                 }
 
-                $moduleArr[$module['code']] = [
+                $permissionList[$module['code']] = [
                     'name' => $module['name'],
                     'is_enabled' => $this->onIsEnabled($module['is_enabled'], $id),
                     'submodules' => $subModuleArr
                 ];
-                $permissionList = $moduleArr;
             }
+
             return $this->dataResponse('success', 200, __('msg.record_found'), $permissionList);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
