@@ -32,7 +32,7 @@ class AccessManagementController extends Controller
             ])
                 ->where('code', $fields['code'])
                 ->first();
-            return $this->dataResponse('success', 200, $checkAccess);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $checkAccess);
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
@@ -66,7 +66,7 @@ class AccessManagementController extends Controller
                 $permissionTable->$action = json_encode($access);
                 $permissionTable->save();
                 DB::commit();
-                return $this->dataResponse('success', 200, $permissionTable);
+                return $this->dataResponse('success', 200, __('msg.update_success'), $permissionTable);
             }
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         } catch (Exception $exception) {
@@ -98,7 +98,7 @@ class AccessManagementController extends Controller
                 $permissionTable->save();
                 DB::commit();
 
-                return $this->dataResponse('success', 200, $permissionTable);
+                return $this->dataResponse('success', 200, __('msg.update_success'), $permissionTable);
             }
 
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
@@ -130,7 +130,7 @@ class AccessManagementController extends Controller
                 ];
                 $permissionList = $moduleArr;
             }
-            return $this->dataResponse('success', 200, $permissionList);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $permissionList);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
