@@ -5,7 +5,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\Productions\ProductionOTBModel;
+use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
