@@ -14,7 +14,7 @@ class Authenticate extends Middleware
     use ResponseTrait;
     protected function unauthenticated($request, array $guards)
     {
-        abort($this->dataResponse('error', 401, 'Action Prohibited. ✨'));
+        abort($this->dataResponse('error', 401, 'Unauthenticated.'));
     }
     protected function redirectTo(Request $request): ?string
     {
