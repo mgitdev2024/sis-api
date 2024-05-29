@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionWarehouseLogModel extends Model
 {
     use HasFactory;
-    protected $table = 'production_warehouse_logs';
+    protected $table = 'wms_warehouse_logs';
     protected $fillable = [
         'entity_model',
         'reference_model',
