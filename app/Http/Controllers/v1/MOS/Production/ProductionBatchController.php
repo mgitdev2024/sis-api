@@ -140,7 +140,7 @@ class ProductionBatchController extends Controller
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
-                'mos_production_batches' => $productionBatch,
+                'production_batch' => $productionBatch,
                 'production_item' => $addedProducedItem,
             ];
             return $data;
@@ -211,7 +211,7 @@ class ProductionBatchController extends Controller
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
             $data = [
                 'item_name' => $itemName->description,
-                'mos_production_batches' => $productionBatch,
+                'production_batch' => $productionBatch,
                 'production_item' => $this->onGenerateProducedItems(
                     $productionBatch,
                     $fields['batch_type'],
