@@ -22,7 +22,7 @@ class ProductionOTAController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'production_order_id' => 'required|exists:production_orders,id',
+            'production_order_id' => 'required|exists:mos_production_orders,id',
             'buffer_level' => 'required|integer',
             'item_code' => 'required',
             'requested_quantity' => 'required',
@@ -175,7 +175,7 @@ class ProductionOTAController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['mos_production_batches']['id']
                     ];
                 }
 

@@ -36,7 +36,7 @@ class ArchivedBatchesController extends Controller
         try {
             DB::beginTransaction();
             $productionBatch = ProductionBatchModel::find($id);
-            $producedItems = $productionBatch->producedItem;
+            $producedItems = $productionBatch->productionItems;
             $record = new ArchivedBatchesModel();
             $record->fill($fields);
             $record->production_order_id = $productionBatch->productionOrder->id;

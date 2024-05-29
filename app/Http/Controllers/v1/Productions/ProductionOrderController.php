@@ -22,7 +22,7 @@ class ProductionOrderController extends Controller
     {
         return [
             'created_by_id' => 'required',
-            'reference_number' => 'required|string|unique:production_orders,reference_number,' . $orderId,
+            'reference_number' => 'required|string|unique:mos_production_orders,reference_number,' . $orderId,
             'production_date' => 'required|date_format:Y-m-d',
         ];
     }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ArchivedBatchesModel extends Model
 {
     use HasFactory;
-    protected $table = 'archived_batches';
+    protected $table = 'mos_production_archived_batches';
     protected $fillable = [
         'production_order_id',
         'batch_number',

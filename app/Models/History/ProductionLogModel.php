@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionLogModel extends Model
 {
     use HasFactory;
-    protected $table = 'production_logs';
+    protected $table = 'mos_production_logs';
     protected $fillable = [
         'entity_model',
         'entity_id',

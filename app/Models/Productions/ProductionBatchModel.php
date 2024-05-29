@@ -10,7 +10,7 @@ class ProductionBatchModel extends Model
 {
     use HasFactory;
     protected $appends = ['batch_type_label', 'production_ota_label', 'production_otb_label'];
-    protected $table = 'production_batch';
+    protected $table = 'mos_production_batches';
     protected $fillable = [
         'production_otb_id',
         'production_ota_id',
@@ -47,7 +47,7 @@ class ProductionBatchModel extends Model
         return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
     }
 
-    public function producedItem()
+    public function productionItems()
     {
         return $this->belongsTo(ProducedItemModel::class, 'produced_item_id');
     }

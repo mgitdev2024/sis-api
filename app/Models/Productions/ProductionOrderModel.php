@@ -10,7 +10,7 @@ class ProductionOrderModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'production_orders';
+    protected $table = 'mos_production_orders';
     protected $fillable = [
         'reference_number',
         'production_date',

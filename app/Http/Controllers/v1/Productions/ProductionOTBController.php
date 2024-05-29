@@ -19,7 +19,7 @@ class ProductionOTBController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'production_order_id' => 'required|exists:production_orders,id',
+            'production_order_id' => 'required|exists:mos_production_orders,id',
             'item_code' => 'required|string',
             'production_date' => 'required|date_format:Y-m-d',
         ];

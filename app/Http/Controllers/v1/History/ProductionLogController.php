@@ -43,7 +43,7 @@ class ProductionLogController extends Controller
             'item_key' => 'nullable',
         ]);
 
-        $query = \DB::table('production_logs');
+        $query = \DB::table('mos_production_logs');
 
         if (isset($fields['entity_id'])) {
             $query->where('entity_id', $fields['entity_id'])

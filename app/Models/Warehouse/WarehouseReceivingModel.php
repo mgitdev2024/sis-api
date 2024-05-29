@@ -10,7 +10,7 @@ class WarehouseReceivingModel extends Model
 {
 
     use HasFactory;
-    protected $table = 'warehouse_receiving';
+    protected $table = 'wms_warehouse_receiving';
     protected $fillable = [
         'reference_number',
         'production_order_id',

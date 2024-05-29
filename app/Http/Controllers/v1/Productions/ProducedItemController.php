@@ -83,8 +83,8 @@ class ProducedItemController extends Controller
             }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
-                $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
-                $productionType = $productionBatch->producedItem->production_type;
+                $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
+                $productionType = $productionBatch->productionItems->production_type;
                 if ($statusId == 2) {
                     $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
@@ -111,9 +111,9 @@ class ProducedItemController extends Controller
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
-            $producedItemModel = $productionBatch->producedItem;
-            $producedItem = $producedItemModel->produced_items;
-            $producedItemArray = json_decode($producedItem, true);
+            $producedItemModel = $productionBatch->productionItems;
+            $productionItems = $producedItemModel->produced_items;
+            $producedItemArray = json_decode($productionItems, true);
 
             foreach ($scannedItem as $value) {
                 $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
@@ -195,7 +195,7 @@ class ProducedItemController extends Controller
     public function onUpdateOtherStatus($productionBatch, $statusId, $itemKey, $createdById)
     {
         try {
-            $producedItemModel = $productionBatch->producedItem;
+            $producedItemModel = $productionBatch->productionItems;
             $producedItems = json_decode($producedItemModel->produced_items, true);
             if ($producedItems[$itemKey]['sticker_status'] != 0) {
                 $producedItems[$itemKey]['status'] = $statusId;
@@ -220,13 +220,13 @@ class ProducedItemController extends Controller
     public function onCheckItemStatus($id, $item_key)
     {
         try {
-            $producedItem = ProducedItemModel::where('production_batch_id', $id)->first();
-            if ($producedItem) {
-                $item = json_decode($producedItem->produced_items, true)[$item_key];
+            $productionItems = ProducedItemModel::where('production_batch_id', $id)->first();
+            if ($productionItems) {
+                $item = json_decode($productionItems->produced_items, true)[$item_key];
                 $data = [
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
-                    'production_order_status' => $producedItem->productionBatch->productionOrder->status
+                    'production_order_status' => $productionItems->productionBatch->productionOrder->status
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
@@ -252,7 +252,7 @@ class ProducedItemController extends Controller
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
-                $producedItems = json_decode($productionBatch->producedItem->produced_items, true);
+                $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
                 $inclusionArray = [0, 8];
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
@@ -261,7 +261,7 @@ class ProducedItemController extends Controller
                 } else {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,
-                        'produced_item_id' => $productionBatch->producedItem->id,
+                        'produced_item_id' => $productionBatch->productionItems->id,
                         'batch_id' => $currentBatchId,
                         'batch_number' => $batchNumber,
                         'sticker_no' => $currentStickerNo,

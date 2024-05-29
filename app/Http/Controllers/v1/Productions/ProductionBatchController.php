@@ -23,9 +23,9 @@ class ProductionBatchController extends Controller
     public static function onGetRules()
     {
         return [
-            'production_batch_id' => 'nullable|integer|exists:production_batch,id',
-            'production_ota_id' => 'nullable|exists:production_ota,id',
-            'production_otb_id' => 'nullable|exists:production_otb,id',
+            'production_batch_id' => 'nullable|integer|exists:mos_production_batches,id',
+            'production_ota_id' => 'nullable|exists:mos_production_otas,id',
+            'production_otb_id' => 'nullable|exists:mos_production_otbs,id',
             'batch_type' => 'required|integer|in:0,1',
             'endorsed_by_qa' => 'required|integer|in:0,1',
             'item_disposition_id' => 'required_if:endorsed_by_qa,1|integer',
@@ -140,7 +140,7 @@ class ProductionBatchController extends Controller
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
-                'production_batch' => $productionBatch,
+                'mos_production_batches' => $productionBatch,
                 'production_item' => $addedProducedItem,
             ];
             return $data;
@@ -211,7 +211,7 @@ class ProductionBatchController extends Controller
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
             $data = [
                 'item_name' => $itemName->description,
-                'production_batch' => $productionBatch,
+                'mos_production_batches' => $productionBatch,
                 'production_item' => $this->onGenerateProducedItems(
                     $productionBatch,
                     $fields['batch_type'],
@@ -347,7 +347,7 @@ class ProductionBatchController extends Controller
             foreach ($result as $value) {
                 $activeStickers = 0;
                 $inactiveStickers = 0;
-                $producedItems = json_decode($value->producedItem->produced_items, true);
+                $producedItems = json_decode($value->productionItems->produced_items, true);
                 foreach ($producedItems as $key => $items) {
                     if ($items['sticker_status'] == 1) {
                         ++$activeStickers;

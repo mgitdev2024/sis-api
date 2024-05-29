@@ -6,10 +6,11 @@ use App\Models\Productions\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 class PrintHistoryModel extends Model
 {
     use HasFactory;
-    protected $table = 'print_history';
+    protected $table = 'mos_production_print_histories';
     protected $fillable = [
         'production_batch_id',
         'produced_items',

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductionOTBModel extends Model
 {
     use HasFactory;
-    protected $table = 'production_otb';
+    protected $table = 'mos_production_otbs';
     protected $appends = ['production_label', 'item_category_label'];
     protected $fillable = [
         'production_order_id',
