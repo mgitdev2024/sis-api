@@ -222,7 +222,7 @@ trait CrudOperationsTrait
             DB::commit();
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
         } catch (Exception $exception) {
-            DB::beginTransaction();
+            DB::rollback();
             if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
                 preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
                 return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
