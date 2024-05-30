@@ -143,4 +143,63 @@ class AccessManagementController extends Controller
 
         return in_array($id, $isEnabled);
     }
+
+    public function onBulkUpload(Request $request)
+    {
+        $fields = $request->validate([
+            'bulk_data' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $bulkData = json_decode($fields['bulk_data'], true);
+
+            foreach ($bulkData as $key => $value) {
+                $empno = $value['emp_no'];
+                $moduleType = $value['type'];
+                $moduleCode = $value['module_code'];
+                $allowView = $value['allow_view'];
+                $allowCreate = $value['allow_create'];
+                $allowUpdate = $value['allow_update'];
+                $allowDelete = $value['allow_delete'];
+
+                $this->checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete);
+                return $this->dataResponse('success', 201, 'User Access ' . __('msg.create_success'));
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
+                preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
+                return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
+            }
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete)
+    {
+        $moduleSubPermission = strcasecmp($moduleType, 'module') == 0 ? ModulePermissionModel::class : SubModulePermissionModel::class;
+        $module = $moduleSubPermission::where('code', $moduleCode)->first();
+
+        if ($module) {
+            $fields = ['allow_view' => $allowView, 'allow_create' => $allowCreate, 'allow_update' => $allowUpdate, 'allow_delete' => $allowDelete];
+            $updateNeeded = false;
+
+            foreach ($fields as $field => $value) {
+                if ($value != "") {
+                    $empArray = json_decode($module->$field, true) ?? [];
+                    if (!in_array($empno, $empArray)) {
+                        $empArray[] = $empno;
+                        $module->$field = json_encode($empArray);
+                        $updateNeeded = true;
+                    }
+                }
+            }
+
+            if ($updateNeeded) {
+                $module->save();
+            }
+        }
+    }
+
 }
