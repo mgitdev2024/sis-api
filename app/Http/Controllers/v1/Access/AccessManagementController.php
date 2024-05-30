@@ -195,7 +195,6 @@ class AccessManagementController extends Controller
                 foreach ($fields as $field => $value) {
                     if ($value != "" || $value != null) {
                         $empArray = json_decode($module->$field, true) ?? [];
-                        \Log::info($empno);
                         if (!in_array($empno, $empArray)) {
                             $empArray[] = $empno;
                             $module->$field = json_encode($empArray);
@@ -204,7 +203,6 @@ class AccessManagementController extends Controller
                     }
                 }
 
-                // Check and update is_enabled field
                 $isEnabledArray = json_decode($module->is_enabled, true) ?? [];
                 $hasAccess = ($allowView !== "") || ($allowCreate !== "") || ($allowUpdate !== "") || ($allowDelete !== "");
 
