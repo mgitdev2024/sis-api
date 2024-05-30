@@ -163,9 +163,11 @@ class AccessManagementController extends Controller
                 $allowDelete = $value['allow_delete'];
 
                 $this->checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete);
-                return $this->dataResponse('success', 201, 'User Access ' . __('msg.create_success'));
             }
             DB::commit();
+
+            return $this->dataResponse('success', 201, 'User Access ' . __('msg.create_success'));
+
         } catch (Exception $exception) {
             DB::rollBack();
             if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
@@ -178,28 +180,50 @@ class AccessManagementController extends Controller
 
     public function checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete)
     {
-        $moduleSubPermission = strcasecmp($moduleType, 'module') == 0 ? ModulePermissionModel::class : SubModulePermissionModel::class;
-        $module = $moduleSubPermission::where('code', $moduleCode)->first();
+        try {
+            $moduleSubPermission = strcasecmp($moduleType, 'module') == 0 ? ModulePermissionModel::class : SubModulePermissionModel::class;
+            $module = $moduleSubPermission::where('code', $moduleCode)->first();
+            if ($module) {
+                $fields = [
+                    'allow_view' => $allowView,
+                    'allow_create' => $allowCreate,
+                    'allow_update' => $allowUpdate,
+                    'allow_delete' => $allowDelete
+                ];
+                $updateNeeded = false;
 
-        if ($module) {
-            $fields = ['allow_view' => $allowView, 'allow_create' => $allowCreate, 'allow_update' => $allowUpdate, 'allow_delete' => $allowDelete];
-            $updateNeeded = false;
-
-            foreach ($fields as $field => $value) {
-                if ($value != "") {
-                    $empArray = json_decode($module->$field, true) ?? [];
-                    if (!in_array($empno, $empArray)) {
-                        $empArray[] = $empno;
-                        $module->$field = json_encode($empArray);
-                        $updateNeeded = true;
+                foreach ($fields as $field => $value) {
+                    if ($value != "" || $value != null) {
+                        $empArray = json_decode($module->$field, true) ?? [];
+                        \Log::info($empno);
+                        if (!in_array($empno, $empArray)) {
+                            $empArray[] = $empno;
+                            $module->$field = json_encode($empArray);
+                            $updateNeeded = true;
+                        }
                     }
                 }
-            }
 
-            if ($updateNeeded) {
-                $module->save();
+                // Check and update is_enabled field
+                $isEnabledArray = json_decode($module->is_enabled, true) ?? [];
+                $hasAccess = ($allowView !== "") || ($allowCreate !== "") || ($allowUpdate !== "") || ($allowDelete !== "");
+
+                if ($hasAccess && !in_array($empno, $isEnabledArray)) {
+                    $isEnabledArray[] = $empno;
+                    $module->is_enabled = json_encode($isEnabledArray);
+                    $updateNeeded = true;
+                }
+
+                if ($updateNeeded) {
+                    $module->save();
+                }
             }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
         }
+
     }
+
+
 
 }
