@@ -39,7 +39,11 @@ class ZoneController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ZoneModel::class, 'Zone');
+        return $this->readRecord(ZoneModel::class, 'Zone',['storage_type','warehouse']);
+    }
+    public function onGetChildByParentId($id = null)
+    {
+        return $this->readRecordByParentId(ZoneModel::class, 'Zone', 'warehouse_id', $id);
     }
     public function onGetById($id)
     {

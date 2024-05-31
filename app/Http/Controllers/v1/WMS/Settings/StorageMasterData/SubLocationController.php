@@ -18,7 +18,6 @@ class SubLocationController extends Controller
             'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
             'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
             'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
-            'qty' => 'integer|nullable',
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
             'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
             'zone_id' => 'required|integer|exists:wms_storage_zones,id',
@@ -39,7 +38,11 @@ class SubLocationController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationModel::class, 'Sub Location');
+        return $this->readRecord(SubLocationModel::class, 'Sub Location',['facility','warehouse','zone']);
+    }
+    public function onGetChildByParentId($id = null)
+    {
+        return $this->readRecordByParentId(SubLocationModel::class, 'Sub Location', 'zone_id', $id);
     }
     public function onGetById($id)
     {

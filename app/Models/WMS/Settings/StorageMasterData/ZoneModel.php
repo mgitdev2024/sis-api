@@ -21,9 +21,13 @@ class ZoneModel extends Model
         'updated_by_id',
         'status'
     ];
-    public function facilty()
+    public function storage_type()
     {
-        return $this->belongsTo(FacilityPlantModel::class,'facility_id', 'id');
+        return $this->belongsTo(StorageTypeModel::class,'storage_type_id', 'id');
+    }
+    public function warehouse()
+    {
+        return $this->belongsTo(WarehouseModel::class,'warehouse_id', 'id');
     }
 
 }

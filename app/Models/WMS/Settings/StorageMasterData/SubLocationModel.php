@@ -17,9 +17,21 @@ class SubLocationModel extends Model
         'code',
         'short_name',
         'long_name',
-        'qty',
         'created_by_id',
         'updated_by_id',
         'status'
     ];
+
+    public function facility()
+    {
+        return $this->belongsTo(FacilityPlantModel::class,'facility_id', 'id');
+    }
+    public function warehouse()
+    {
+        return $this->belongsTo(WarehouseModel::class,'warehouse_id', 'id');
+    }
+    public function zone()
+    {
+        return $this->belongsTo(ZoneModel::class,'zone_id', 'id');
+    }
 }
