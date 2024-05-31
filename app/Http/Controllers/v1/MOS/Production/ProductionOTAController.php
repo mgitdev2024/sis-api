@@ -175,7 +175,7 @@ class ProductionOTAController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['mos_production_batches']['id']
+                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
                     ];
                 }
 
