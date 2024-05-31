@@ -34,7 +34,8 @@ class ItemVariantTypeMultiplierController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(ItemVariantTypeMultiplierModel::class, 'Item Variant Type Multiplier');
+        $withField = 'variantType';
+        return $this->readRecord(ItemVariantTypeMultiplierModel::class, 'Item Variant Type Multiplier', $withField);
     }
     public function onGetById($id)
     {

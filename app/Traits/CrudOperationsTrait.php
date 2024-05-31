@@ -96,10 +96,16 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName)
+    public function readRecord($model, $modelName, $withField = null)
     {
         try {
-            $dataList = $model::get();
+            $dataList = $model::query();
+
+            if ($withField != null) {
+                $dataList = $dataList->with($withField);
+            }
+
+            $dataList = $dataList->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -108,13 +114,20 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName)
+    public function readRecordById($model, $id, $modelName, $withField = null)
     {
         try {
-            $data = $model::find($id);
+            $query = $model::query();
+
+            if ($withField != null) {
+                $query = $query->with($withField);
+            }
+
+            $data = $query->find($id);
             if ($data) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
+
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
@@ -239,7 +252,7 @@ trait CrudOperationsTrait
             DB::commit();
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
         } catch (Exception $exception) {
-            DB::beginTransaction();
+            DB::rollback();
             if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
                 preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
                 return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
