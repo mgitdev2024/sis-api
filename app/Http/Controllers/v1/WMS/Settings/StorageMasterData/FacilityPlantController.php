@@ -38,6 +38,7 @@ class FacilityPlantController extends Controller
     {
         return $this->readRecord(FacilityPlantModel::class, 'Facility Plant');
     }
+   
     public function onGetById($id)
     {
         return $this->readRecordById(FacilityPlantModel::class, $id, 'Facility Plant');

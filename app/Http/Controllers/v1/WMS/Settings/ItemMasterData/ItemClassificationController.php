@@ -17,7 +17,7 @@ class ItemClassificationController extends Controller
             'updated_by_id' => 'nullable',
             'code' => 'required|string|unique:wms_item_classifications,code,' . $itemId,
             'short_name' => 'required|string|unique:wms_item_classifications,short_name,' . $itemId,
-            'long_name' => 'required|string|unique:wms_item_classifications,long_name,' . $itemId,
+            'long_name' => 'nullable|string|unique:wms_item_classifications,long_name,' . $itemId,
             'description' => 'string|nullable',
         ];
     }

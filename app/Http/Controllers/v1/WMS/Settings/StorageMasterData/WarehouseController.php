@@ -39,6 +39,10 @@ class WarehouseController extends Controller
     {
         return $this->readRecord(WarehouseModel::class, 'Warehouse');
     }
+    public function onGetChildByParentId($id = null)
+    {
+        return $this->readRecordByParentId(WarehouseModel::class, 'Warehouse', 'facility_id', $id);
+    }
     public function onGetById($id)
     {
         return $this->readRecordById(WarehouseModel::class, $id, 'Warehouse');

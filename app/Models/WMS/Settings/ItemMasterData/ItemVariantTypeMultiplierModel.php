@@ -16,4 +16,20 @@ class ItemVariantTypeMultiplierModel extends Model
         'updated_by_id',
         'status'
     ];
+    public function variantType()
+    {
+        return $this->belongsTo(ItemVariantTypeModel::class,'item_variant_type_id','id');
+    }
+
+    /*     
+        protected $appends = ['variant_type_label'];
+
+    public function variantType()
+        {
+            return $this->belongsTo(ItemVariantTypeModel::class,'item_variant_type_id');
+        }
+        public function getVariantTypeLabelAttribute()
+        {
+            return $this->variantType ? $this->variantType->name : null;
+        } */
 }

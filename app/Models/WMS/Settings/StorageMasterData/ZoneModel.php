@@ -21,4 +21,9 @@ class ZoneModel extends Model
         'updated_by_id',
         'status'
     ];
+    public function facilty()
+    {
+        return $this->belongsTo(FacilityPlantModel::class,'facility_id', 'id');
+    }
+
 }

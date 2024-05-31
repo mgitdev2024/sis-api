@@ -19,4 +19,15 @@ class WarehouseModel extends Model
         'updated_by_id',
         'status'
     ];
+    protected $appends = ['facility_label'];
+    public function facilty()
+    {
+        return $this->belongsTo(FacilityPlantModel::class,'facility_id', 'id');
+    }
+
+    public function getFacilityLabelAttribute()
+    {
+        return $this->facilty ? $this->facilty->long_name : null;
+    }
+
 }
