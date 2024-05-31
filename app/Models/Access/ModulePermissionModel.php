@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ModulePermissionModel extends Model
 {
     use HasFactory;
-    protected $table = 'module_permissions';
+    protected $table = 'access_module_permissions';
     protected $fillable = [
         'scm_system_id',
         'name',

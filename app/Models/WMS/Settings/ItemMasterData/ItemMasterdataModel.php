@@ -160,8 +160,8 @@ class ItemMasterdataModel extends Model
 
         if ($primaryConversion !== null) {
             $data = [
-                'short_name' => $primaryConversion->conversion_short_name,
-                'long_name' => $primaryConversion->conversion_long_name,
+                'short_name' => $primaryConversion->short_name,
+                'long_name' => $primaryConversion->long_name,
             ];
             return $data;
         } else {
@@ -175,8 +175,8 @@ class ItemMasterdataModel extends Model
 
         if ($secondaryConversion !== null) {
             $data = [
-                'short_name' => $secondaryConversion->conversion_short_name,
-                'long_name' => $secondaryConversion->conversion_long_name,
+                'short_name' => $secondaryConversion->short_name,
+                'long_name' => $secondaryConversion->long_name,
             ];
             return $data;
         } else {

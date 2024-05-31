@@ -96,10 +96,16 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName)
+    public function readRecord($model, $modelName, $withField = null)
     {
         try {
-            $dataList = $model::get();
+            $dataList = $model::query();
+
+            if ($withField != null) {
+                $dataList = $dataList->with($withField);
+            }
+
+            $dataList = $dataList->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -108,18 +114,26 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName)
+    public function readRecordById($model, $id, $modelName, $withField = null)
     {
         try {
-            $data = $model::find($id);
+            $query = $model::query();
+
+            if ($withField != null) {
+                $query = $query->with($withField);
+            }
+
+            $data = $query->find($id);
             if ($data) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
+
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
