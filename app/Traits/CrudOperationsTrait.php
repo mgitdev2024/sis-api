@@ -2,14 +2,14 @@
 
 namespace App\Traits;
 
-use App\Http\Controllers\v1\History\ProductionHistoricalLogController;
+use App\Http\Controllers\v1\History\ProductionLogController;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
 
 trait CrudOperationsTrait
 {
-    use ResponseTrait, ProductionHistoricalLogTrait;
+    use ResponseTrait, ProductionLogTrait;
     public function createRecord($model, $request, $rules, $modelName, $path = null)
     {
         $fields = $request->validate($rules);
@@ -22,7 +22,7 @@ trait CrudOperationsTrait
                 $record->attachment = $filepath;
             }
             $record->save();
-            $this->createProductionHistoricalLog($model, $record->id, $fields->getAttributes(), $fields['created_by_id'], 0);
+            $this->createProductionLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -36,7 +36,7 @@ trait CrudOperationsTrait
             $record = $model::find($id);
             if ($record) {
                 $record->update($fields);
-                $this->createProductionHistoricalLog($model, $record->id, $fields->getAttributes(), $fields['updated_by_id'], 1);
+                $this->createProductionLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -96,10 +96,16 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName)
+    public function readRecord($model, $modelName, $withField = null)
     {
         try {
-            $dataList = $model::get();
+            $dataList = $model::query();
+
+            if ($withField != null) {
+                $dataList = $dataList->with($withField);
+            }
+
+            $dataList = $dataList->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }
@@ -108,18 +114,26 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName)
+    public function readRecordById($model, $id, $modelName, $withField = null)
     {
         try {
-            $data = $model::find($id);
+            $query = $model::query();
+
+            if ($withField != null) {
+                $query = $query->with($withField);
+            }
+
+            $data = $query->find($id);
             if ($data) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
+
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
@@ -185,7 +199,7 @@ trait CrudOperationsTrait
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
-                $this->createProductionHistoricalLog($model, $model->id, $data->getAttributes(), $fields['created_by_id'], 1);
+                $this->createProductionLog($model, $model->id, $data, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
@@ -222,7 +236,11 @@ trait CrudOperationsTrait
             DB::commit();
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'));
         } catch (Exception $exception) {
-            DB::beginTransaction();
+            DB::rollback();
+            if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
+                preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
+                return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
+            }
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
