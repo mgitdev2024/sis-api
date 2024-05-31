@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class ItemVariantTypeMultiplierModel extends Model
 {
     use HasFactory;
-    // protected $table = 'wms_item_variant_type_multipliers';
-    protected $appends = ['variant_type_label'];
+    protected $table = 'wms_item_variant_type_multipliers';
+    // protected $appends = ['variant_type_label'];
     protected $fillable = [
         'item_variant_type_id',
         'multiplier',
