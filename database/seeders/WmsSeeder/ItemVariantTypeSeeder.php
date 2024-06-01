@@ -42,7 +42,7 @@ class ItemVariantTypeSeeder extends Seeder
                 'short_name' => 'BO4'
             ],
             [
-                'code' => 'VRNT-BO1',
+                'code' => 'VRNT-BO12',
                 'name' => 'Box of 12s',
                 'short_name' => 'BO12'
             ],
