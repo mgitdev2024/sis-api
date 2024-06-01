@@ -22,12 +22,13 @@ class ItemMasterdataModel extends Model
         'primary_conversion_label',
         'secondary_conversion_label',
         'plant_label',
-        'consumer_instructions_label',
+        'sticker_remarks_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
         'item_code',
         'description',
+        'short_name',
         'parent_item_id',
         'item_code',
         'item_classification_id',
@@ -54,7 +55,7 @@ class ItemMasterdataModel extends Model
         'shelf_life',
         'plant_id',
         'image',
-        'consumer_instructions',
+        'sticker_remarks_code',
         'created_by_id',
         'updated_by_id',
         'status',
@@ -67,41 +68,15 @@ class ItemMasterdataModel extends Model
         $stockRotationTypeLabel = array("FIFO", "FEFO");
         return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
-    public function getConsumerInstructionsLabelAttribute()
+    public function getStickerRemarksLabelAttribute()
     {
-        $consumerInstructionLabel = [
-            1 => "KEEP CHILLED",
-            2 => "KEEP FROZEN",
-            3 => "REHEAT BEFORE SERVING"
+        $stickerRemarksLabel = [
+            "STIC-KEEP-CHILLED" => "KEEP CHILLED",
+            "STIC-KEEP-FROZEN" => "KEEP FROZEN",
+            "STIC-KEEP-CHILLED-OPN" => "KEEP CHILLED ONCE OPENED",
+            "STIC-KEEP-COVERED-AMB" => "KEEP COVERED IN AMBIENT STORAGE"
         ];
-
-        if (is_null($this->consumer_instructions)) {
-            return null;
-        }
-
-        $consumerInstructionsArr = json_decode($this->consumer_instructions, true);
-        if (is_array($consumerInstructionsArr)) {
-            $labels = [
-                'refrigerate' => [],
-                'reheat' => null
-            ];
-
-            foreach ($consumerInstructionsArr as $value) {
-                if ($value == 1 || $value == 2) {
-                    $labels['refrigerate'] = $consumerInstructionLabel[$value];
-                } elseif ($value == 3) {
-                    $labels['reheat'] = $consumerInstructionLabel[$value];
-                }
-            }
-
-            if (empty($labels['refrigerate'])) {
-                unset($labels['refrigerate']);
-            }
-
-            return $labels;
-        }
-
-        return null;
+        return $stickerRemarksLabel[$this->sticker_remarks_code] ?? null;
     }
 
     public function itemCategory()

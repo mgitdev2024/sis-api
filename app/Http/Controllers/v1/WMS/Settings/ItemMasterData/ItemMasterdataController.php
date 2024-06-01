@@ -3,7 +3,14 @@
 namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemConversionModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
+use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
+use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 use DB;
@@ -21,6 +28,7 @@ class ItemMasterdataController extends Controller
             'updated_by_id' => 'nullable',
             'item_code' => 'required|string|unique:wms_item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
+            'short_name' => 'required|string',
             'chilled_shelf_life' => 'nullable|integer',
             'category_id' => 'required|integer|exists:categories,id',
             'sub_category_id' => 'required|integer|exists:sub_categories,id',
@@ -44,7 +52,7 @@ class ItemMasterdataController extends Controller
             'is_qa_required' => 'required|integer',
             'is_qa_disposal' => 'required|integer',
             'attachment' => 'nullable|string',
-            'consumer_instructions' => 'nullable|integer',
+            'sticker_remarks' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -102,21 +110,22 @@ class ItemMasterdataController extends Controller
                 $record = new ItemMasterdataModel();
                 $record->item_code = $this->onCheckValue($data['item_code']);
                 $record->description = $this->onCheckValue($data['description']);
-                $record->item_category_id = $this->onCheckValue($data['item_category_id']);
-                $record->item_classification_id = $this->onCheckValue($data['item_classification_id']);
-                $record->item_variant_type_id = $this->onCheckValue($data['item_variant_type_id']);
-                $record->storage_type_id = $this->onCheckValue($data['storage_type_id']);
-                $record->uom_id = $this->onCheckValue($data['uom_id']);
+                $record->short_name = $this->onCheckValue($data['item_short_name']);
+                $record->item_category_id = $this->onGetItemCategory($data['item_category_code']);
+                $record->item_classification_id = $this->onGetItemClassification($data['item_classification_code']);
+                $record->item_variant_type_id = $this->onGetItemVariantType($data['item_variant_type_code']);
+                $record->storage_type_id = $this->onGetStorageType($data['storage_type_code']);
+                $record->uom_id = $this->onGetUom($data['uom_code']);
                 $record->primary_item_packing_size = $this->onCheckValue($data['primary_item_packing_size']);
-                $record->primary_conversion_id = $this->onCheckValue($data['primary_conversion_id']);
+                $record->primary_conversion_id = $this->onGetPrimaryConversion($data['primary_conversion_code']);
                 $record->secondary_item_packing_size = $this->onCheckValue($data['secondary_item_packing_size']);
-                $record->secondary_conversion_id = $this->onCheckValue($data['secondary_conversion_id']);
+                $record->secondary_conversion_id = $this->onGetSecondaryConversion($data['secondary_conversion_code']);
                 $record->chilled_shelf_life = $this->onCheckValue($data['chilled_shelf_life']);
                 $record->frozen_shelf_life = $this->onCheckValue($data['frozen_shelf_life']);
                 $record->ambient_shelf_life = $this->onCheckValue($data['ambient_shelf_life']);
                 $record->created_by_id = $createdById;
-                $record->consumer_instructions = $this->onCheckConsumerInstruction($data['chilled'], $data['frozen'], $data['reheat']);
-                $record->plant_id = $this->onCheckValue($data['plant_id']);
+                $record->sticker_remarks_code = $data['sticker_remarks_code'];
+                $record->plant_id = $this->onGetPlant($data['plant_code']);
                 $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
                 $record->save();
             }
@@ -139,21 +148,36 @@ class ItemMasterdataController extends Controller
         return $value == '' ? null : $value;
     }
 
-    public function onCheckConsumerInstruction($isKeepChilled, $isKeepFrozen, $isReheat)
+    public function onGetItemClassification($value)
     {
-        // $consumerInstructionLabel = array(1 => "KEEP CHILLED", 2 => "KEEP FROZEN", 3 => "REHEAT BEFORE SERVING");
-        $result = [];
-
-        if (strcasecmp($isKeepChilled, 'true') == 0) {
-            $result[] = 1;
-        }
-        if (strcasecmp($isKeepFrozen, 'true') == 0) {
-            $result[] = 2;
-        }
-        if (strcasecmp($isReheat, 'true') == 0) {
-            $result[] = 3;
-        }
-
-        return !empty($result) ? json_encode($result) : null;
+        return ItemClassificationModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetItemCategory($value)
+    {
+        return ItemCategoryModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetStorageType($value)
+    {
+        return StorageTypeModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetItemVariantType($value)
+    {
+        return ItemVariantTypeModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetPlant($value)
+    {
+        return FacilityPlantModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetUom($value)
+    {
+        return ItemUomModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetPrimaryConversion($value)
+    {
+        return ItemConversionModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetSecondaryConversion($value)
+    {
+        return ItemConversionModel::where('code', $value)->first()->id ?? null;
     }
 }
