@@ -126,6 +126,9 @@ class ProductionOrderController extends Controller
                 $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
+                if (!$itemMasterdata) {
+                    continue;
+                }
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
