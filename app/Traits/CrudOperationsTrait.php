@@ -133,7 +133,23 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+    public function readRecordByParentId($model, $modelName, $parentField, $id = null,)
+    {
+        try {
+            if($id){
+                $data = $model::where($parentField, $id)->get();
+            }else{
+                $data = $model::get();
+            }
 
+            if ($data) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+            }
+            return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
