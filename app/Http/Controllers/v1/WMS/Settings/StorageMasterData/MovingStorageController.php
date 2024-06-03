@@ -4,8 +4,14 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\MovingStorageModel;
+use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
+use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
+use DB;
+use Exception;
 
 class MovingStorageController extends Controller
 {
@@ -34,7 +40,7 @@ class MovingStorageController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name','long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(MovingStorageModel::class, $request, $searchableFields, 'Moving Storage');
     }
     public function onGetall()
@@ -59,6 +65,75 @@ class MovingStorageController extends Controller
             'created_by_id' => 'required',
             'bulk_data' => 'required'
         ]);
-        return $this->bulkUpload(MovingStorageModel::class, 'Moving Storage', $fields);
+
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($fields['bulk_data'], true);
+            $createdById = $fields['created_by_id'];
+
+            foreach ($bulkUploadData as $data) {
+                $movingStorage = new MovingStorageModel();
+                $movingStorage->code = $this->onCheckValue($data['code']);
+                $movingStorage->short_name = $this->onCheckValue($data['short_name']);
+                $movingStorage->long_name = $this->onCheckValue($data['long_name']);
+                $movingStorage->description = $this->onCheckValue($data['description']);
+                $movingStorage->facility_id = $this->onGetFacilityId($data['facility_code']);
+                $movingStorage->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
+                $movingStorage->zone_id = $this->onGetZoneId($data['zone_code']);
+                $movingStorage->sub_location_id = $this->onGetZoneId($data['sub_location_id']);
+                $movingStorage->created_by_id = $createdById;
+                $movingStorage->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Moving Storage ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
+                preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
+                return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
+            }
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCheckValue($value)
+    {
+        return $value == '' ? null : $value;
+    }
+
+    public function onGetFacilityId($value)
+    {
+        $facilityCode = $this->onCheckValue($value);
+
+        $facility = FacilityPlantModel::where('code', $facilityCode)->first();
+
+        return $facility ? $facility->id : null;
+    }
+
+    public function onGetWarehouseId($value)
+    {
+        $warehouseCode = $this->onCheckValue($value);
+
+        $warehouse = WarehouseModel::where('code', $warehouseCode)->first();
+
+        return $warehouse ? $warehouse->id : null;
+    }
+
+    public function onGetZoneId($value)
+    {
+        $zoneCode = $this->onCheckValue($value);
+
+        $zone = StorageTypeModel::where('code', $zoneCode)->first();
+
+        return $zone ? $zone->id : null;
+    }
+
+    public function onGetSubLocationId($value)
+    {
+        $subLocationCode = $this->onCheckValue($value);
+
+        $subLocation = SubLocationModel::where('code', $subLocationCode)->first();
+
+        return $subLocation ? $subLocation->id : null;
     }
 }

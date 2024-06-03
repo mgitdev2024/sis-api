@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
+use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
+use DB;
+use Exception;
 
 class SubLocationController extends Controller
 {
@@ -33,12 +38,12 @@ class SubLocationController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name','long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(SubLocationModel::class, $request, $searchableFields, 'Sub Location');
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationModel::class, 'Sub Location',['facility','warehouse','zone']);
+        return $this->readRecord(SubLocationModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
     }
     public function onGetChildByParentId($id = null)
     {
@@ -62,6 +67,66 @@ class SubLocationController extends Controller
             'created_by_id' => 'required',
             'bulk_data' => 'required'
         ]);
-        return $this->bulkUpload(SubLocationModel::class, 'Sub Location', $fields);
+
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($fields['bulk_data'], true);
+            $createdById = $fields['created_by_id'];
+
+            foreach ($bulkUploadData as $data) {
+                $subLocation = new SubLocationModel();
+                $subLocation->code = $this->onCheckValue($data['code']);
+                $subLocation->short_name = $this->onCheckValue($data['short_name']);
+                $subLocation->long_name = $this->onCheckValue($data['long_name']);
+                $subLocation->qty = $this->onCheckValue($data['qty']);
+                $subLocation->facility_id = $this->onGetFacilityId($data['facility_code']);
+                $subLocation->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
+                $subLocation->zone_id = $this->onGetZoneId($data['zone_code']);
+
+                $subLocation->created_by_id = $createdById;
+                $subLocation->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
+                preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
+                return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
+            }
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCheckValue($value)
+    {
+        return $value == '' ? null : $value;
+    }
+
+    public function onGetFacilityId($value)
+    {
+        $facilityCode = $this->onCheckValue($value);
+
+        $facility = FacilityPlantModel::where('code', $facilityCode)->first();
+
+        return $facility ? $facility->id : null;
+    }
+
+    public function onGetWarehouseId($value)
+    {
+        $warehouseCode = $this->onCheckValue($value);
+
+        $warehouse = WarehouseModel::where('code', $warehouseCode)->first();
+
+        return $warehouse ? $warehouse->id : null;
+    }
+
+    public function onGetZoneId($value)
+    {
+        $zoneCode = $this->onCheckValue($value);
+
+        $zone = StorageTypeModel::where('code', $zoneCode)->first();
+
+        return $zone ? $zone->id : null;
     }
 }
