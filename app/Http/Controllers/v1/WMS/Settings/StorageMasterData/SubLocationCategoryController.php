@@ -4,8 +4,11 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationCategoryModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
+use DB;
+use Exception;
 
 class SubLocationCategoryController extends Controller
 {
@@ -32,7 +35,7 @@ class SubLocationCategoryController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name','long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(SubLocationCategoryModel::class, $request, $searchableFields, 'Sub Location Category');
     }
     public function onGetall()
@@ -61,6 +64,44 @@ class SubLocationCategoryController extends Controller
             'created_by_id' => 'required',
             'bulk_data' => 'required'
         ]);
-        return $this->bulkUpload(SubLocationCategoryModel::class, 'Sub Location Category', $fields);
+
+        try {
+            DB::beginTransaction();
+            $bulkUploadData = json_decode($fields['bulk_data'], true);
+            $createdById = $fields['created_by_id'];
+
+            foreach ($bulkUploadData as $data) {
+                $storageWarehouse = new SubLocationCategoryModel();
+                $storageWarehouse->code = $this->onCheckValue($data['code']);
+                $storageWarehouse->number = $this->onCheckValue($data['number']);
+                $storageWarehouse->has_layer = $this->onCheckValue($data['has_layer']);
+                $storageWarehouse->sub_location_id = $this->onGetSubLocationId($data['sub_location_id']);
+                $storageWarehouse->created_by_id = $createdById;
+                $storageWarehouse->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Storage Warehouse ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
+                preg_match("/Field '(.*?)' doesn't have a default value/", $exception->getMessage(), $matches);
+                return $this->dataResponse('error', 400, __('Field ":field" requires a default value.', ['field' => $matches[1] ?? 'unknown field']));
+            }
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCheckValue($value)
+    {
+        return $value == '' ? null : $value;
+    }
+
+    public function onGetSubLocationId($value)
+    {
+        $subLocationCode = $this->onCheckValue($value);
+
+        $subLocation = SubLocationModel::where('code', $subLocationCode)->first();
+
+        return $subLocation ? $subLocation->id : null;
     }
 }
