@@ -37,153 +37,174 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
     #region Item Category
-    Route::post('v1/item_category/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onCreate']);
-    Route::post('v1/item_category/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onUpdateById']);
-    Route::post('v1/item_category/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_category/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetAll']);
-    Route::get('v1/item_category/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetById']);
-    Route::post('v1/item_category/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onChangeStatus']);
-    Route::delete('v1/item_category/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onDeleteById']);
-    Route::post('v1/item_category/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onBulk']);
+    Route::post('v1/item/category/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onCreate']);
+    Route::post('v1/item/category/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onUpdateById']);
+    Route::post('v1/item/category/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/category/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetAll']);
+    Route::get('v1/item/category/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onGetById']);
+    Route::post('v1/item/category/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onChangeStatus']);
+    Route::delete('v1/item/category/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onDeleteById']);
+    Route::post('v1/item/category/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onBulk']);
     #endregion
 
     #region Item Classification
-    Route::post('v1/item_classification/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onCreate']);
-    Route::post('v1/item_classification/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onUpdateById']);
-    Route::post('v1/item_classification/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_classification/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetAll']);
-    Route::get('v1/item_classification/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetById']);
-    Route::post('v1/item_classification/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onChangeStatus']);
-    Route::delete('v1/item_classification/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onDeleteById']);
-    Route::post('v1/item_classification/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onBulk']);
+    Route::post('v1/item/classification/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onCreate']);
+    Route::post('v1/item/classification/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onUpdateById']);
+    Route::post('v1/item/classification/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/classification/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetAll']);
+    Route::get('v1/item/classification/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onGetById']);
+    Route::post('v1/item/classification/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onChangeStatus']);
+    Route::delete('v1/item/classification/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onDeleteById']);
+    Route::post('v1/item/classification/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemClassificationController::class, 'onBulk']);
     #endregion
 
     #region Measurement Conversion
-    Route::post('v1/item_conversion/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onCreate']);
-    Route::post('v1/item_conversion/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onUpdateById']);
-    Route::post('v1/item_conversion/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_conversion/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetAll']);
-    Route::get('v1/item_conversion/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetById']);
-    Route::post('v1/item_conversion/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onChangeStatus']);
-    Route::delete('v1/item_conversion/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onDeleteById']);
-    Route::post('v1/item_conversion/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onBulk']);
+    Route::post('v1/item/conversion/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onCreate']);
+    Route::post('v1/item/conversion/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onUpdateById']);
+    Route::post('v1/item/conversion/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/conversion/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetAll']);
+    Route::get('v1/item/conversion/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onGetById']);
+    Route::post('v1/item/conversion/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onChangeStatus']);
+    Route::delete('v1/item/conversion/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onDeleteById']);
+    Route::post('v1/item/conversion/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemConversionController::class, 'onBulk']);
 
     #endregion
 
     #region Item Movement
-    Route::post('v1/item_movement/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onCreate']);
-    Route::post('v1/item_movement/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onUpdateById']);
-    Route::post('v1/item_movement/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_movement/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetAll']);
-    Route::get('v1/item_movement/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetById']);
-    Route::post('v1/item_movement/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onChangeStatus']);
-    Route::delete('v1/item_movement/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onDeleteById']);
-    Route::post('v1/item_movement/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onBulk']);
+    Route::post('v1/item/movement/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onCreate']);
+    Route::post('v1/item/movement/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onUpdateById']);
+    Route::post('v1/item/movement/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/movement/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetAll']);
+    Route::get('v1/item/movement/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onGetById']);
+    Route::post('v1/item/movement/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onChangeStatus']);
+    Route::delete('v1/item/movement/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onDeleteById']);
+    Route::post('v1/item/movement/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMovementController::class, 'onBulk']);
 
     #endregion
 
     #region Item Variant Type
-    Route::post('v1/item_variant_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onCreate']);
-    Route::post('v1/item_variant_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onUpdateById']);
-    Route::post('v1/item_variant_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_variant_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetAll']);
-    Route::get('v1/item_variant_type/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetById']);
-    Route::post('v1/item_variant_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onChangeStatus']);
-    Route::delete('v1/item_variant_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onDeleteById']);
-    Route::post('v1/item_variant_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onBulk']);
+    Route::post('v1/item/variant_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onCreate']);
+    Route::post('v1/item/variant_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onUpdateById']);
+    Route::post('v1/item/variant_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/variant_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetAll']);
+    Route::get('v1/item/variant_type/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onGetById']);
+    Route::post('v1/item/variant_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onChangeStatus']);
+    Route::delete('v1/item/variant_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onDeleteById']);
+    Route::post('v1/item/variant_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeController::class, 'onBulk']);
 
     #endregion
 
     #region Item Variant Type Multiplier
-    Route::post('v1/item_variant_type_multiplier/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onCreate']);
-    Route::post('v1/item_variant_type_multiplier/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onUpdateById']);
-    Route::post('v1/item_variant_type_multiplier/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_variant_type_multiplier/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetAll']);
-    Route::get('v1/item_variant_type_multiplier/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetById']);
-    Route::post('v1/item_variant_type_multiplier/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onChangeStatus']);
-    Route::delete('v1/item_variant_type_multiplier/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onDeleteById']);
-    Route::post('v1/item_variant_type_multiplier/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onBulk']);
+    Route::post('v1/item/variant_type_multiplier/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onCreate']);
+    Route::post('v1/item/variant_type_multiplier/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onUpdateById']);
+    Route::post('v1/item/variant_type_multiplier/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/variant_type_multiplier/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetAll']);
+    Route::get('v1/item/variant_type_multiplier/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onGetById']);
+    Route::post('v1/item/variant_type_multiplier/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onChangeStatus']);
+    Route::delete('v1/item/variant_type_multiplier/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onDeleteById']);
+    Route::post('v1/item/variant_type_multiplier/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemVariantTypeMultiplierController::class, 'onBulk']);
 
     #endregion
 
     #region Stock Type
-    Route::post('v1/item_stock_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onCreate']);
-    Route::post('v1/item_stock_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onUpdateById']);
-    Route::post('v1/item_stock_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_stock_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetAll']);
-    Route::get('v1/item_stock_type/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetById']);
-    Route::post('v1/item_stock_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onChangeStatus']);
-    Route::delete('v1/item_stock_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onDeleteById']);
-    Route::post('v1/item_stock_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onBulk']);
+    Route::post('v1/item/stock_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onCreate']);
+    Route::post('v1/item/stock_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onUpdateById']);
+    Route::post('v1/item/stock_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/stock_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetAll']);
+    Route::get('v1/item/stock_type/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onGetById']);
+    Route::post('v1/item/stock_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onChangeStatus']);
+    Route::delete('v1/item/stock_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onDeleteById']);
+    Route::post('v1/item/stock_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemStockTypeController::class, 'onBulk']);
 
     #endregion
 
     #region Measurement UOM
-    Route::post('v1/item_uom/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onCreate']);
-    Route::post('v1/item_uom/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onUpdateById']);
-    Route::post('v1/item_uom/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_uom/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetAll']);
-    Route::get('v1/item_uom/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetById']);
-    Route::post('v1/item_uom/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onChangeStatus']);
-    Route::delete('v1/item_uom/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onDeleteById']);
-    Route::post('v1/item_uom/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onBulk']);
+    Route::post('v1/item/uom/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onCreate']);
+    Route::post('v1/item/uom/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onUpdateById']);
+    Route::post('v1/item/uom/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/uom/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetAll']);
+    Route::get('v1/item/uom/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onGetById']);
+    Route::post('v1/item/uom/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onChangeStatus']);
+    Route::delete('v1/item/uom/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onDeleteById']);
+    Route::post('v1/item/uom/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemUomController::class, 'onBulk']);
     #endregion
 
     #region Delivery Types
-    Route::post('v1/item_delivery_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onCreate']);
-    Route::post('v1/item_delivery_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onUpdateById']);
-    Route::post('v1/item_delivery_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetPaginatedList']);
-    Route::get('v1/item_delivery_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetAll']);
-    Route::get('v1/item_delivery_type/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetById']);
-    Route::post('v1/item_delivery_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onChangeStatus']);
-    Route::delete('v1/item_delivery_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onDeleteById']);
-    Route::post('v1/item_delivery_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onBulk']);
+    Route::post('v1/item/delivery_type/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onCreate']);
+    Route::post('v1/item/delivery_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onUpdateById']);
+    Route::post('v1/item/delivery_type/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/item/delivery_type/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetAll']);
+    Route::get('v1/item/delivery_type/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onGetById']);
+    Route::post('v1/item/delivery_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onChangeStatus']);
+    Route::delete('v1/item/delivery_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onDeleteById']);
+    Route::post('v1/item/delivery_type/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemDeliveryTypeController::class, 'onBulk']);
 
     #endregion
 
     #region Facility Plant
-    Route::post('v1/plant/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onCreate']);
-    Route::post('v1/plant/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onUpdateById']);
-    Route::post('v1/plant/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetPaginatedList']);
-    Route::get('v1/plant/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetAll']);
-    Route::get('v1/plant/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetById']);
-    Route::post('v1/plant/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onChangeStatus']);
-    Route::delete('v1/plant/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onDeleteById']);
-    Route::post('v1/plant/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onBulk']);
+    Route::post('v1/storage/plant_facility/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onCreate']);
+    Route::post('v1/storage/plant_facility/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onUpdateById']);
+    Route::post('v1/storage/plant_facility/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/plant_facility/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetAll']);
+    Route::get('v1/storage/plant_facility/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onGetById']);
+    Route::post('v1/storage/plant_facility/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/plant_facility/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onDeleteById']);
+    Route::post('v1/storage/plant_facility/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\FacilityPlantController::class, 'onBulk']);
     #endregion
 
-    #region Storage Type
-    Route::post('v1/storage_type/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onCreate']);
-    Route::post('v1/storage_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onUpdateById']);
-    Route::post('v1/storage_type/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetPaginatedList']);
-    Route::get('v1/storage_type/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetAll']);
-    Route::get('v1/storage_type/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetById']);
-    Route::post('v1/storage_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onChangeStatus']);
-    Route::delete('v1/storage_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onDeleteById']);
-    Route::post('v1/storage_type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onBulk']);
-    #endregion
 
     #region Warehouse Location
-    Route::post('v1/warehouse_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onCreate']);
-    Route::post('v1/warehouse_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onUpdateById']);
-    Route::post('v1/warehouse_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetPaginatedList']);
-    Route::get('v1/warehouse_location/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetAll']);
-    Route::get('v1/warehouse_location/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetById']);
-    Route::post('v1/warehouse_location/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onChangeStatus']);
-    Route::delete('v1/warehouse_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onDeleteById']);
-    Route::post('v1/warehouse_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onBulk']);
+    Route::post('v1/storage/warehouse/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onCreate']);
+    Route::post('v1/storage/warehouse/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onUpdateById']);
+    Route::post('v1/storage/warehouse/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/warehouse/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetAll']);
+    Route::get('v1/storage/warehouse/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/warehouse/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onGetById']);
+    Route::post('v1/storage/warehouse/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/warehouse/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onDeleteById']);
+    Route::post('v1/storage/warehouse/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController::class, 'onBulk']);
     #endregion
 
+
     #region Zone
-    Route::post('v1/zone/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onCreate']);
-    Route::post('v1/zone/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onUpdateById']);
-    Route::post('v1/zone/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetPaginatedList']);
-    Route::get('v1/zone/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetAll']);
-    Route::get('v1/zone/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetById']);
-    Route::post('v1/zone/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onChangeStatus']);
-    Route::delete('v1/zone/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onDeleteById']);
-    Route::post('v1/zone/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onBulk']);
+    Route::post('v1/storage/zone/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onCreate']);
+    Route::post('v1/storage/zone/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onUpdateById']);
+    Route::post('v1/storage/zone/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/zone/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetAll']);
+    Route::get('v1/storage/zone/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/zone/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetById']);
+    Route::post('v1/storage/zone/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/zone/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onDeleteById']);
+    Route::post('v1/storage/zone/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onBulk']);
     #endregion
+
+
+    #region Storage Type
+    Route::post('v1/storage/type/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onCreate']);
+    Route::post('v1/storage/type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onUpdateById']);
+    Route::post('v1/storage/type/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/type/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetAll']);
+    Route::get('v1/storage/type/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onGetById']);
+    Route::post('v1/storage/type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onDeleteById']);
+    Route::post('v1/storage/type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\StorageTypeController::class, 'onBulk']);
+    #endregion
+
+
+    #region Sub Location
+    Route::post('v1/storage/sub_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onCreate']);
+    Route::post('v1/storage/sub_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onUpdateById']);
+    Route::post('v1/storage/sub_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/sub_location/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetAll']);
+    Route::get('v1/storage/sub_location/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/sub_location/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetById']);
+    Route::post('v1/storage/sub_location/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/sub_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onDeleteById']);
+    Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
+    #endregion
+
+
+
 
     #region Item Masterdata
     Route::post('v1/item/masterdata/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onBulk']);
