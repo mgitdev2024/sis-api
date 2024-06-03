@@ -135,7 +135,8 @@ return new class extends Migration {
             $table->id();
             $table->string('code');
             $table->integer('number');
-            $table->integer('has_layer');
+            $table->tinyInteger('has_layer')->default(0);
+            $table->integer('layers')->nullable();
             $table->unsignedBigInteger('sub_location_id');
             SchemaHelper::addCommonColumns($table);
 

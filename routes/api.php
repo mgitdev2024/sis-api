@@ -203,6 +203,19 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
     #endregion
 
+    #region Sub Location Category
+    Route::post('v1/storage/sub_location/category/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onCreate']);
+    Route::post('v1/storage/sub_location/category/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onUpdateById']);
+    Route::post('v1/storage/sub_location/category/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/sub_location/category/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetAll']);
+    Route::get('v1/storage/sub_location/category/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/sub_location/category/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetById']);
+    Route::post('v1/storage/sub_location/category/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/sub_location/category/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onDeleteById']);
+    Route::post('v1/storage/sub_location/category/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onBulk']);
+    #endregion
+
+
 
 
 

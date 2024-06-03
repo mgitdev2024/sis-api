@@ -18,6 +18,7 @@ class SubLocationCategoryController extends Controller
             'code' => 'required|string|unique:wms_storage_types,code,' . $itemId,
             'number' => 'integer',
             'has_layer' => 'integer|nullable',
+            'layers' => 'string|nullable',
             'sub_location_id' => 'required|integer|exists:wms_storage_sub_locations,id',
         ];
     }
@@ -37,6 +38,10 @@ class SubLocationCategoryController extends Controller
     public function onGetall()
     {
         return $this->readRecord(SubLocationCategoryModel::class, 'Sub Location Category');
+    }
+    public function onGetChildByParentId($id = null)
+    {
+        return $this->readRecordByParentId(SubLocationCategoryModel::class, 'Sub Location', 'sub_location_id', $id);
     }
     public function onGetById($id)
     {

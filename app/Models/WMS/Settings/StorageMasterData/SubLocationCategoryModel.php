@@ -14,6 +14,7 @@ class SubLocationCategoryModel extends Model
         'code',
         'number',
         'has_layer',
+        'layers',
         'sub_location_id',
         'created_by_id',
         'updated_by_id',
