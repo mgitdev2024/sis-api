@@ -136,23 +136,13 @@ return new class extends Migration {
             $table->string('code');
             $table->integer('number');
             $table->tinyInteger('has_layer')->default(0);
-            $table->integer('layers')->nullable();
+            $table->longText('layers')->nullable();
             $table->unsignedBigInteger('sub_location_id');
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
-
-        Schema::create('wms_storage_sub_location_category_layers', function (Blueprint $table) {
-            $table->id();
-            $table->integer('min');
-            $table->integer('max');
-            $table->unsignedBigInteger('sub_location_category_id');
-            SchemaHelper::addCommonColumns($table);
-
-            // $table->foreign('sub_location_category_id')->references('id')->on('wms_storage_sub_location_categories');
-        });
-
+       
         Schema::create('wms_storage_moving_storages', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
