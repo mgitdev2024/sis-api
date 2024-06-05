@@ -191,7 +191,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
 
-    #region Sub Location
+    #region Sub Location Type
     Route::post('v1/storage/sub_location_type/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onCreate']);
     Route::post('v1/storage/sub_location_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onUpdateById']);
     Route::post('v1/storage/sub_location_type/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onGetPaginatedList']);
@@ -203,21 +203,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location_type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onBulk']);
     #endregion
 
-    #region Sub Location Category
-    Route::post('v1/storage/sub_location/category/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onCreate']);
-    Route::post('v1/storage/sub_location/category/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onUpdateById']);
-    Route::post('v1/storage/sub_location/category/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetPaginatedList']);
-    Route::get('v1/storage/sub_location/category/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetAll']);
-    Route::get('v1/storage/sub_location/category/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetChildByParentId']);
-    Route::get('v1/storage/sub_location/category/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onGetById']);
-    Route::post('v1/storage/sub_location/category/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onChangeStatus']);
-    Route::delete('v1/storage/sub_location/category/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onDeleteById']);
-    Route::post('v1/storage/sub_location/category/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationCategoryController::class, 'onBulk']);
+    #region Sub Location 
+    Route::post('v1/storage/sub_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onCreate']);
+    Route::post('v1/storage/sub_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onUpdateById']);
+    Route::post('v1/storage/sub_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/sub_location/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetAll']);
+    Route::get('v1/storage/sub_location/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/sub_location/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetById']);
+    Route::post('v1/storage/sub_location/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/sub_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onDeleteById']);
+    Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
     #endregion
-
-
-
-
 
     #region Item Masterdata
     Route::post('v1/item/masterdata/bulk', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onBulk']);

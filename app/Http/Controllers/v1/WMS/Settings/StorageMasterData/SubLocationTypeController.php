@@ -24,9 +24,7 @@ class SubLocationTypeController extends Controller
             'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
             'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
             'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
-            'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
-            'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
-            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
+           
         ];
     }
     public function onCreate(Request $request)
@@ -44,12 +42,12 @@ class SubLocationTypeController extends Controller
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationTypeModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
+        return $this->readRecord(SubLocationTypeModel::class, 'Sub Location');
     }
-    public function onGetChildByParentId($id = null)
+   /*  public function onGetChildByParentId($id = null)
     {
         return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
-    }
+    } */
     public function onGetById($id)
     {
         return $this->readRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
@@ -79,10 +77,6 @@ class SubLocationTypeController extends Controller
                 $subLocation->code = $this->onCheckValue($data['code']);
                 $subLocation->short_name = $this->onCheckValue($data['short_name']);
                 $subLocation->long_name = $this->onCheckValue($data['long_name']);
-                $subLocation->facility_id = $this->onGetFacilityId($data['facility_code']);
-                $subLocation->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
-                $subLocation->zone_id = $this->onGetZoneId($data['zone_code']);
-
                 $subLocation->created_by_id = $createdById;
                 $subLocation->save();
             }
@@ -97,7 +91,6 @@ class SubLocationTypeController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function onCheckValue($value)
     {
         return $value == '' ? null : $value;

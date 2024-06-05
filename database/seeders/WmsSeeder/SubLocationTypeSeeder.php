@@ -23,23 +23,14 @@ class SubLocationTypeSeeder extends Seeder
                 "code" => "SLT-RCK",
                 "short_name" => "Rack Chill",
                 "long_name" => "Rack Chill",
-                "description" => "",
-                "facility_code" => 2,
-                "warehouse_code" => "WARE-FG",
-                "zone_code" => "ZONE-CHILL-01"
             ],
             [
                 "code" => "SLT-CRTS",
                 "short_name" => "Crate Chill",
                 "long_name" => "Crate Chill",
-                "description" => "",
-                "facility_code" => 2,
-                "warehouse_code" => "WARE-FG",
-                "zone_code" => "ZONE-CHILL-01"
+        
             ]
         ];
-
-
         $createdById = 1;
 
         foreach ($subLocationType as $value) {
@@ -48,9 +39,9 @@ class SubLocationTypeSeeder extends Seeder
                 'code' => $value['code'],
                 'short_name' => $value['short_name'],
                 'long_name' => $value['long_name'],
-                'facility_id' => $this->onGetFacilityId($value['facility_code']),
+       /*          'facility_id' => $this->onGetFacilityId($value['facility_code']),
                 'warehouse_id' => $this->onGetWarehouseId($value['warehouse_code']),
-                'zone_id' => $this->onGetZoneId($value['zone_code']),
+                'zone_id' => $this->onGetZoneId($value['zone_code']), */
             ]);
         }
     }

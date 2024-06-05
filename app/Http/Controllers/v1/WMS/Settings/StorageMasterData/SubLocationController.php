@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
-use App\Models\WMS\Settings\StorageMasterData\SubLocationCategoryModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
-class SubLocationCategoryController extends Controller
+class SubLocationController extends Controller
 {
     use CrudOperationsTrait;
     public static function getRules($itemId = null)
@@ -22,41 +22,44 @@ class SubLocationCategoryController extends Controller
             'number' => 'integer',
             'has_layer' => 'integer|nullable',
             'layers' => 'string|nullable',
+            'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
+            'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
+            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
             'sub_location_type_id' => 'required|integer|exists:wms_storage_sub_location_type,id',
         ];
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(SubLocationCategoryModel::class, $request, $this->getRules(), 'Sub Location Category');
+        return $this->createRecord(SubLocationModel::class, $request, $this->getRules(), 'Sub Location Category');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(SubLocationCategoryModel::class, $request, $this->getRules($id), 'Sub Location Category', $id);
+        return $this->updateRecordById(SubLocationModel::class, $request, $this->getRules($id), 'Sub Location Category', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code', 'short_name', 'long_name'];
-        return $this->readPaginatedRecord(SubLocationCategoryModel::class, $request, $searchableFields, 'Sub Location Category');
+        $searchableFields = ['number'];
+        return $this->readPaginatedRecord(SubLocationModel::class, $request, $searchableFields, 'Sub Location Category');
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationCategoryModel::class, 'Sub Location Category');
+        return $this->readRecord(SubLocationModel::class, 'Sub Location Category', ['facility', 'warehouse', 'zone']);
     }
     public function onGetChildByParentId($id = null)
     {
-        return $this->readRecordByParentId(SubLocationCategoryModel::class, 'Sub Location', 'sub_location_type_id', $id);
+        return $this->readRecordByParentId(SubLocationModel::class, 'Sub Location', 'sub_location_type_id', $id);
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(SubLocationCategoryModel::class, $id, 'Sub Location Category');
+        return $this->readRecordById(SubLocationModel::class, $id, 'Sub Location Category');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(SubLocationCategoryModel::class, $id, 'Sub Location Category');
+        return $this->deleteRecordById(SubLocationModel::class, $id, 'Sub Location Category');
     }
     public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(SubLocationCategoryModel::class, $id, 'Sub Location Category', $request);
+        return $this->changeStatusRecordById(SubLocationModel::class, $id, 'Sub Location Category', $request);
     }
     public function onBulk(Request $request)
     {
@@ -64,17 +67,19 @@ class SubLocationCategoryController extends Controller
             'created_by_id' => 'required',
             'bulk_data' => 'required'
         ]);
-
         try {
             DB::beginTransaction();
             $bulkUploadData = json_decode($fields['bulk_data'], true);
             $createdById = $fields['created_by_id'];
 
             foreach ($bulkUploadData as $data) {
-                $storageWarehouse = new SubLocationCategoryModel();
+                $storageWarehouse = new SubLocationModel();
                 $storageWarehouse->code = $this->onCheckValue($data['code']);
                 $storageWarehouse->number = $this->onCheckValue($data['number']);
                 $storageWarehouse->has_layer = $this->onCheckValue($data['has_layer']);
+                $storageWarehouse->facility_id = $this->onGetFacilityId($data['facility_code']);
+                $storageWarehouse->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
+                $storageWarehouse->zone_id = $this->onGetZoneId($data['zone_code']);
                 $storageWarehouse->sub_location_type_id = $this->onGetSubLocationId($data['sub_location_type_id']);
                 $storageWarehouse->created_by_id = $createdById;
                 $storageWarehouse->save();
