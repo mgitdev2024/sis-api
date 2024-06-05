@@ -5,14 +5,15 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
-use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
+use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
-class SubLocationController extends Controller
+class SubLocationTypeController extends Controller
 {
     use CrudOperationsTrait;
     public static function getRules($itemId = null)
@@ -30,36 +31,36 @@ class SubLocationController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(SubLocationModel::class, $request, $this->getRules(), 'Sub Location');
+        return $this->createRecord(SubLocationTypeModel::class, $request, $this->getRules(), 'Sub Location');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(SubLocationModel::class, $request, $this->getRules($id), 'Sub Location', $id);
+        return $this->updateRecordById(SubLocationTypeModel::class, $request, $this->getRules($id), 'Sub Location', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['code', 'short_name', 'long_name'];
-        return $this->readPaginatedRecord(SubLocationModel::class, $request, $searchableFields, 'Sub Location');
+        return $this->readPaginatedRecord(SubLocationTypeModel::class, $request, $searchableFields, 'Sub Location');
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
+        return $this->readRecord(SubLocationTypeModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
     }
     public function onGetChildByParentId($id = null)
     {
-        return $this->readRecordByParentId(SubLocationModel::class, 'Sub Location', 'zone_id', $id);
+        return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(SubLocationModel::class, $id, 'Sub Location');
+        return $this->readRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(SubLocationModel::class, $id, 'Sub Location');
+        return $this->deleteRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(SubLocationModel::class, $id, 'Sub Location', $request);
+        return $this->changeStatusRecordById(SubLocationTypeModel::class, $id, 'Sub Location', $request);
     }
     public function onBulk(Request $request)
     {
@@ -74,11 +75,10 @@ class SubLocationController extends Controller
             $createdById = $fields['created_by_id'];
 
             foreach ($bulkUploadData as $data) {
-                $subLocation = new SubLocationModel();
+                $subLocation = new SubLocationTypeModel();
                 $subLocation->code = $this->onCheckValue($data['code']);
                 $subLocation->short_name = $this->onCheckValue($data['short_name']);
                 $subLocation->long_name = $this->onCheckValue($data['long_name']);
-                $subLocation->qty = $this->onCheckValue($data['qty']);
                 $subLocation->facility_id = $this->onGetFacilityId($data['facility_code']);
                 $subLocation->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
                 $subLocation->zone_id = $this->onGetZoneId($data['zone_code']);
@@ -125,7 +125,7 @@ class SubLocationController extends Controller
     {
         $zoneCode = $this->onCheckValue($value);
 
-        $zone = StorageTypeModel::where('code', $zoneCode)->first();
+        $zone = ZoneModel::where('code', $zoneCode)->first();
 
         return $zone ? $zone->id : null;
     }

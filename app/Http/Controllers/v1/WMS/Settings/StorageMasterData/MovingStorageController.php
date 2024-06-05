@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\MovingStorageModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
-use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -80,7 +80,7 @@ class MovingStorageController extends Controller
                 $movingStorage->facility_id = $this->onGetFacilityId($data['facility_code']);
                 $movingStorage->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
                 $movingStorage->zone_id = $this->onGetZoneId($data['zone_code']);
-                $movingStorage->sub_location_id = $this->onGetZoneId($data['sub_location_id']);
+                $movingStorage->sub_location_type_id = $this->onGetZoneId($data['sub_location_type_id']);
                 $movingStorage->created_by_id = $createdById;
                 $movingStorage->save();
             }
@@ -132,7 +132,7 @@ class MovingStorageController extends Controller
     {
         $subLocationCode = $this->onCheckValue($value);
 
-        $subLocation = SubLocationModel::where('code', $subLocationCode)->first();
+        $subLocation = SubLocationTypeModel::where('code', $subLocationCode)->first();
 
         return $subLocation ? $subLocation->id : null;
     }

@@ -5,11 +5,11 @@ namespace App\Models\WMS\Settings\StorageMasterData;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SubLocationModel extends Model
+class SubLocationTypeModel extends Model
 {
     use HasFactory;
-    
-    protected $table = 'wms_storage_sub_locations';
+
+    protected $table = 'wms_storage_sub_location_type';
     protected $fillable = [
         'facility_id',
         'warehouse_id',
@@ -24,14 +24,14 @@ class SubLocationModel extends Model
 
     public function facility()
     {
-        return $this->belongsTo(FacilityPlantModel::class,'facility_id', 'id');
+        return $this->belongsTo(FacilityPlantModel::class, 'facility_id', 'id');
     }
     public function warehouse()
     {
-        return $this->belongsTo(WarehouseModel::class,'warehouse_id', 'id');
+        return $this->belongsTo(WarehouseModel::class, 'warehouse_id', 'id');
     }
     public function zone()
     {
-        return $this->belongsTo(ZoneModel::class,'zone_id', 'id');
+        return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
     }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationCategoryModel;
-use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
@@ -22,7 +22,7 @@ class SubLocationCategoryController extends Controller
             'number' => 'integer',
             'has_layer' => 'integer|nullable',
             'layers' => 'string|nullable',
-            'sub_location_id' => 'required|integer|exists:wms_storage_sub_locations,id',
+            'sub_location_type_id' => 'required|integer|exists:wms_storage_sub_location_type,id',
         ];
     }
     public function onCreate(Request $request)
@@ -44,7 +44,7 @@ class SubLocationCategoryController extends Controller
     }
     public function onGetChildByParentId($id = null)
     {
-        return $this->readRecordByParentId(SubLocationCategoryModel::class, 'Sub Location', 'sub_location_id', $id);
+        return $this->readRecordByParentId(SubLocationCategoryModel::class, 'Sub Location', 'sub_location_type_id', $id);
     }
     public function onGetById($id)
     {
@@ -75,7 +75,7 @@ class SubLocationCategoryController extends Controller
                 $storageWarehouse->code = $this->onCheckValue($data['code']);
                 $storageWarehouse->number = $this->onCheckValue($data['number']);
                 $storageWarehouse->has_layer = $this->onCheckValue($data['has_layer']);
-                $storageWarehouse->sub_location_id = $this->onGetSubLocationId($data['sub_location_id']);
+                $storageWarehouse->sub_location_type_id = $this->onGetSubLocationId($data['sub_location_type_id']);
                 $storageWarehouse->created_by_id = $createdById;
                 $storageWarehouse->save();
             }
@@ -100,7 +100,7 @@ class SubLocationCategoryController extends Controller
     {
         $subLocationCode = $this->onCheckValue($value);
 
-        $subLocation = SubLocationModel::where('code', $subLocationCode)->first();
+        $subLocation = SubLocationTypeModel::where('code', $subLocationCode)->first();
 
         return $subLocation ? $subLocation->id : null;
     }

@@ -118,7 +118,7 @@ return new class extends Migration {
             $table->foreign('storage_type_id')->references('id')->on('wms_storage_types');
         });
 
-        Schema::create('wms_storage_sub_locations', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_location_type', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->unsignedBigInteger('facility_id');
@@ -136,11 +136,12 @@ return new class extends Migration {
             $table->string('code');
             $table->integer('number');
             $table->tinyInteger('has_layer')->default(0);
+            $table->tinyInteger('is_temporary')->default(0);
             $table->integer('layers')->nullable();
-            $table->unsignedBigInteger('sub_location_id');
+            $table->unsignedBigInteger('sub_location_type_id');
             SchemaHelper::addCommonColumns($table);
 
-            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
+            $table->foreign('sub_location_type_id')->references('id')->on('wms_storage_sub_location_type');
         });
 
         Schema::create('wms_storage_sub_location_category_layers', function (Blueprint $table) {
@@ -242,7 +243,7 @@ return new class extends Migration {
         Schema::dropIfExists('wms_storage_facility_plants');
         Schema::dropIfExists('wms_storage_warehouses');
         Schema::dropIfExists('wms_storage_zones');
-        Schema::dropIfExists('wms_storage_sub_locations');
+        Schema::dropIfExists('wms_storage_sub_location_type');
         Schema::dropIfExists('wms_storage_sub_location_categories');
         Schema::dropIfExists('wms_storage_sub_location_category_layers');
         Schema::dropIfExists('wms_storage_moving_storages');

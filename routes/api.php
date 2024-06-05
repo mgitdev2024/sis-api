@@ -192,15 +192,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     #region Sub Location
-    Route::post('v1/storage/sub_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onCreate']);
-    Route::post('v1/storage/sub_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onUpdateById']);
-    Route::post('v1/storage/sub_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetPaginatedList']);
-    Route::get('v1/storage/sub_location/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetAll']);
-    Route::get('v1/storage/sub_location/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetChildByParentId']);
-    Route::get('v1/storage/sub_location/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetById']);
-    Route::post('v1/storage/sub_location/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onChangeStatus']);
-    Route::delete('v1/storage/sub_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onDeleteById']);
-    Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
+    Route::post('v1/storage/sub_location_type/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onCreate']);
+    Route::post('v1/storage/sub_location_type/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onUpdateById']);
+    Route::post('v1/storage/sub_location_type/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onGetPaginatedList']);
+    Route::get('v1/storage/sub_location_type/all', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onGetAll']);
+    Route::get('v1/storage/sub_location_type/parent/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onGetChildByParentId']);
+    Route::get('v1/storage/sub_location_type/get/{id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onGetById']);
+    Route::post('v1/storage/sub_location_type/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onChangeStatus']);
+    Route::delete('v1/storage/sub_location_type/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onDeleteById']);
+    Route::post('v1/storage/sub_location_type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onBulk']);
     #endregion
 
     #region Sub Location Category
@@ -278,13 +278,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Production Items
-    Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onUpdateById']);
-    Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onGetPaginatedList']);
-    Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onGetById']);
-    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onDeactivateItem']);
-    Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onCheckItemStatus']);
-    // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProducedItemController::class, 'onChangeStatus']);
+    Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onUpdateById']);
+    Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
+    Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
+    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
+    Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
+    Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     #endregion
 
     #region Production Archived Batches
