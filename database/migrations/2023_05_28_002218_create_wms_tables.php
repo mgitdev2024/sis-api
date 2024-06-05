@@ -121,42 +121,26 @@ return new class extends Migration {
         Schema::create('wms_storage_sub_location_type', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->unsignedBigInteger('facility_id');
-            $table->unsignedBigInteger('warehouse_id');
-            $table->unsignedBigInteger('zone_id');
             SchemaHelper::addCommonColumns($table);
-
-            $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
-            $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
-            $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
         });
 
-        Schema::create('wms_storage_sub_location_categories', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_locations', function (Blueprint $table) {
             $table->id();
             $table->string('code');
             $table->integer('number');
             $table->tinyInteger('has_layer')->default(0);
-            $table->tinyInteger('is_temporary')->default(0);
+            $table->tinyInteger('is_permanent')->default(0);
+            $table->integer('layers')->nullable();
+            $table->unsignedBigInteger('facility_id')->nullable();
+            $table->unsignedBigInteger('warehouse_id')->nullable();
+            $table->unsignedBigInteger('zone_id')->nullable();
             $table->unsignedBigInteger('sub_location_type_id');
-            $table->longText('layers')->nullable();
-            $table->unsignedBigInteger('sub_location_id');
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('sub_location_type_id')->references('id')->on('wms_storage_sub_location_type');
-        });
-
-        Schema::create('wms_storage_moving_storages', function (Blueprint $table) {
-            $table->id();
-            SchemaHelper::addCodeShortLongNameColumns($table);
-            $table->unsignedBigInteger('facility_id');
-            $table->unsignedBigInteger('warehouse_id');
-            $table->unsignedBigInteger('zone_id');
-            $table->unsignedBigInteger('sub_location_category_id');
-            SchemaHelper::addCommonColumns($table);
             $table->foreign('facility_id')->references('id')->on('wms_storage_facility_plants');
             $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
             $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
-            $table->foreign('sub_location_category_id')->references('id')->on('wms_storage_sub_location_categories');
         });
 
         #endregion
@@ -235,9 +219,7 @@ return new class extends Migration {
         Schema::dropIfExists('wms_storage_warehouses');
         Schema::dropIfExists('wms_storage_zones');
         Schema::dropIfExists('wms_storage_sub_location_type');
-        Schema::dropIfExists('wms_storage_sub_location_categories');
-        Schema::dropIfExists('wms_storage_sub_location_category_layers');
-        Schema::dropIfExists('wms_storage_moving_storages');
+        Schema::dropIfExists('wms_storage_sub_locations');
 
 
 

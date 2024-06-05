@@ -11,9 +11,6 @@ class SubLocationTypeModel extends Model
 
     protected $table = 'wms_storage_sub_location_type';
     protected $fillable = [
-        'facility_id',
-        'warehouse_id',
-        'zone_id',
         'code',
         'short_name',
         'long_name',
@@ -21,17 +18,4 @@ class SubLocationTypeModel extends Model
         'updated_by_id',
         'status'
     ];
-
-    public function facility()
-    {
-        return $this->belongsTo(FacilityPlantModel::class, 'facility_id', 'id');
-    }
-    public function warehouse()
-    {
-        return $this->belongsTo(WarehouseModel::class, 'warehouse_id', 'id');
-    }
-    public function zone()
-    {
-        return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
-    }
 }
