@@ -2,19 +2,19 @@
 
 namespace App\Traits;
 
-use App\Http\Controllers\v1\History\ProductionWarehouseLogController;
+use App\Http\Controllers\v1\History\WarehouseLogController;
 use Exception;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 
-trait ProductionWarehouseLogTrait
+trait WarehouseLogTrait
 {
     use ResponseTrait;
-    public function createProductionWarehouseLog($referenceModel, $referenceId, $entityModel, $entityId, $data, $createdById, $action, $itemKey = null)
+    public function createWarehouseLog($referenceModel, $referenceId, $entityModel, $entityId, $data, $createdById, $action, $itemKey = null)
     {
         try {
-            $productionWarehouseLog = new ProductionWarehouseLogController();
-            $productionWarehouseLogRequest = new Request([
+            $warehouseLog = new WarehouseLogController();
+            $warehouseLogRequest = new Request([
                 'created_by_id' => $createdById,
                 'reference_model' => $referenceModel,
                 'reference_id' => $referenceId,
@@ -25,7 +25,7 @@ trait ProductionWarehouseLogTrait
                 'action' => $action
             ]);
 
-            $productionWarehouseLog->onCreate($productionWarehouseLogRequest);
+            $warehouseLog->onCreate($warehouseLogRequest);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception);
         }

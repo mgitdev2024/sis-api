@@ -14,7 +14,7 @@ class ItemDispositionModel extends Model
     protected $fillable = [
         'production_batch_id',
         'item_key',
-        'production_type',
+        'production_type', // 0 = otb, 1 = ota
         'type', // 0 = for investigation, 1 = for sampling
         'produced_items',
         'reason',

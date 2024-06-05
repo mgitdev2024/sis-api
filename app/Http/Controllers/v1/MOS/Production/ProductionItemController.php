@@ -7,7 +7,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
-use App\Traits\ProductionWarehouseLogTrait;
+use App\Traits\WarehouseLogTrait;
 use Illuminate\Http\Request;
 use App\Traits\CrudOperationsTrait;
 
@@ -16,7 +16,7 @@ use DB;
 
 class ProductionItemController extends Controller
 {
-    use CrudOperationsTrait, ProductionWarehouseLogTrait;
+    use CrudOperationsTrait, WarehouseLogTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
@@ -288,7 +288,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive->created_by_id = $createdById;
                     $warehouseReceive->save();
 
-                    $this->createProductionWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
+                    $this->createWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
                 }
             }
             DB::commit();
