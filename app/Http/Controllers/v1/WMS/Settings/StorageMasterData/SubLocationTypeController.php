@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
-use App\Models\WMS\Settings\StorageMasterData\MovingStorageModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
+use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
-class MovingStorageController extends Controller
+class SubLocationTypeController extends Controller
 {
     use CrudOperationsTrait;
     public static function getRules($itemId = null)
@@ -21,10 +21,9 @@ class MovingStorageController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:wms_storage_warehouses,code,' . $itemId,
-            'short_name' => 'required|string|unique:wms_storage_warehouses,short_name,' . $itemId,
-            'long_name' => 'required|string|unique:wms_storage_warehouses,long_name,' . $itemId,
-            'qty' => 'integer|nullable',
+            'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
+            'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
+            'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
             'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
             'zone_id' => 'required|integer|exists:wms_storage_zones,id',
@@ -32,32 +31,36 @@ class MovingStorageController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(MovingStorageModel::class, $request, $this->getRules(), 'Moving Storage');
+        return $this->createRecord(SubLocationTypeModel::class, $request, $this->getRules(), 'Sub Location');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(MovingStorageModel::class, $request, $this->getRules($id), 'Moving Storage', $id);
+        return $this->updateRecordById(SubLocationTypeModel::class, $request, $this->getRules($id), 'Sub Location', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['code', 'short_name', 'long_name'];
-        return $this->readPaginatedRecord(MovingStorageModel::class, $request, $searchableFields, 'Moving Storage');
+        return $this->readPaginatedRecord(SubLocationTypeModel::class, $request, $searchableFields, 'Sub Location');
     }
     public function onGetall()
     {
-        return $this->readRecord(MovingStorageModel::class, 'Moving Storage');
+        return $this->readRecord(SubLocationTypeModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
+    }
+    public function onGetChildByParentId($id = null)
+    {
+        return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(MovingStorageModel::class, $id, 'Moving Storage');
+        return $this->readRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(MovingStorageModel::class, $id, 'Moving Storage');
+        return $this->deleteRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(MovingStorageModel::class, $id, 'Moving Storage', $request);
+        return $this->changeStatusRecordById(SubLocationTypeModel::class, $id, 'Sub Location', $request);
     }
     public function onBulk(Request $request)
     {
@@ -72,20 +75,19 @@ class MovingStorageController extends Controller
             $createdById = $fields['created_by_id'];
 
             foreach ($bulkUploadData as $data) {
-                $movingStorage = new MovingStorageModel();
-                $movingStorage->code = $this->onCheckValue($data['code']);
-                $movingStorage->short_name = $this->onCheckValue($data['short_name']);
-                $movingStorage->long_name = $this->onCheckValue($data['long_name']);
-                $movingStorage->description = $this->onCheckValue($data['description']);
-                $movingStorage->facility_id = $this->onGetFacilityId($data['facility_code']);
-                $movingStorage->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
-                $movingStorage->zone_id = $this->onGetZoneId($data['zone_code']);
-                $movingStorage->sub_location_type_id = $this->onGetZoneId($data['sub_location_type_id']);
-                $movingStorage->created_by_id = $createdById;
-                $movingStorage->save();
+                $subLocation = new SubLocationTypeModel();
+                $subLocation->code = $this->onCheckValue($data['code']);
+                $subLocation->short_name = $this->onCheckValue($data['short_name']);
+                $subLocation->long_name = $this->onCheckValue($data['long_name']);
+                $subLocation->facility_id = $this->onGetFacilityId($data['facility_code']);
+                $subLocation->warehouse_id = $this->onGetWarehouseId($data['warehouse_code']);
+                $subLocation->zone_id = $this->onGetZoneId($data['zone_code']);
+
+                $subLocation->created_by_id = $createdById;
+                $subLocation->save();
             }
             DB::commit();
-            return $this->dataResponse('success', 201, 'Moving Storage ' . __('msg.create_success'));
+            return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollback();
             if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
@@ -123,17 +125,8 @@ class MovingStorageController extends Controller
     {
         $zoneCode = $this->onCheckValue($value);
 
-        $zone = StorageTypeModel::where('code', $zoneCode)->first();
+        $zone = ZoneModel::where('code', $zoneCode)->first();
 
         return $zone ? $zone->id : null;
-    }
-
-    public function onGetSubLocationId($value)
-    {
-        $subLocationCode = $this->onCheckValue($value);
-
-        $subLocation = SubLocationTypeModel::where('code', $subLocationCode)->first();
-
-        return $subLocation ? $subLocation->id : null;
     }
 }

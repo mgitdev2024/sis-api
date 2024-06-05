@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('module_permissions', function (Blueprint $table) {
+        Schema::create('access_module_permissions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('scm_system_id');
             $table->string('name');
@@ -35,6 +35,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('module_permissions');
+        Schema::dropIfExists('access_module_permissions');
     }
 };

@@ -118,7 +118,7 @@ return new class extends Migration {
             $table->foreign('storage_type_id')->references('id')->on('wms_storage_types');
         });
 
-        Schema::create('wms_storage_sub_locations', function (Blueprint $table) {
+        Schema::create('wms_storage_sub_location_type', function (Blueprint $table) {
             $table->id();
             SchemaHelper::addCodeShortLongNameColumns($table);
             $table->unsignedBigInteger('facility_id');
@@ -136,11 +136,12 @@ return new class extends Migration {
             $table->string('code');
             $table->integer('number');
             $table->tinyInteger('has_layer')->default(0);
-            $table->longText('layers')->nullable();
-            $table->unsignedBigInteger('sub_location_id');
+            $table->tinyInteger('is_temporary')->default(0);
+            $table->integer('layers')->nullable();
+            $table->unsignedBigInteger('sub_location_type_id');
             SchemaHelper::addCommonColumns($table);
 
-            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
+            $table->foreign('sub_location_type_id')->references('id')->on('wms_storage_sub_location_type');
         });
        
         Schema::create('wms_storage_moving_storages', function (Blueprint $table) {
@@ -164,6 +165,7 @@ return new class extends Migration {
             $table->id();
             $table->string('item_code')->unique()->index();
             $table->string('description');
+            $table->string('short_name');
             $table->unsignedBigInteger('item_category_id')->nullable();
             $table->unsignedBigInteger('item_classification_id')->nullable();
             $table->unsignedBigInteger('item_variant_type_id')->nullable();
@@ -189,14 +191,10 @@ return new class extends Migration {
             $table->integer('ambient_shelf_life')->nullable();
             $table->integer('chilled_shelf_life')->nullable();
             $table->integer('frozen_shelf_life')->nullable();
-            $table->text('consumer_instructions')->nullable();
+            $table->string('sticker_remarks_code')->nullable();
 
             $table->unsignedBigInteger('plant_id');
-            $table->unsignedBigInteger('created_by_id');
-            $table->unsignedBigInteger('updated_by_id')->nullable();
-            $table->tinyInteger('status')->default(1);
-            $table->timestamps();
-
+            SchemaHelper::addCommonColumns($table);
 
             $table->foreign('item_category_id')->references('id')->on('wms_item_categories')->onDelete('restrict');
             $table->foreign('item_classification_id')->references('id')->on('wms_item_classifications')->onDelete('restrict');
@@ -235,7 +233,7 @@ return new class extends Migration {
         Schema::dropIfExists('wms_storage_facility_plants');
         Schema::dropIfExists('wms_storage_warehouses');
         Schema::dropIfExists('wms_storage_zones');
-        Schema::dropIfExists('wms_storage_sub_locations');
+        Schema::dropIfExists('wms_storage_sub_location_type');
         Schema::dropIfExists('wms_storage_sub_location_categories');
         Schema::dropIfExists('wms_storage_sub_location_category_layers');
         Schema::dropIfExists('wms_storage_moving_storages');

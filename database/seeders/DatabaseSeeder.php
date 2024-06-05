@@ -4,11 +4,14 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Database\Seeders\CredentialSeeder;
+use Database\Seeders\SubModulePermissionSeeder;
+use Database\Seeders\ModulePermissionSeeder;
+
 use Database\Seeders\WmsSeeder\ItemVariantTypeMultiplierSeeder;
 use Database\Seeders\WmsSeeder\ScmSystemSeeder;
-use Database\Seeders\WmsSeeder\ModulePermissionSeeder;
-use Database\Seeders\WmsSeeder\SubModulePermissionSeeder;
-use Database\Seeders\WmsSeeder\PlantSeeder;
+use Database\Seeders\WmsSeeder\StorageWarehouseSeeder;
+use Database\Seeders\WmsSeeder\FacilityPlantSeeder;
+use Database\Seeders\WmsSeeder\SubLocationTypeSeeder;
 use Database\Seeders\WmsSeeder\UomSeeder;
 use Database\Seeders\WmsSeeder\ConversionSeeder;
 use Database\Seeders\WmsSeeder\StorageTypeSeeder;
@@ -17,6 +20,7 @@ use Database\Seeders\WmsSeeder\ItemClassificationSeeder;
 use Database\Seeders\WmsSeeder\ItemVariantTypeSeeder;
 use Database\Seeders\WmsSeeder\DeliveryTypeSeeder;
 use Database\Seeders\WmsSeeder\ItemMasterdataSeeder;
+use Database\Seeders\WmsSeeder\ZoneSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -28,16 +32,16 @@ class DatabaseSeeder extends Seeder
     {
         #region Credential Seeder
         $this->call([
-            CredentialSeeder::class
+            CredentialSeeder::class,
+            ScmSystemSeeder::class,
+            ModulePermissionSeeder::class,
+            SubModulePermissionSeeder::class,
         ]);
         #endregion
 
         #region WMS Seeder
         $this->call([
-            ScmSystemSeeder::class,
-            ModulePermissionSeeder::class,
-            SubModulePermissionSeeder::class,
-            PlantSeeder::class,
+            FacilityPlantSeeder::class,
             UomSeeder::class,
             ConversionSeeder::class,
             StorageTypeSeeder::class,
@@ -47,6 +51,9 @@ class DatabaseSeeder extends Seeder
             DeliveryTypeSeeder::class,
             ItemVariantTypeMultiplierSeeder::class,
             ItemMasterdataSeeder::class,
+            StorageWarehouseSeeder::class,
+            ZoneSeeder::class,
+            SubLocationTypeSeeder::class,
         ]);
         #endregion
     }
