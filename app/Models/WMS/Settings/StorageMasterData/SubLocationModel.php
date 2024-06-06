@@ -40,7 +40,7 @@ class SubLocationModel extends Model
     }
     public function getFacilityLabelAttribute()
     {
-        return $this->facilty ? $this->facilty->long_name : null;
+        return $this->facility ? $this->facility->long_name : null;
     }
     public function getWarehouseLabelAttribute()
     {

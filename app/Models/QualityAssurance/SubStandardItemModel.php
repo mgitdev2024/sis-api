@@ -11,7 +11,7 @@ class SubStandardItemModel extends Model
     use HasFactory;
 
     protected $table = 'qa_sub_standard_items';
-
+    protected $appends = ['production_batch_label'];
     protected $fillable = [
         'reason',
         'attachment',
@@ -28,4 +28,8 @@ class SubStandardItemModel extends Model
         return $this->belongsTo(ProductionBatchModel::class);
     }
 
+    public function getProductionBatchLabelAttribute()
+    {
+        return $this->productionBatch ? $this->productionBatch->batch_number : null;
+    }
 }
