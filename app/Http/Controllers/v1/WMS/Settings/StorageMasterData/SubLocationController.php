@@ -23,8 +23,8 @@ class SubLocationController extends Controller
             'has_layer' => 'integer|nullable',
             'layers' => 'string|nullable',
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
-            'warehouse_id' => 'required|integer|exists:wms_storage_warehouses,id',
-            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
+            'warehouse_id' => 'nullable|integer|exists:wms_storage_warehouses,id',
+            'zone_id' => 'nullable|integer|exists:wms_storage_zones,id',
             'sub_location_type_id' => 'required|integer|exists:wms_storage_sub_location_type,id',
         ];
     }
@@ -47,7 +47,7 @@ class SubLocationController extends Controller
     }
     public function onGetChildByParentId($id = null)
     {
-        return $this->readRecordByParentId(SubLocationModel::class, 'Sub Location', 'sub_location_type_id', $id);
+        return $this->readRecordByParentId(SubLocationModel::class, 'Sub Location', 'sub_location_type_id', $id, ['facility', 'warehouse', 'zone']);
     }
     public function onGetById($id)
     {

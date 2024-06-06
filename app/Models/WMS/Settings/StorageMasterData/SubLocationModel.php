@@ -10,6 +10,8 @@ class SubLocationModel extends Model
     use HasFactory;
 
     protected $table = 'wms_storage_sub_locations';
+    // protected $appends = ['facility_label','warehouse_label','zone_label'];
+
     protected $fillable = [
         'code',
         'number',
@@ -36,4 +38,16 @@ class SubLocationModel extends Model
     {
         return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
     }
+/*     public function getFacilityLabelAttribute()
+    {
+        return $this->facilty ? $this->facilty->long_name : null;
+    }
+    public function getWarehouseLabelAttribute()
+    {
+        return $this->warehouse ? $this->warehouse->long_name : null;
+    }
+    public function getZoneLabelAttribute()
+    {
+        return $this->zone ? $this->zone->long_name : null;
+    } */
 }
