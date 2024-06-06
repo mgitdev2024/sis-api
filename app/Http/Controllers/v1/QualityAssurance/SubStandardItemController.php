@@ -68,6 +68,13 @@ class SubStandardItemController extends Controller
                 }
                 $record->created_by_id = $fields['created_by_id'];
                 $record->save();
+
+                $productionItemModel = $productionBatch->productionItems;
+                $producedItems = json_decode($productionItemModel->produced_items, true);
+                $producedItems[$value['sticker_no']]['status'] = 1.1;
+                $productionItemModel->produced_items = json_encode($producedItems);
+                $productionItemModel->save();
+
             }
 
             DB::commit();
