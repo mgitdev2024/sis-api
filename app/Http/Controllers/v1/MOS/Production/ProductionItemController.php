@@ -14,7 +14,7 @@ use App\Traits\CrudOperationsTrait;
 use Exception;
 use DB;
 
-class ProducedItemController extends Controller
+class ProductionItemController extends Controller
 {
     use CrudOperationsTrait, ProductionWarehouseLogTrait;
     public function onUpdateById(Request $request, $id)

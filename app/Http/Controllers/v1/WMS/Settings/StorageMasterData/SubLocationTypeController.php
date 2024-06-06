@@ -4,13 +4,16 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
+use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
+use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Traits\CrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
-class WarehouseController extends Controller
+class SubLocationTypeController extends Controller
 {
     use CrudOperationsTrait;
     public static function getRules($itemId = null)
@@ -18,45 +21,44 @@ class WarehouseController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:wms_storage_warehouses,code,' . $itemId,
-            'short_name' => 'required|string|unique:wms_storage_warehouses,short_name,' . $itemId,
-            'long_name' => 'required|string|unique:wms_storage_warehouses,long_name,' . $itemId,
-            'description' => 'string|nullable',
-            'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
+            'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
+            'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
+            'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
+           
         ];
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(WarehouseModel::class, $request, $this->getRules(), 'Warehouse');
+        return $this->createRecord(SubLocationTypeModel::class, $request, $this->getRules(), 'Sub Location');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(WarehouseModel::class, $request, $this->getRules($id), 'Warehouse', $id);
+        return $this->updateRecordById(SubLocationTypeModel::class, $request, $this->getRules($id), 'Sub Location', $id);
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['code', 'short_name', 'long_name'];
-        return $this->readPaginatedRecord(WarehouseModel::class, $request, $searchableFields, 'Warehouse');
+        return $this->readPaginatedRecord(SubLocationTypeModel::class, $request, $searchableFields, 'Sub Location');
     }
     public function onGetall()
     {
-        return $this->readRecord(WarehouseModel::class, 'Warehouse');
+        return $this->readRecord(SubLocationTypeModel::class, 'Sub Location');
     }
-    public function onGetChildByParentId($id = null)
+   /*  public function onGetChildByParentId($id = null)
     {
-        return $this->readRecordByParentId(WarehouseModel::class, 'Warehouse', 'facility_id', $id);
-    }
+        return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
+    } */
     public function onGetById($id)
     {
-        return $this->readRecordById(WarehouseModel::class, $id, 'Warehouse');
+        return $this->readRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(WarehouseModel::class, $id, 'Warehouse');
+        return $this->deleteRecordById(SubLocationTypeModel::class, $id, 'Sub Location');
     }
     public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(WarehouseModel::class, $id, 'Warehouse', $request);
+        return $this->changeStatusRecordById(SubLocationTypeModel::class, $id, 'Sub Location', $request);
     }
     public function onBulk(Request $request)
     {
@@ -71,17 +73,15 @@ class WarehouseController extends Controller
             $createdById = $fields['created_by_id'];
 
             foreach ($bulkUploadData as $data) {
-                $storageWarehouse = new WarehouseModel();
-                $storageWarehouse->code = $this->onCheckValue($data['code']);
-                $storageWarehouse->short_name = $this->onCheckValue($data['short_name']);
-                $storageWarehouse->long_name = $this->onCheckValue($data['long_name']);
-                $storageWarehouse->description = $this->onCheckValue($data['description']);
-                $storageWarehouse->facility_id = $this->onGetFacilityId($data['facility_code']);
-                $storageWarehouse->created_by_id = $createdById;
-                $storageWarehouse->save();
+                $subLocation = new SubLocationTypeModel();
+                $subLocation->code = $this->onCheckValue($data['code']);
+                $subLocation->short_name = $this->onCheckValue($data['short_name']);
+                $subLocation->long_name = $this->onCheckValue($data['long_name']);
+                $subLocation->created_by_id = $createdById;
+                $subLocation->save();
             }
             DB::commit();
-            return $this->dataResponse('success', 201, 'Storage Warehouse ' . __('msg.create_success'));
+            return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollback();
             if ($exception instanceof \Illuminate\Database\QueryException && $exception->errorInfo[1] == 1364) {
@@ -91,7 +91,6 @@ class WarehouseController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function onCheckValue($value)
     {
         return $value == '' ? null : $value;
@@ -104,5 +103,23 @@ class WarehouseController extends Controller
         $facility = FacilityPlantModel::where('code', $facilityCode)->first();
 
         return $facility ? $facility->id : null;
+    }
+
+    public function onGetWarehouseId($value)
+    {
+        $warehouseCode = $this->onCheckValue($value);
+
+        $warehouse = WarehouseModel::where('code', $warehouseCode)->first();
+
+        return $warehouse ? $warehouse->id : null;
+    }
+
+    public function onGetZoneId($value)
+    {
+        $zoneCode = $this->onCheckValue($value);
+
+        $zone = ZoneModel::where('code', $zoneCode)->first();
+
+        return $zone ? $zone->id : null;
     }
 }

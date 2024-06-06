@@ -25,7 +25,7 @@ trait CrudOperationsTrait
             $this->createProductionLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, __('msg.create_failed'));
+            return $this->dataResponse('error', 400, $exception /* __('msg.create_failed') */);
         }
     }
     public function updateRecordById($model, $request, $rules, $modelName, $id)
@@ -133,7 +133,30 @@ trait CrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
+    public function readRecordByParentId($model, $modelName, $parentField, $id = null, $withField = null)
+    {
+        try {
+            $query = $model::query();
+    
+            if ($withField) {
+                $query->with($withField);
+            }
+    
+            if ($id) {
+                $query->where($parentField, $id);
+            }
+            $data = $query->get();
+    
+            if ($data->isNotEmpty()) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+            }
+    
+            return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+    
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
