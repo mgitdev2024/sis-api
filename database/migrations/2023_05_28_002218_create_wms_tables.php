@@ -130,7 +130,7 @@ return new class extends Migration {
             $table->integer('number');
             $table->tinyInteger('has_layer')->default(0);
             $table->tinyInteger('is_permanent')->default(0);
-            $table->integer('layers')->nullable();
+            $table->longText('layers')->nullable();
             $table->unsignedBigInteger('facility_id')->nullable();
             $table->unsignedBigInteger('warehouse_id')->nullable();
             $table->unsignedBigInteger('zone_id')->nullable();
