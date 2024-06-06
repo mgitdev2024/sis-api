@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemDispositionModel extends Model
 {
     use HasFactory;
-    protected $table = 'mos_item_dispositions';
+    protected $table = 'item_dispositions';
     protected $appends = ['item_variant_label'];
     protected $fillable = [
         'production_batch_id',

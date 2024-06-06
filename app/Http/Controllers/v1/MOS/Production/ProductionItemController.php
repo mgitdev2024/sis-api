@@ -44,6 +44,7 @@ class ProductionItemController extends Controller
         #region status list
         // 0 => 'Good',
         // 1 => 'On Hold',
+        // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
         // 3 => 'Received',
         // 4 => 'For Investigation',
@@ -139,10 +140,11 @@ class ProductionItemController extends Controller
             if ($statusId == 4) {
                 $type = 0;
             }
-            $exclusionArray = [1, 4, 5, 6, 7, 8];
+            $exclusionArray = [1, '1.1', 4, 5, 6, 7, 8];
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
+
             if ($flag) {
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
@@ -158,6 +160,8 @@ class ProductionItemController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
+
+                return $itemDisposition;
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -287,7 +291,6 @@ class ProductionItemController extends Controller
                     $warehouseReceive->quantity = $value['qty'];
                     $warehouseReceive->created_by_id = $createdById;
                     $warehouseReceive->save();
-
                     $this->createWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
                 }
             }
