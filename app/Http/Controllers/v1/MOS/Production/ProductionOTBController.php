@@ -8,12 +8,12 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use DB;
 
 class ProductionOTBController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules()
     {
         return [

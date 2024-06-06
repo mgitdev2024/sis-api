@@ -5,17 +5,17 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
-use App\Models\MOS\Production\ProductionItemModel;
 use Illuminate\Http\Request;
 use App\Models\QualityAssurance\SubStandardItemModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\WmsCrudOperationsTrait;
+use App\Traits\ProductionLogTrait;
 
 use Exception;
 use DB;
 
 class SubStandardItemController extends Controller
 {
-    use CrudOperationsTrait;
+    use WmsCrudOperationsTrait, ProductionLogTrait;
     public function onCreate(Request $request)
     {
         #region status list
@@ -43,7 +43,7 @@ class SubStandardItemController extends Controller
         try {
             DB::beginTransaction();
             $scannedItems = json_decode($fields['scanned_items'], true);
-
+            $createdById = $fields['created_by_id'];
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 if (!$productionBatch) {
@@ -66,7 +66,7 @@ class SubStandardItemController extends Controller
                     $filepath = 'storage/' . substr($attachmentPath, 7);
                     $record->attachment = $filepath;
                 }
-                $record->created_by_id = $fields['created_by_id'];
+                $record->created_by_id = $createdById;
                 $record->save();
 
                 $productionItemModel = $productionBatch->productionItems;
@@ -74,7 +74,7 @@ class SubStandardItemController extends Controller
                 $producedItems[$value['sticker_no']]['status'] = 1.1;
                 $productionItemModel->produced_items = json_encode($producedItems);
                 $productionItemModel->save();
-
+                $this->createProductionLog(SubStandardItemModel::class, $record->id, $record, $createdById, 1, $value['sticker_no']);
             }
 
             DB::commit();
@@ -101,36 +101,36 @@ class SubStandardItemController extends Controller
         }
     }
 
-    public function onUpdateById(Request $request, $id)
-    {
-        $fields = $request->validate([
-            'created_by_id' => 'required',
-        ]);
-        try {
-            DB::beginTransaction();
-            $subStandardItem = SubStandardItemModel::find($id);
-            if (!$subStandardItem) {
-                return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.record_not_found'));
+    // public function onUpdateById(Request $request, $id)
+    // {
+    //     $fields = $request->validate([
+    //         'created_by_id' => 'required',
+    //     ]);
+    //     try {
+    //         DB::beginTransaction();
+    //         $subStandardItem = SubStandardItemModel::find($id);
+    //         if (!$subStandardItem) {
+    //             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.record_not_found'));
 
-            }
-            $productionbatch = ProductionBatchModel::find($subStandardItem->production_batch_id);
-            $productionItem = json_decode($productionbatch->productionItems->produced_items, true);
-            $itemKey = $subStandardItem->item_key;
+    //         }
+    //         $productionbatch = ProductionBatchModel::find($subStandardItem->production_batch_id);
+    //         $productionItem = json_decode($productionbatch->productionItems->produced_items, true);
+    //         $itemKey = $subStandardItem->item_key;
 
-            $productionType = $subStandardItem->production_type;
-            $productionItemController = new ProductionItemController();
-            $container = $productionItemController->onItemDisposition($fields['created_by_id'], $subStandardItem->production_batch_id, $productionItem[$itemKey], $itemKey, 4, $productionType);
+    //         $productionType = $subStandardItem->production_type;
+    //         $productionItemController = new ProductionItemController();
+    //         $container = $productionItemController->onItemDisposition($fields['created_by_id'], $subStandardItem->production_batch_id, $productionItem[$itemKey], $itemKey, 4, $productionType);
 
-            $subStandardItem->item_disposition_id = $container->id;
-            $subStandardItem->status = 0;
-            $subStandardItem->save();
-            DB::commit();
-            return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.update_success'));
-        } catch (Exception $exception) {
-            DB::rollBack();
-            dd($exception);
-            return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.update_failed'));
-        }
+    //         $subStandardItem->item_disposition_id = $container->id;
+    //         $subStandardItem->status = 0;
+    //         $subStandardItem->save();
+    //         DB::commit();
+    //         return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.update_success'));
+    //     } catch (Exception $exception) {
+    //         DB::rollBack();
+    //         dd($exception);
+    //         return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.update_failed'));
+    //     }
 
-    }
+    // }
 }

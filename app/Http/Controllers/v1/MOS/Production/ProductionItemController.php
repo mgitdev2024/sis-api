@@ -6,17 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WarehouseLogTrait;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 
 use Exception;
 use DB;
 
 class ProductionItemController extends Controller
 {
-    use CrudOperationsTrait, WarehouseLogTrait;
+    use MosCrudOperationsTrait, WarehouseLogTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
@@ -161,6 +162,16 @@ class ProductionItemController extends Controller
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
 
+                $subStandardItem = SubStandardItemModel::where('production_batch_id', $id)
+                    ->where('item_key', $itemKey)
+                    ->where('status', 1)
+                    ->first();
+                if ($subStandardItem) {
+                    $subStandardItem->status = 0;
+                    $subStandardItem->save();
+                    $this->createProductionLog(SubStandardItemModel::class, $subStandardItem->id, $subStandardItem, $createdById, 1, $itemKey);
+
+                }
                 return $itemDisposition;
             }
         } catch (Exception $exception) {

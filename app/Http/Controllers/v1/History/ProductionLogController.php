@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\History;
 
 use App\Http\Controllers\Controller;
 use App\Models\History\ProductionLogModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ProductionLogController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules()
     {
         return [

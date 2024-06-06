@@ -10,12 +10,12 @@ use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use App\Traits\ProductionLogTrait;
 
 class ItemDispositionController extends Controller
 {
-    use CrudOperationsTrait, ProductionLogTrait;
+    use MosCrudOperationsTrait, ProductionLogTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [

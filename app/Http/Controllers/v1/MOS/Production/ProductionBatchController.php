@@ -14,11 +14,11 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait, ProductionLogTrait;
+    use MosCrudOperationsTrait, ProductionLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {

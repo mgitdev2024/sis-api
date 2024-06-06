@@ -11,7 +11,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('item_dispositions', function (Blueprint $table) {
+        Schema::create('qa_item_dispositions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_batch_id');
             $table->integer('item_key')->nullable();
@@ -31,7 +31,7 @@ return new class extends Migration {
 
             $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
         });
-        Schema::create('sub_standard_items', function (Blueprint $table) {
+        Schema::create('qa_sub_standard_items', function (Blueprint $table) {
             $table->id();
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
@@ -48,7 +48,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_dispositions');
-        Schema::dropIfExists('sub_standard_items');
+        Schema::dropIfExists('qa_item_dispositions');
+        Schema::dropIfExists('qa_sub_standard_items');
     }
 };

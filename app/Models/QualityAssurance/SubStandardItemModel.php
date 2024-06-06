@@ -10,7 +10,7 @@ class SubStandardItemModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'sub_standard_items';
+    protected $table = 'qa_sub_standard_items';
 
     protected $fillable = [
         'reason',

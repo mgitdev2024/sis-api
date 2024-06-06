@@ -8,11 +8,11 @@ use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 
 class WarehouseReceivingController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public function onGetAllCategory($status)
     {
         try {

@@ -7,13 +7,13 @@ use App\Models\MOS\Production\ArchivedBatchesModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use DB;
 use Exception;
 
 class ArchivedBatchesController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public function onGetCurrent()
     {
         $orderFields = [

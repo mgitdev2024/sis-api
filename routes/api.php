@@ -316,7 +316,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Sub Standard Items
     Route::post('v1/item/sub-standard/create', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onCreate']);
-    Route::post('v1/item/sub-standard/update/{id}', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onUpdateById']);
+    // Route::post('v1/item/sub-standard/update/{id}', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onUpdateById']);
     Route::get('v1/item/sub-standard/current/{status?}', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetCurrent']);
     #endregion
 

@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\ItemMasterData\ItemConversionModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ItemConversionController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -30,7 +30,7 @@ class ItemConversionController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name', 'long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(ItemConversionModel::class, $request, $searchableFields, 'Item Conversion');
     }
     public function onGetall()
@@ -57,5 +57,5 @@ class ItemConversionController extends Controller
         ]);
         return $this->bulkUpload(ItemConversionModel::class, 'Item Conversion', $fields);
     }
-    
+
 }

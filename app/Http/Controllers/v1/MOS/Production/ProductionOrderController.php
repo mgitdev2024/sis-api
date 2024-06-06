@@ -9,13 +9,13 @@ use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use DB;
 use Illuminate\Validation\Rule;
 
 class ProductionOrderController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
 
     public static function getRules($orderId = "")
     {

@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\ItemMasterData\ItemMovementModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ItemMovementController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -31,7 +31,7 @@ class ItemMovementController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name', 'long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(ItemMovementModel::class, $request, $searchableFields, 'Item Movement');
     }
     public function onGetall()

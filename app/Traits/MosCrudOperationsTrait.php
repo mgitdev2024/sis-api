@@ -7,7 +7,7 @@ use Exception;
 use App\Traits\ResponseTrait;
 use DB;
 
-trait CrudOperationsTrait
+trait MosCrudOperationsTrait
 {
     use ResponseTrait, ProductionLogTrait;
     public function createRecord($model, $request, $rules, $modelName, $path = null)
@@ -137,26 +137,26 @@ trait CrudOperationsTrait
     {
         try {
             $query = $model::query();
-    
+
             if ($withField) {
                 $query->with($withField);
             }
-    
+
             if ($id) {
                 $query->where($parentField, $id);
             }
             $data = $query->get();
-    
+
             if ($data->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-    
+
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    
+
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {

@@ -7,14 +7,14 @@ use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
 class ZoneController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [

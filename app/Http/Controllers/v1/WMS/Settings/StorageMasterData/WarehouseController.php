@@ -5,14 +5,14 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
 class WarehouseController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
