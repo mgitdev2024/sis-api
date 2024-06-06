@@ -64,6 +64,7 @@ class ProductionItemController extends Controller
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
             'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
             'production_batch_id' => 'nullable|required_if:is_deactivate,1',
+            'temporary_storage_id' => 'nullable|required_if:status_id,2|exists:sub_locations,id',
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
@@ -100,7 +101,6 @@ class ProductionItemController extends Controller
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
         }
     }

@@ -128,7 +128,6 @@ class SubStandardItemController extends Controller
     //         return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.update_success'));
     //     } catch (Exception $exception) {
     //         DB::rollBack();
-    //         dd($exception);
     //         return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.update_failed'));
     //     }
 

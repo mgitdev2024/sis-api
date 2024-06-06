@@ -30,7 +30,6 @@ class ProductionLogController extends Controller
             $record->save();
             return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $record);
         } catch (\Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, 'Production Historical Log ' . __('msg.create_failed'));
         }
     }

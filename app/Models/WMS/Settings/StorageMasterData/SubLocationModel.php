@@ -2,6 +2,7 @@
 
 namespace App\Models\WMS\Settings\StorageMasterData;
 
+use App\Models\WMS\Storage\StockLogModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +38,10 @@ class SubLocationModel extends Model
     public function zone()
     {
         return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
+    }
+    public function stockLogs()
+    {
+        return $this->hasMany(StockLogModel::class, 'sub_location_id', 'id');
     }
     public function getFacilityLabelAttribute()
     {
