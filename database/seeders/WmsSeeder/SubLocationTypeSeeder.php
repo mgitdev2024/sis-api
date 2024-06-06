@@ -39,9 +39,6 @@ class SubLocationTypeSeeder extends Seeder
                 'code' => $value['code'],
                 'short_name' => $value['short_name'],
                 'long_name' => $value['long_name'],
-       /*          'facility_id' => $this->onGetFacilityId($value['facility_code']),
-                'warehouse_id' => $this->onGetWarehouseId($value['warehouse_code']),
-                'zone_id' => $this->onGetZoneId($value['zone_code']), */
             ]);
         }
     }
