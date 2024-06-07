@@ -2,6 +2,8 @@
 
 namespace App\Models\WMS\Settings\StorageMasterData;
 
+use App\Models\WMS\Storage\QueuedSubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Storage\StockLogModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -54,5 +56,14 @@ class SubLocationModel extends Model
     public function getZoneLabelAttribute()
     {
         return $this->zone ? $this->zone->long_name : null;
+    }
+    public function queuedTemporaryStorages()
+    {
+        return $this->hasMany(QueuedTemporaryStorageModel::class, 'sub_location_id', 'id');
+    }
+
+    public function queuedSubLocations()
+    {
+        return $this->hasMany(QueuedSubLocationModel::class, 'sub_location_id', 'id');
     }
 }

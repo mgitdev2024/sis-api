@@ -275,7 +275,10 @@ return new class extends Migration {
         Schema::dropIfExists('wms_storage_sub_location_type');
         Schema::dropIfExists('wms_storage_sub_locations');
 
+        Schema::dropIfExists('wms_stock_logs');
+        Schema::dropIfExists('wms_stock_inventories');
 
-
+        Schema::dropIfExists('wms_queued_sub_locations');
+        Schema::dropIfExists('wms_queued_temporary_storages');
     }
 };

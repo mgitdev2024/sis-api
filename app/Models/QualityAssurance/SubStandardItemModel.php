@@ -11,10 +11,11 @@ class SubStandardItemModel extends Model
     use HasFactory;
 
     protected $table = 'qa_sub_standard_items';
-    protected $appends = ['production_batch_label'];
+    protected $appends = ['production_batch_label', 'location_label'];
     protected $fillable = [
         'reason',
         'attachment',
+        'location_id',
         'production_batch_id',
         'item_key',
         'production_type',
@@ -31,5 +32,18 @@ class SubStandardItemModel extends Model
     public function getProductionBatchLabelAttribute()
     {
         return $this->productionBatch ? $this->productionBatch->batch_number : null;
+    }
+
+    public function getLocationLabelAttribute()
+    {
+        $locationArray = [
+            1 => 'Breads - Metal Line',
+            2 => 'Cakes - Metal Line',
+            3 => 'Warehouse - FG Receiving',
+            4 => 'Warehouse - FG Transfer',
+            5 => 'Warehouse - FG Dispatch',
+        ];
+
+        return $locationArray[$this->location_id] ?? null;
     }
 }

@@ -38,7 +38,8 @@ class SubStandardItemController extends Controller
             'created_by_id' => 'required',
             'scanned_items' => 'required',
             'reason' => 'required',
-            'attachment' => 'nullable'
+            'attachment' => 'nullable',
+            'location_id' => 'required|integer|between:1,5',
         ]);
         try {
             DB::beginTransaction();
@@ -60,6 +61,8 @@ class SubStandardItemController extends Controller
                 $record->item_key = $value['sticker_no'];
                 $record->production_batch_id = $value['bid'];
                 $record->production_type = $productionBatch->productionItems->production_type;
+                $record->location_id = $fields['location_id'];
+
                 $record->reason = $fields['reason'];
                 if ($request->hasFile('attachment')) {
                     $attachmentPath = $request->file('attachment')->store('public/attachments/substandard-items');
@@ -101,6 +104,29 @@ class SubStandardItemController extends Controller
         }
     }
 
+    public function onGetNotification()
+    {
+        try {
+            $subStandard = SubStandardItemModel::select('location_id', DB::raw('count(*) as count'))
+                ->where('status', 1)
+                ->groupBy('location_id')
+                ->get();
+
+            $data = [];
+            foreach ($subStandard as $subStandardItem) {
+                $data[] = [
+                    'location_label' => $subStandardItem->location_label,
+                    'count' => $subStandardItem->count
+                ];
+            }
+
+            return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.record_found'), $data);
+
+        } catch (Exception $exception) {
+
+            return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.record_not_found'), $exception);
+        }
+    }
     // public function onUpdateById(Request $request, $id)
     // {
     //     $fields = $request->validate([

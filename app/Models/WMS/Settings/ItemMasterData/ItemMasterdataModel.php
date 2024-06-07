@@ -113,7 +113,6 @@ class ItemMasterdataModel extends Model
     {
         return $this->hasMany(StockInventoryModel::class, 'item_code', 'item_code');
     }
-
     public function stockLogs()
     {
         return $this->hasMany(StockLogModel::class, 'item_code', 'item_code');

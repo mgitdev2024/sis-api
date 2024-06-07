@@ -35,6 +35,8 @@ return new class extends Migration {
             $table->id();
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();
+            $table->integer('location_id');
+
             $table->unsignedBigInteger('production_batch_id');
             $table->integer('item_key');
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
