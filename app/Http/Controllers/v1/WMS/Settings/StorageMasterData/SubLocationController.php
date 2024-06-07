@@ -5,7 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;

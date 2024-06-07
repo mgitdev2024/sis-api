@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Traits\WMS;
 
 use App\Http\Controllers\v1\History\WarehouseLogController;
 use Exception;

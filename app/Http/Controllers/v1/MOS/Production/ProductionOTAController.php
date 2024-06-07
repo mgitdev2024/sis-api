@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionOTAController extends Controller
 {

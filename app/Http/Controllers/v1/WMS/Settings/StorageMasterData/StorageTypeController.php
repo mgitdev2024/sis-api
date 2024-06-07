@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class StorageTypeController extends Controller

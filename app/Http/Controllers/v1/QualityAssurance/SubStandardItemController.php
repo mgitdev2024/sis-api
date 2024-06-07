@@ -7,8 +7,8 @@ use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Http\Request;
 use App\Models\QualityAssurance\SubStandardItemModel;
-use App\Traits\WmsCrudOperationsTrait;
-use App\Traits\ProductionLogTrait;
+use App\Traits\WMS\WmsCrudOperationsTrait;
+use App\Traits\MOS\ProductionLogTrait;
 
 use Exception;
 use DB;

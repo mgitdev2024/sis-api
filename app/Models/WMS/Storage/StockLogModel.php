@@ -14,7 +14,7 @@ class StockLogModel extends Model
 
     protected $fillable = [
         'item_code',
-        'action',
+        'action', // 1 = In, 0 = Out;
         'quantity',
         'sub_location_id',
         'layer_level',

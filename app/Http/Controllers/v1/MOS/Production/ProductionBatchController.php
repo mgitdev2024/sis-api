@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Traits\ProductionLogTrait;
+use App\Traits\MOS\ProductionLogTrait;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOTBModel;
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
