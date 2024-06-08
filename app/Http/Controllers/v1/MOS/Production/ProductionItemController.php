@@ -8,16 +8,17 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
-use App\Traits\WarehouseLogTrait;
+use App\Traits\WMS\WarehouseLogTrait;
+use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 use Exception;
 use DB;
 
 class ProductionItemController extends Controller
 {
-    use MosCrudOperationsTrait, WarehouseLogTrait;
+    use MosCrudOperationsTrait, WarehouseLogTrait, QueueSubLocationTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
@@ -79,10 +80,10 @@ class ProductionItemController extends Controller
             DB::beginTransaction();
             $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
-
+            $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
             // For Warehouse Receiving
             if ($statusId == 2) {
-                $this->onWarehouseReceiveItem($scannedItem, $createdById);
+                $this->onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId);
             }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
@@ -200,7 +201,6 @@ class ProductionItemController extends Controller
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -253,7 +253,7 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onWarehouseReceiveItem($scannedItem, $createdById)
+    public function onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId)
     {
         try {
             $warehouseReferenceNo = WarehouseReceivingModel::onGenerateWarehouseReceiveReferenceNumber();
@@ -290,7 +290,9 @@ class ProductionItemController extends Controller
                 }
             }
             DB::beginTransaction();
-
+            if ($temporaryStorageId != null) {
+                $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
+            }
             foreach ($itemsToTransfer as $key => $value) {
                 if ($value['flag']) {
                     $warehouseReceive = new WarehouseReceivingModel();
@@ -311,7 +313,6 @@ class ProductionItemController extends Controller
             DB::rollBack();
             throw new Exception($exception->getMessage());
         }
-
     }
 }
 

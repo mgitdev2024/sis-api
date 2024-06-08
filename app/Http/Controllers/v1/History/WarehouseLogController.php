@@ -5,7 +5,7 @@ namespace App\Http\Controllers\v1\History;
 use App\Http\Controllers\Controller;
 use App\Models\History\WarehouseLogModel;
 use Illuminate\Http\Request;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class WarehouseLogController extends Controller
 {

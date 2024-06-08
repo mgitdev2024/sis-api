@@ -8,7 +8,7 @@ use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class WarehouseReceivingController extends Controller
 {

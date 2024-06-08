@@ -7,7 +7,7 @@ use App\Models\MOS\Production\ArchivedBatchesModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Http\Request;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
 use Exception;
 

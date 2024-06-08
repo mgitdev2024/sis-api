@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
-use App\Traits\MosCrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ItemClassificationController extends Controller
