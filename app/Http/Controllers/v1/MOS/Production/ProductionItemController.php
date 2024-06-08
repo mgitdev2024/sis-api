@@ -201,7 +201,6 @@ class ProductionItemController extends Controller
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -242,7 +241,8 @@ class ProductionItemController extends Controller
                 $data = [
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
-                    'production_order_status' => $productionItems->productionBatch->productionOrder->status
+                    'production_order_status' => $productionItems->productionBatch->productionOrder->status,
+                    'production_type' => $productionItems->production_type // 0 = otb, = 1 ota
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);

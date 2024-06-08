@@ -231,6 +231,11 @@ class ProductionOrderController extends Controller
             }
 
             $productionBatches = $productionBatches->get();
+
+            foreach ($productionBatches as $value) {
+                $value['batch_quantity'] = count(json_decode($value->productionItems->produced_items, true));
+            }
+
             $response = [
                 'batches' => $productionBatches,
             ];

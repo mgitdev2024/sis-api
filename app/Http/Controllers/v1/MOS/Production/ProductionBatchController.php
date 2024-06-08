@@ -192,7 +192,7 @@ class ProductionBatchController extends Controller
             $fields['ambient_exp_date'] = $fields['ambient_exp_date'] ?? $expirationDate['ambient_exp'];
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
-            $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
+            $batchNumber = $this->onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssemble->id);
             $batchCode = ProductionBatchModel::generateBatchCode(
                 $itemCode,
                 $deliveryType,
@@ -417,6 +417,25 @@ class ProductionBatchController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
+    }
+    public function onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssembleId)
+    {
+        $existingBatches = ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssembleId)
+            ->orderBy('batch_number')
+            ->pluck('batch_number')
+            ->toArray();
+
+        $nextBatchNumber = 1;
+
+        foreach ($existingBatches as $batchNumber) {
+            if ($batchNumber == $nextBatchNumber) {
+                $nextBatchNumber++;
+            } else {
+                break;
+            }
+        }
+
+        return $nextBatchNumber;
     }
 }
 
