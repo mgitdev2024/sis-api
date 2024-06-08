@@ -342,7 +342,7 @@ class ProductionBatchController extends Controller
             } else if (strcasecmp($order_type, 'ota') == 0) {
                 $data->where('production_ota_id', $id);
             }
-
+            $data->orderBy('batch_number', 'ASC');
             $result = $data->get();
             foreach ($result as $value) {
                 $activeStickers = 0;
