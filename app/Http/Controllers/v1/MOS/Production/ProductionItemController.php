@@ -102,6 +102,8 @@ class ProductionItemController extends Controller
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
+
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
         }
     }
@@ -264,7 +266,7 @@ class ProductionItemController extends Controller
                 $currentStickerNo = $value['sticker_no'];
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
-                $batchNumber = $productionBatch->batch_number;
+                $batchNumber = $productionBatch->batch_number ?? null;
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
