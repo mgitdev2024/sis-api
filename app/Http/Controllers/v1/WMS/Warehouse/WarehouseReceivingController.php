@@ -97,4 +97,12 @@ class WarehouseReceivingController extends Controller
     {
         return $this->readRecordById(WarehouseReceivingModel::class, $id, 'Warehouse Receiving');
     }
+    public function onUpdate(Request $request)
+    {
+        try {
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, WarehouseReceivingModel::class . ' ' . __('msg.update_failed'));
+        }
+    }
 }
