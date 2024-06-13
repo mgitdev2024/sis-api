@@ -9,13 +9,13 @@ use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
 use Illuminate\Validation\Rule;
 
 class ProductionOrderController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
 
     public static function getRules($orderId = "")
     {
@@ -231,6 +231,11 @@ class ProductionOrderController extends Controller
             }
 
             $productionBatches = $productionBatches->get();
+
+            foreach ($productionBatches as $value) {
+                $value['batch_quantity'] = count(json_decode($value->productionItems->produced_items, true));
+            }
+
             $response = [
                 'batches' => $productionBatches,
             ];

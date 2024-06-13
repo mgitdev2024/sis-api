@@ -142,7 +142,34 @@ return new class extends Migration {
             $table->foreign('warehouse_id')->references('id')->on('wms_storage_warehouses');
             $table->foreign('zone_id')->references('id')->on('wms_storage_zones');
         });
+        #endregion
 
+        #region Queued Temporary Storages
+        Schema::create('wms_queued_temporary_storages', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('sub_location_id');
+            $table->integer('layer_level');
+            $table->longText('production_items')->nullable();
+            $table->integer('quantity')->nullable();
+            $table->integer('storage_remaining_space')->nullable();
+            SchemaHelper::addCommonColumns($table);
+
+            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
+        });
+        #endregion
+
+        #region Queued Sub Locations
+        Schema::create('wms_queued_sub_locations', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('sub_location_id');
+            $table->integer('layer_level');
+            $table->longText('production_items')->nullable();
+            $table->integer('quantity')->nullable();
+            $table->integer('storage_remaining_space')->nullable();
+            SchemaHelper::addCommonColumns($table);
+
+            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
+        });
         #endregion
 
         #region Item Master Data
@@ -195,6 +222,33 @@ return new class extends Migration {
         });
         #endregion
 
+        #region Stock Inventories
+        Schema::create('wms_stock_inventories', function (Blueprint $table) {
+            $table->id();
+            $table->string('item_code');
+            $table->integer('stock_count')->default(0);
+            $table->integer('storage_remaining_space')->nullable();
+            SchemaHelper::addCommonColumns($table);
+
+            $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
+        });
+        #endregion
+
+        #region Stock Logs
+        Schema::create('wms_stock_logs', function (Blueprint $table) {
+            $table->id();
+            $table->string('item_code');
+            $table->tinyInteger('action'); // 1 = In, 0 = Out;
+            $table->integer('quantity');
+            $table->unsignedBigInteger('sub_location_id');
+            $table->integer('layer_level');
+            $table->integer('storage_remaining_space')->nullable();
+            SchemaHelper::addCommonColumns($table);
+
+            $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
+            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
+        });
+        #endregion
     }
 
     /**
@@ -221,7 +275,10 @@ return new class extends Migration {
         Schema::dropIfExists('wms_storage_sub_location_type');
         Schema::dropIfExists('wms_storage_sub_locations');
 
+        Schema::dropIfExists('wms_stock_logs');
+        Schema::dropIfExists('wms_stock_inventories');
 
-
+        Schema::dropIfExists('wms_queued_sub_locations');
+        Schema::dropIfExists('wms_queued_temporary_storages');
     }
 };

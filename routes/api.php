@@ -203,7 +203,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location_type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onBulk']);
     #endregion
 
-    #region Sub Location 
+    #region Sub Location
     Route::post('v1/storage/sub_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onCreate']);
     Route::post('v1/storage/sub_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onUpdateById']);
     Route::post('v1/storage/sub_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetPaginatedList']);
@@ -314,10 +314,20 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item/disposition/statistics', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetOverallStats']);
     #endregion
 
+    #region Sub Standard Items
+    Route::post('v1/item/sub-standard/create', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onCreate']);
+    Route::get('v1/item/sub-standard/notify', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetNotification']);
+    Route::get('v1/item/sub-standard/current/{status?}', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetCurrent']);
+    #endregion
+
     #region Warehouse Receiving
     Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
     Route::get('v1/warehouse/receive/current/{reference_number}/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
+    Route::post('v1/warehouse/receive/update', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
     #endregion
 
+    #region Queued Temporary Storage
+    Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
+    #endregion
 });

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Traits\ProductionLogTrait;
+use App\Traits\MOS\ProductionLogTrait;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOTBModel;
@@ -14,11 +14,11 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait, ProductionLogTrait;
+    use MosCrudOperationsTrait, ProductionLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {
@@ -192,7 +192,7 @@ class ProductionBatchController extends Controller
             $fields['ambient_exp_date'] = $fields['ambient_exp_date'] ?? $expirationDate['ambient_exp'];
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
-            $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
+            $batchNumber = $this->onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssemble->id);
             $batchCode = ProductionBatchModel::generateBatchCode(
                 $itemCode,
                 $deliveryType,
@@ -342,7 +342,7 @@ class ProductionBatchController extends Controller
             } else if (strcasecmp($order_type, 'ota') == 0) {
                 $data->where('production_ota_id', $id);
             }
-
+            $data->orderBy('batch_number', 'ASC');
             $result = $data->get();
             foreach ($result as $value) {
                 $activeStickers = 0;
@@ -417,6 +417,25 @@ class ProductionBatchController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
+    }
+    public function onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssembleId)
+    {
+        $existingBatches = ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssembleId)
+            ->orderBy('batch_number')
+            ->pluck('batch_number')
+            ->toArray();
+
+        $nextBatchNumber = 1;
+
+        foreach ($existingBatches as $batchNumber) {
+            if ($batchNumber == $nextBatchNumber) {
+                $nextBatchNumber++;
+            } else {
+                break;
+            }
+        }
+
+        return $nextBatchNumber;
     }
 }
 

@@ -4,15 +4,17 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Settings\WarehouseLocationModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
+use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class WarehouseReceivingController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait, QueueSubLocationTrait;
     public function onGetAllCategory($status)
     {
         try {
@@ -39,25 +41,86 @@ class WarehouseReceivingController extends Controller
             if (count($warehouseReceiving) > 0) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceiving);
             }
-            return $this->dataResponse('error', 200, WarehouseReceivingModel::class . ' ' . __('msg.record_not_found'));
+            return $this->dataResponse('error', 200, 'Warehouse Receiving ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+    #region Separate batches per item code
+    // public function onGetCurrent($referenceNumber, $status)
+    // {
+    //     $whereFields = [
+    //         'reference_number' => $referenceNumber,
+    //         'status' => $status // 0, 1
+    //     ];
+
+    //     $orderFields = [
+    //         'reference_number' => 'ASC'
+    //     ];
+    //     return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, null, 'Warehouse Receiving');
+    // }
+    #endregion
     public function onGetCurrent($referenceNumber, $status)
     {
-        $whereFields = [
-            'reference_number' => $referenceNumber,
-            'status' => $status // 0, 1
-        ];
-
-        $orderFields = [
-            'reference_number' => 'ASC'
-        ];
-        return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, null, 'Warehouse Receiving');
+        try {
+            $itemDisposition = WarehouseReceivingModel::select(
+                'reference_number',
+                'item_code',
+                DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                DB::raw('SUM(received_quantity) as received_quantity'),
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count')
+            )
+                ->where('status', $status)
+                ->where('reference_number', $referenceNumber)
+                ->groupBy([
+                    'item_code',
+                    'reference_number',
+                    'received_quantity',
+                    'substandard_quantity',
+                ])
+                ->get();
+            $warehouseReceiving = [];
+            $counter = 0;
+            foreach ($itemDisposition as $value) {
+                $warehouseReceiving[$counter] = [
+                    'reference_number' => $value->reference_number,
+                    'quantity' => $value->produced_items_count,
+                    'received_quantity' => $value->received_quantity,
+                    'substandard_quantity' => $value->substandard_quantity,
+                    'item_code' => $value->item_code,
+                    'sku_type' => ItemMasterdataModel::where('item_code', $value->item_code)->first()->item_category_label
+                ];
+                ++$counter;
+            }
+            if (count($warehouseReceiving) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceiving);
+            }
+            return $this->dataResponse('error', 200, 'Warehouse Receiving ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetById($id)
     {
         return $this->readRecordById(WarehouseReceivingModel::class, $id, 'Warehouse Receiving');
+    }
+    public function onUpdate(Request $request)
+    {
+        $fields = $request->validate([
+            'scanned_items' => 'required|string' // {slid:1}
+        ]);
+        try {
+            $scannedItems = null;
+            $isBulk = json_decode($fields['scanned_items'], true);
+            if (isset($isBulk['slid'])) {
+                $scannedItems = $this->onGetScannedItems($isBulk['slid'], false);
+            } else {
+                $scannedItems = json_decode($fields['scanned_items'], true);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $scannedItems);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, WarehouseReceivingModel::class . ' ' . __('msg.update_failed'));
+        }
     }
 }

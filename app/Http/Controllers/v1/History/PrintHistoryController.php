@@ -5,14 +5,14 @@ namespace App\Http\Controllers\v1\History;
 use App\Http\Controllers\Controller;
 use App\Models\History\PrintHistoryModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Exception;
 use DB;
 use Storage;
 
 class PrintHistoryController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
 
     public function getRules()
     {

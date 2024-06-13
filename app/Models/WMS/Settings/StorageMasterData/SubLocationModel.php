@@ -2,6 +2,9 @@
 
 namespace App\Models\WMS\Settings\StorageMasterData;
 
+use App\Models\WMS\Storage\QueuedSubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
+use App\Models\WMS\Storage\StockLogModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,7 +13,7 @@ class SubLocationModel extends Model
     use HasFactory;
 
     protected $table = 'wms_storage_sub_locations';
-    // protected $appends = ['facility_label','warehouse_label','zone_label'];
+    protected $appends = ['facility_label', 'warehouse_label', 'zone_label'];
 
     protected $fillable = [
         'code',
@@ -38,9 +41,13 @@ class SubLocationModel extends Model
     {
         return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
     }
-/*     public function getFacilityLabelAttribute()
+    public function stockLogs()
     {
-        return $this->facilty ? $this->facilty->long_name : null;
+        return $this->hasMany(StockLogModel::class, 'sub_location_id', 'id');
+    }
+    public function getFacilityLabelAttribute()
+    {
+        return $this->facility ? $this->facility->long_name : null;
     }
     public function getWarehouseLabelAttribute()
     {
@@ -49,5 +56,14 @@ class SubLocationModel extends Model
     public function getZoneLabelAttribute()
     {
         return $this->zone ? $this->zone->long_name : null;
-    } */
+    }
+    public function queuedTemporaryStorages()
+    {
+        return $this->hasMany(QueuedTemporaryStorageModel::class, 'sub_location_id', 'id');
+    }
+
+    public function queuedSubLocations()
+    {
+        return $this->hasMany(QueuedSubLocationModel::class, 'sub_location_id', 'id');
+    }
 }

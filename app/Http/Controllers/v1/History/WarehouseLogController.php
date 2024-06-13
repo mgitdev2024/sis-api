@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\v1\History;
 
 use App\Http\Controllers\Controller;
-use App\Models\History\ProductionWarehouseLogModel;
+use App\Models\History\WarehouseLogModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
-class ProductionWarehouseLogController extends Controller
+class WarehouseLogController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules()
     {
         return [
@@ -27,7 +27,7 @@ class ProductionWarehouseLogController extends Controller
     {
         $fields = $request->validate($this->getRules());
         try {
-            $record = new ProductionWarehouseLogModel();
+            $record = new WarehouseLogModel();
             $record->fill($fields);
             $record->save();
             return $this->dataResponse('success', 201, 'Production Warehouse Log ' . __('msg.create_success'), $record);
@@ -66,6 +66,6 @@ class ProductionWarehouseLogController extends Controller
         }
 
 
-        return $this->readCurrentRecord(ProductionWarehouseLogModel::class, null, $whereFields, null, null, 'Production Warehouse Log', false, $notNullFields);
+        return $this->readCurrentRecord(WarehouseLogModel::class, null, $whereFields, null, null, 'Production Warehouse Log', false, $notNullFields);
     }
 }

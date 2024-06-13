@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\ItemMasterData\ItemDeliveryTypeModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ItemDeliveryTypeController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -31,7 +31,7 @@ class ItemDeliveryTypeController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['name','code'];
+        $searchableFields = ['name', 'code'];
         return $this->readPaginatedRecord(ItemDeliveryTypeModel::class, $request, $searchableFields, 'Item Delivery Type');
     }
     public function onGetall()

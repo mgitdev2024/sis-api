@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionOTAController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     use ResponseTrait;
     public static function getRules()
     {

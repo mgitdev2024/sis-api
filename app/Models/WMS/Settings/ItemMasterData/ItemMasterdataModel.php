@@ -8,6 +8,8 @@ use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
+use App\Models\WMS\Storage\StockInventoryModel;
+use App\Models\WMS\Storage\StockLogModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -106,6 +108,14 @@ class ItemMasterdataModel extends Model
     public function plant()
     {
         return $this->belongsTo(FacilityPlantModel::class, 'plant_id', 'id');
+    }
+    public function stockInventories()
+    {
+        return $this->hasMany(StockInventoryModel::class, 'item_code', 'item_code');
+    }
+    public function stockLogs()
+    {
+        return $this->hasMany(StockLogModel::class, 'item_code', 'item_code');
     }
     public function getItemCategoryLabelAttribute()
     {

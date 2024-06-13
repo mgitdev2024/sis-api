@@ -2,7 +2,7 @@
 
 namespace App\Models\WMS\Warehouse;
 
-use App\Models\Productions\ProductionOrderModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,6 +18,8 @@ class WarehouseReceivingModel extends Model
         'item_code',
         'produced_items',
         'quantity',
+        'received_quantity',
+        'substandard_quantity' .
         'sku_type',
         'status',
         'created_by_id',
