@@ -5,6 +5,7 @@ namespace App\Traits\WMS;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedSubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use Exception;
 use App\Traits\ResponseTrait;
@@ -58,10 +59,11 @@ trait QueueSubLocationTrait
             $scanCtr = 1;
 
             $queueTemporaryStorageArr = [];
+
             foreach ($scannedItem as $value) {
                 $currentScannedItems[] = $value;
                 --$currentLayerCapacity;
-                $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $createdById);
+                $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $currentLayerIndex, $createdById);
                 if ($currentLayerCapacity == 0 || (count($scannedItem) == $scanCtr)) {
                     $queueTemporaryStorage = new QueuedTemporaryStorageModel();
                     $queueTemporaryStorage->sub_location_id = $subLocationId;
@@ -87,13 +89,17 @@ trait QueueSubLocationTrait
         }
     }
 
-    public function onUpdateItemLocationLog($productionBatchId, $stickerNumber, $subLocationId, $createdById)
+    public function onUpdateItemLocationLog($productionBatchId, $stickerNumber, $subLocationId, $currentLayerIndex, $createdById)
     {
         try {
             $productionBatch = ProductionBatchModel::find($productionBatchId);
             $productionItem = $productionBatch->productionItems;
             $items = json_decode($productionBatch->productionItems->produced_items, true);
-            $items[$stickerNumber]['sub_location'] = $subLocationId;
+            $subLocation = [
+                'sub_location_id' => $subLocationId,
+                'layer_level' => $currentLayerIndex
+            ];
+            $items[$stickerNumber]['sub_location'] = $subLocation;
             $productionItem->produced_items = json_encode($items);
             $productionItem->save();
 
@@ -101,5 +107,25 @@ trait QueueSubLocationTrait
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
+    }
+
+    public function onGetScannedItems($subLocationId, $isPermanent)
+    {
+        $data = null;
+        if ($isPermanent) {
+            $data = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->get()->pluck('production_items');
+        } else {
+            $data = QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->get()->pluck('production_items');
+        }
+        $decodedItems = $this->onDecodeScannedItems($data);
+        if (count($decodedItems) > 0) {
+            return $decodedItems;
+        }
+        throw new Exception('Record not found');
+    }
+
+    public function onDecodeScannedItems($queueProdItems)
+    {
+        return $queueProdItems;
     }
 }
