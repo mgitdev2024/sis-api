@@ -13,7 +13,7 @@ class SubLocationModel extends Model
     use HasFactory;
 
     protected $table = 'wms_storage_sub_locations';
-    protected $appends = ['facility_label', 'warehouse_label', 'zone_label'];
+    protected $appends = ['facility_label', 'warehouse_label', 'zone_label', 'sub_location_type_label'];
 
     protected $fillable = [
         'code',
@@ -40,7 +40,7 @@ class SubLocationModel extends Model
     public function zone()
     {
         return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
-    }
+    }  
     public function stockLogs()
     {
         return $this->hasMany(StockLogModel::class, 'sub_location_id', 'id');
@@ -56,6 +56,11 @@ class SubLocationModel extends Model
     public function getZoneLabelAttribute()
     {
         return $this->zone ? $this->zone->long_name : null;
+    }
+    public function getSubLocationTypeLabelAttribute()
+    {
+        $subLocationType = SubLocationTypeModel::find($this->sub_location_type_id);
+        return $subLocationType ? $subLocationType->code : '';
     }
     public function queuedTemporaryStorages()
     {
