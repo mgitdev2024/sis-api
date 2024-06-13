@@ -336,7 +336,7 @@ class ProductionBatchController extends Controller
     public function onGetCurrent($id = null, $order_type = null)
     {
         try {
-            $data = ProductionBatchModel::orderBy('id', 'ASC');
+            $data = ProductionBatchModel::query();
             if (strcasecmp($order_type, 'otb') == 0) {
                 $data->where('production_otb_id', $id);
             } else if (strcasecmp($order_type, 'ota') == 0) {
