@@ -293,6 +293,9 @@ class ProductionItemController extends Controller
             }
             DB::beginTransaction();
             if ($temporaryStorageId != null) {
+                if (!$this->onCheckAvailability($temporaryStorageId, false)) {
+                    throw new Exception('Sub Location is in use');
+                }
                 $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
             }
             foreach ($itemsToTransfer as $key => $value) {

@@ -59,31 +59,48 @@ trait QueueSubLocationTrait
             $scanCtr = 1;
 
             $queueTemporaryStorageArr = [];
-
+            $isSpareLayer = false;
+            $spareScannedItems = [];
             foreach ($scannedItem as $value) {
-                $currentScannedItems[] = $value;
-                --$currentLayerCapacity;
-                $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $currentLayerIndex, $createdById);
-                if ($currentLayerCapacity == 0 || (count($scannedItem) == $scanCtr)) {
-                    $queueTemporaryStorage = new QueuedTemporaryStorageModel();
-                    $queueTemporaryStorage->sub_location_id = $subLocationId;
-                    $queueTemporaryStorage->layer_level = $currentLayerIndex;
-                    $queueTemporaryStorage->production_items = json_encode($currentScannedItems);
-                    $queueTemporaryStorage->quantity = count($currentScannedItems);
-                    $queueTemporaryStorage->storage_remaining_space = $currentLayerCapacity;
-                    $queueTemporaryStorage->created_by_id = $createdById;
-                    $queueTemporaryStorage->save();
-                    $currentLayerIndex++;
-                    $currentScannedItems = [];
-                    $queueTemporaryStorageArr[] = $queueTemporaryStorage;
-                    if (isset($layers[$currentLayerIndex])) {
-                        break;
+                if ($isSpareLayer) {
+                    $spareScannedItems[] = $value;
+                    $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, 0, $createdById);
+                } else {
+                    $currentScannedItems[] = $value;
+                    --$currentLayerCapacity;
+                    $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $currentLayerIndex, $createdById);
+                    if ($currentLayerCapacity == 0 || (count($scannedItem) == $scanCtr)) {
+                        $queueTemporaryStorage = new QueuedTemporaryStorageModel();
+                        $queueTemporaryStorage->sub_location_id = $subLocationId;
+                        $queueTemporaryStorage->layer_level = $currentLayerIndex;
+                        $queueTemporaryStorage->production_items = json_encode($currentScannedItems);
+                        $queueTemporaryStorage->quantity = count($currentScannedItems);
+                        $queueTemporaryStorage->storage_remaining_space = $currentLayerCapacity;
+                        $queueTemporaryStorage->created_by_id = $createdById;
+                        $queueTemporaryStorage->save();
+                        $currentLayerIndex++;
+                        $currentScannedItems = [];
+                        $queueTemporaryStorageArr[] = $queueTemporaryStorage;
+                        if (isset($layers[$currentLayerIndex])) {
+                            $isSpareLayer = true;
+                        }
                     }
+                    $scanCtr++;
                 }
-                $scanCtr++;
             }
 
-            return $queueTemporaryStorage;
+            if (count($spareScannedItems) > 0) {
+                $queueTemporaryStorage = new QueuedTemporaryStorageModel();
+                $queueTemporaryStorage->sub_location_id = $subLocationId;
+                $queueTemporaryStorage->layer_level = 0;
+                $queueTemporaryStorage->production_items = json_encode($spareScannedItems);
+                $queueTemporaryStorage->quantity = count($spareScannedItems);
+                $queueTemporaryStorage->storage_remaining_space = 0;
+                $queueTemporaryStorage->created_by_id = $createdById;
+                $queueTemporaryStorage->save();
+                $queueTemporaryStorageArr[] = $queueTemporaryStorage;
+            }
+            return $queueTemporaryStorageArr;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -126,6 +143,24 @@ trait QueueSubLocationTrait
 
     public function onDecodeScannedItems($queueProdItems)
     {
-        return $queueProdItems;
+        $decodedArr = [];
+        foreach ($queueProdItems as $value) {
+            $decodedArr[] = json_decode($value, true);
+        }
+        return $decodedArr;
     }
+
+    public function onCheckAvailability($subLocationId, $isPermanent)
+    {
+        try {
+            if ($isPermanent) {
+                return !QueuedSubLocationModel::where('sub_location_id', $subLocationId)->exists();
+            } else {
+                return !QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->exists();
+            }
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+
 }
