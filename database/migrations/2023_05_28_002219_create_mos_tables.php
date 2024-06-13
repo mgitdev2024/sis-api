@@ -141,6 +141,7 @@ return new class extends Migration {
             $table->integer('quantity');
             $table->integer('received_quantity')->default(0);
             $table->integer('substandard_quantity')->default(0);
+            $table->longText('substandard_data')->nullable();
             $table->string('sku_type');
             SchemaHelper::addCommonColumns($table, 0); // 0 = not yet received, 1 = received
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
