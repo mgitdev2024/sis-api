@@ -329,5 +329,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Queued Temporary Storage
     Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
+    Route::get('v1/queue/storage/temporary/status/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetStatus']);
     #endregion
 });
