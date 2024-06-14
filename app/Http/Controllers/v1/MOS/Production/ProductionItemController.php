@@ -102,9 +102,7 @@ class ProductionItemController extends Controller
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
-
-            return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
+            return $this->dataResponse('error', 400, 'Produced Item ' . $exception->getMessage());
         }
     }
 
