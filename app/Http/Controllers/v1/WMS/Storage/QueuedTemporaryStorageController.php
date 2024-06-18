@@ -24,4 +24,14 @@ class QueuedTemporaryStorageController extends Controller
         $data = $this->onCheckAvailability($id, false);
         return $this->dataResponse('success', 200, __('msg.record_found'), $data);
     }
+
+    public function onGetItems($sub_location_id)
+    {
+        $data = $this->onGetQueuedItems($sub_location_id, false);
+        foreach ($data as $layerValue) {
+            foreach ($layerValue as $itemDetails) {
+            }
+        }
+        return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+    }
 }
