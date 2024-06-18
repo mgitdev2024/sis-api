@@ -235,14 +235,18 @@ class ProductionItemController extends Controller
     public function onCheckItemStatus($id, $item_key)
     {
         try {
-            $productionItems = ProductionItemModel::where('production_batch_id', $id)->first();
-            if ($productionItems) {
-                $item = json_decode($productionItems->produced_items, true)[$item_key];
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionItemsModel = $productionBatch->productionItems;
+            if ($productionItemsModel) {
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
+                $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
                 $data = [
+                    'item_code' => $itemCode,
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
-                    'production_order_status' => $productionItems->productionBatch->productionOrder->status,
-                    'production_type' => $productionItems->production_type // 0 = otb, = 1 ota
+                    'production_order_status' => $productionBatch->productionOrder->status,
+                    'production_type' => $productionItemsModel->production_type // 0 = otb, = 1 ota
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);

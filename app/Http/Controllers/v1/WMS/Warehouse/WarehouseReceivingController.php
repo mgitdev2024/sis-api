@@ -117,60 +117,12 @@ class WarehouseReceivingController extends Controller
             'scanned_items' => 'required|string', // {slid:1}
         ]);
         try {
-            $scannedItems = null;
-            $dataEncodedItems = json_decode($fields['scanned_items'], true);
-            if (isset($dataEncodedItems['slid'])) {
-                $scannedItems = $this->onGetQueuedItems($dataEncodedItems['slid'], false);
-                $this->onScanTemporaryStorage($scannedItems, $referenceNumber);
-            } else {
-                $scannedItems = json_decode($fields['scanned_items'], true);
-                $this->onScanItems($scannedItems, $referenceNumber);
-            }
+            $scannedItems = json_decode($fields['scanned_items'], true);
+            $this->onScanItems($scannedItems, $referenceNumber);
             return $this->dataResponse('success', 200, __('msg.record_found'));
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
-        }
-    }
-
-    public function onScanTemporaryStorage($layers, $referenceNumber)
-    {
-        try {
-            DB::beginTransaction();
-            foreach ($layers as $layerValue) {
-                foreach ($layerValue as $itemDetails) {
-                    $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
-                    $productionItem = $productionBatch->productionItems;
-                    $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-                    $itemCode = $productionOrderToMake->item_code;
-                    $inclusionArray = [2];
-                    $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
-                    if ($flag) {
-                        $decodeItems = json_decode($productionItem->produced_items, true);
-                        $decodeItems[$itemDetails['sticker_no']]['status'] = 3;
-                        $productionItem->produced_items = json_encode($decodeItems);
-                        $productionItem->save();
-
-                        $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
-                            ->where('production_order_id', $productionBatch->production_order_id)
-                            ->where('batch_number', $productionBatch->batch_number)
-                            ->where('item_code', $itemCode)
-                            ->first();
-                        if ($warehouseReceiving) {
-                            $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
-                            $warehouseReceiving->status = 1;
-                            $warehouseReceiving->save();
-                        }
-                    }
-                }
-            }
-
-            DB::commit();
-
-        } catch (Exception $exception) {
-            DB::rollBack();
-            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
-
         }
     }
 
