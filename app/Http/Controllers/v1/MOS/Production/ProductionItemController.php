@@ -142,7 +142,7 @@ class ProductionItemController extends Controller
             if ($statusId == 4) {
                 $type = 0;
             }
-            $exclusionArray = [1, 4, 5, 6, 7, 8];
+            $exclusionArray = [1, '1.1', 4, 5, 6, 7, 8];
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
@@ -185,7 +185,7 @@ class ProductionItemController extends Controller
         try {
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            $inclusionArray = [0, 8];
+            $inclusionArray = [0, 9];
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
@@ -269,7 +269,8 @@ class ProductionItemController extends Controller
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
-                $inclusionArray = [0, 8];
+                $inclusionArray = [0, 9];
+
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
@@ -289,13 +290,15 @@ class ProductionItemController extends Controller
                     ];
                 }
             }
+
             DB::beginTransaction();
             if ($temporaryStorageId != null) {
                 if (!$this->onCheckAvailability($temporaryStorageId, false)) {
-                    throw new Exception('Sub Location is in use');
+                    throw new Exception('Sub Location Unavailable');
                 }
                 $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
             }
+
             foreach ($itemsToTransfer as $key => $value) {
                 if ($value['flag']) {
                     $warehouseReceive = new WarehouseReceivingModel();

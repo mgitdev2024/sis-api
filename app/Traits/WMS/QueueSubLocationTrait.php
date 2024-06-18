@@ -69,7 +69,8 @@ trait QueueSubLocationTrait
                     $currentScannedItems[] = $value;
                     --$currentLayerCapacity;
                     $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $currentLayerIndex, $createdById);
-                    if ($currentLayerCapacity == 0 || (count($scannedItem) == $scanCtr)) {
+
+                    if ($currentLayerCapacity === 0 || (count($scannedItem) === $scanCtr)) {
                         $queueTemporaryStorage = new QueuedTemporaryStorageModel();
                         $queueTemporaryStorage->sub_location_id = $subLocationId;
                         $queueTemporaryStorage->layer_level = $currentLayerIndex;
@@ -78,17 +79,18 @@ trait QueueSubLocationTrait
                         $queueTemporaryStorage->storage_remaining_space = $currentLayerCapacity;
                         $queueTemporaryStorage->created_by_id = $createdById;
                         $queueTemporaryStorage->save();
+                        $currentLayerCapacity = $layers[$currentLayerIndex]['max'];
                         $currentLayerIndex++;
                         $currentScannedItems = [];
                         $queueTemporaryStorageArr[] = $queueTemporaryStorage;
-                        if (isset($layers[$currentLayerIndex])) {
+                        if (!isset($layers[$currentLayerIndex])) {
                             $isSpareLayer = true;
+
                         }
                     }
                     $scanCtr++;
                 }
             }
-
             if (count($spareScannedItems) > 0) {
                 $queueTemporaryStorage = new QueuedTemporaryStorageModel();
                 $queueTemporaryStorage->sub_location_id = $subLocationId;
@@ -126,7 +128,7 @@ trait QueueSubLocationTrait
         }
     }
 
-    public function onGetScannedItems($subLocationId, $isPermanent)
+    public function onGetQueuedItems($subLocationId, $isPermanent)
     {
         $data = null;
         if ($isPermanent) {
@@ -154,9 +156,19 @@ trait QueueSubLocationTrait
     {
         try {
             if ($isPermanent) {
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 1)->first();
+
+                if (!$subLocation) {
+                    return false;
+                }
                 return !QueuedSubLocationModel::where('sub_location_id', $subLocationId)->exists();
             } else {
-                return !QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->exists();
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 0)->first();
+
+                if (!$subLocation) {
+                    return false;
+                }
+                return !QueuedTemporaryStorageModel::where('sub_location_id', $subLocation->id)->exists();
             }
         } catch (Exception $exception) {
             throw $exception;

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
+use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\Settings\WarehouseLocationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
@@ -104,23 +107,171 @@ class WarehouseReceivingController extends Controller
     {
         return $this->readRecordById(WarehouseReceivingModel::class, $id, 'Warehouse Receiving');
     }
-    public function onUpdate(Request $request)
+    public function onUpdate(Request $request, $referenceNumber)
     {
         $fields = $request->validate([
-            'scanned_items' => 'required|string' // {slid:1}
+            'scanned_items' => 'required|string', // {slid:1}
         ]);
         try {
             $scannedItems = null;
-            $isBulk = json_decode($fields['scanned_items'], true);
-            if (isset($isBulk['slid'])) {
-                $scannedItems = $this->onGetScannedItems($isBulk['slid'], false);
+            $dataEncodedItems = json_decode($fields['scanned_items'], true);
+            if (isset($dataEncodedItems['slid'])) {
+                $scannedItems = $this->onGetQueuedItems($dataEncodedItems['slid'], false);
+                $this->onScanTemporaryStorage($scannedItems, $referenceNumber);
             } else {
                 $scannedItems = json_decode($fields['scanned_items'], true);
+                $this->onScanItems($scannedItems, $referenceNumber);
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $scannedItems);
+            return $this->dataResponse('success', 200, __('msg.record_found'));
 
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, WarehouseReceivingModel::class . ' ' . __('msg.update_failed'));
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+        }
+    }
+
+    public function onScanTemporaryStorage($layers, $referenceNumber)
+    {
+        try {
+            DB::beginTransaction();
+            foreach ($layers as $layerValue) {
+                foreach ($layerValue as $itemDetails) {
+                    $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+                    $productionItem = $productionBatch->productionItems;
+                    $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                    $itemCode = $productionOrderToMake->item_code;
+                    $inclusionArray = [2];
+                    $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
+                    if ($flag) {
+                        $decodeItems = json_decode($productionItem->produced_items, true);
+                        $decodeItems[$itemDetails['sticker_no']]['status'] = 3;
+                        $productionItem->produced_items = json_encode($decodeItems);
+                        $productionItem->save();
+
+                        $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                            ->where('production_order_id', $productionBatch->production_order_id)
+                            ->where('batch_number', $productionBatch->batch_number)
+                            ->where('item_code', $itemCode)
+                            ->first();
+                        if ($warehouseReceiving) {
+                            $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
+                            $warehouseReceiving->status = 1;
+                            $warehouseReceiving->save();
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+
+        }
+    }
+
+    public function onScanItems($scannedItems, $referenceNumber)
+    {
+        try {
+            DB::beginTransaction();
+            foreach ($scannedItems as $itemDetails) {
+                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+                $productionItem = $productionBatch->productionItems;
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
+                $inclusionArray = [2];
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
+                if ($flag) {
+                    $decodeItems = json_decode($productionItem->produced_items, true);
+                    $decodeItems[$itemDetails['sticker_no']]['status'] = 3;
+                    $productionItem->produced_items = json_encode($decodeItems);
+                    $productionItem->save();
+
+                    $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                        ->where('production_order_id', $productionBatch->production_order_id)
+                        ->where('batch_number', $productionBatch->batch_number)
+                        ->where('item_code', $itemCode)
+                        ->first();
+                    if ($warehouseReceiving) {
+                        $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
+                        $warehouseReceiving->status = 1;
+                        $warehouseReceiving->save();
+                    }
+                }
+            }
+            DB::commit();
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+        }
+    }
+
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
+    {
+        $inArrayFlag = count($inclusionArray) > 0 ?
+            in_array($producedItems[$itemKey]['status'], $inclusionArray) :
+            !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
+    }
+
+    public function onSubStandard(Request $request, $referenceNumber)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'scanned_items' => 'required',
+            'reason' => 'required',
+            'attachment' => 'nullable',
+        ]);
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $scannedItems = json_decode($fields['scanned_items'], true);
+            $reason = $fields['reason'];
+            $attachment = $fields['attachment'] ?? null;
+            $locationId = 3; // Warehouse Receiving
+            foreach ($scannedItems as $itemDetails) {
+                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+                $productionItem = $productionBatch->productionItems;
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
+                $inclusionArray = [2];
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
+                if ($flag) {
+                    $decodeItems = json_decode($productionItem->produced_items, true);
+                    $decodeItems[$itemDetails['sticker_no']]['status'] = 1.1;
+                    $productionItem->produced_items = json_encode($decodeItems);
+                    $productionItem->save();
+
+                    $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                        ->where('production_order_id', $productionBatch->production_order_id)
+                        ->where('batch_number', $productionBatch->batch_number)
+                        ->where('item_code', $itemCode)
+                        ->first();
+                    if ($warehouseReceiving) {
+                        $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
+                        $warehouseReceiving->save();
+                    }
+                }
+            }
+
+            $substandardController = new SubStandardItemController();
+            $substandardRequest = new Request([
+                'created_by_id' => $createdById,
+                'scanned_items' => $fields['scanned_items'],
+                'reason' => $reason,
+                'attachment' => $attachment,
+                'location_id' => $locationId,
+            ]);
+
+            $substandardController->onCreate($substandardRequest);
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
+
+        } catch (Exception $exception) {
+            DB::rollback();
+            dd($exception);
+            return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
 }
