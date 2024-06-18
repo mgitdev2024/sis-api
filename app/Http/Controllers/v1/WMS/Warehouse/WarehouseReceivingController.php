@@ -24,6 +24,8 @@ class WarehouseReceivingController extends Controller
             $itemDisposition = WarehouseReceivingModel::select(
                 'reference_number',
                 DB::raw('count(*) as batch_count'),
+                DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count')
             )
                 ->where('status', $status)
@@ -38,6 +40,8 @@ class WarehouseReceivingController extends Controller
                     'reference_number' => $value->reference_number,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
+                    'received_quantity' => $value->received_quantity,
+                    'substandard_quantity' => $value->substandard_quantity,
                 ];
                 ++$counter;
             }
