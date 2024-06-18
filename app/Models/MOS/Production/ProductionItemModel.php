@@ -29,6 +29,7 @@ class ProductionItemModel extends Model
         $labels = [
             0 => 'Good',
             1 => 'On Hold',
+            "1.1" => 'On Hold - Sub Standard',
             2 => 'For Receive',
             3 => 'Received',
             4 => 'For Investigation',
