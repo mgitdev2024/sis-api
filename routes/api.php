@@ -323,6 +323,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region Warehouse For Receive
     Route::get('v1/warehouse/for-receive/current/get/{reference_number}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onGetCurrent']);
     Route::post('v1/warehouse/for-receive/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onCreate']);
+    Route::post('v1/warehouse/for-receive/delete', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onDelete']);
     #endregion
 
     #region Warehouse Receiving
