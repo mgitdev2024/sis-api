@@ -45,7 +45,7 @@ class QueuedTemporaryStorageController extends Controller
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (\Exception $exception) {
-            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
 
     }

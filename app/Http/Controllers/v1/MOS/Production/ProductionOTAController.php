@@ -182,8 +182,6 @@ class ProductionOTAController extends Controller
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
-
-
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
