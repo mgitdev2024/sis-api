@@ -249,6 +249,15 @@ return new class extends Migration {
             $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
         #endregion
+
+        #region Warehouse For Receive
+        Schema::create('wms_warehouse_for_receive', function (Blueprint $table) {
+            $table->id();
+            $table->string('reference_number');
+            $table->longText('production_items');
+            SchemaHelper::addCommonColumns($table);
+        });
+        #endregion
     }
 
     /**
@@ -280,5 +289,7 @@ return new class extends Migration {
 
         Schema::dropIfExists('wms_queued_sub_locations');
         Schema::dropIfExists('wms_queued_temporary_storages');
+
+        Schema::dropIfExists('wms_warehouse_for_receive');
     }
 };

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Storage;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
@@ -27,10 +28,19 @@ class QueuedTemporaryStorageController extends Controller
 
     public function onGetItems($sub_location_id)
     {
-        $data = $this->onGetQueuedItems($sub_location_id, false);
-        foreach ($data as $layerValue) {
-            foreach ($layerValue as $itemDetails) {
-            }
+        $items = $this->onGetQueuedItems($sub_location_id, false);
+        $combinedItems = array_merge(...$items);
+        $data = [];
+        foreach ($combinedItems as $itemDetails) {
+            $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+            $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+            $itemCode = $productionOrderToMake->item_code;
+
+            $data[] = [
+                'bid' => $itemDetails['bid'],
+                'item_code' => $itemCode,
+                'sticker_no' => $itemDetails['sticker_no'],
+            ];
         }
         return $this->dataResponse('success', 200, __('msg.record_found'), $data);
     }
