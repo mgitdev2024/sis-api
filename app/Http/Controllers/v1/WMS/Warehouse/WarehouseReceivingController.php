@@ -153,9 +153,7 @@ class WarehouseReceivingController extends Controller
                         ->first();
                     if ($warehouseReceiving) {
                         $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
-                        $warehouseForReceive->save();
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
-                        $warehouseReceiving->status = 1;
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
                         $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 0);
