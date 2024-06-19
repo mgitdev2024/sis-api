@@ -321,7 +321,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Warehouse For Receive
-    Route::get('v1/warehouse/for-receive/current/{reference_number}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onGetCurrent']);
+    Route::get('v1/warehouse/for-receive/current/get/{reference_number}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onGetCurrent']);
     Route::post('v1/warehouse/for-receive/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onCreate']);
     #endregion
 
@@ -335,7 +335,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Queued Temporary Storage
     Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
-    Route::get('v1/queue/storage/temporary/items/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetItems']);
+    Route::get('v1/queue/storage/temporary/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetItems']);
     Route::get('v1/queue/storage/temporary/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetStatus']);
     #endregion
 });
