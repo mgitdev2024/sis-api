@@ -28,20 +28,25 @@ class QueuedTemporaryStorageController extends Controller
 
     public function onGetItems($sub_location_id)
     {
-        $items = $this->onGetQueuedItems($sub_location_id, false);
-        $combinedItems = array_merge(...$items);
-        $data = [];
-        foreach ($combinedItems as $itemDetails) {
-            $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
-            $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-            $itemCode = $productionOrderToMake->item_code;
+        try {
+            $items = $this->onGetQueuedItems($sub_location_id, false);
+            $combinedItems = array_merge(...$items);
+            $data = [];
+            foreach ($combinedItems as $itemDetails) {
+                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
 
-            $data[] = [
-                'bid' => $itemDetails['bid'],
-                'item_code' => $itemCode,
-                'sticker_no' => $itemDetails['sticker_no'],
-            ];
+                $data[] = [
+                    'bid' => $itemDetails['bid'],
+                    'item_code' => $itemCode,
+                    'sticker_no' => $itemDetails['sticker_no'],
+                ];
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (\Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
-        return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+
     }
 }
