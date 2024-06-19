@@ -41,4 +41,19 @@ class WarehouseForReceiveController extends Controller
         }
         return $this->dataResponse('success', 200, __('msg.record_not_found'), $warehouseForReceive);
     }
+    public function onDelete($reference_number)
+    {
+        try {
+            $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $reference_number);
+            if ($warehouseForReceive->count() > 0) {
+                $warehouseForReceive->delete();
+                return $this->dataResponse('success', 200, __('msg.delete_success'));
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+
+        } catch (\Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
+        }
+    }
 }
