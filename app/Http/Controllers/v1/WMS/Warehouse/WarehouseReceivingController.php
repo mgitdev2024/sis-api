@@ -9,6 +9,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\Settings\WarehouseLocationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
@@ -151,6 +152,8 @@ class WarehouseReceivingController extends Controller
                         ->where('item_code', $itemCode)
                         ->first();
                     if ($warehouseReceiving) {
+                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+                        $warehouseForReceive->save();
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
                         $warehouseReceiving->status = 1;
                         $warehouseReceiving->updated_by_id = $createdById;
