@@ -33,7 +33,7 @@ class WarehouseForReceiveController extends Controller
 
         $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $reference_number)
             ->where('created_by_id', $created_by_id)
-            ->orderBy('id', 'ASC')
+            ->orderBy('id', 'DESC')
             ->first();
 
         if ($warehouseForReceive) {
