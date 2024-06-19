@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\Settings\WarehouseLocationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
@@ -114,11 +115,12 @@ class WarehouseReceivingController extends Controller
     public function onUpdate(Request $request, $referenceNumber)
     {
         $fields = $request->validate([
+            'created_by_id' => 'required',
             'scanned_items' => 'required|string', // {slid:1}
         ]);
         try {
             $scannedItems = json_decode($fields['scanned_items'], true);
-            $this->onScanItems($scannedItems, $referenceNumber);
+            $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
             return $this->dataResponse('success', 200, __('msg.record_found'));
 
         } catch (Exception $exception) {
@@ -126,7 +128,7 @@ class WarehouseReceivingController extends Controller
         }
     }
 
-    public function onScanItems($scannedItems, $referenceNumber)
+    public function onScanItems($scannedItems, $referenceNumber, $createdById)
     {
         try {
             DB::beginTransaction();
@@ -151,8 +153,12 @@ class WarehouseReceivingController extends Controller
                     if ($warehouseReceiving) {
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
                         $warehouseReceiving->status = 1;
+                        $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
+                        $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 0);
+
                     }
+                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $decodeItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
                 }
             }
             DB::commit();
@@ -226,7 +232,6 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
