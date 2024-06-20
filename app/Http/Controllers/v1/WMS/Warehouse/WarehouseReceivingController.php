@@ -72,42 +72,39 @@ class WarehouseReceivingController extends Controller
     public function onGetCurrent($referenceNumber, $status, $received_status = null)
     {
         try {
-            $itemDisposition = WarehouseReceivingModel::select(
+            $warehouseReceivingAdd = WarehouseReceivingModel::select(
                 'reference_number',
                 'item_code',
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count')
             )
-                ->where('status', $status);
-
-            if ($received_status !== null) {
-                $itemDisposition->whereRaw('received_quantity + substandard_quantity <> quantity');
-            }
-
-            $itemDisposition->where('reference_number', $referenceNumber)
+                ->where('status', $status)
+                ->where('reference_number', $referenceNumber)
                 ->groupBy([
                     'item_code',
-                    'reference_number',
-                    'received_quantity',
-                    'substandard_quantity',
-                ])
-                ->get();
-            $warehouseReceiving = [];
-            $counter = 0;
-            foreach ($itemDisposition as $value) {
-                $warehouseReceiving[$counter] = [
+                    'reference_number'
+                ]);
+            if ($received_status === 1) {
+                $warehouseReceivingAdd->havingRaw('SUM(received_quantity) + SUM(substandard_quantity) <> SUM(JSON_LENGTH(produced_items))');
+            }
+
+            $warehouseReceiving = $warehouseReceivingAdd->get();
+
+            $warehouseReceivingArr = [];
+            foreach ($warehouseReceiving as $value) {
+                $itemCode = $value->item_code;
+                $warehouseReceivingArr[] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
-                    'item_code' => $value->item_code,
-                    'sku_type' => ItemMasterdataModel::where('item_code', $value->item_code)->first()->item_category_label
+                    'item_code' => $itemCode,
+                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label
                 ];
-                ++$counter;
             }
-            if (count($warehouseReceiving) > 0) {
-                return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceiving);
+            if (count($warehouseReceivingArr) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceivingArr);
             }
             return $this->dataResponse('error', 200, 'Warehouse Receiving ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
