@@ -69,7 +69,7 @@ class WarehouseReceivingController extends Controller
     //     return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, null, 'Warehouse Receiving');
     // }
     #endregion
-    public function onGetCurrent($referenceNumber, $status)
+    public function onGetCurrent($referenceNumber, $status, $received_status = null)
     {
         try {
             $itemDisposition = WarehouseReceivingModel::select(
@@ -79,8 +79,13 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count')
             )
-                ->where('status', $status)
-                ->where('reference_number', $referenceNumber)
+                ->where('status', $status);
+
+            if ($received_status !== null) {
+                $itemDisposition->whereRaw('received_quantity + substandard_quantity <> quantity');
+            }
+
+            $itemDisposition->where('reference_number', $referenceNumber)
                 ->groupBy([
                     'item_code',
                     'reference_number',
