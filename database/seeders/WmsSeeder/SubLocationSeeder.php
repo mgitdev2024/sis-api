@@ -24,8 +24,8 @@ class SubLocationSeeder extends Seeder
                 "code" => "RACK-1",
                 "number" => "1",
                 "has_layer" => 1,
-                "is_permanent" => 1,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2}}',
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
                 "facility_id" => 2,
                 "warehouse_id" => 1,
                 "zone_id" => 1,
@@ -34,15 +34,104 @@ class SubLocationSeeder extends Seeder
             ],
             [
                 "code" => "RACK-2",
-                "number" => "2",
+                "number" => "1",
                 "has_layer" => 1,
                 "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2}}',
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
                 "facility_id" => 2,
                 "warehouse_id" => 1,
                 "zone_id" => 1,
                 "sub_location_type_id" => 1
 
+            ],
+            [
+                "code" => "RACK-3",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+
+            ],
+            [
+                "code" => "RACK-4",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-5",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-6",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-7",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-8",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-9",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
+            ],
+            [
+                "code" => "RACK-10",
+                "number" => "1",
+                "has_layer" => 1,
+                "is_permanent" => 0,
+                "layers" => '{"1":{"min":1,"max":20,"layer_no":1}}',
+                "facility_id" => 2,
+                "warehouse_id" => 1,
+                "zone_id" => 1,
+                "sub_location_type_id" => 1
             ],
         ];
         $createdById = 1;

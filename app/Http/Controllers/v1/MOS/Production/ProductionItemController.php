@@ -142,7 +142,7 @@ class ProductionItemController extends Controller
             if ($statusId == 4) {
                 $type = 0;
             }
-            $exclusionArray = [1, 4, 5, 6, 7, 8];
+            $exclusionArray = [1, '1.1', 4, 5, 6, 7, 8];
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
@@ -185,7 +185,7 @@ class ProductionItemController extends Controller
         try {
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            $inclusionArray = [0, 8];
+            $inclusionArray = [0, 9];
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
@@ -235,14 +235,18 @@ class ProductionItemController extends Controller
     public function onCheckItemStatus($id, $item_key)
     {
         try {
-            $productionItems = ProductionItemModel::where('production_batch_id', $id)->first();
-            if ($productionItems) {
-                $item = json_decode($productionItems->produced_items, true)[$item_key];
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionItemsModel = $productionBatch->productionItems;
+            if ($productionItemsModel) {
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
+                $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
                 $data = [
+                    'item_code' => $itemCode,
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
-                    'production_order_status' => $productionItems->productionBatch->productionOrder->status,
-                    'production_type' => $productionItems->production_type // 0 = otb, = 1 ota
+                    'production_order_status' => $productionBatch->productionOrder->status,
+                    'production_type' => $productionItemsModel->production_type // 0 = otb, = 1 ota
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
@@ -269,7 +273,8 @@ class ProductionItemController extends Controller
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
-                $inclusionArray = [0, 8];
+                $inclusionArray = [0, 9];
+
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
@@ -289,13 +294,15 @@ class ProductionItemController extends Controller
                     ];
                 }
             }
+
             DB::beginTransaction();
             if ($temporaryStorageId != null) {
                 if (!$this->onCheckAvailability($temporaryStorageId, false)) {
-                    throw new Exception('Sub Location is in use');
+                    throw new Exception('Sub Location Unavailable');
                 }
                 $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
             }
+
             foreach ($itemsToTransfer as $key => $value) {
                 if ($value['flag']) {
                     $warehouseReceive = new WarehouseReceivingModel();

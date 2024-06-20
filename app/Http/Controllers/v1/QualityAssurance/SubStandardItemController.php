@@ -39,7 +39,7 @@ class SubStandardItemController extends Controller
             'scanned_items' => 'required',
             'reason' => 'required',
             'attachment' => 'nullable',
-            'location_id' => 'required|integer|between:1,5',
+            'location_id' => 'required|integer|between:1,5'
         ]);
         try {
             DB::beginTransaction();
