@@ -23,7 +23,7 @@ class PrintHistoryController extends Controller
             'attachment' => 'nullable',
             'is_reprint' => 'required|boolean',
             'item_disposition_id' => 'nullable|integer',
-            'created_by_id' => 'required|integer'
+            'created_by_id' => 'required'
         ];
     }
     public function onCreate(Request $request)
