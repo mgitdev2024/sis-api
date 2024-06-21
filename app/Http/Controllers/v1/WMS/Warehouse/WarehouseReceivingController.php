@@ -85,7 +85,7 @@ class WarehouseReceivingController extends Controller
                     'item_code',
                     'reference_number'
                 ]);
-            if ($received_status === 1) {
+            if ($received_status == 1) {
                 $warehouseReceivingAdd->havingRaw('SUM(received_quantity) + SUM(substandard_quantity) <> SUM(JSON_LENGTH(produced_items))');
             }
 
