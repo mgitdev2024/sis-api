@@ -78,6 +78,7 @@ class ItemDispositionController extends Controller
         #region status list
         // 0 => 'Good',
         // 1 => 'On Hold',
+        // 1.1 => 'On Hold - Substandard',
         // 2 => 'For Receive',
         // 3 => 'Received',
         // 4 => 'For Investigation',
@@ -189,20 +190,27 @@ class ItemDispositionController extends Controller
     {
         $fields = $request->validate([
             'is_release' => 'required|boolean',
+            'selected_items' => 'nullable',
             'created_by_id' => 'required'
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $productionItems = ProductionItemModel::where('production_batch_id', $id)->first();
-            $productionBatch = $productionItems->productionBatch;
-            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id)->get();
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionItems = $productionBatch->productionItems;
+            $selectedItemsField = isset($fields['selected_items']) ? $fields['selected_items'] : null;
+            $itemDispositionAdd = ItemDispositionModel::where('production_batch_id', $id);
+            if (isset($selectedItemsField) && count(json_decode($selectedItemsField)) > 0) {
+                $itemDispositionAdd->WhereIn('item_key', json_decode($selectedItemsField, true));
+            }
+            $itemDisposition = $itemDispositionAdd->get();
+            $selectedItems = $selectedItemsField ? json_decode($selectedItemsField) : null;
             if ($productionBatch) {
                 DB::beginTransaction();
                 $response = null;
                 if ($fields['is_release']) {
-                    $response = $this->onReleaseHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById);
+                    $response = $this->onReleaseHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById, $selectedItems);
                 } else {
-                    $response = $this->onHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById);
+                    $response = $this->onHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById, $selectedItems);
                 }
 
                 DB::commit();
@@ -215,17 +223,31 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById)
+    public function onHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById, $selectedItems)
     {
         try {
-            $producedItemArray = json_decode($productionItems->produced_items);
+
+            $producedItems = json_decode($productionItems->produced_items);
+            $producedItemArray = $producedItems;
             foreach ($producedItemArray as $key => $value) {
-                if ($value->sticker_status === 1) {
-                    if ($value->status !== 1) {
-                        $value->prev_status = $value->status;
+                if (isset($selectedItems) && !empty($selectedItems)) {
+                    if (in_array($key, $selectedItems)) {
+                        if ($value->sticker_status === 1) {
+                            if ($value->status !== 1) {
+                                $value->prev_status = $value->status;
+                            }
+                            $value->status = 1;
+                            $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                        }
                     }
-                    $value->status = 1;
-                    $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                } else {
+                    if ($value->sticker_status === 1) {
+                        if ($value->status !== 1) {
+                            $value->prev_status = $value->status;
+                        }
+                        $value->status = 1;
+                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                    }
                 }
             }
 
@@ -245,20 +267,30 @@ class ItemDispositionController extends Controller
             ];
             return $response;
         } catch (Exception $exception) {
-            DB::rollBack();
             throw new Exception($exception->getMessage());
         }
     }
 
-    public function onReleaseHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById)
+    public function onReleaseHoldStatus($productionItems, $productionBatch, $itemDisposition, $createdById, $selectedItems)
     {
         try {
-            $producedItemArray = json_decode($productionItems->produced_items);
+            $producedItems = json_decode($productionItems->produced_items);
+            $producedItemArray = $producedItems;
             foreach ($producedItemArray as $key => $value) {
-
-                if ($value->sticker_status === 1) {
-                    $value->status = $value->prev_status;
-                    $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                if (isset($selectedItems) && !empty($selectedItems)) {
+                    if (in_array($key, $selectedItems)) {
+                        if ($value->sticker_status === 1) {
+                            $value->status = $value->prev_status;
+                            $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                        }
+                    }
+                } else {
+                    if (in_array($key, $selectedItems)) {
+                        if ($value->sticker_status === 1) {
+                            $value->status = $value->prev_status;
+                            $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
+                        }
+                    }
                 }
             }
 
@@ -281,7 +313,6 @@ class ItemDispositionController extends Controller
             ];
             return $response;
         } catch (Exception $exception) {
-            DB::rollBack();
             throw new Exception($exception->getMessage());
         }
     }

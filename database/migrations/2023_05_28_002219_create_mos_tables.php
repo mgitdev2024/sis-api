@@ -75,7 +75,7 @@ return new class extends Migration {
             $table->date('chilled_exp_date')->nullable();
             $table->date('frozen_exp_date')->nullable();
             $table->tinyInteger('is_printed')->default(0); // 0 = Not Printed, 1 = Printed
-            SchemaHelper::addCommonColumns($table, 0);
+            SchemaHelper::addCommonColumns($table, 0); // 0 = In Progress, 1 = On Hold, 2 = Complete
 
             $table->foreign('production_otb_id')->references('id')->on('mos_production_otbs');
             $table->foreign('production_ota_id')->references('id')->on('mos_production_otas');
