@@ -84,6 +84,39 @@ class ProductionOTAController extends Controller
         }
         return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
     }
+    public function onGetCurrentForOtb($id = null)
+    {
+        try {
+            $productionOrderId = null;
+            if ($id != null) {
+                $productionOrderId = $id;
+            } else {
+                $productionOrder = new ProductionOrderController();
+                $currentProductionOrder = $productionOrder->onGetCurrent();
+                $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
+            }
+
+            $productionOtaForOtb = [];
+            $includedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $productionOtas = ProductionOtaModel::with('itemMasterdata')
+                ->where('production_order_id', $productionOrderId)
+                ->whereIn('item_code', $includedItemCode)
+                ->get();
+
+            foreach ($productionOtas as $productionOta) {
+                $productionOtaData = $productionOta;
+                $productionOtaForOtb[] = $productionOtaData;
+            }
+            if (count($productionOtaForOtb) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $productionOtaForOtb);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionOtaForOtb);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+
+        }
+    }
     public function onGetEndorsedByQa($id = null)
     {
 
