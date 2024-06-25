@@ -19,7 +19,7 @@ class ItemDispositionModel extends Model
         'produced_items',
         'reason',
         'attachment',
-        'status',
+        'status', //  0 = closed , 1 = open
         'production_status',
         'action',
         'aging_period',
