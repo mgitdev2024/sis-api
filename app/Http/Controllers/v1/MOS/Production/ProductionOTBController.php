@@ -96,6 +96,7 @@ class ProductionOTBController extends Controller
                                 ->whereNotNull('action');
                         });
                 })
+                ->where('production_status', 1)
                 ->whereNotNull('action');
 
             if ($id != null) {

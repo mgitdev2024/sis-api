@@ -393,9 +393,9 @@ class ProductionBatchController extends Controller
             $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
             $productionBatch = ProductionBatchModel::with('productionOrder')
                 ->whereNotNull($orderTypeString)
-                ->whereHas('productionOrder', function ($query) {
-                    $query->where('status', '=', 0);
-                })
+                // ->whereHas('productionOrder', function ($query) {
+                //     $query->where('status', '=', 0);
+                // })
                 ->get();
 
             if (count($productionBatch) > 0) {

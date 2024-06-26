@@ -234,15 +234,21 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key)
     {
         try {
-            $productionBatch = ProductionBatchModel::find($id);
+            $productionBatch = ProductionBatchModel::find($batch_id);
             $productionItemsModel = $productionBatch->productionItems;
             if ($productionItemsModel) {
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+
+                $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
+
+                $warehouseReceivingArr['warehouse_receiving'] = [
+                    'reference_number' => $warehouseReceivingRefNo
+                ];
                 $data = [
                     'item_code' => $itemCode,
                     'item_status' => $item['status'],
@@ -250,6 +256,7 @@ class ProductionItemController extends Controller
                     'production_order_status' => $productionBatch->productionOrder->status,
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
+                    'warehouse' => $warehouseReceivingArr
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
@@ -275,9 +282,16 @@ class ProductionItemController extends Controller
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
-                $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
+                $productionItems = $productionBatch->productionItems;
+                $producedItems = json_decode($productionItems->produced_items, true);
                 $inclusionArray = [0, 9];
 
+                $warehouseReceivingArr = [
+                    'warehouse_receiving' => ['reference_number' => $warehouseReferenceNo]
+                ];
+                $producedItems[$currentStickerNo]['warehouse'] = $warehouseReceivingArr;
+                $productionItems->produced_items = json_encode($producedItems);
+                $productionItems->save();
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
