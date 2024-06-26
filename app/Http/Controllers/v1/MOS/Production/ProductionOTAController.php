@@ -123,14 +123,15 @@ class ProductionOTAController extends Controller
         try {
             $excludedItemCode = ['FC LF', 'FC SL', 'PD'];
             $itemDisposition = ItemDispositionModel::with('productionBatch')
-                ->whereNotIn('item_code', $excludedItemCode)
-                ->orWhere(function ($query) {
-                    $query->where('production_type', 1)
-                        ->where('production_status', 1)
-                        ->whereNotNull('action');
+                ->where(function ($query) use ($excludedItemCode) {
+                    $query->whereIn('item_code', $excludedItemCode)
+                        ->orWhere(function ($query) {
+                            $query->where('production_type', 0)
+                                ->where('production_status', 1)
+                                ->whereNotNull('action');
+                        });
                 })
                 ->whereNotNull('action');
-
             if ($id != null) {
                 $itemDisposition->where('id', $id);
             }

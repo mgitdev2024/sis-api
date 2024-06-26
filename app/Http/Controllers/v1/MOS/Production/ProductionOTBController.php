@@ -88,11 +88,13 @@ class ProductionOTBController extends Controller
         try {
             $includedItemCode = ['FC LF', 'FC SL', 'PD'];
             $itemDisposition = ItemDispositionModel::with('productionBatch')
-                ->whereIn('item_code', $includedItemCode)
-                ->orWhere(function ($query) {
-                    $query->where('production_type', 0)
-                        ->where('production_status', 1)
-                        ->whereNotNull('action');
+                ->where(function ($query) use ($includedItemCode) {
+                    $query->whereIn('item_code', $includedItemCode)
+                        ->orWhere(function ($query) {
+                            $query->where('production_type', 0)
+                                ->where('production_status', 1)
+                                ->whereNotNull('action');
+                        });
                 })
                 ->whereNotNull('action');
 
