@@ -121,9 +121,14 @@ class ProductionOTAController extends Controller
     {
 
         try {
+            $excludedItemCode = ['FC LF', 'FC SL', 'PD'];
             $itemDisposition = ItemDispositionModel::with('productionBatch')
-                ->where('production_type', 1)
-                ->where('production_status', 1)
+                ->whereNotIn('item_code', $excludedItemCode)
+                ->orWhere(function ($query) {
+                    $query->where('production_type', 1)
+                        ->where('production_status', 1)
+                        ->whereNotNull('action');
+                })
                 ->whereNotNull('action');
 
             if ($id != null) {
@@ -157,17 +162,21 @@ class ProductionOTAController extends Controller
                 ->first();
 
             if ($itemDisposition) {
-                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-                $itemDisposition->fulfilled_at = now();
-                $itemDisposition->production_status = 0;
-                $itemDisposition->save();
-                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
+                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                $itemDisposition->fulfilled_at = now();
+                $itemDisposition->production_status = 0;
+                $itemDisposition->action = $itemStatus;
+                $itemDisposition->save();
+                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
-                $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                if ($itemStatus != 9) {
+                    $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                }
+
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
                 if (isset($fields['chilled_exp_date'])) {
                     $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];

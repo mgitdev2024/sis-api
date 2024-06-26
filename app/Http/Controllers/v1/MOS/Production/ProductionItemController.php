@@ -87,12 +87,13 @@ class ProductionItemController extends Controller
             }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
+                $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
                 $productionType = $productionBatch->productionItems->production_type;
                 if ($statusId == 2) {
                     $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $statusId, $productionType);
+                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $itemCode, $value['sticker_no'], $statusId, $productionType);
                 } else {
                     $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no'], $createdById);
                 }
@@ -135,7 +136,7 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
+    public function onItemDisposition($createdById, $id, $value, $itemCode, $itemKey, $statusId, $productionType)
     {
         try {
             $type = 1;
@@ -151,6 +152,7 @@ class ProductionItemController extends Controller
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
                 $itemDisposition->production_batch_id = $id;
+                $itemDisposition->item_code = $itemCode;
                 $itemDisposition->item_key = $itemKey;
                 $itemDisposition->type = $type;
                 $itemDisposition->production_type = $productionType;

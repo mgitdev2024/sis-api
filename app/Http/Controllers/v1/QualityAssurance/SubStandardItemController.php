@@ -47,6 +47,8 @@ class SubStandardItemController extends Controller
             $createdById = $fields['created_by_id'];
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
+                $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
+
                 if (!$productionBatch) {
                     continue;
                 }
@@ -59,6 +61,7 @@ class SubStandardItemController extends Controller
                 }
                 $record = new SubStandardItemModel();
                 $record->item_key = $value['sticker_no'];
+                $record->item_code = $itemCode;
                 $record->production_batch_id = $value['bid'];
                 $record->production_type = $productionBatch->productionItems->production_type;
                 $record->location_id = $fields['location_id'];

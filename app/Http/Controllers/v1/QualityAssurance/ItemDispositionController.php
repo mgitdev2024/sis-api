@@ -105,7 +105,8 @@ class ItemDispositionController extends Controller
             if ($productionBatch) {
                 foreach ($productionItemsArr as $itemKey => &$items) {
                     $statusItem = $items['status'];
-                    if (!in_array($statusItem, $triggerReviewedStatus)) {
+                    $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
+                    if ($checkIfTriggerReviewedStatus) {
                         $items['status'] = 10;
                         $items['sticker_status'] = 0;
                         $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items[$itemKey], $createdById, 1, $itemKey);
@@ -117,8 +118,11 @@ class ItemDispositionController extends Controller
 
                     if ($itemDisposition) {
                         $itemDisposition->status = 0;
-                        $itemDisposition->production_status = 0;
+                        // $itemDisposition->production_status = 0;
                         $itemDisposition->aging_period = $itemDisposition->created_at->diffInDays(Carbon::now());
+                        if ($checkIfTriggerReviewedStatus) {
+                            $itemDisposition->action = 10;
+                        }
                         $itemDisposition->save();
                         $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemDisposition['item_key']);
                     }
