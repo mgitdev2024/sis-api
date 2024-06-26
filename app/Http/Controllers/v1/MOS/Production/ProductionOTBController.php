@@ -138,7 +138,7 @@ class ProductionOTBController extends Controller
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
                 }
-
+                $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
                 if (isset($fields['chilled_exp_date'])) {
                     $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];

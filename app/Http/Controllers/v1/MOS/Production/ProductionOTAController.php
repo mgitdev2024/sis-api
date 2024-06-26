@@ -174,6 +174,7 @@ class ProductionOTAController extends Controller
                 $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
                 if ($itemStatus != 9) {
+                    $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
                 }
 

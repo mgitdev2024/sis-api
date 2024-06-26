@@ -248,7 +248,8 @@ class ProductionItemController extends Controller
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
                     'production_order_status' => $productionBatch->productionOrder->status,
-                    'production_type' => $productionItemsModel->production_type // 0 = otb, = 1 ota
+                    'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
+                    'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
