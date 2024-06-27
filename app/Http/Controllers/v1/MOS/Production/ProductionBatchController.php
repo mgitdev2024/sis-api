@@ -203,6 +203,7 @@ class ProductionBatchController extends Controller
             $productionBatch->fill($fields);
             $productionBatch->batch_code = $batchCode;
             $productionBatch->batch_number = $batchNumber;
+            $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->status = 0;
             $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
             $productionBatch->save();

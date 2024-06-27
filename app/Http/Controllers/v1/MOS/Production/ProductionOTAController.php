@@ -104,8 +104,7 @@ class ProductionOTAController extends Controller
                 ->get();
 
             foreach ($productionOtas as $productionOta) {
-                $productionOtaData = $productionOta;
-                $productionOtaForOtb[] = $productionOtaData;
+                $productionOtaForOtb[] = $productionOta;
             }
             if (count($productionOtaForOtb) > 0) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $productionOtaForOtb);
@@ -126,7 +125,7 @@ class ProductionOTAController extends Controller
                 ->where(function ($query) use ($excludedItemCode) {
                     $query->whereIn('item_code', $excludedItemCode)
                         ->orWhere(function ($query) {
-                            $query->where('production_type', 0)
+                            $query->where('production_type', 1)
                                 ->where('production_status', 1)
                                 ->whereNotNull('action');
                         });

@@ -74,6 +74,7 @@ return new class extends Migration {
             $table->date('ambient_exp_date')->nullable();
             $table->date('chilled_exp_date')->nullable();
             $table->date('frozen_exp_date')->nullable();
+            $table->tinyInteger('has_endorsement_from_qa')->default(0); // 0 = No Endorsement, 1 = Has Endorsement
             $table->tinyInteger('is_printed')->default(0); // 0 = Not Printed, 1 = Printed
             SchemaHelper::addCommonColumns($table, 0);
 
