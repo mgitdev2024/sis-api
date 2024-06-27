@@ -401,7 +401,6 @@ class ProductionBatchController extends Controller
                 $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
                     $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
                         $query->whereIn('item_code', $inclusionExclusionItemCode);
-
                     })
                         ->orWhereNotNull('production_otb_id');
                 });
@@ -409,9 +408,8 @@ class ProductionBatchController extends Controller
                 $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
                     $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
                         $query->whereNotIn('item_code', $inclusionExclusionItemCode);
-
                     })
-                        ->orWhereNotNull('production_ota_id');
+                        ->whereNotNull('production_ota_id');
                 });
             }
 
