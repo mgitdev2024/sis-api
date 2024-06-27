@@ -278,6 +278,8 @@ class ProductionItemController extends Controller
                 $currentStickerNo = $value['sticker_no'];
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
+                $productionBatch->has_endorsement_from_qa = 0;
+                $productionBatch->save();
                 $batchNumber = $productionBatch->batch_number ?? null;
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
