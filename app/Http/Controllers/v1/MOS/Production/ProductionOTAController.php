@@ -76,7 +76,7 @@ class ProductionOTAController extends Controller
                 $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
             }
             $productionOta = [];
-            $excludedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $excludedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $productionOtas = ProductionOtaModel::with('itemMasterdata')
                 ->where('production_order_id', $productionOrderId)
                 ->whereNotIn('item_code', $excludedItemCode)
@@ -106,7 +106,7 @@ class ProductionOTAController extends Controller
             }
 
             $productionOtaForOtb = [];
-            $includedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $includedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $productionOtas = ProductionOtaModel::with('itemMasterdata')
                 ->where('production_order_id', $productionOrderId)
                 ->whereIn('item_code', $includedItemCode)
@@ -128,7 +128,7 @@ class ProductionOTAController extends Controller
     {
 
         try {
-            $excludedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $excludedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where(function ($query) use ($excludedItemCode) {
                     $query->whereIn('item_code', $excludedItemCode)

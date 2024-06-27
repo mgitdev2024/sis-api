@@ -299,6 +299,7 @@ class ItemMasterdataSeeder extends Seeder
                     "primary_conversion_code" => "",
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_code" => "",
+                    "is_viewable_by_otb" => 1,
                     "plant_code" => "02",
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 15,
@@ -1000,6 +1001,7 @@ class ItemMasterdataSeeder extends Seeder
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_code" => "",
                     "plant_code" => "02",
+                    "is_viewable_by_otb" => 1,
                     "ambient_shelf_life" => 365,
                     "chilled_shelf_life" => "",
                     "frozen_shelf_life" => "",
@@ -1020,6 +1022,7 @@ class ItemMasterdataSeeder extends Seeder
                     "secondary_item_packing_size" => "",
                     "secondary_conversion_code" => "",
                     "plant_code" => "02",
+                    "is_viewable_by_otb" => 1,
                     "ambient_shelf_life" => "",
                     "chilled_shelf_life" => 90,
                     "frozen_shelf_life" => "",
@@ -1369,6 +1372,7 @@ class ItemMasterdataSeeder extends Seeder
                 'primary_conversion_id' => $this->onGetPrimaryConversion($value['primary_conversion_code']),
                 'secondary_conversion_id' => $this->onGetSecondaryConversion($value['secondary_conversion_code']),
                 'sticker_remarks_code' => $value['sticker_remarks_code'],
+                'is_viewable_by_otb' => $value['is_viewable_by_otb'] ?? 0
             ]);
         }
     }

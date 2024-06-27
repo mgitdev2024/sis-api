@@ -86,7 +86,7 @@ class ProductionOTBController extends Controller
     public function onGetEndorsedByQa(Request $request, $id = null)
     {
         try {
-            $includedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $includedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where(function ($query) use ($includedItemCode) {
                     $query->whereIn('item_code', $includedItemCode)

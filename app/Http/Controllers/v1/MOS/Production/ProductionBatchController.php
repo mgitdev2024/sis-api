@@ -392,7 +392,7 @@ class ProductionBatchController extends Controller
     {
         try {
             // 0 = otb, 1 = ota
-            $inclusionExclusionItemCode = ['FC LF', 'FC SL', 'PD'];
+            $inclusionExclusionItemCode = ItemMasterdataModel::getViewableOtb(true);
             $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
 
             $productionBatchAdd = ProductionBatchModel::with(['productionOtb', 'productionOta']);

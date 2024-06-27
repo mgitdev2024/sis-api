@@ -193,6 +193,7 @@ return new class extends Migration {
             $table->integer('stock_rotation_type')->nullable();
             $table->integer('qty_per_pallet')->nullable();
             $table->string('dimension')->nullable();
+            $table->tinyInteger('is_viewable_by_otb')->default(0);
             $table->integer('is_qa_required')->nullable();
             $table->integer('is_qa_disposal')->nullable();
             $table->string('attachment')->nullable();
