@@ -87,12 +87,13 @@ class ProductionItemController extends Controller
             }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
+                $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
                 $productionType = $productionBatch->productionItems->production_type;
                 if ($statusId == 2) {
                     $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $statusId, $productionType);
+                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $itemCode, $value['sticker_no'], $statusId, $productionType);
                 } else {
                     $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no'], $createdById);
                 }
@@ -135,7 +136,7 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
+    public function onItemDisposition($createdById, $id, $value, $itemCode, $itemKey, $statusId, $productionType)
     {
         try {
             $type = 1;
@@ -151,6 +152,7 @@ class ProductionItemController extends Controller
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
                 $itemDisposition->production_batch_id = $id;
+                $itemDisposition->item_code = $itemCode;
                 $itemDisposition->item_key = $itemKey;
                 $itemDisposition->type = $type;
                 $itemDisposition->production_type = $productionType;
@@ -232,21 +234,29 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key)
     {
         try {
-            $productionBatch = ProductionBatchModel::find($id);
+            $productionBatch = ProductionBatchModel::find($batch_id);
             $productionItemsModel = $productionBatch->productionItems;
             if ($productionItemsModel) {
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+
+                $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
+
+                $warehouseReceivingArr['warehouse_receiving'] = [
+                    'reference_number' => $warehouseReceivingRefNo
+                ];
                 $data = [
                     'item_code' => $itemCode,
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
                     'production_order_status' => $productionBatch->productionOrder->status,
-                    'production_type' => $productionItemsModel->production_type // 0 = otb, = 1 ota
+                    'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
+                    'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
+                    'warehouse' => $warehouseReceivingArr
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
@@ -268,13 +278,22 @@ class ProductionItemController extends Controller
                 $currentStickerNo = $value['sticker_no'];
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
+                $productionBatch->has_endorsement_from_qa = 0;
+                $productionBatch->save();
                 $batchNumber = $productionBatch->batch_number ?? null;
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
-                $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
+                $productionItems = $productionBatch->productionItems;
+                $producedItems = json_decode($productionItems->produced_items, true);
                 $inclusionArray = [0, 9];
 
+                $warehouseReceivingArr = [
+                    'warehouse_receiving' => ['reference_number' => $warehouseReferenceNo]
+                ];
+                $producedItems[$currentStickerNo]['warehouse'] = $warehouseReceivingArr;
+                $productionItems->produced_items = json_encode($producedItems);
+                $productionItems->save();
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;

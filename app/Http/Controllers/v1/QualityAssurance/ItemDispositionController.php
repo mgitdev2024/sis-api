@@ -78,6 +78,7 @@ class ItemDispositionController extends Controller
         #region status list
         // 0 => 'Good',
         // 1 => 'On Hold',
+        // 1.1 => 'On Hold - Substandard',
         // 2 => 'For Receive',
         // 3 => 'Received',
         // 4 => 'For Investigation',
@@ -96,39 +97,45 @@ class ItemDispositionController extends Controller
         try {
             // status to be excluded
             $createdById = $fields['created_by_id'];
-            $triggerReviewedStatus = [6, 7, 8, 9, 11, 12];
-            $itemBatches = ItemDispositionModel::where('production_batch_id', $id)->get();
+            $triggerReviewedStatus = [0, 2, 3, 6, 7, 8, 9, 11, 12];
+            $productionBatch = ProductionBatchModel::find($id);
+            $productionItems = $productionBatch->productionItems;
+            $productionItemsArr = json_decode($productionItems->produced_items, true);
             DB::beginTransaction();
-            if (count($itemBatches) > 0) {
-                foreach ($itemBatches as $items) {
-                    $producedItemData = ProductionItemModel::where('production_batch_id', $items['production_batch_id'])->first();
-                    $producedItems = json_decode($producedItemData->produced_items, true);
-                    $statusItem = $producedItems[$items['item_key']]['status'];
-
-                    if (!in_array($statusItem, $triggerReviewedStatus)) {
-                        $producedItems[$items['item_key']]['status'] = 10;
-                        $producedItems[$items['item_key']]['sticker_status'] = 0;
+            if ($productionBatch) {
+                foreach ($productionItemsArr as $itemKey => &$items) {
+                    $statusItem = $items['status'];
+                    $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
+                    if ($checkIfTriggerReviewedStatus) {
+                        $items['status'] = 10;
+                        $items['sticker_status'] = 0;
+                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items[$itemKey], $createdById, 1, $itemKey);
                     }
-                    $producedItemData->produced_items = json_encode($producedItems);
-                    $producedItemData->save();
 
+                    $itemDisposition = ItemDispositionModel::where('production_batch_id', $items['bid'])
+                        ->where('item_key', $itemKey)
+                        ->first();
 
-                    $items->status = 0;
-                    $items->production_status = 0;
-                    $items->aging_period = $items->created_at->diffInDays(Carbon::now());
-                    $items->save();
-                    $this->createProductionLog(ItemDispositionModel::class, $items->id, $items->getAttributes(), $createdById, 1, $items['item_key']);
+                    if ($itemDisposition) {
+                        $itemDisposition->status = 0;
+                        // $itemDisposition->production_status = 0;
+                        $itemDisposition->aging_period = $itemDisposition->created_at->diffInDays(Carbon::now());
+                        if ($checkIfTriggerReviewedStatus) {
+                            $itemDisposition->action = 10;
+                        }
+                        $itemDisposition->save();
+                        $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemDisposition['item_key']);
+                    }
+                    unset($items);
                 }
-                DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'));
             }
+            DB::commit();
             return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function onGetAllCategory($type = null, $status)
     {
         try {

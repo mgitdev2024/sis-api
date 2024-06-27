@@ -17,6 +17,7 @@ class SubStandardItemModel extends Model
         'attachment',
         'location_id',
         'production_batch_id',
+        'item_code',
         'item_key',
         'production_type',
         'item_disposition_id',

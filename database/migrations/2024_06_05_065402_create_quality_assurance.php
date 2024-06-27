@@ -14,7 +14,8 @@ return new class extends Migration {
         Schema::create('qa_item_dispositions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_batch_id');
-            $table->integer('item_key')->nullable();
+            $table->string('item_code');
+            $table->integer('item_key');
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling
             $table->string('produced_items');
@@ -38,6 +39,7 @@ return new class extends Migration {
             $table->integer('location_id');
 
             $table->unsignedBigInteger('production_batch_id');
+            $table->string('item_code');
             $table->integer('item_key');
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             $table->tinyInteger('item_disposition_id')->nullable();

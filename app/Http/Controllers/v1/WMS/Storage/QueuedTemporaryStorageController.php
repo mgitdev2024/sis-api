@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
+use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
 use App\Traits\WMS\WmsCrudOperationsTrait;
@@ -31,17 +32,26 @@ class QueuedTemporaryStorageController extends Controller
         try {
             $items = $this->onGetQueuedItems($sub_location_id, false);
             $combinedItems = array_merge(...$items);
-            $data = [];
+            $data = [
+                'warehouse' => null,
+                'production_items' => []
+            ];
             foreach ($combinedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
-
-                $data[] = [
+                $stickerNumber = $itemDetails['sticker_no'];
+                $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
+                $warehouse = $producedItem['warehouse'];
+                if ($data['warehouse'] === null) {
+                    $data['warehouse'] = $warehouse;
+                }
+                $data['production_items'][] = [
                     'bid' => $itemDetails['bid'],
                     'item_code' => $itemCode,
-                    'sticker_no' => $itemDetails['sticker_no'],
+                    'sticker_no' => $stickerNumber,
                 ];
+
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (\Exception $exception) {

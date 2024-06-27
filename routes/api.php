@@ -246,6 +246,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/production/ota/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetAll']);
     Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetById']);
     Route::post('v1/production/ota/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onChangeStatus']);
+    Route::get('v1/production/ota/for/otb/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrentForOtb']);
     Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrent']);
     Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetEndorsedByQa']);
     Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onFulfillEndorsement']);
@@ -279,7 +280,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
     // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/status/check/{batch_id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     #endregion
 
