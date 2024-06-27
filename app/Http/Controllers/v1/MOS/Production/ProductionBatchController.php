@@ -135,6 +135,7 @@ class ProductionBatchController extends Controller
             foreach ($toBeAddedQuantity as $key => $value) {
                 $productionBatchCurrent[$key] = $productionBatchCurrent[$key] + $value;
             }
+            $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
