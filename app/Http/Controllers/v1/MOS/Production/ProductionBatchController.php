@@ -392,13 +392,30 @@ class ProductionBatchController extends Controller
     {
         try {
             // 0 = otb, 1 = ota
+            $inclusionExclusionItemCode = ['FC LF', 'FC SL', 'PD'];
             $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
-            $productionBatch = ProductionBatchModel::with('productionOrder')
-                ->whereNotNull($orderTypeString)
-                // ->whereHas('productionOrder', function ($query) {
-                //     $query->where('status', '=', 0);
-                // })
-                ->get();
+
+            $productionBatchAdd = ProductionBatchModel::with(['productionOtb', 'productionOta']);
+
+            if ($orderType == 0) {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereIn('item_code', $inclusionExclusionItemCode);
+
+                    })
+                        ->orWhereNotNull('production_otb_id');
+                });
+            } else {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereNotIn('item_code', $inclusionExclusionItemCode);
+
+                    })
+                        ->orWhereNotNull('production_ota_id');
+                });
+            }
+
+            $productionBatch = $productionBatchAdd->get();
 
             if (count($productionBatch) > 0) {
                 return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $productionBatch);
