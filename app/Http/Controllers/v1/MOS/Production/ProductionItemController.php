@@ -7,6 +7,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -243,7 +244,7 @@ class ProductionItemController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
-
+                $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
 
                 $warehouseReceivingArr['warehouse_receiving'] = [
@@ -256,6 +257,7 @@ class ProductionItemController extends Controller
                     'production_order_status' => $productionBatch->productionOrder->status,
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
+                    'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
                     'warehouse' => $warehouseReceivingArr
                 ];
 
