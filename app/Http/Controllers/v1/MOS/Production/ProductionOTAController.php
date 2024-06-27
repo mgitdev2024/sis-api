@@ -66,23 +66,32 @@ class ProductionOTAController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $whereFields = [];
-        if ($id != null) {
-            $whereFields = [
-                'production_order_id' => $id
-            ];
-        } else {
-            $productionOrder = new ProductionOrderController();
-            $currentProductionOrder = $productionOrder->onGetCurrent();
-
-            $whereFields = [];
-            if (isset($currentProductionOrder->getOriginalContent()['success'])) {
-                $whereFields = [
-                    'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
-                ];
+        try {
+            $productionOrderId = null;
+            if ($id != null) {
+                $productionOrderId = $id;
+            } else {
+                $productionOrder = new ProductionOrderController();
+                $currentProductionOrder = $productionOrder->onGetCurrent();
+                $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
             }
+            $productionOta = [];
+            $excludedItemCode = ['FC LF', 'FC SL', 'PD'];
+            $productionOtas = ProductionOtaModel::with('itemMasterdata')
+                ->where('production_order_id', $productionOrderId)
+                ->whereNotIn('item_code', $excludedItemCode)
+                ->get();
+
+            foreach ($productionOtas as $value) {
+                $productionOta[] = $value;
+            }
+            if (count($productionOta) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $productionOta);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionOta);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
     }
     public function onGetCurrentForOtb($id = null)
     {
@@ -113,7 +122,6 @@ class ProductionOTAController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
-
         }
     }
     public function onGetEndorsedByQa($id = null)
