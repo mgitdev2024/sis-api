@@ -313,7 +313,7 @@ class WarehouseReceivingController extends Controller
         ]);
         try {
             $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $reference_number)->get();
-            if (!$warehouseReceiving) {
+            if (count($warehouseReceiving) <= 0) {
                 return $this->dataResponse('error', 400, 'Warehouse Receiving ' . __('msg.record_not_found'));
             }
             foreach ($warehouseReceiving as $warehouseReceivingValue) {
