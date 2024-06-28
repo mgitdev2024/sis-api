@@ -136,6 +136,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number');
             $table->unsignedBigInteger('production_order_id');
+            $table->unsignedBigInteger('production_batch_id');
             $table->integer('batch_number');
             $table->string('item_code');
             $table->longText('produced_items');
@@ -146,6 +147,8 @@ return new class extends Migration {
             $table->string('sku_type');
             SchemaHelper::addCommonColumns($table, 0); // 0 = not yet received, 1 = received
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
+            $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
+
         });
 
         Schema::create('wms_warehouse_logs', function (Blueprint $table) {

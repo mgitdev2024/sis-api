@@ -329,6 +329,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive = new WarehouseReceivingModel();
                     $warehouseReceive->reference_number = $warehouseReferenceNo;
                     $warehouseReceive->production_order_id = $value['production_order_id'];
+                    $warehouseReceive->production_batch_id = $value['batch_id'];
                     $warehouseReceive->batch_number = $value['batch_number'];
                     $warehouseReceive->produced_items = json_encode($value['item']);
                     $warehouseReceive->item_code = $value['item_code'];

@@ -119,11 +119,17 @@ class WarehouseReceivingController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'scanned_items' => 'required|string', // {slid:1}
+            'scanned_items' => 'nullable|string', // {slid:1}
+            'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
         ]);
         try {
-            $scannedItems = json_decode($fields['scanned_items'], true);
-            $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
+            if ($fields['action'] == 0) {
+                $scannedItems = json_decode($fields['scanned_items'], true);
+                $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
+            } else {
+                $this->onCompleteTransaction($referenceNumber, $fields['created_by_id']);
+            }
+
             return $this->dataResponse('success', 200, __('msg.record_found'));
 
         } catch (Exception $exception) {
@@ -143,11 +149,6 @@ class WarehouseReceivingController extends Controller
                 $inclusionArray = [2];
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
-                    $decodeItems = json_decode($productionItem->produced_items, true);
-                    $decodeItems[$itemDetails['sticker_no']]['status'] = 3;
-                    $productionItem->produced_items = json_encode($decodeItems);
-                    $productionItem->save();
-
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
                         ->where('batch_number', $productionBatch->batch_number)
@@ -159,17 +160,54 @@ class WarehouseReceivingController extends Controller
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
                         $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 0);
-
                     }
-                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $decodeItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
                 }
             }
             DB::commit();
 
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+            throw new Exception($exception->getMessage());
         }
+    }
+
+    public function onCompleteTransaction($referenceNumber, $createdById)
+    {
+        try {
+            $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                ->where('status', 0)
+                ->get();
+
+            if (count($warehouseReceiving) <= 0) {
+                throw new Exception('Warehouse Receiving reference number already received');
+            }
+            DB::beginTransaction();
+            foreach ($warehouseReceiving as $warehouseReceivingValue) {
+                $warehouseReceiveItems = json_decode($warehouseReceivingValue->produced_items, true);
+                $productionItems = $warehouseReceivingValue->productionBatch->productionItems;
+                $producedItems = json_decode($productionItems->produced_items, true);
+                foreach ($warehouseReceiveItems as $key => &$items) {
+                    $producedItems[$key]['status'] = 3;
+                    $items['status'] = 3;
+
+                    $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $producedItems[$key], $createdById, 1, $key);
+                    unset($items);
+                }
+                $warehouseReceivingValue->produced_items = json_encode($warehouseReceiveItems);
+                $warehouseReceivingValue->status = 1;
+                $warehouseReceivingValue->updated_by_id = $createdById;
+                $warehouseReceivingValue->save();
+
+                $productionItems->produced_items = json_encode($producedItems);
+                $productionItems->save();
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw new Exception($exception->getMessage());
+        }
+
+
     }
 
     public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
