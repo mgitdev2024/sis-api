@@ -306,33 +306,36 @@ class WarehouseReceivingController extends Controller
     }
 
 
-    public function onCompleteTransactionMVP(Request $request, $id)
+    public function onCompleteTransactionMVP(Request $request, $reference_number)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
         ]);
         try {
-            $warehouseReceiving = WarehouseReceivingModel::find($id);
+            $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $reference_number)->get();
             if (!$warehouseReceiving) {
                 return $this->dataResponse('error', 400, 'Warehouse Receiving ' . __('msg.record_not_found'));
             }
-            $warehouseReceivingProducedItems = json_decode($warehouseReceiving->produced_items, true);
-            $productionItemModel = $warehouseReceiving->productionBatch->productionItems;
-            $producedItems = json_decode($productionItemModel->produced_items, true);
-            foreach ($warehouseReceivingProducedItems as $stickerNumber => &$itemDetails) {
-                $itemDetails['status'] = 3;
-                $producedItems[$stickerNumber]['status'] = 3;
-                $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNumber], $fields['created_by_id'], 1, $stickerNumber);
-                unset($itemDetails);
-            }
-            $productionItemModel->produced_items = json_encode($producedItems);
-            $productionItemModel->save();
+            foreach ($warehouseReceiving as $warehouseReceivingValue) {
+                $warehouseReceivingProducedItems = json_decode($warehouseReceivingValue->produced_items, true);
+                $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
+                $producedItems = json_decode($productionItemModel->produced_items, true);
+                foreach ($warehouseReceivingProducedItems as $stickerNumber => &$itemDetails) {
+                    $itemDetails['status'] = 3;
+                    $producedItems[$stickerNumber]['status'] = 3;
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNumber], $fields['created_by_id'], 1, $stickerNumber);
+                    unset($itemDetails);
+                }
+                $productionItemModel->produced_items = json_encode($producedItems);
+                $productionItemModel->save();
 
-            $warehouseReceiving->status = 1;
-            $warehouseReceiving->updated_by_id = $fields['created_by_id'];
-            $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
-            $warehouseReceiving->save();
-            $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $fields['created_by_id'], 1);
+                $warehouseReceivingValue->status = 1;
+                $warehouseReceivingValue->updated_by_id = $fields['created_by_id'];
+                $warehouseReceivingValue->produced_items = json_encode($warehouseReceivingProducedItems);
+                $warehouseReceivingValue->save();
+                $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $fields['created_by_id'], 1);
+            }
+
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
