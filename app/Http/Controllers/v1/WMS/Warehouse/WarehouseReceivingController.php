@@ -90,10 +90,26 @@ class WarehouseReceivingController extends Controller
 
             $warehouseReceiving = $warehouseReceivingAdd->get();
 
-            $warehouseReceivingArr = [];
+            $isCompleteWarehouseReceive = WarehouseReceivingModel::select(
+                'reference_number',
+                DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                DB::raw('SUM(received_quantity) as received_quantity'),
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
+                DB::raw('(SUM(substandard_quantity) + SUM(received_quantity) = SUM(JSON_LENGTH(produced_items))) as is_completed')
+            )
+                ->where('reference_number', $referenceNumber)
+                ->groupBy('reference_number')
+                ->first();
+
+            $isCompleted = $isCompleteWarehouseReceive->is_completed;
+
+            $warehouseReceivingArr = [
+                'is_reference_complete' => $isCompleted,
+                'warehouse_receiving_items' => []
+            ];
             foreach ($warehouseReceiving as $value) {
                 $itemCode = $value->item_code;
-                $warehouseReceivingArr[] = [
+                $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
