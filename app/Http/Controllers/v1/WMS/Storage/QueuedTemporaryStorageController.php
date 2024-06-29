@@ -46,11 +46,14 @@ class QueuedTemporaryStorageController extends Controller
                 if ($data['warehouse'] === null) {
                     $data['warehouse'] = $warehouse;
                 }
-                $data['production_items'][] = [
-                    'bid' => $itemDetails['bid'],
-                    'item_code' => $itemCode,
-                    'sticker_no' => $stickerNumber,
-                ];
+                if ($producedItem['status'] == 2) {
+                    $data['production_items'][] = [
+                        'bid' => $itemDetails['bid'],
+                        'item_code' => $itemCode,
+                        'sticker_no' => $stickerNumber,
+                    ];
+                }
+
 
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
