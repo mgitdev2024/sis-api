@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\QualityAssurance\SubStandardItemModel;
-use App\Models\Settings\WarehouseLocationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -155,7 +154,7 @@ class WarehouseReceivingController extends Controller
                         ->where('item_code', $itemCode)
                         ->first();
                     if ($warehouseReceiving) {
-                        // $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->update(['status' => 0]);
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
@@ -312,6 +311,7 @@ class WarehouseReceivingController extends Controller
             'created_by_id' => 'required',
         ]);
         try {
+            $itemsInQueue = [];
             $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $reference_number)->get();
             if (count($warehouseReceiving) <= 0) {
                 return $this->dataResponse('error', 400, 'Warehouse Receiving ' . __('msg.record_not_found'));
@@ -323,11 +323,22 @@ class WarehouseReceivingController extends Controller
                 foreach ($warehouseReceivingProducedItems as $stickerNumber => &$itemDetails) {
                     $itemDetails['status'] = 3;
                     $producedItems[$stickerNumber]['status'] = 3;
+                    $itemsInQueue[$stickerNumber] = $producedItems[$stickerNumber];
                     $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNumber], $fields['created_by_id'], 1, $stickerNumber);
                     unset($itemDetails);
                 }
                 $productionItemModel->produced_items = json_encode($producedItems);
                 $productionItemModel->save();
+
+                // $queueTemporaryStorage
+                foreach ($itemsInQueue as $queuedItems) {
+                    $subLocationId = $queuedItems['sub_location']['sub_location_id'];
+                    $queuedTemporaryStorage = QueuedTemporaryStorageModel::find($subLocationId);
+
+                    if ($queuedTemporaryStorage) {
+                        $queuedTemporaryStorage->delete();
+                    }
+                }
 
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $fields['created_by_id'];
