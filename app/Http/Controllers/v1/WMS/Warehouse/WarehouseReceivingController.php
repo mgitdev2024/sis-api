@@ -148,6 +148,12 @@ class WarehouseReceivingController extends Controller
                 $inclusionArray = [2];
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
+                    $producedItems = json_decode($productionItem->produced_items, true);
+                    $producedItems[$itemDetails['sticker_no']['status']] = '2.1';
+                    $productionItem->produced_items = json_encode($producedItems);
+                    $productionItem->save();
+                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $producedItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
+
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
                         ->where('batch_number', $productionBatch->batch_number)
