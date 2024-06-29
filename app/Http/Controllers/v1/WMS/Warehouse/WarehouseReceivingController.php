@@ -234,7 +234,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceivingValue->updated_by_id = $createdById;
                 $warehouseReceivingValue->produced_items = json_encode($warehouseProducedItems);
                 $warehouseReceivingValue->save();
-                $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
+                $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
 
             DB::commit();
