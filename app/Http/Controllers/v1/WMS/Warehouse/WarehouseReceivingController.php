@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\QualityAssurance\SubStandardItemModel;
-use App\Models\Settings\WarehouseLocationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -91,10 +90,26 @@ class WarehouseReceivingController extends Controller
 
             $warehouseReceiving = $warehouseReceivingAdd->get();
 
-            $warehouseReceivingArr = [];
+            $isCompleteWarehouseReceive = WarehouseReceivingModel::select(
+                'reference_number',
+                DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                DB::raw('SUM(received_quantity) as received_quantity'),
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
+                DB::raw('(SUM(substandard_quantity) + SUM(received_quantity) = SUM(JSON_LENGTH(produced_items))) as is_completed')
+            )
+                ->where('reference_number', $referenceNumber)
+                ->groupBy('reference_number')
+                ->first();
+
+            $isCompleted = $isCompleteWarehouseReceive->is_completed;
+
+            $warehouseReceivingArr = [
+                'is_reference_complete' => $isCompleted,
+                'warehouse_receiving_items' => []
+            ];
             foreach ($warehouseReceiving as $value) {
                 $itemCode = $value->item_code;
-                $warehouseReceivingArr[] = [
+                $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
@@ -119,12 +134,18 @@ class WarehouseReceivingController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'scanned_items' => 'required|string', // {slid:1}
+            'scanned_items' => 'nullable|string', // {slid:1}
+            'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
         ]);
         try {
-            $scannedItems = json_decode($fields['scanned_items'], true);
-            $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
-            return $this->dataResponse('success', 200, __('msg.record_found'));
+            if ($fields['action'] == 0) {
+                $scannedItems = json_decode($fields['scanned_items'], true);
+                $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
+            } else {
+                $this->onCompleteTransaction($referenceNumber, $fields['created_by_id']);
+            }
+
+            return $this->dataResponse('success', 200, __('msg.update_success'));
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
@@ -143,10 +164,11 @@ class WarehouseReceivingController extends Controller
                 $inclusionArray = [2];
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
-                    $decodeItems = json_decode($productionItem->produced_items, true);
-                    $decodeItems[$itemDetails['sticker_no']]['status'] = 3;
-                    $productionItem->produced_items = json_encode($decodeItems);
+                    $producedItems = json_decode($productionItem->produced_items, true);
+                    $producedItems[$itemDetails['sticker_no']]['status'] = '2.1';
+                    $productionItem->produced_items = json_encode($producedItems);
                     $productionItem->save();
+                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $producedItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
 
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
@@ -154,21 +176,86 @@ class WarehouseReceivingController extends Controller
                         ->where('item_code', $itemCode)
                         ->first();
                     if ($warehouseReceiving) {
-                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->update(['status' => 0]);
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
-                        $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 0);
-
+                        $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
                     }
-                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $decodeItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
                 }
             }
             DB::commit();
 
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCompleteTransaction($referenceNumber, $createdById)
+    {
+        try {
+            $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                ->where('status', 0)
+                ->get();
+
+            if (count($warehouseReceiving) <= 0) {
+                throw new Exception('Warehouse Receiving reference number already received');
+            }
+            $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
+                ->where('created_by_id', $createdById)
+                ->orderBy('id', 'DESC')
+                ->first();
+            $receiveItemsArr = json_decode($warehouseForReceiveItems->production_items, true);
+
+            DB::beginTransaction();
+            foreach ($warehouseReceiving as &$warehouseReceivingValue) {
+                $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
+                $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
+                $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
+                $producedItems = json_decode($productionItemModel->produced_items, true);
+
+
+                foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
+                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
+
+                    if ($flag) {
+                        $innerWarehouseReceivingValue['status'] = 3; // For Warehouse Receiving
+                        $producedItems[$innerWarehouseReceivingKey]['status'] = 3; // For Production Items
+                        $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$innerWarehouseReceivingKey], $createdById, 1, $innerWarehouseReceivingKey);
+                    }
+                    unset($innerWarehouseReceivingValue);
+                }
+                $productionItemModel->status = 3;
+                $productionItemModel->save();
+                $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+
+                $warehouseReceivingValue->status = 1;
+                $warehouseReceivingValue->updated_by_id = $createdById;
+                $warehouseReceivingValue->produced_items = json_encode($warehouseProducedItems);
+                $warehouseReceivingValue->save();
+                $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
+            }
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCheckItemReceive($receiveItemsArr, $key, $value, $ReferenceItemCode)
+    {
+        try {
+            foreach ($receiveItemsArr as $receiveValue) {
+                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_code'] == $ReferenceItemCode)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception $exception) {
+
+            return false;
         }
     }
 
@@ -236,6 +323,55 @@ class WarehouseReceivingController extends Controller
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
+        }
+    }
+
+
+    public function onCompleteTransactionMVP(Request $request, $reference_number)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+            $itemsInQueue = [];
+            $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $reference_number)->get();
+            if (count($warehouseReceiving) <= 0) {
+                return $this->dataResponse('error', 400, 'Warehouse Receiving ' . __('msg.record_not_found'));
+            }
+            foreach ($warehouseReceiving as $warehouseReceivingValue) {
+                $warehouseReceivingProducedItems = json_decode($warehouseReceivingValue->produced_items, true);
+                $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
+                $producedItems = json_decode($productionItemModel->produced_items, true);
+                foreach ($warehouseReceivingProducedItems as $stickerNumber => &$itemDetails) {
+                    $itemDetails['status'] = 3;
+                    $producedItems[$stickerNumber]['status'] = 3;
+                    $itemsInQueue[$stickerNumber] = $producedItems[$stickerNumber];
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNumber], $fields['created_by_id'], 1, $stickerNumber);
+                    unset($itemDetails);
+                }
+                $productionItemModel->produced_items = json_encode($producedItems);
+                $productionItemModel->save();
+
+                // $queueTemporaryStorage
+                foreach ($itemsInQueue as $queuedItems) {
+                    $subLocationId = $queuedItems['sub_location']['sub_location_id'];
+                    $queuedTemporaryStorage = QueuedTemporaryStorageModel::find($subLocationId);
+
+                    if ($queuedTemporaryStorage) {
+                        $queuedTemporaryStorage->delete();
+                    }
+                }
+
+                $warehouseReceivingValue->status = 1;
+                $warehouseReceivingValue->updated_by_id = $fields['created_by_id'];
+                $warehouseReceivingValue->produced_items = json_encode($warehouseReceivingProducedItems);
+                $warehouseReceivingValue->save();
+                $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $fields['created_by_id'], 1);
+            }
+
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
 }

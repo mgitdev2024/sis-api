@@ -49,6 +49,7 @@ class ProductionItemController extends Controller
         // 1 => 'On Hold',
         // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
+        // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
@@ -329,6 +330,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive = new WarehouseReceivingModel();
                     $warehouseReceive->reference_number = $warehouseReferenceNo;
                     $warehouseReceive->production_order_id = $value['production_order_id'];
+                    $warehouseReceive->production_batch_id = $value['batch_id'];
                     $warehouseReceive->batch_number = $value['batch_number'];
                     $warehouseReceive->produced_items = json_encode($value['item']);
                     $warehouseReceive->item_code = $value['item_code'];

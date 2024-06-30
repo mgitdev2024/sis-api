@@ -332,6 +332,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/warehouse/receive/current/{reference_number}/{status}/{received_status?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
+    Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
     #endregion
 

@@ -31,6 +31,7 @@ class ProductionItemModel extends Model
             1 => 'On Hold',
             "1.1" => 'On Hold - Sub Standard',
             2 => 'For Receive',
+            "2.1" => 'For Receive - Inbound',
             3 => 'Received',
             4 => 'For Investigation',
             5 => 'For Sampling',

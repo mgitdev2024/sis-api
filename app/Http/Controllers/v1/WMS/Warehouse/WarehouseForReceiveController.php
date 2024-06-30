@@ -26,13 +26,9 @@ class WarehouseForReceiveController extends Controller
 
     public function onGetCurrent($reference_number, $created_by_id)
     {
-        $whereFields = [
-            'reference_number' => $reference_number,
-            'created_by_id' => $created_by_id
-        ];
-
         $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $reference_number)
             ->where('created_by_id', $created_by_id)
+            ->where('status', 1)
             ->orderBy('id', 'DESC')
             ->first();
 

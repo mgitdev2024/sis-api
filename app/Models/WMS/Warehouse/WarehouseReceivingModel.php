@@ -2,6 +2,7 @@
 
 namespace App\Models\WMS\Warehouse;
 
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOrderModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ class WarehouseReceivingModel extends Model
     protected $fillable = [
         'reference_number',
         'production_order_id',
+        'production_batch_id',
         'batch_number',
         'item_code',
         'produced_items',
@@ -29,6 +31,10 @@ class WarehouseReceivingModel extends Model
     public function productionOrder()
     {
         return $this->belongsTo(ProductionOrderModel::class);
+    }
+    public function productionBatch()
+    {
+        return $this->belongsTo(ProductionBatchModel::class);
     }
 
     public static function onGenerateWarehouseReceiveReferenceNumber()
