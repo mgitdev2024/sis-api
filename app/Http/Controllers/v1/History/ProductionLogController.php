@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\History;
 
 use App\Http\Controllers\Controller;
 use App\Models\History\ProductionLogModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ProductionLogController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules()
     {
         return [
@@ -30,7 +30,6 @@ class ProductionLogController extends Controller
             $record->save();
             return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $record);
         } catch (\Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, 'Production Historical Log ' . __('msg.create_failed'));
         }
     }

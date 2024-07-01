@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\QualityAssurance\SubStandardItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
-use App\Traits\ProductionWarehouseLogTrait;
+use App\Traits\WMS\WarehouseLogTrait;
+use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 use Exception;
 use DB;
 
 class ProductionItemController extends Controller
 {
-    use CrudOperationsTrait, ProductionWarehouseLogTrait;
+    use MosCrudOperationsTrait, WarehouseLogTrait, QueueSubLocationTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
@@ -44,7 +47,9 @@ class ProductionItemController extends Controller
         #region status list
         // 0 => 'Good',
         // 1 => 'On Hold',
+        // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
+        // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
@@ -62,6 +67,7 @@ class ProductionItemController extends Controller
             'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
             'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
             'production_batch_id' => 'nullable|required_if:is_deactivate,1',
+            'temporary_storage_id' => 'nullable|exists:wms_storage_sub_locations,id',
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
@@ -76,19 +82,20 @@ class ProductionItemController extends Controller
             DB::beginTransaction();
             $forQaDisposition = [4, 5];
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
-
+            $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
             // For Warehouse Receiving
             if ($statusId == 2) {
-                $this->onWarehouseReceiveItem($scannedItem, $createdById);
+                $this->onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId);
             }
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
+                $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
                 $productionType = $productionBatch->productionItems->production_type;
                 if ($statusId == 2) {
                     $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $statusId, $productionType);
+                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $itemCode, $value['sticker_no'], $statusId, $productionType);
                 } else {
                     $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no'], $createdById);
                 }
@@ -98,8 +105,7 @@ class ProductionItemController extends Controller
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
-            return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.update_failed'));
+            return $this->dataResponse('error', 400, 'Produced Item ' . $exception->getMessage());
         }
     }
 
@@ -132,7 +138,7 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemKey, $statusId, $productionType)
+    public function onItemDisposition($createdById, $id, $value, $itemCode, $itemKey, $statusId, $productionType)
     {
         try {
             $type = 1;
@@ -143,10 +149,12 @@ class ProductionItemController extends Controller
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
+
             if ($flag) {
                 $itemDisposition = new ItemDispositionModel();
                 $itemDisposition->created_by_id = $createdById;
                 $itemDisposition->production_batch_id = $id;
+                $itemDisposition->item_code = $itemCode;
                 $itemDisposition->item_key = $itemKey;
                 $itemDisposition->type = $type;
                 $itemDisposition->production_type = $productionType;
@@ -158,6 +166,18 @@ class ProductionItemController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
+
+                $subStandardItem = SubStandardItemModel::where('production_batch_id', $id)
+                    ->where('item_key', $itemKey)
+                    ->where('status', 1)
+                    ->first();
+                if ($subStandardItem) {
+                    $subStandardItem->status = 0;
+                    $subStandardItem->save();
+                    $this->createProductionLog(SubStandardItemModel::class, $subStandardItem->id, $subStandardItem, $createdById, 1, $itemKey);
+
+                }
+                return $itemDisposition;
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -169,7 +189,7 @@ class ProductionItemController extends Controller
         try {
             $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
-            $inclusionArray = [0, 8];
+            $inclusionArray = [0, 9];
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, []);
             if ($flag) {
                 $productionBatch = ProductionBatchModel::find($id);
@@ -185,7 +205,6 @@ class ProductionItemController extends Controller
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -217,16 +236,30 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key)
     {
         try {
-            $productionItems = ProductionItemModel::where('production_batch_id', $id)->first();
-            if ($productionItems) {
-                $item = json_decode($productionItems->produced_items, true)[$item_key];
+            $productionBatch = ProductionBatchModel::find($batch_id);
+            $productionItemsModel = $productionBatch->productionItems;
+            if ($productionItemsModel) {
+                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionOrderToMake->item_code;
+                $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+                $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
+                $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
+
+                $warehouseReceivingArr['warehouse_receiving'] = [
+                    'reference_number' => $warehouseReceivingRefNo
+                ];
                 $data = [
+                    'item_code' => $itemCode,
                     'item_status' => $item['status'],
                     'sticker_status' => $item['sticker_status'],
-                    'production_order_status' => $productionItems->productionBatch->productionOrder->status
+                    'production_order_status' => $productionBatch->productionOrder->status,
+                    'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
+                    'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
+                    'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
+                    'warehouse' => $warehouseReceivingArr
                 ];
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
@@ -237,7 +270,7 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onWarehouseReceiveItem($scannedItem, $createdById)
+    public function onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId)
     {
         try {
             $warehouseReferenceNo = WarehouseReceivingModel::onGenerateWarehouseReceiveReferenceNumber();
@@ -248,12 +281,22 @@ class ProductionItemController extends Controller
                 $currentStickerNo = $value['sticker_no'];
 
                 $productionBatch = ProductionBatchModel::find($currentBatchId);
-                $batchNumber = $productionBatch->batch_number;
+                $productionBatch->has_endorsement_from_qa = 0;
+                $productionBatch->save();
+                $batchNumber = $productionBatch->batch_number ?? null;
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $skuType = $productionBatch->productionOta->itemMasterdata->itemCategory->name ?? $productionBatch->productionOtb->itemMasterdata->itemCategory->name;
                 $productionOrderId = $productionBatch->productionOrder->id;
-                $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
-                $inclusionArray = [0, 8];
+                $productionItems = $productionBatch->productionItems;
+                $producedItems = json_decode($productionItems->produced_items, true);
+                $inclusionArray = [0, 9];
+
+                $warehouseReceivingArr = [
+                    'warehouse_receiving' => ['reference_number' => $warehouseReferenceNo]
+                ];
+                $producedItems[$currentStickerNo]['warehouse'] = $warehouseReceivingArr;
+                $productionItems->produced_items = json_encode($producedItems);
+                $productionItems->save();
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
                 if (isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId]['qty']++;
@@ -273,13 +316,21 @@ class ProductionItemController extends Controller
                     ];
                 }
             }
+
             DB::beginTransaction();
+            if ($temporaryStorageId != null) {
+                if (!$this->onCheckAvailability($temporaryStorageId, false)) {
+                    throw new Exception('Sub Location Unavailable');
+                }
+                $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
+            }
 
             foreach ($itemsToTransfer as $key => $value) {
                 if ($value['flag']) {
                     $warehouseReceive = new WarehouseReceivingModel();
                     $warehouseReceive->reference_number = $warehouseReferenceNo;
                     $warehouseReceive->production_order_id = $value['production_order_id'];
+                    $warehouseReceive->production_batch_id = $value['batch_id'];
                     $warehouseReceive->batch_number = $value['batch_number'];
                     $warehouseReceive->produced_items = json_encode($value['item']);
                     $warehouseReceive->item_code = $value['item_code'];
@@ -287,8 +338,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive->quantity = $value['qty'];
                     $warehouseReceive->created_by_id = $createdById;
                     $warehouseReceive->save();
-
-                    $this->createProductionWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
+                    $this->createWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
                 }
             }
             DB::commit();
@@ -296,7 +346,6 @@ class ProductionItemController extends Controller
             DB::rollBack();
             throw new Exception($exception->getMessage());
         }
-
     }
 }
 

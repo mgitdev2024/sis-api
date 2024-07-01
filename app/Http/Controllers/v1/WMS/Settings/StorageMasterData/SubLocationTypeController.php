@@ -8,14 +8,14 @@ use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
 class SubLocationTypeController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -24,7 +24,7 @@ class SubLocationTypeController extends Controller
             'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
             'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
             'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
-           
+
         ];
     }
     public function onCreate(Request $request)
@@ -44,10 +44,10 @@ class SubLocationTypeController extends Controller
     {
         return $this->readRecord(SubLocationTypeModel::class, 'Sub Location');
     }
-   /*  public function onGetChildByParentId($id = null)
-    {
-        return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
-    } */
+    /*  public function onGetChildByParentId($id = null)
+     {
+         return $this->readRecordByParentId(SubLocationTypeModel::class, 'Sub Location', 'zone_id', $id);
+     } */
     public function onGetById($id)
     {
         return $this->readRecordById(SubLocationTypeModel::class, $id, 'Sub Location');

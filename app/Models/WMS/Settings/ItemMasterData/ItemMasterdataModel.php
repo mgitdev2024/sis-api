@@ -8,6 +8,8 @@ use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
+use App\Models\WMS\Storage\StockInventoryModel;
+use App\Models\WMS\Storage\StockLogModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,6 +52,7 @@ class ItemMasterdataModel extends Model
         'stock_rotation_type',
         'qty_per_pallet',
         'dimension',
+        'is_viewable_by_otb',
         'is_qa_required',
         'is_qa_disposal',
         'shelf_life',
@@ -104,6 +107,14 @@ class ItemMasterdataModel extends Model
     public function plant()
     {
         return $this->belongsTo(FacilityPlantModel::class, 'plant_id', 'id');
+    }
+    public function stockInventories()
+    {
+        return $this->hasMany(StockInventoryModel::class, 'item_code', 'item_code');
+    }
+    public function stockLogs()
+    {
+        return $this->hasMany(StockLogModel::class, 'item_code', 'item_code');
     }
     public function getItemCategoryLabelAttribute()
     {
@@ -164,5 +175,25 @@ class ItemMasterdataModel extends Model
             'long_name' => $plant['long_name'],
         ];
         return isset($plant) ? $data : 'n/a';
+    }
+
+    public static function getViewableOtb($itemCode = false)
+    {
+        $itemMasterdataAdd = ItemMasterdatamodel::query();
+        if ($itemCode) {
+            $itemMasterdataAdd->select('item_code');
+        }
+        $itemMasterdataAdd->where('is_viewable_by_otb', 1);
+        $itemMasterdata = null;
+        if ($itemCode) {
+            $itemMasterdata = $itemMasterdataAdd->pluck('item_code');
+        } else {
+            $itemMasterdata = $itemMasterdataAdd->get();
+        }
+
+        if (count($itemMasterdata) > 0) {
+            return $itemMasterdata->toArray();
+        }
+        return null;
     }
 }

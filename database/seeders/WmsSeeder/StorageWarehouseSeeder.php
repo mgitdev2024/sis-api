@@ -26,7 +26,7 @@ class StorageWarehouseSeeder extends Seeder
             ],
             [
                 "code" => "WARE-RM",
-                "short_name" => "FG",
+                "short_name" => "RM",
                 "long_name" => "Raw Materials",
                 "description" => "",
                 "facility_code" => "01"

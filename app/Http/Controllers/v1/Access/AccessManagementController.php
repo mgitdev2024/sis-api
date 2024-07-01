@@ -118,17 +118,31 @@ class AccessManagementController extends Controller
                 $subModuleArr = [];
 
                 foreach ($module->subModulePermissions as $subModule) {
+                    $isEnabledFlag = $this->onIsAllowed($subModule['is_enabled'], $id);
                     $subModuleArr[$subModule['code']] = [
                         'name' => $subModule['name'],
-                        'is_enabled' => $this->onIsEnabled($subModule['is_enabled'], $id),
+                        'is_enabled' => $isEnabledFlag,
                     ];
+                    if ($isEnabledFlag) {
+                        $subModuleArr[$subModule['code']]['allow_view'] = $this->onIsAllowed($subModule['allow_view'], $id);
+                        $subModuleArr[$subModule['code']]['allow_create'] = $this->onIsAllowed($subModule['allow_create'], $id);
+                        $subModuleArr[$subModule['code']]['allow_update'] = $this->onIsAllowed($subModule['allow_update'], $id);
+                        $subModuleArr[$subModule['code']]['allow_delete'] = $this->onIsAllowed($subModule['allow_delete'], $id);
+                    }
                 }
 
+                $isEnabledFlagModule = $this->onIsAllowed($module['is_enabled'], $id);
                 $permissionList[$module['code']] = [
                     'name' => $module['name'],
-                    'is_enabled' => $this->onIsEnabled($module['is_enabled'], $id),
+                    'is_enabled' => $isEnabledFlagModule,
                     'submodules' => $subModuleArr
                 ];
+                if ($isEnabledFlagModule) {
+                    $permissionList[$module['code']]['allow_view'] = $this->onIsAllowed($module['allow_view'], $id);
+                    $permissionList[$module['code']]['allow_create'] = $this->onIsAllowed($module['allow_create'], $id);
+                    $permissionList[$module['code']]['allow_update'] = $this->onIsAllowed($module['allow_update'], $id);
+                    $permissionList[$module['code']]['allow_delete'] = $this->onIsAllowed($module['allow_delete'], $id);
+                }
             }
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $permissionList);
@@ -137,11 +151,11 @@ class AccessManagementController extends Controller
         }
     }
 
-    public function onIsEnabled($isEnabledArr, $id)
+    public function onIsAllowed($isAllowedArr, $id)
     {
-        $isEnabled = json_decode($isEnabledArr, true);
+        $isAllowed = json_decode($isAllowedArr, true);
 
-        return in_array($id, $isEnabled);
+        return in_array($id, $isAllowed);
     }
 
     public function onBulkUpload(Request $request)

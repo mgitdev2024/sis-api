@@ -12,6 +12,7 @@ use Database\Seeders\WmsSeeder\ScmSystemSeeder;
 use Database\Seeders\WmsSeeder\StorageWarehouseSeeder;
 use Database\Seeders\WmsSeeder\FacilityPlantSeeder;
 use Database\Seeders\WmsSeeder\SubLocationTypeSeeder;
+use Database\Seeders\WmsSeeder\SubLocationSeeder;
 use Database\Seeders\WmsSeeder\UomSeeder;
 use Database\Seeders\WmsSeeder\ConversionSeeder;
 use Database\Seeders\WmsSeeder\StorageTypeSeeder;
@@ -54,6 +55,7 @@ class DatabaseSeeder extends Seeder
             StorageWarehouseSeeder::class,
             ZoneSeeder::class,
             SubLocationTypeSeeder::class,
+            SubLocationSeeder::class,
         ]);
         #endregion
     }

@@ -12,13 +12,13 @@ use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
 use Exception;
 
 class ItemMasterdataController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
 
     public static function getRules($itemId = null)
     {

@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class FacilityPlantController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -31,14 +31,14 @@ class FacilityPlantController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name','long_name'];
+        $searchableFields = ['code', 'short_name', 'long_name'];
         return $this->readPaginatedRecord(FacilityPlantModel::class, $request, $searchableFields, 'Facility Plant');
     }
     public function onGetall()
     {
         return $this->readRecord(FacilityPlantModel::class, 'Facility Plant');
     }
-   
+
     public function onGetById($id)
     {
         return $this->readRecordById(FacilityPlantModel::class, $id, 'Facility Plant');

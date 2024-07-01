@@ -5,7 +5,7 @@ namespace App\Models\History;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionWarehouseLogModel extends Model
+class WarehouseLogModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_warehouse_logs';

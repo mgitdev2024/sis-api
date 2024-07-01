@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace App\Traits\MOS;
 
 use App\Http\Controllers\v1\History\ProductionLogController;
 use Exception;

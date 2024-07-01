@@ -74,6 +74,7 @@ return new class extends Migration {
             $table->date('ambient_exp_date')->nullable();
             $table->date('chilled_exp_date')->nullable();
             $table->date('frozen_exp_date')->nullable();
+            $table->tinyInteger('has_endorsement_from_qa')->default(0); // 0 = No Endorsement, 1 = Has Endorsement
             $table->tinyInteger('is_printed')->default(0); // 0 = Not Printed, 1 = Printed
             SchemaHelper::addCommonColumns($table, 0);
 
@@ -130,38 +131,24 @@ return new class extends Migration {
             SchemaHelper::addCommonColumns($table);
         });
 
-        Schema::create('mos_item_dispositions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('production_batch_id');
-            $table->integer('item_key')->nullable();
-            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
-            $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling
-            $table->string('produced_items');
-            $table->integer('quantity_update')->nullable();
-            $table->string('reason')->nullable();
-            $table->string('attachment')->nullable();
-            $table->tinyInteger('production_status')->default(1); //  0 = closed , 1 = open
-            $table->tinyInteger('is_release')->default(1); //  0 = hold , 1 = not hold
-            $table->integer('action')->nullable(); //  action status
-            $table->integer('aging_period')->nullable();
-            $table->unsignedBigInteger('fulfilled_by_id')->nullable();
-            $table->timestamp('fulfilled_at')->nullable();
-            SchemaHelper::addCommonColumns($table);  //  0 = closed , 1 = open
-
-            $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
-        });
 
         Schema::create('wms_warehouse_receiving', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number');
             $table->unsignedBigInteger('production_order_id');
+            $table->unsignedBigInteger('production_batch_id');
             $table->integer('batch_number');
             $table->string('item_code');
             $table->longText('produced_items');
             $table->integer('quantity');
+            $table->integer('received_quantity')->default(0);
+            $table->integer('substandard_quantity')->default(0);
+            $table->longText('substandard_data')->nullable();
             $table->string('sku_type');
             SchemaHelper::addCommonColumns($table, 0); // 0 = not yet received, 1 = received
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
+            $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
+
         });
 
         Schema::create('wms_warehouse_logs', function (Blueprint $table) {
@@ -190,7 +177,6 @@ return new class extends Migration {
         Schema::dropIfExists('mos_production_logs');
         Schema::dropIfExists('mos_production_print_histories');
         Schema::dropIfExists('mos_production_archived_batches');
-        Schema::dropIfExists('mos_item_dispositions');
         Schema::dropIfExists('wms_warehouse_receiving');
         Schema::dropIfExists('wms_warehouse_logs');
 

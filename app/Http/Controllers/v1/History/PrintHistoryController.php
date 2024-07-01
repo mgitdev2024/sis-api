@@ -5,14 +5,14 @@ namespace App\Http\Controllers\v1\History;
 use App\Http\Controllers\Controller;
 use App\Models\History\PrintHistoryModel;
 use Illuminate\Http\Request;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Exception;
 use DB;
 use Storage;
 
 class PrintHistoryController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
 
     public function getRules()
     {
@@ -23,7 +23,7 @@ class PrintHistoryController extends Controller
             'attachment' => 'nullable',
             'is_reprint' => 'required|boolean',
             'item_disposition_id' => 'nullable|integer',
-            'created_by_id' => 'required|integer'
+            'created_by_id' => 'required'
         ];
     }
     public function onCreate(Request $request)

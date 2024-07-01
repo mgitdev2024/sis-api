@@ -203,7 +203,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location_type/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationTypeController::class, 'onBulk']);
     #endregion
 
-    #region Sub Location 
+    #region Sub Location
     Route::post('v1/storage/sub_location/create', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onCreate']);
     Route::post('v1/storage/sub_location/update/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onUpdateById']);
     Route::post('v1/storage/sub_location/paginated', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGetPaginatedList']);
@@ -246,6 +246,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/production/ota/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetAll']);
     Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetById']);
     Route::post('v1/production/ota/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onChangeStatus']);
+    Route::get('v1/production/ota/for/otb/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrentForOtb']);
     Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrent']);
     Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetEndorsedByQa']);
     Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onFulfillEndorsement']);
@@ -279,7 +280,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
     // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/status/check/{id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/status/check/{batch_id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     #endregion
 
@@ -314,10 +315,30 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item/disposition/statistics', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetOverallStats']);
     #endregion
 
-    #region Warehouse Receiving
-    Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
-    Route::get('v1/warehouse/receive/current/{reference_number}/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
-    Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
+    #region Sub Standard Items
+    Route::post('v1/item/sub-standard/create', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onCreate']);
+    Route::get('v1/item/sub-standard/notify', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetNotification']);
+    Route::get('v1/item/sub-standard/current/{status?}', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetCurrent']);
     #endregion
 
+    #region Warehouse For Receive
+    Route::get('v1/warehouse/for-receive/current/get/{reference_number}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onGetCurrent']);
+    Route::post('v1/warehouse/for-receive/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onCreate']);
+    Route::delete('v1/warehouse/for-receive/delete/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController::class, 'onDelete']);
+    #endregion
+
+    #region Warehouse Receiving
+    Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
+    Route::get('v1/warehouse/receive/current/{reference_number}/{status}/{received_status?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
+    Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
+    Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
+    Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
+    Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
+    #endregion
+
+    #region Queued Temporary Storage
+    Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
+    Route::get('v1/queue/storage/temporary/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetItems']);
+    Route::get('v1/queue/storage/temporary/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetStatus']);
+    #endregion
 });

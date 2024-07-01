@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionOTAController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     use ResponseTrait;
     public static function getRules()
     {
@@ -66,33 +66,80 @@ class ProductionOTAController extends Controller
     }
     public function onGetCurrent($id = null)
     {
-        $whereFields = [];
-        if ($id != null) {
-            $whereFields = [
-                'production_order_id' => $id
-            ];
-        } else {
-            $productionOrder = new ProductionOrderController();
-            $currentProductionOrder = $productionOrder->onGetCurrent();
-
-            $whereFields = [];
-            if (isset($currentProductionOrder->getOriginalContent()['success'])) {
-                $whereFields = [
-                    'production_order_id' => $currentProductionOrder->getOriginalContent()['success']['data'][0]['id']
-                ];
+        try {
+            $productionOrderId = null;
+            if ($id != null) {
+                $productionOrderId = $id;
+            } else {
+                $productionOrder = new ProductionOrderController();
+                $currentProductionOrder = $productionOrder->onGetCurrent();
+                $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
             }
+            $productionOta = [];
+            $excludedItemCode = ItemMasterdataModel::getViewableOtb(true);
+            $productionOtas = ProductionOtaModel::with('itemMasterdata')
+                ->where('production_order_id', $productionOrderId)
+                ->whereNotIn('item_code', $excludedItemCode)
+                ->get();
+
+            foreach ($productionOtas as $value) {
+                $productionOta[] = $value;
+            }
+            if (count($productionOta) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $productionOta);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionOta);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
-        return $this->readCurrentRecord(ProductionOTAModel::class, $id, $whereFields, null, null, 'Production OTA');
+    }
+    public function onGetCurrentForOtb($id = null)
+    {
+        try {
+            $productionOrderId = null;
+            if ($id != null) {
+                $productionOrderId = $id;
+            } else {
+                $productionOrder = new ProductionOrderController();
+                $currentProductionOrder = $productionOrder->onGetCurrent();
+                $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
+            }
+
+            $productionOtaForOtb = [];
+            $includedItemCode = ItemMasterdataModel::getViewableOtb(true);
+            $productionOtas = ProductionOtaModel::with('itemMasterdata')
+                ->where('production_order_id', $productionOrderId)
+                ->whereIn('item_code', $includedItemCode)
+                ->get();
+
+            foreach ($productionOtas as $productionOta) {
+                $productionOtaForOtb[] = $productionOta;
+            }
+            if (count($productionOtaForOtb) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $productionOtaForOtb);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionOtaForOtb);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetEndorsedByQa($id = null)
     {
 
         try {
+            $excludedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $itemDisposition = ItemDispositionModel::with('productionBatch')
-                ->where('production_type', 1)
+                ->where(function ($query) use ($excludedItemCode) {
+                    $query->whereIn('item_code', $excludedItemCode)
+                        ->orWhere(function ($query) {
+                            $query->where('production_type', 1)
+                                ->where('production_status', 1)
+                                ->whereNotNull('action');
+                        });
+                })
                 ->where('production_status', 1)
                 ->whereNotNull('action');
-
             if ($id != null) {
                 $itemDisposition->where('id', $id);
             }
@@ -124,17 +171,22 @@ class ProductionOTAController extends Controller
                 ->first();
 
             if ($itemDisposition) {
-                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-                $itemDisposition->fulfilled_at = now();
-                $itemDisposition->production_status = 0;
-                $itemDisposition->save();
-                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
+                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                $itemDisposition->fulfilled_at = now();
+                $itemDisposition->production_status = 0;
+                $itemDisposition->action = $itemStatus;
+                $itemDisposition->save();
+                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
-                $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                if ($itemStatus != 9) {
+                    $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
+                    $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                }
+
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
                 if (isset($fields['chilled_exp_date'])) {
                     $producedItems[$itemDisposition->item_key]['new_chilled_exp_date'] = $fields['chilled_exp_date'];
@@ -182,8 +234,6 @@ class ProductionOTAController extends Controller
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
-
-
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();

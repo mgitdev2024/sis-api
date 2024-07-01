@@ -4,7 +4,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
-use App\Traits\ProductionLogTrait;
+use App\Traits\MOS\ProductionLogTrait;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOTBModel;
@@ -14,11 +14,11 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use DB;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 
 class ProductionBatchController extends Controller
 {
-    use CrudOperationsTrait, ProductionLogTrait;
+    use MosCrudOperationsTrait, ProductionLogTrait;
     use ResponseTrait;
     public static function onGetRules()
     {
@@ -135,6 +135,7 @@ class ProductionBatchController extends Controller
             foreach ($toBeAddedQuantity as $key => $value) {
                 $productionBatchCurrent[$key] = $productionBatchCurrent[$key] + $value;
             }
+            $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
@@ -192,7 +193,7 @@ class ProductionBatchController extends Controller
             $fields['ambient_exp_date'] = $fields['ambient_exp_date'] ?? $expirationDate['ambient_exp'];
             $itemCode = $productionToBakeAssemble->item_code;
             $deliveryType = $productionToBakeAssemble->delivery_type;
-            $batchNumber = count(ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssemble->id)->get()) + 1;
+            $batchNumber = $this->onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssemble->id);
             $batchCode = ProductionBatchModel::generateBatchCode(
                 $itemCode,
                 $deliveryType,
@@ -203,6 +204,7 @@ class ProductionBatchController extends Controller
             $productionBatch->fill($fields);
             $productionBatch->batch_code = $batchCode;
             $productionBatch->batch_number = $batchNumber;
+            $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->status = 0;
             $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
             $productionBatch->save();
@@ -336,13 +338,13 @@ class ProductionBatchController extends Controller
     public function onGetCurrent($id = null, $order_type = null)
     {
         try {
-            $data = ProductionBatchModel::orderBy('id', 'ASC');
+            $data = ProductionBatchModel::query();
             if (strcasecmp($order_type, 'otb') == 0) {
                 $data->where('production_otb_id', $id);
             } else if (strcasecmp($order_type, 'ota') == 0) {
                 $data->where('production_ota_id', $id);
             }
-
+            $data->orderBy('batch_number', 'ASC');
             $result = $data->get();
             foreach ($result as $value) {
                 $activeStickers = 0;
@@ -390,13 +392,28 @@ class ProductionBatchController extends Controller
     {
         try {
             // 0 = otb, 1 = ota
+            $inclusionExclusionItemCode = ItemMasterdataModel::getViewableOtb(true);
             $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
-            $productionBatch = ProductionBatchModel::with('productionOrder')
-                ->whereNotNull($orderTypeString)
-                ->whereHas('productionOrder', function ($query) {
-                    $query->where('status', '=', 0);
-                })
-                ->get();
+
+            $productionBatchAdd = ProductionBatchModel::with(['productionOtb', 'productionOta']);
+
+            if ($orderType == 0) {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereIn('item_code', $inclusionExclusionItemCode);
+                    })
+                        ->orWhereNotNull('production_otb_id');
+                });
+            } else {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereNotIn('item_code', $inclusionExclusionItemCode);
+                    })
+                        ->whereNotNull('production_ota_id');
+                });
+            }
+
+            $productionBatch = $productionBatchAdd->get();
 
             if (count($productionBatch) > 0) {
                 return $this->dataResponse('success', 200, 'Production Batch ' . __('msg.record_found'), $productionBatch);
@@ -417,6 +434,25 @@ class ProductionBatchController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
+    }
+    public function onGetNextBatchNumber($batchNumberProdName, $productionToBakeAssembleId)
+    {
+        $existingBatches = ProductionBatchModel::where($batchNumberProdName, $productionToBakeAssembleId)
+            ->orderBy('batch_number')
+            ->pluck('batch_number')
+            ->toArray();
+
+        $nextBatchNumber = 1;
+
+        foreach ($existingBatches as $batchNumber) {
+            if ($batchNumber == $nextBatchNumber) {
+                $nextBatchNumber++;
+            } else {
+                break;
+            }
+        }
+
+        return $nextBatchNumber;
     }
 }
 

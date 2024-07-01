@@ -4,12 +4,12 @@ namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
-use App\Traits\CrudOperationsTrait;
+use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 
 class ItemVariantTypeController extends Controller
 {
-    use CrudOperationsTrait;
+    use MosCrudOperationsTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -30,7 +30,7 @@ class ItemVariantTypeController extends Controller
     }
     public function onGetPaginatedList(Request $request)
     {
-        $searchableFields = ['code','short_name', 'name'];
+        $searchableFields = ['code', 'short_name', 'name'];
         return $this->readPaginatedRecord(ItemVariantTypeModel::class, $request, $searchableFields, 'Item Variant Type');
     }
     public function onGetall()
