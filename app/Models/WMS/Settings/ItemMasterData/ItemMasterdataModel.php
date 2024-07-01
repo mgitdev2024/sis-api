@@ -61,8 +61,6 @@ class ItemMasterdataModel extends Model
         'status',
     ];
 
-
-
     public function getStockRotationTypeLabelAttribute()
     {
         $stockRotationTypeLabel = array("FIFO", "FEFO");
