@@ -139,28 +139,46 @@ return new class extends Migration {
             $table->unsignedBigInteger('production_batch_id');
             $table->integer('batch_number');
             $table->string('item_code');
+            $table->string('sku_type');
             $table->longText('produced_items');
             $table->integer('quantity');
             $table->integer('received_quantity')->default(0);
             $table->integer('substandard_quantity')->default(0);
             $table->longText('substandard_data')->nullable();
-            $table->string('sku_type');
-            SchemaHelper::addCommonColumns($table, 0); // 0 = not yet received, 1 = received
+            $table->longText('discrepancy_data')->nullable();
+
+            SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
+
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
             $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
-
         });
-
-        Schema::create('wms_warehouse_logs', function (Blueprint $table) {
+        Schema::create('wms_warehouse_put_away', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_model')->nullable();
-            $table->integer('reference_id')->nullable();
-            $table->string('entity_model');
-            $table->integer('entity_id');
-            $table->integer('item_key')->nullable();
-            $table->longText('data');
-            $table->tinyInteger('action'); // 0 = Create, 1 = Update, 2 = Delete
+            $table->unsignedBigInteger('warehouse_receiving_id');
+            $table->string('warehouse_receiving_reference_number'); // e.g 8000001-1
+            $table->string('item_code');
+            $table->longText('production_items');
+            $table->integer('received_quantity');
+            $table->text('transferred_quantity');
+            $table->text('substandard_quantity');
+            $table->text('remaining_quantity');
+            $table->longText('discrepancy_data')->nullable();
+            SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
+
+            $table->foreign('warehouse_receiving_id')->references('id')->on('wms_warehouse_receiving');
+        });
+        Schema::create('wms_warehouse_for_put_away', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('warehouse_receiving_id');
+            $table->unsignedBigInteger('warehouse_put_away_id');
+            $table->string('item_code');
+            $table->longText('production_items');
+            $table->unsignedBigInteger('sub_location_id')->nullable();
             SchemaHelper::addCommonColumns($table);
+
+            $table->foreign('warehouse_receiving_id')->references('id')->on('wms_warehouse_receiving');
+            $table->foreign('warehouse_put_away_id')->references('id')->on('wms_warehouse_put_away');
+            $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
     }
 

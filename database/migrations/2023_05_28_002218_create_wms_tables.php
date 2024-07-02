@@ -251,6 +251,20 @@ return new class extends Migration {
         });
         #endregion
 
+        #region Warehouse Logs
+        Schema::create('wms_warehouse_logs', function (Blueprint $table) {
+            $table->id();
+            $table->string('reference_model')->nullable();
+            $table->integer('reference_id')->nullable();
+            $table->string('entity_model');
+            $table->integer('entity_id');
+            $table->integer('item_key')->nullable();
+            $table->longText('data');
+            $table->tinyInteger('action'); // 0 = Create, 1 = Update, 2 = Delete
+            SchemaHelper::addCommonColumns($table);
+        });
+        #endregion
+
         #region Warehouse For Receive
         Schema::create('wms_warehouse_for_receive', function (Blueprint $table) {
             $table->id();
@@ -259,6 +273,7 @@ return new class extends Migration {
             SchemaHelper::addCommonColumns($table);
         });
         #endregion
+
     }
 
     /**
