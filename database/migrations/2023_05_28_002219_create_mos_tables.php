@@ -152,31 +152,30 @@ return new class extends Migration {
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
             $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
         });
+
         Schema::create('wms_warehouse_put_away', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('warehouse_receiving_id');
-            $table->string('warehouse_receiving_reference_number'); // e.g 8000001-1
+            $table->string('warehouse_receiving_reference_number');
+            $table->string('reference_number'); // e.g 8000001-1
             $table->string('item_code');
             $table->longText('production_items');
             $table->integer('received_quantity');
-            $table->text('transferred_quantity');
-            $table->text('substandard_quantity');
-            $table->text('remaining_quantity');
+            $table->text('transferred_quantity')->nullable(); // e.g Box: 4 , pieces: 300
+            $table->text('substandard_quantity')->nullable(); // e.g Box: 4 , pieces: 300
+            $table->text('remaining_quantity'); // e.g Box: 4 , pieces: 300
             $table->longText('discrepancy_data')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-
-            $table->foreign('warehouse_receiving_id')->references('id')->on('wms_warehouse_receiving');
         });
+
         Schema::create('wms_warehouse_for_put_away', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('warehouse_receiving_id');
+            $table->string('warehouse_receiving_reference_number');
             $table->unsignedBigInteger('warehouse_put_away_id');
             $table->string('item_code');
             $table->longText('production_items');
             $table->unsignedBigInteger('sub_location_id')->nullable();
             SchemaHelper::addCommonColumns($table);
 
-            $table->foreign('warehouse_receiving_id')->references('id')->on('wms_warehouse_receiving');
             $table->foreign('warehouse_put_away_id')->references('id')->on('wms_warehouse_put_away');
             $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
@@ -196,7 +195,8 @@ return new class extends Migration {
         Schema::dropIfExists('mos_production_print_histories');
         Schema::dropIfExists('mos_production_archived_batches');
         Schema::dropIfExists('wms_warehouse_receiving');
-        Schema::dropIfExists('wms_warehouse_logs');
+        Schema::dropIfExists('wms_warehouse_put_away');
+        Schema::dropIfExists('wms_warehouse_for_put_away');
 
     }
 

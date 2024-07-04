@@ -11,8 +11,8 @@ class WarehousePutAwayModel extends Model
     protected $table = 'wms_warehouse_put_away';
 
     protected $fillable = [
-        'warehouse_receiving_id',
         'warehouse_receiving_reference_number',
+        'reference_number',
         'item_code',
         'production_items',
         'received_quantity',
@@ -21,10 +21,9 @@ class WarehousePutAwayModel extends Model
         'remaining_quantity',
         'status',
     ];
-
-    public function warehouseReceiving()
+    public static function onGenerateWarehousePutAwayReferenceNumber($warehouseReceivingReferenceNumber)
     {
-        return $this->belongsTo(WarehouseReceivingModel::class, 'warehouse_receiving_id');
+        $referenceCount = static::where('warehouse_receiving_reference_number', $warehouseReceivingReferenceNumber)->count();
+        return $warehouseReceivingReferenceNumber . '-' . ($referenceCount + 1);
     }
-
 }
