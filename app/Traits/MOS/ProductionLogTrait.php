@@ -20,7 +20,7 @@ trait ProductionLogTrait
                 'entity_id' => $entityId,
                 'item_key' => $itemKey,
                 'data' => json_encode($data),
-                'action' => $action
+                'action' => $action  // 0 = Create, 1 = Update, 2 = Delete
             ]);
 
             $productionLog->onCreate($productionLogRequest);

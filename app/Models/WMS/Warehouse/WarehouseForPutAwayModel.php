@@ -13,12 +13,13 @@ class WarehouseForPutAwayModel extends Model
     protected $table = 'wms_warehouse_for_put_away';
 
     protected $fillable = [
-        'warehouse_receiving_id',
+        'warehouse_receiving_reference_number',
         'warehouse_put_away_id',
         'item_code',
         'production_items',
         'sub_location_id',
-        'status', // Assuming 'status' is part of the common columns
+        'status',
+        'created_by_id'
     ];
 
     public function warehouseReceiving()

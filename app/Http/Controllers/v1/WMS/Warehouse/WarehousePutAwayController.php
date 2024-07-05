@@ -4,8 +4,11 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
+use App\Traits\MOS\ProductionLogTrait;
+use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
 use Exception;
@@ -14,7 +17,7 @@ use DB;
 class WarehousePutAwayController extends Controller
 {
 
-    use WmsCrudOperationsTrait;
+    use WmsCrudOperationsTrait, ProductionLogTrait, WarehouseLogTrait;
     public function getRules()
     {
         return [
@@ -51,7 +54,6 @@ class WarehousePutAwayController extends Controller
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
 
@@ -93,10 +95,12 @@ class WarehousePutAwayController extends Controller
                     }
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
+                    $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehousePutAwayModel->id, $warehousePutAwayModel->getAttributes(), $fields['created_by_id'], 1);
 
                     $producedItems[$value['sticker_no']]['status'] = 3; // Received
                     $produceItemModel->produced_items = json_encode($producedItems);
                     $produceItemModel->save();
+                    $this->createProductionLog(ProductionItemModel::class, $produceItemModel->id, $producedItems[$value['sticker_no']], $fields['created_by_id'], 1, $value['sticker_no']);
 
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $warehousePutAwayModel->warehouse_receiving_reference_number)
                         ->where('production_order_id', $productionBatch->production_order_id)
@@ -107,6 +111,8 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceivingProductionItems[$value['sticker_no']]['status'] = 3; // Received
                     $warehouseReceiving->produced_items = json_encode($warehouseReceivingProductionItems);
                     $warehouseReceiving->save();
+                    $this->createWarehouseLog(ProductionItemModel::class, $produceItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $fields['created_by_id'], 1);
+
                 }
             }
         } catch (Exception $exception) {
@@ -147,6 +153,7 @@ class WarehousePutAwayController extends Controller
                     $producedItems[$value['sticker_no']]['status'] = 3; // Received
                     $produceItemModel->produced_items = json_encode($producedItems);
                     $produceItemModel->save();
+                    $this->createProductionLog(ProductionItemModel::class, $produceItemModel->id, $producedItems[$value['sticker_no']], $fields['created_by_id'], 1, $value['sticker_no']);
 
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $warehouseReceivingReferenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
@@ -157,6 +164,8 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceivingProductionItems[$value['sticker_no']]['status'] = 3; // Received
                     $warehouseReceiving->produced_items = json_encode($warehouseReceivingProductionItems);
                     $warehouseReceiving->save();
+                    $this->createWarehouseLog(ProductionItemModel::class, $produceItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $fields['created_by_id'], 1);
+
                 }
 
             }
@@ -169,6 +178,8 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->received_quantity = $fields['received_quantity'];
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAway->save();
+            $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $fields['created_by_id'], 0);
+
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -198,4 +209,15 @@ class WarehousePutAwayController extends Controller
 
         }
     }
+
+    #region Getters
+    public function onGetById($id)
+    {
+        try {
+            return $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', 'itemMasterdata');
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+    #endregion
 }

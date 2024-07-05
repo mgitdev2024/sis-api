@@ -51,7 +51,9 @@ trait QueueSubLocationTrait
     public function onQueueTemporaryStorage($createdById, $scannedItem, $subLocationId)
     {
         try {
-            $subLocation = SubLocationModel::find($subLocationId);
+            $subLocation = SubLocationModel::where('id', $subLocationId)
+                ->where('is_permanent', 0)
+                ->firstOrFail();
             $layers = json_decode($subLocation->layers, true);
             $currentLayerIndex = 1;
             $currentLayerCapacity = $layers[$currentLayerIndex]['max'];
@@ -175,4 +177,25 @@ trait QueueSubLocationTrait
         }
     }
 
+
+    public function onGetSubLocationDetails($subLocationId, $layer, $isPermanent)
+    {
+        try {
+            if ($isPermanent) {
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 1)->firstOrFail();
+                $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
+
+                $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->first();
+                if ($queuedSubLocation) {
+                    dd('dsaf');
+                }
+
+                dd($queuedSubLocation);
+            } else {
+                // Temporary Storage
+            }
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
 }

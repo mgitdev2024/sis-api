@@ -53,8 +53,6 @@ class QueuedTemporaryStorageController extends Controller
                         'sticker_no' => $stickerNumber,
                     ];
                 }
-
-
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (\Exception $exception) {
