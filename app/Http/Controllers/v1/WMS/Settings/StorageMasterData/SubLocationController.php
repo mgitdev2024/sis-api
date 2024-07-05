@@ -20,6 +20,7 @@ class SubLocationController extends Controller
             'updated_by_id' => 'nullable',
             'code' => 'required|string|unique:wms_storage_types,code,' . $itemId,
             'number' => 'integer',
+            'is_permanent' => 'integer|nullable',
             'has_layer' => 'integer|nullable',
             'layers' => 'string|nullable',
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
