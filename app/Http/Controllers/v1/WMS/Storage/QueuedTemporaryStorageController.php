@@ -27,7 +27,7 @@ class QueuedTemporaryStorageController extends Controller
         return $this->dataResponse('success', 200, __('msg.record_found'), $data);
     }
 
-    public function onGetItems($sub_location_id, $status)
+    public function onGetItems($sub_location_id)
     {
         try {
             $items = $this->onGetQueuedItems($sub_location_id, false);
@@ -46,7 +46,7 @@ class QueuedTemporaryStorageController extends Controller
                 if ($data['warehouse'] === null) {
                     $data['warehouse'] = $warehouse;
                 }
-                if ($producedItem['status'] == $status) {
+                if ($producedItem['status'] == 2) {
                     $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,

@@ -181,39 +181,20 @@ trait QueueSubLocationTrait
     public function onGetSubLocationDetails($subLocationId, $layer, $isPermanent)
     {
         try {
-            $subLocation = SubLocationModel::where('id', $subLocationId);
-            $maxSize = 0;
-            $currentSize = 0;
             if ($isPermanent) {
-                $subLocation = $subLocation->where('is_permanent', 1)->firstOrFail();
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 1)->firstOrFail();
                 $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
-                $maxSize = $subLocationDefaultCapacity;
 
                 $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->first();
                 if ($queuedSubLocation) {
-                    $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
+                    dd('dsaf');
                 }
-                $currentSize = $subLocationDefaultCapacity;
+
+                dd($queuedSubLocation);
             } else {
-                $subLocation = $subLocation->where('is_permanent', 0)->firstOrFail();
-                $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
-
-                $queuedTemporaryLocation = QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->first();
-                if ($queuedTemporaryLocation) {
-                    $subLocationDefaultCapacity = $queuedTemporaryLocation->storage_remaining_space;
-                }
+                // Temporary Storage
             }
-
-            $data = [
-                'sub_location_details' => $subLocation,
-                'max_size' => $maxSize,
-                'current_size' => $currentSize
-            ];
-
-            return $this->dataResponse('success', 201, 'Queue Storage ' . __('msg.record_found'), $data);
-
         } catch (Exception $exception) {
-            dd($exception);
             throw $exception;
         }
     }
