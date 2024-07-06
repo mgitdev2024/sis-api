@@ -39,6 +39,7 @@ class WarehouseForPutAwayController extends Controller
             $warehouseForPutAwayModel = WarehouseForPutAwayModel::where('id', $warehouse_for_put_away_id)
                 ->where('warehouse_receiving_reference_number', $fields['warehouse_receiving_reference_number'])
                 ->where('item_code', $fields['item_code'])
+                ->orderBy('id', 'DESC')
                 ->first();
             if ($warehouseForPutAwayModel) {
                 $permanentSubLocation = SubLocationModel::where('is_permanent', 1)

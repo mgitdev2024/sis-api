@@ -346,6 +346,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region Warehouse For Put Away
     Route::post('v1/warehouse/for/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onCreate']);
     Route::post('v1/warehouse/for/put-away/update/{warehouse_for_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onUpdate']);
+    Route::post('v1/warehouse/for/put-away/current/{reference_number}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onGetCurrent']);
     #endregion
 
     #region Queued Temporary Storage

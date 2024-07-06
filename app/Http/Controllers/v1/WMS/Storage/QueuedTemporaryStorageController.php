@@ -51,6 +51,7 @@ class QueuedTemporaryStorageController extends Controller
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
                         'sticker_no' => $stickerNumber,
+                        'q' => $producedItem['q']
                     ];
                 }
             }
