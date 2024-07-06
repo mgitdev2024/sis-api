@@ -14,7 +14,7 @@ class QueuedSubLocationController extends Controller
     public function onGetCurrent($sub_location_id, $layer)
     {
         try {
-            $this->onGetSubLocationDetails($sub_location_id, $layer, true);
+            return $this->onGetSubLocationDetails($sub_location_id, $layer, true);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
 
