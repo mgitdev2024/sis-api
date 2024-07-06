@@ -71,10 +71,10 @@ class WarehouseForPutAwayController extends Controller
         }
         return $this->dataResponse('success', 200, __('msg.record_not_found'), $warehouseForReceive);
     }
-    public function onDelete($reference_number)
+    public function onDelete($warehouse_for_put_away_id)
     {
         try {
-            $warehouseForReceive = WarehouseForPutAwayModel::where('reference_number', $reference_number);
+            $warehouseForReceive = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_for_put_away_id);
             if ($warehouseForReceive->count() > 0) {
                 $warehouseForReceive->delete();
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
