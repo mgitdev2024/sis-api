@@ -58,9 +58,9 @@ class WarehouseForPutAwayController extends Controller
 
         }
     }
-    public function onGetCurrent($reference_number, $created_by_id)
+    public function onGetCurrent($warehouse_for_put_away_id, $created_by_id)
     {
-        $warehouseForReceive = WarehouseForPutAwayModel::where('reference_number', $reference_number)
+        $warehouseForReceive = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_for_put_away_id)
             ->where('created_by_id', $created_by_id)
             ->where('status', 1)
             ->orderBy('id', 'DESC')
