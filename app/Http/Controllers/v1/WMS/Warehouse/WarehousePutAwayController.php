@@ -228,7 +228,7 @@ class WarehousePutAwayController extends Controller
         $orderFields = [
             'id' => 'ASC'
         ];
-        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, null, $orderFields, 'Warehouse Put Away');
+        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, 'itemMasterdata', $orderFields, 'Warehouse Put Away');
     }
     #endregion
 }
