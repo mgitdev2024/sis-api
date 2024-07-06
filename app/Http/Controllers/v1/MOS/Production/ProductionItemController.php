@@ -51,6 +51,7 @@ class ProductionItemController extends Controller
         // 2 => 'For Receive',
         // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
+        // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
         // 6 => 'For Retouch',
@@ -60,6 +61,8 @@ class ProductionItemController extends Controller
         // 10 => 'Reviewed',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
+        // 13 => 'Stored',
+
         #endregion
 
         $rules = [
