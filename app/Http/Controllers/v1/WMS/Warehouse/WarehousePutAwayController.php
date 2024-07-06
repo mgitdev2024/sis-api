@@ -219,5 +219,16 @@ class WarehousePutAwayController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
+
+    public function onGetCurrent($status)
+    {
+        $whereFields = [
+            'status' => $status
+        ];
+        $orderFields = [
+            'id' => 'ASC'
+        ];
+        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, null, $orderFields, 'Warehouse Put Away');
+    }
     #endregion
 }
