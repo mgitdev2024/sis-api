@@ -51,7 +51,7 @@ class ProductionOTBModel extends Model
 
     public function getItemCategoryLabelAttribute()
     {
-        $itemCategory = $this->itemMasterData->itemCategory->toArray();
+        $itemCategory = $this->itemMasterdata->itemCategory->toArray();
         return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
 }

@@ -88,9 +88,9 @@ class ProductionBatchController extends Controller
                 $secondaryValue = $primaryValue;
             }
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                $productionBatch->productionOtb->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                    $productionBatch->productionOta->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                     1);
 
             $producedItemsArray = json_decode($productionItems->produced_items, true);
@@ -272,9 +272,9 @@ class ProductionBatchController extends Controller
 
             $producedItemsArray = [];
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                $productionBatch->productionOtb->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                    $productionBatch->productionOta->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                     1);
 
             for ($i = 1; $i <= $primaryValue; $i++) {
