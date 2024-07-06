@@ -34,7 +34,7 @@ class ProductionOTBModel extends Model
         return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
     }
 
-    public function itemMasterData()
+    public function itemMasterdata()
     {
         return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
