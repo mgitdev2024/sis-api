@@ -157,21 +157,52 @@ trait QueueSubLocationTrait
     public function onCheckAvailability($subLocationId, $isPermanent)
     {
         try {
-            if ($isPermanent) {
-                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 1)->first();
+            $isAvailable = null;
 
-                if (!$subLocation) {
-                    return false;
-                }
-                return !QueuedSubLocationModel::where('sub_location_id', $subLocationId)->exists();
-            } else {
-                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 0)->first();
+            $subLocation = SubLocationModel::where('id', $subLocationId)
+                ->where('is_permanent', $isPermanent ? 1 : 0)
+                ->first();
 
-                if (!$subLocation) {
-                    return false;
-                }
-                return !QueuedTemporaryStorageModel::where('sub_location_id', $subLocation->id)->exists();
+            if (!$subLocation) {
+                return false;
             }
+
+            $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
+            $isAvailable = !$queuedModel::where('sub_location_id', $subLocationId)->exists();
+
+            return $isAvailable;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+
+    public function onCheckStorageSpace($subLocationId, $layer, $isPermanent)
+    {
+        try {
+            $subLocationStorageSpace = null;
+
+            $subLocation = SubLocationModel::where('id', $subLocationId)
+                ->where('is_permanent', $isPermanent ? 1 : 0)
+                ->first();
+
+            if (!$subLocation) {
+                return false;
+            }
+            $size = json_decode($subLocation->layers, true)[$layer]['max'];
+            $remaningCapacity = $size;
+
+            $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
+            $subLocationStorageSpace = $queuedModel::where('sub_location_id', $subLocationId)->first();
+
+            if ($subLocationStorageSpace) {
+                $remaningCapacity = $subLocationStorageSpace->storage_remaining_space;
+            }
+            $data = [
+                'is_full' => $remaningCapacity > 0,
+                'current_size' => $size,
+                'size_allocation' => $remaningCapacity
+            ];
+            return $data;
         } catch (Exception $exception) {
             throw $exception;
         }

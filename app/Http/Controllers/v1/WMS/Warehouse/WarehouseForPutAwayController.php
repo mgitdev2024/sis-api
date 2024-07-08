@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
+use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
 use Exception;
 
 class WarehouseForPutAwayController extends Controller
 {
-    use WmsCrudOperationsTrait;
+    use WmsCrudOperationsTrait, QueueSubLocationTrait;
     public function getRules()
     {
         return [
@@ -34,6 +36,7 @@ class WarehouseForPutAwayController extends Controller
             'warehouse_receiving_reference_number' => 'required|exists:wms_warehouse_receiving,reference_number',
             'item_code' => 'required|exists:wms_item_masterdata,item_code',
             'sub_location_id' => 'required|exists:wms_storage_sub_locations,id',
+            'layer_level' => 'required|integer'
         ]);
         try {
             $warehouseForPutAwayModel = WarehouseForPutAwayModel::where('id', $warehouse_for_put_away_id)
@@ -46,7 +49,31 @@ class WarehouseForPutAwayController extends Controller
                     ->where('id', $fields['sub_location_id'])
                     ->firstOrFail();
 
-                $warehouseForPutAwayModel->sub_location_id = $fields['sub_location_id'];
+                $itemMasterdata = $warehouseForPutAwayModel->itemMasterdata;
+                $isStorageTypeMismatch = !($permanentSubLocation->zone->storage_type_id === $itemMasterdata->storage_type_id);
+
+                $data = [];
+                if ($isStorageTypeMismatch) {
+                    $message = [
+                        'error_type' => 'storage_mismatch',
+                        'storage_type' => $itemMasterdata->storage_type_label
+                    ];
+                    $data['sub_location_error_message'] = $message;
+                    return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
+                }
+
+                $checkStorageSpace = $this->onCheckStorageSpace($permanentSubLocation->id, $fields['layer_level'], 1);
+                $isStorageFull = !$checkStorageSpace['is_full'];
+                if ($isStorageFull) {
+                    $message = [
+                        'error_type' => 'storage_full',
+                        'current_size' => $checkStorageSpace['current_size'],
+                        'size_allocation' => $checkStorageSpace['size_allocation']
+                    ];
+                    $data['sub_location_error_message'] = $message;
+                    return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
+                }
+                $warehouseForPutAwayModel->sub_location_id = $permanentSubLocation->id;
                 $warehouseForPutAwayModel->save();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
 
