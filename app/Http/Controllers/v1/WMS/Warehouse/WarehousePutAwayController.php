@@ -65,7 +65,6 @@ class WarehousePutAwayController extends Controller
     public function onUpdatePutAway($fields, $warehousePutAwayModel)
     {
         try {
-            $receivedQuantity = 0;
             $productionItems = json_decode($fields['production_items'], true);
             $inclusionArray = ['2.1'];
             $remainingQuantity = null;
@@ -73,8 +72,6 @@ class WarehousePutAwayController extends Controller
             foreach ($productionItems as $value) {
                 $checkItemScanned = $this->onCheckScannedItems(json_decode($fields['scanned_items'], true), $value['sticker_no'], $value['bid']);
                 if ($checkItemScanned && in_array($value['status'], $inclusionArray)) {
-                    ++$receivedQuantity;
-
                     $productionBatch = ProductionBatchModel::find($value['bid']);
                     $itemMasterdata = $productionBatch->productionOta->itemMasterdata ?? $productionBatch->productionOtb->itemMasterdata;
                     $primaryUom = $itemMasterdata->uom->long_name ?? null;
