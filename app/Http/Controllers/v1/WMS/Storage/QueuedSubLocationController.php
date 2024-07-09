@@ -47,15 +47,19 @@ class QueuedSubLocationController extends Controller
         2. Locate the sublocation and layer of the scanned item
         3. Update Stock inventory and stock log
         4. Delete for put away data related to the scanned ref no
-        5. status complete put away
         6. item stored
         */
     }
 
-    public function onGetCurrent($sub_location_id, $layer)
+    public function onGetCurrent($sub_location_id, $item_code)
     {
         try {
-            return $this->onGetSubLocationDetails($sub_location_id, $layer, true);
+            $warehouseForPutAway = WarehouseForPutAwayModel::where([
+                'item_code' => $item_code,
+                'sub_location_id' => $sub_location_id,
+                'status' => 1
+            ])->first();
+            return $this->onGetSubLocationDetails($sub_location_id, $warehouseForPutAway->layer_level, true);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
 

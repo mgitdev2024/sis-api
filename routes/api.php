@@ -357,7 +357,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Queued Permanent Storage
-    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{layer}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
+    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_code}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
     Route::get('v1/queue/storage/permanent/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetStatus']);
     #endregion
