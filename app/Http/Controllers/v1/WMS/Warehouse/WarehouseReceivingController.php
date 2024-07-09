@@ -227,9 +227,12 @@ class WarehouseReceivingController extends Controller
                 foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
                     $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
                     if ($flag) {
-                        $innerWarehouseReceivingValue['status'] = 3; // For Warehouse Receiving
-                        $producedItems[$innerWarehouseReceivingKey]['status'] = 3; // For Production Items
-                        $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$innerWarehouseReceivingKey], $createdById, 1, $innerWarehouseReceivingKey);
+                        if ($producedItems[$innerWarehouseReceivingKey]['status'] == '2.1') {
+                            $innerWarehouseReceivingValue['status'] = 3; // For Warehouse Receiving
+                            $producedItems[$innerWarehouseReceivingKey]['status'] = 3; // For Production Items
+
+                            $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$innerWarehouseReceivingKey], $createdById, 1, $innerWarehouseReceivingKey);
+                        }
                     } else {
                         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
                         $discrepancy[] = $innerWarehouseReceivingValue;
@@ -310,6 +313,9 @@ class WarehouseReceivingController extends Controller
                         ->where('item_code', $itemCode)
                         ->first();
                     if ($warehouseReceiving) {
+                        $warehouseReceivingProducedItems = json_decode($warehouseReceiving->produced_items, true);
+                        $warehouseReceivingProducedItems[$itemDetails['sticker_no']]['status'] = 1.1;
+                        $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
                         $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
                         $warehouseReceiving->save();
                     }

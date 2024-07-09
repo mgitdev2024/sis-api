@@ -14,7 +14,6 @@ class StockInventoryModel extends Model
     protected $fillable = [
         'item_code',
         'stock_count',
-        'storage_remaining_space'
     ];
 
     public function itemMasterdata()

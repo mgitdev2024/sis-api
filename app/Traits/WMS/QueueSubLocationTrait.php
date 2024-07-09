@@ -154,23 +154,24 @@ trait QueueSubLocationTrait
         return $decodedArr;
     }
 
-    public function onCheckAvailability($subLocationId, $isPermanent)
+    public function onCheckAvailability($subLocationId, $isPermanent, $layerLevel = null)
     {
         try {
-            $isAvailable = null;
+            if ($isPermanent) {
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 1)->first();
 
-            $subLocation = SubLocationModel::where('id', $subLocationId)
-                ->where('is_permanent', $isPermanent ? 1 : 0)
-                ->first();
+                if (!$subLocation) {
+                    return false;
+                }
+                return QueuedSubLocationModel::where('sub_location_id', $subLocationId)->where('layer_level', $layerLevel)->exists();
+            } else {
+                $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 0)->first();
 
-            if (!$subLocation) {
-                return false;
+                if (!$subLocation) {
+                    return false;
+                }
+                return !QueuedTemporaryStorageModel::where('sub_location_id', $subLocation->id)->exists();
             }
-
-            $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
-            $isAvailable = !$queuedModel::where('sub_location_id', $subLocationId)->exists();
-
-            return $isAvailable;
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -200,7 +201,8 @@ trait QueueSubLocationTrait
             $data = [
                 'is_full' => $remaningCapacity > 0,
                 'current_size' => $size,
-                'size_allocation' => $remaningCapacity
+                'allocated_space' => $size - $remaningCapacity,
+                'remaining_space' => $remaningCapacity
             ];
             return $data;
         } catch (Exception $exception) {

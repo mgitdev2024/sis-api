@@ -110,4 +110,18 @@ class SubLocationController extends Controller
 
         return $subLocation ? $subLocation->id : null;
     }
+
+    public function onGenerateCode($id)
+    {
+        $subLocationCodes = [];
+
+        $subLocationModel = SubLocationModel::find($id);
+        $layers = array_keys(json_decode($subLocationModel->layers, true));
+        $subLocationCodes['storage_type'] = SubLocationModel::onGenerateStorageCode($id)['storage_type'];
+        foreach ($layers as $keys) {
+            $subLocationCodes['storage_codes'][] = SubLocationModel::onGenerateStorageCode($id, $keys)['storage_code'];
+        }
+
+        return $this->dataResponse('success', 201, 'Storage Warehouse ' . __('msg.record_found'), $subLocationCodes);
+    }
 }

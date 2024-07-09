@@ -12,6 +12,20 @@ use Exception;
 class QueuedSubLocationController extends Controller
 {
     use QueueSubLocationTrait, ResponseTrait;
+    public function onCreate(Request $request)
+    {
+        /*
+        1. Get Warehouse For Put away, compare it with the scanned items.
+        1.1 If it match, then true, else continue
+
+        2. Locate the sublocation and layer of the scanned item
+        3. Update Stock inventory and stock log
+        4. Delete for put away data related to the scanned ref no
+        5. status complete put away
+        6. item stored
+        */
+    }
+
     public function onGetCurrent($sub_location_id, $layer)
     {
         try {
