@@ -190,19 +190,19 @@ trait QueueSubLocationTrait
                 return false;
             }
             $size = json_decode($subLocation->layers, true)[$layer]['max'];
-            $remaningCapacity = $size;
+            $remainingCapacity = $size;
 
             $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
             $subLocationStorageSpace = $queuedModel::where('sub_location_id', $subLocationId)->first();
 
             if ($subLocationStorageSpace) {
-                $remaningCapacity = $subLocationStorageSpace->storage_remaining_space;
+                $remainingCapacity = $subLocationStorageSpace->storage_remaining_space;
             }
             $data = [
-                'is_full' => $remaningCapacity > 0,
+                'is_full' => $remainingCapacity > 0,
                 'current_size' => $size,
-                'allocated_space' => $size - $remaningCapacity,
-                'remaining_space' => $remaningCapacity
+                'allocated_space' => $size - $remainingCapacity,
+                'remaining_space' => $remainingCapacity
             ];
             return $data;
         } catch (Exception $exception) {
@@ -215,18 +215,18 @@ trait QueueSubLocationTrait
     {
         try {
             $subLocation = SubLocationModel::where('id', $subLocationId);
-            $maxSize = 0;
             $currentSize = 0;
+            $remainingCapacity = 0;
             if ($isPermanent) {
                 $subLocation = $subLocation->where('is_permanent', 1)->firstOrFail();
                 $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
-                $maxSize = $subLocationDefaultCapacity;
+                $currentSize = $subLocationDefaultCapacity;
 
                 $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->first();
                 if ($queuedSubLocation) {
                     $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
                 }
-                $currentSize = $subLocationDefaultCapacity;
+                $remainingCapacity = $subLocationDefaultCapacity;
             } else {
                 $subLocation = $subLocation->where('is_permanent', 0)->firstOrFail();
                 $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
@@ -239,14 +239,15 @@ trait QueueSubLocationTrait
 
             $data = [
                 'sub_location_details' => $subLocation,
-                'max_size' => $maxSize,
-                'current_size' => $currentSize
+                'current_size' => $currentSize,
+                'allocated_space' => $currentSize - $remainingCapacity,
+                'remaining_capacity' => $remainingCapacity,
+                'layer' => $layer
             ];
 
             return $this->dataResponse('success', 201, 'Queue Storage ' . __('msg.record_found'), $data);
 
         } catch (Exception $exception) {
-            dd($exception);
             throw $exception;
         }
     }

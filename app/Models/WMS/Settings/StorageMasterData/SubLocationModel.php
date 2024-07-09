@@ -75,18 +75,18 @@ class SubLocationModel extends Model
     public static function onGenerateStorageCode($subLocationId, $layer = null)
     {
         // Storage Code sample Z01-RCK-6-L001
-        $subLocationModel = SubLocationModel::find($subLocationId);
-
         $storageCode = null;
+
+        $subLocationModel = SubLocationModel::find($subLocationId);
+        $subLocationCode = $subLocationModel->code;
+        $zoneCode = $subLocationModel->zone->code;
+
+        $storageCode = $zoneCode . '-' . $subLocationCode;
+
         if ($layer !== null) {
-            $subLocationCode = $subLocationModel->code;
-            $zoneCode = $subLocationModel->zone->code;
             $layerCode = str_pad($layer, 2, '0', STR_PAD_LEFT);
-
-            $storageCode = $zoneCode . '-' . $subLocationCode . '-L' . $layerCode;
-
+            $storageCode .= '-L' . $layerCode;
         }
-
         $data = [
             'storage_code' => $storageCode,
             'storage_type' => $subLocationModel->zone->storageType->long_name

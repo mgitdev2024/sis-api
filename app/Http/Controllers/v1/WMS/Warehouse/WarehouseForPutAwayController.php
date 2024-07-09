@@ -47,12 +47,21 @@ class WarehouseForPutAwayController extends Controller
             if ($warehouseForPutAwayModel) {
                 $permanentSubLocation = SubLocationModel::where('is_permanent', 1)
                     ->where('id', $fields['sub_location_id'])
-                    ->firstOrFail();
+                    ->first();
 
                 $itemMasterdata = $warehouseForPutAwayModel->itemMasterdata;
                 $isStorageTypeMismatch = !($permanentSubLocation->zone->storage_type_id === $itemMasterdata->storage_type_id);
 
                 $data = [];
+                if (!$permanentSubLocation) {
+                    $message = [
+                        'error_type' => 'incorrect_storage',
+                        'message' => 'Sub Location does not exist or incorrect storage type'
+                    ];
+                    $data['sub_location_error_message'] = $message;
+                    return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
+                }
+
                 if ($isStorageTypeMismatch) {
                     $message = [
                         'error_type' => 'storage_mismatch',

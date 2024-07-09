@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Storage;
 
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Traits\ResponseTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
@@ -14,6 +15,31 @@ class QueuedSubLocationController extends Controller
     use QueueSubLocationTrait, ResponseTrait;
     public function onCreate(Request $request)
     {
+        $fields = $request->validate([
+            'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
+            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'scanned_items' => 'required|json'
+        ]);
+        try {
+            $warehouseForPutAway = WarehouseForPutAwayModel::where([
+                'warehouse_put_away_id' => $fields['warehouse_put_away_id'],
+                'item_code' => $fields['item_code'],
+                'status' => 1
+            ])->first();
+
+            if ($warehouseForPutAway) {
+                $subLocationId = $warehouseForPutAway->sub_location_id;
+                $layerLevel = $warehouseForPutAway->layer_level;
+
+                $scannedItems = json_decode($fields['scanned_items'], true);
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.create_failed'), $exception->getMessage());
+        }
         /*
         1. Get Warehouse For Put away, compare it with the scanned items.
         1.1 If it match, then true, else continue
@@ -60,6 +86,7 @@ class QueuedSubLocationController extends Controller
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
                         'sticker_no' => $stickerNumber,
+                        'q' => $producedItem['q']
                     ];
                 }
             }

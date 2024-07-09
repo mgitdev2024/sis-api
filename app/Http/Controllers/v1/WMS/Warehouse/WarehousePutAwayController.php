@@ -45,6 +45,7 @@ class WarehousePutAwayController extends Controller
             DB::beginTransaction();
             $warehousePutAwayModel = WarehousePutAwayModel::where('warehouse_receiving_reference_number', $fields['warehouse_receiving_reference_number'])
                 ->where('item_code', $fields['item_code'])
+                ->where('status', 0)
                 ->first();
 
             if ($warehousePutAwayModel) {
