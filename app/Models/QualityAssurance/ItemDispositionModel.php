@@ -48,7 +48,9 @@ class ItemDispositionModel extends Model
             1 => 'On Hold',
             "1.1" => 'On Hold - Sub Standard',
             2 => 'For Receive',
+            "2.1" => 'For Receive - In Process',
             3 => 'Received',
+            "3.1" => 'For Put-away - In Process',
             4 => 'For Investigation',
             5 => 'For Sampling',
             6 => 'For Retouch',
@@ -57,7 +59,8 @@ class ItemDispositionModel extends Model
             9 => 'Sticker Updated',
             10 => 'Reviewed',
             11 => 'Retouched',
-            12 => 'Sliced'
+            12 => 'Sliced',
+            13 => 'Stored'
         ];
 
         return [

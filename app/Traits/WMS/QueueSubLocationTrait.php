@@ -51,7 +51,9 @@ trait QueueSubLocationTrait
     public function onQueueTemporaryStorage($createdById, $scannedItem, $subLocationId)
     {
         try {
-            $subLocation = SubLocationModel::find($subLocationId);
+            $subLocation = SubLocationModel::where('id', $subLocationId)
+                ->where('is_permanent', 0)
+                ->firstOrFail();
             $layers = json_decode($subLocation->layers, true);
             $currentLayerIndex = 1;
             $currentLayerCapacity = $layers[$currentLayerIndex]['max'];
@@ -152,7 +154,7 @@ trait QueueSubLocationTrait
         return $decodedArr;
     }
 
-    public function onCheckAvailability($subLocationId, $isPermanent)
+    public function onCheckAvailability($subLocationId, $isPermanent, $layerLevel = null)
     {
         try {
             if ($isPermanent) {
@@ -161,7 +163,7 @@ trait QueueSubLocationTrait
                 if (!$subLocation) {
                     return false;
                 }
-                return !QueuedSubLocationModel::where('sub_location_id', $subLocationId)->exists();
+                return QueuedSubLocationModel::where('sub_location_id', $subLocationId)->where('layer_level', $layerLevel)->exists();
             } else {
                 $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 0)->first();
 
@@ -175,4 +177,77 @@ trait QueueSubLocationTrait
         }
     }
 
+    public function onCheckStorageSpace($subLocationId, $layer, $isPermanent)
+    {
+        try {
+            $subLocationStorageSpace = null;
+
+            $subLocation = SubLocationModel::where('id', $subLocationId)
+                ->where('is_permanent', $isPermanent ? 1 : 0)
+                ->first();
+
+            if (!$subLocation) {
+                return false;
+            }
+            $size = json_decode($subLocation->layers, true)[$layer]['max'];
+            $remaningCapacity = $size;
+
+            $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
+            $subLocationStorageSpace = $queuedModel::where('sub_location_id', $subLocationId)->first();
+
+            if ($subLocationStorageSpace) {
+                $remaningCapacity = $subLocationStorageSpace->storage_remaining_space;
+            }
+            $data = [
+                'is_full' => $remaningCapacity > 0,
+                'current_size' => $size,
+                'allocated_space' => $size - $remaningCapacity,
+                'remaining_space' => $remaningCapacity
+            ];
+            return $data;
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+
+
+    public function onGetSubLocationDetails($subLocationId, $layer, $isPermanent)
+    {
+        try {
+            $subLocation = SubLocationModel::where('id', $subLocationId);
+            $maxSize = 0;
+            $currentSize = 0;
+            if ($isPermanent) {
+                $subLocation = $subLocation->where('is_permanent', 1)->firstOrFail();
+                $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
+                $maxSize = $subLocationDefaultCapacity;
+
+                $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->first();
+                if ($queuedSubLocation) {
+                    $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
+                }
+                $currentSize = $subLocationDefaultCapacity;
+            } else {
+                $subLocation = $subLocation->where('is_permanent', 0)->firstOrFail();
+                $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
+
+                $queuedTemporaryLocation = QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->first();
+                if ($queuedTemporaryLocation) {
+                    $subLocationDefaultCapacity = $queuedTemporaryLocation->storage_remaining_space;
+                }
+            }
+
+            $data = [
+                'sub_location_details' => $subLocation,
+                'max_size' => $maxSize,
+                'current_size' => $currentSize
+            ];
+
+            return $this->dataResponse('success', 201, 'Queue Storage ' . __('msg.record_found'), $data);
+
+        } catch (Exception $exception) {
+            dd($exception);
+            throw $exception;
+        }
+    }
 }

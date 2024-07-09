@@ -2,6 +2,7 @@
 
 namespace App\Models\WMS\Warehouse;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,12 +14,14 @@ class WarehouseForPutAwayModel extends Model
     protected $table = 'wms_warehouse_for_put_away';
 
     protected $fillable = [
-        'warehouse_receiving_id',
+        'warehouse_receiving_reference_number',
         'warehouse_put_away_id',
         'item_code',
         'production_items',
         'sub_location_id',
-        'status', // Assuming 'status' is part of the common columns
+        'layer_level',
+        'status',
+        'created_by_id'
     ];
 
     public function warehouseReceiving()
@@ -34,5 +37,10 @@ class WarehouseForPutAwayModel extends Model
     public function subLocation()
     {
         return $this->belongsTo(SubLocationModel::class, 'sub_location_id');
+    }
+
+    public function itemMasterdata()
+    {
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 }

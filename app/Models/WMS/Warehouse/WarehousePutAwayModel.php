@@ -2,6 +2,7 @@
 
 namespace App\Models\WMS\Warehouse;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -25,5 +26,10 @@ class WarehousePutAwayModel extends Model
     {
         $referenceCount = static::where('warehouse_receiving_reference_number', $warehouseReceivingReferenceNumber)->count();
         return $warehouseReceivingReferenceNumber . '-' . ($referenceCount + 1);
+    }
+
+    public function itemMasterdata()
+    {
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 }
