@@ -40,7 +40,7 @@ class SubLocationModel extends Model
     public function zone()
     {
         return $this->belongsTo(ZoneModel::class, 'zone_id', 'id');
-    }  
+    }
     public function stockLogs()
     {
         return $this->hasMany(StockLogModel::class, 'sub_location_id', 'id');
@@ -70,5 +70,27 @@ class SubLocationModel extends Model
     public function queuedSubLocations()
     {
         return $this->hasMany(QueuedSubLocationModel::class, 'sub_location_id', 'id');
+    }
+
+    public static function onGenerateStorageCode($subLocationId, $layer = null)
+    {
+        // Storage Code sample Z01-RCK-6-L001
+        $subLocationModel = SubLocationModel::find($subLocationId);
+
+        $storageCode = null;
+        if ($layer !== null) {
+            $subLocationCode = $subLocationModel->code;
+            $zoneCode = $subLocationModel->zone->code;
+            $layerCode = str_pad($layer, 2, '0', STR_PAD_LEFT);
+
+            $storageCode = $zoneCode . '-' . $subLocationCode . '-L' . $layerCode;
+
+        }
+
+        $data = [
+            'storage_code' => $storageCode,
+            'storage_type' => $subLocationModel->zone->storageType->long_name
+        ];
+        return $data;
     }
 }
