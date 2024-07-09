@@ -221,30 +221,20 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
                 $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
-                $producedItems = json_decode($productionItemModel->produced_items, true);
+                // $producedItems = json_decode($productionItemModel->produced_items, true);
 
                 $discrepancy = [];
                 foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
                     $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
-                    if ($flag) {
-                        if ($producedItems[$innerWarehouseReceivingKey]['status'] == '2.1') {
-                            $innerWarehouseReceivingValue['status'] = 3; // For Warehouse Receiving
-                            $producedItems[$innerWarehouseReceivingKey]['status'] = 3; // For Production Items
-
-                            $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$innerWarehouseReceivingKey], $createdById, 1, $innerWarehouseReceivingKey);
-                        }
-                    } else {
+                    if (!$flag) {
                         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
                         $discrepancy[] = $innerWarehouseReceivingValue;
                     }
                     unset($innerWarehouseReceivingValue);
                 }
-                $productionItemModel->produced_items = json_encode($producedItems);
-                $productionItemModel->save();
                 $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
-                $warehouseReceivingValue->produced_items = json_encode($warehouseProducedItems);
                 $warehouseReceivingValue->discrepancy_data = json_encode($discrepancy);
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
