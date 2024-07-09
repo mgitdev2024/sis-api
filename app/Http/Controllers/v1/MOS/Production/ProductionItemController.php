@@ -51,6 +51,7 @@ class ProductionItemController extends Controller
         // 2 => 'For Receive',
         // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
+        // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
         // 6 => 'For Retouch',
@@ -60,6 +61,8 @@ class ProductionItemController extends Controller
         // 10 => 'Reviewed',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
+        // 13 => 'Stored',
+
         #endregion
 
         $rules = [
@@ -276,6 +279,7 @@ class ProductionItemController extends Controller
             $warehouseReferenceNo = WarehouseReceivingModel::onGenerateWarehouseReceiveReferenceNumber();
             $currentBatchId = null;
             $itemsToTransfer = [];
+
             foreach ($scannedItem as $value) {
                 $currentBatchId = $value['bid'];
                 $currentStickerNo = $value['sticker_no'];
@@ -297,25 +301,27 @@ class ProductionItemController extends Controller
                 $producedItems[$currentStickerNo]['warehouse'] = $warehouseReceivingArr;
                 $productionItems->produced_items = json_encode($producedItems);
                 $productionItems->save();
+
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
-                if (isset($itemsToTransfer[$currentBatchId])) {
-                    $itemsToTransfer[$currentBatchId]['qty']++;
-                    array_push($itemsToTransfer[$currentBatchId]['item'], [$currentStickerNo => $producedItems[$currentStickerNo]]);
-                } else {
+
+                if (!isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,
                         'production_item_id' => $productionBatch->productionItems->id,
                         'batch_id' => $currentBatchId,
                         'batch_number' => $batchNumber,
-                        'sticker_no' => $currentStickerNo,
                         'item_code' => $itemCode,
                         'sku_type' => $skuType,
-                        'qty' => 1,
+                        'qty' => 0,
                         'flag' => $flag,
-                        'item' => [$currentStickerNo => $producedItems[$currentStickerNo]]
+                        'item' => []
                     ];
                 }
+                $producedItems[$currentStickerNo]['status'] = 2;
+                $itemsToTransfer[$currentBatchId]['qty']++;
+                $itemsToTransfer[$currentBatchId]['item'][$currentStickerNo] = $producedItems[$currentStickerNo];
             }
+
 
             DB::beginTransaction();
             if ($temporaryStorageId != null) {
