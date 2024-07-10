@@ -59,7 +59,21 @@ class QueuedSubLocationController extends Controller
                 'sub_location_id' => $sub_location_id,
                 'status' => 1
             ])->first();
-            return $this->onGetSubLocationDetails($sub_location_id, $warehouseForPutAway->layer_level, true);
+            if ($warehouseForPutAway) {
+                $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $warehouseForPutAway->layer_level, true);
+                $productionItems = json_decode($warehouseForPutAway->production_items, true);
+                $restructuredArray = [];
+                foreach ($productionItems as $item) {
+                    $batchCode = $item['batch_code'];
+                    $restructuredArray[$batchCode] = $item;
+                }
+
+                $subLocationDetails['production_items'] = $restructuredArray;
+                return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
+
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
 

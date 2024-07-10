@@ -97,6 +97,9 @@ class WarehousePutAwayController extends Controller
                         $remainingQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                         $receivedQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                     }
+                    $warehousePutAwayProductionItems = json_decode($warehousePutAwayModel->produced_items, true);
+                    $warehousePutAwayProductionItems[$value['sticker_no']]['status'] = 3; // Received
+                    $warehousePutAwayModel->production_items = json_encode($warehousePutAwayProductionItems);
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
@@ -179,7 +182,9 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->reference_number = $referenceNumber;
             $warehousePutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
             $warehousePutAway->item_code = $fields['item_code'];
-            $warehousePutAway->production_items = $fields['production_items'];
+            $warehousePutAwayProductionItems = json_decode($warehousePutAway->produced_items, true);
+            $warehousePutAwayProductionItems[$value['sticker_no']]['status'] = 3; // Received
+            $warehousePutAway->production_items = json_encode($warehousePutAwayProductionItems);
             $warehousePutAway->received_quantity = json_encode($remainingQuantity);
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAway->save();

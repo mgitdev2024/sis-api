@@ -245,7 +245,7 @@ trait QueueSubLocationTrait
                 'layer' => $layer
             ];
 
-            return $this->dataResponse('success', 201, 'Queue Storage ' . __('msg.record_found'), $data);
+            return $data;
 
         } catch (Exception $exception) {
             throw $exception;
