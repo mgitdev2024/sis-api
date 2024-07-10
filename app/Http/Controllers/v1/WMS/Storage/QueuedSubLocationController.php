@@ -68,7 +68,7 @@ class QueuedSubLocationController extends Controller
                     $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
                     $itemDetails = json_decode($productionItemDetails->produced_items, true);
 
-                    $batchCode = $itemDetails['sticker_no']['batch_code'];
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }
 
