@@ -64,6 +64,7 @@ class QueuedSubLocationController extends Controller
                 $productionItems = json_decode($warehouseForPutAway->production_items, true);
                 $restructuredArray = [];
                 foreach ($productionItems as $item) {
+                    dd($productionItems);
                     $batchCode = $item['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }

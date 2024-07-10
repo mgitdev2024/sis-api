@@ -371,6 +371,7 @@ class WarehouseReceivingController extends Controller
                     $items = json_decode($productionItems, true);
                     $mergedProducedItemsContainer = array_merge($mergedProducedItemsContainer, $items);
                 }
+
                 $warehousePutAwayController = new WarehousePutAwayController();
                 $warehousePutAwayRequest = new Request([
                     'created_by_id' => $createdById,
