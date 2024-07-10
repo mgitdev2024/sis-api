@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Storage;
 
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Traits\ResponseTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -64,7 +65,10 @@ class QueuedSubLocationController extends Controller
                 $productionItems = json_decode($warehouseForPutAway->production_items, true);
                 $restructuredArray = [];
                 foreach ($productionItems as $item) {
-                    $batchCode = $item['batch_code'];
+                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+
+                    $batchCode = $itemDetails['sticker_no']['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }
 
