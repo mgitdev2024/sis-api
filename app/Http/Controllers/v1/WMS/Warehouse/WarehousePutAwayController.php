@@ -209,7 +209,6 @@ class WarehousePutAwayController extends Controller
     {
         try {
             foreach ($scannedItems as $value) {
-                \Log::info($value);
                 if (($value['sticker_no'] == $stickerNumber) && $value['bid'] == $batchId) {
                     return true;
                 }
