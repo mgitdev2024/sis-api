@@ -20,7 +20,7 @@ trait QueueSubLocationTrait
 {
     use ResponseTrait, WarehouseLogTrait, ProductionLogTrait;
 
-    public function onQueueStorage($createdById, $scannedItems, $subLocationId, $isPermanent, $layerLevel, $entityModel = null, $entityId = null)
+    public function onQueueStorage($createdById, $scannedItems, $subLocationId, $isPermanent, $layerLevel = null, $entityModel = null, $entityId = null)
     {
         try {
             $entityDetails = [
