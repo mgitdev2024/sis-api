@@ -173,6 +173,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('warehouse_put_away_id');
             $table->string('item_code');
             $table->longText('production_items');
+            $table->longText('transfer_items')->nullable();
+
             $table->unsignedBigInteger('sub_location_id')->nullable();
             $table->integer('layer_level')->nullable();
 

@@ -16,6 +16,7 @@ class WarehousePutAwayModel extends Model
         'reference_number',
         'item_code',
         'production_items',
+        'transfer_items',
         'received_quantity',
         'transferred_quantity',
         'substandard_quantity',

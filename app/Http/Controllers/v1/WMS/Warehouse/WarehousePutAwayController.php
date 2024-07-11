@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
@@ -244,74 +245,5 @@ class WarehousePutAwayController extends Controller
     }
     #endregion
 
-    #region Update Warehouse Put Away
-    public function onUpdate(Request $request, $warehousePutAwayId)
-    {
-        $fields = $request->validate([
-            'created_by_id' => 'required',
-            'scanned_items' => 'nullable|string', // {slid:1}
-            'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
-        ]);
-        try {
-            DB::beginTransaction();
-            if ($fields['action'] == 0) {
-                $scannedItems = json_decode($fields['scanned_items'], true);
-                $this->onScanItems($scannedItems, $warehousePutAwayId, $fields['created_by_id']);
-                $this->onCreatePutAway($scannedItems, $warehousePutAwayId, $fields['created_by_id']);
-
-            } else {
-                $this->onCompleteTransaction($warehousePutAwayId, $fields['created_by_id']);
-            }
-
-            DB::commit();
-            return $this->dataResponse('success', 200, __('msg.update_success'));
-
-        } catch (Exception $exception) {
-            DB::rollback();
-            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
-        }
-    }
-
-    public function onScanItems($scannedItems, $warehousePutAwayId, $createdById)
-    {
-        try {
-            DB::beginTransaction();
-            foreach ($scannedItems as $itemDetails) {
-                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
-                $productionItem = $productionBatch->productionItems;
-                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-                $itemCode = $productionOrderToMake->item_code;
-                $inclusionArray = [3];
-                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
-                if ($flag) {
-                    $producedItems = json_decode($productionItem->produced_items, true);
-                    $producedItems[$itemDetails['sticker_no']]['status'] = '2.1';
-                    $productionItem->produced_items = json_encode($producedItems);
-                    $productionItem->save();
-                    $this->createProductionLog(ProductionItemModel::class, $productionItem->id, $producedItems[$itemDetails['sticker_no']], $createdById, 1, $itemDetails['sticker_no']);
-
-                    $warehouseReceiving = WarehousePutAwayModel::find($warehousePutAwayId);
-
-                    if ($warehouseReceiving) {
-                        $warehouseForReceive = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehousePutAwayId)->update(['status' => 0]);
-                        $warehouseProducedItems = json_decode($warehouseReceiving->produced_items, true);
-                        $warehouseProducedItems[$itemDetails['sticker_no']]['status'] = '2.1';
-                        $warehouseReceiving->produced_items = json_encode($warehouseProducedItems);
-                        $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
-                        $warehouseReceiving->updated_by_id = $createdById;
-                        $warehouseReceiving->save();
-                        $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
-                    }
-                }
-            }
-            DB::commit();
-
-        } catch (Exception $exception) {
-            DB::rollBack();
-            throw new Exception($exception->getMessage());
-        }
-    }
-
-    #endregion
 }
 
