@@ -228,7 +228,6 @@ return new class extends Migration {
             $table->id();
             $table->string('item_code');
             $table->integer('stock_count')->default(0);
-            $table->integer('storage_remaining_space')->nullable();
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');

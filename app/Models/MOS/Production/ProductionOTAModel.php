@@ -33,7 +33,7 @@ class ProductionOTAModel extends Model
         return $this->belongsTo(ProductionOrderModel::class, 'production_order_id');
     }
 
-    public function itemMasterData()
+    public function itemMasterdata()
     {
         return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
@@ -46,7 +46,7 @@ class ProductionOTAModel extends Model
 
     public function getItemCategoryLabelAttribute()
     {
-        $itemCategory = $this->itemMasterData->itemCategory->toArray();
+        $itemCategory = $this->itemMasterdata->itemCategory->toArray();
         return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
 }

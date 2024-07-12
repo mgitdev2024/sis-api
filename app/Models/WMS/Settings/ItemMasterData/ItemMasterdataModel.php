@@ -25,6 +25,7 @@ class ItemMasterdataModel extends Model
         'secondary_conversion_label',
         'plant_label',
         'sticker_remarks_label',
+        'storage_type_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
@@ -175,6 +176,16 @@ class ItemMasterdataModel extends Model
             'long_name' => $plant['long_name'],
         ];
         return isset($plant) ? $data : 'n/a';
+    }
+
+    public function getStorageTypeLabelAttribute()
+    {
+        $storageType = $this->storageType->toArray();
+        $data = [
+            'short_name' => $storageType['short_name'],
+            'long_name' => $storageType['long_name'],
+        ];
+        return isset($storageType) ? $data : 'n/a';
     }
 
     public static function getViewableOtb($itemCode = false)

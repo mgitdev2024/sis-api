@@ -22,32 +22,32 @@ class ZoneSeeder extends Seeder
         $createdById = 1;
         $zone = [
             [
-                "code" => "Zone-Chill-01",
-                "short_name" => "West BC-1",
-                "long_name" => "West Bakery Chilller 1",
+                "code" => "Z01",
+                "short_name" => "Zone-01",
+                "long_name" => "FG Ambient Zone-01",
+                "description" => "",
+                "facility_code" => 2,
+                "warehouse_code" => "WARE-FG",
+                "storage_type_code" => "ST-AMB"
+            ],
+            [
+                "code" => "Z02",
+                "short_name" => "Zone-02",
+                "long_name" => "FG Chiller Zone-02",
                 "description" => "",
                 "facility_code" => 2,
                 "warehouse_code" => "WARE-FG",
                 "storage_type_code" => "ST-CHI"
             ],
             [
-                "code" => "Zone-Chill-02",
-                "short_name" => "West BC-2",
-                "long_name" => "West Bakery Chilller 2",
-                "description" => "",
-                "facility_code" => 2,
-                "warehouse_code" => "WARE-FG",
-                "storage_type_code" => "ST-CHI"
-            ],
-            [
-                "code" => "Zone-Chill-03",
-                "short_name" => "West BF-1",
-                "long_name" => "West Bakery Freezer",
+                "code" => "Z03",
+                "short_name" => "Zone-03",
+                "long_name" => "FG Frozen Zone-03",
                 "description" => "",
                 "facility_code" => 2,
                 "warehouse_code" => "WARE-FG",
                 "storage_type_code" => "ST-FRO"
-            ]
+            ],
         ];
 
 

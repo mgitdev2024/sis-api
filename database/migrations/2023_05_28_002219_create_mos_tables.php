@@ -159,12 +159,16 @@ return new class extends Migration {
             $table->string('reference_number'); // e.g 8000001-1
             $table->string('item_code');
             $table->longText('production_items');
-            $table->integer('received_quantity');
+            $table->text('received_quantity'); // e.g Box: 4 , pieces: 300
             $table->text('transferred_quantity')->nullable(); // e.g Box: 4 , pieces: 300
             $table->text('substandard_quantity')->nullable(); // e.g Box: 4 , pieces: 300
             $table->text('remaining_quantity'); // e.g Box: 4 , pieces: 300
             $table->longText('discrepancy_data')->nullable();
+            $table->unsignedBigInteger('temporary_storage_id')->nullable();
+
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
+            $table->foreign('temporary_storage_id')->references('id')->on('wms_queued_temporary_storages');
+
         });
 
         Schema::create('wms_warehouse_for_put_away', function (Blueprint $table) {
@@ -173,7 +177,11 @@ return new class extends Migration {
             $table->unsignedBigInteger('warehouse_put_away_id');
             $table->string('item_code');
             $table->longText('production_items');
+            $table->longText('transfer_items')->nullable();
+
             $table->unsignedBigInteger('sub_location_id')->nullable();
+            $table->integer('layer_level')->nullable();
+
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('warehouse_put_away_id')->references('id')->on('wms_warehouse_put_away');

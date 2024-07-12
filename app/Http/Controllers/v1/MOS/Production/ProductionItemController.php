@@ -51,6 +51,7 @@ class ProductionItemController extends Controller
         // 2 => 'For Receive',
         // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
+        // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
         // 6 => 'For Retouch',
@@ -60,6 +61,8 @@ class ProductionItemController extends Controller
         // 10 => 'Reviewed',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
+        // 13 => 'Stored',
+
         #endregion
 
         $rules = [
@@ -245,12 +248,10 @@ class ProductionItemController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
-
-                $warehouseReceivingArr['warehouse_receiving'] = [
-                    'reference_number' => $warehouseReceivingRefNo
-                ];
+                $subLocationArr = $item['sub_location'] ?? null;
                 $data = [
                     'item_code' => $itemCode,
                     'item_status' => $item['status'],
@@ -259,8 +260,15 @@ class ProductionItemController extends Controller
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
                     'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
-                    'warehouse' => $warehouseReceivingArr
                 ];
+
+                if ($warehouseReceivingRefNo) {
+                    $data['warehouse'] = $item['warehouse'];
+                }
+
+                if ($subLocationArr) {
+                    $data['sub_location'] = $subLocationArr;
+                }
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
             }
