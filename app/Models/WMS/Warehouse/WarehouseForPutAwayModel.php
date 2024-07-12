@@ -26,7 +26,7 @@ class WarehouseForPutAwayModel extends Model
 
     public function warehouseReceiving()
     {
-        return $this->belongsTo(WarehouseReceivingModel::class, 'warehouse_receiving_id');
+        return $this->hasMany(WarehouseReceivingModel::class, 'warehouse_receiving_reference_number');
     }
 
     public function warehousePutAway()

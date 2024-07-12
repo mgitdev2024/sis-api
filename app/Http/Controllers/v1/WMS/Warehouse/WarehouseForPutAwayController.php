@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
@@ -39,7 +40,8 @@ class WarehouseForPutAwayController extends Controller
             'warehouse_receiving_reference_number' => 'required|exists:wms_warehouse_receiving,reference_number',
             'item_code' => 'required|exists:wms_item_masterdata,item_code',
             'sub_location_id' => 'required|exists:wms_storage_sub_locations,id',
-            'layer_level' => 'required|integer'
+            'layer_level' => 'required|integer',
+            'updated_by_id' => 'required'
         ]);
         try {
             $warehouseForPutAwayModel = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)
@@ -74,12 +76,11 @@ class WarehouseForPutAwayController extends Controller
                     $data['sub_location_error_message'] = $message;
                     return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
                 }
-
-                $queuedSubLocationAvailability = $this->onCheckAvailability($permanentSubLocation->id, true, $fields['layer_level']);
+                $queuedSubLocationAvailability = $this->onCheckAvailability($permanentSubLocation->id, true, $fields['layer_level'], $fields['updated_by_id']);
                 if ($queuedSubLocationAvailability) {
                     $message = [
                         'error_type' => 'storage_occupied',
-                        'message' => SubLocationModel::onGenerateStorageCode($permanentSubLocation->id, $fields['layer_level']) . ' is in use.'
+                        'message' => SubLocationModel::onGenerateStorageCode($permanentSubLocation->id, $fields['layer_level'])['storage_code'] . ' is in use.'
                     ];
                     $data['sub_location_error_message'] = $message;
                     return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
@@ -189,9 +190,9 @@ class WarehouseForPutAwayController extends Controller
     public function onDelete($warehouse_put_away_id)
     {
         try {
-            $warehouseForReceive = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id);
-            if ($warehouseForReceive->count() > 0) {
-                $warehouseForReceive->delete();
+            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->first();
+            if ($warehouseForPutAway->count() > 0) {
+                $warehouseForPutAway->delete();
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
 

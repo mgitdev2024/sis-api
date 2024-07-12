@@ -102,13 +102,13 @@ class QueuedSubLocationController extends Controller
                 }
             }
 
-            $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode($warehouseForPutAwayItems) : null;
+            $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode(array_values($warehouseForPutAwayItems)) : null;
             $warehousePutAwayModel->transferred_quantity = json_encode($transferredQuantity);
             $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAwayModel->save();
 
             if ($encodedPutAwayItems != null) {
-                $warehouseForPutAway->production_items = null;
+                $warehouseForPutAway->production_items = json_encode($warehouseForPutAwayItems);
                 $warehouseForPutAway->save();
             } else {
                 $warehouseForPutAway->delete();
