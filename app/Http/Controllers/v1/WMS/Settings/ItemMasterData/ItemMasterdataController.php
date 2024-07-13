@@ -37,6 +37,8 @@ class ItemMasterdataController extends Controller
             'item_variant_type_id' => 'required|integer|exists:wms_item_variant_types,id',
             'uom_id' => 'nullable|integer|exists:wms_item_uoms,id',
             'storage_type_id' => 'nullable|integer|exists:wms_storage_types,id',
+            'warehouse_location_id' => 'required|integer|exists:wms_storage_warehouses,id',
+            'zone_id' => 'nullable|integer|exists:wms_storage_zones,id',
             'stock_type_id' => 'nullable|integer|exists:wms_item_stock_type,id',
             'item_movement_id' => 'nullable|integer|exists:item_movement,id',
             'delivery_lead_time' => 'nullable|integer',
