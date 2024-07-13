@@ -279,10 +279,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onUpdateById']);
     Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
-    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     Route::get('v1/produced/items/scan/status/check/{batch_id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
+    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
+    #endregion
+
+    #region Cache For Receive Items
+    Route::post('v1/produced/items/cache/for-receive', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
+    Route::get('v1/produced/items/cache/for-receive/current/get/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
+    Route::delete('v1/produced/items/cache/for-receive/delete/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
     #endregion
 
     #region Production Archived Batches

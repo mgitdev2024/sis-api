@@ -23,10 +23,11 @@ class ZoneModel extends Model
     ];
     public function storageType()
     {
-        return $this->belongsTo(StorageTypeModel::class, 'storage_type_id', 'id');
+        return $this->belongsTo(StorageTypeModel::class, 'storage_type_id');
     }
+
     public function warehouse()
     {
-        return $this->belongsTo(WarehouseModel::class, 'warehouse_id', 'id');
+        return $this->belongsTo(WarehouseModel::class, 'warehouse_id');
     }
 }

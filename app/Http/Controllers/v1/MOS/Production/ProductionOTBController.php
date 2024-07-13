@@ -192,7 +192,6 @@ class ProductionOTBController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
