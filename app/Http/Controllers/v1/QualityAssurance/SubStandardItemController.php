@@ -182,7 +182,7 @@ class SubStandardItemController extends Controller
             $data = $currentProductionForReceive['success']['data'];
 
             $productionItemController = new ProductionItemController();
-            $productionItemController->onWarehouseReceiveItem(json_decode($data['production_items'], true), $data['created_by_id'], $data['sub_location_id']);
+            $productionItemController->onWarehouseReceiveItem(json_decode($data['scanned_item_qr'], true), $data['created_by_id'], $data['temporary_storage_id']);
             $productionForReceive->onDelete($metalLineUser);
         }
     }
