@@ -180,9 +180,17 @@ class SubStandardItemController extends Controller
         $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
-
+            $scannedItemQr = json_decode($data['scanned_item_qr'], true);
+            $createdById = $data['created_by_id'];
+            $temporary_storage_id = $data['temporary_storage_id'] ?? null;
             $productionItemController = new ProductionItemController();
-            $productionItemController->onWarehouseReceiveItem(json_decode($data['scanned_item_qr'], true), $data['created_by_id'], $data['temporary_storage_id']);
+            $productionItemRequest = new Request([
+                'scanned_item_qr' => $scannedItemQr,
+                'status_id' => 2,
+                'created_by_id' => $createdById,
+                'temporary_storage_id' => $temporary_storage_id
+            ]);
+            $productionItemController->onChangeStatus($productionItemRequest);
             $productionForReceive->onDelete($metalLineUser);
         }
     }
