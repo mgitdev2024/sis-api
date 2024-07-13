@@ -62,7 +62,6 @@ class ProductionItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         // 13 => 'Stored',
-
         #endregion
 
         $rules = [
@@ -74,7 +73,7 @@ class ProductionItemController extends Controller
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-        $statusId = isset($fields['status_id']) ? $fields['status_id'] : 0;
+        $statusId = $fields['status_id'] ?? 0;
         $createdBy = $fields['created_by_id'];
         return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
