@@ -47,7 +47,7 @@ class SubStandardItemController extends Controller
             'reason' => 'required',
             'attachment' => 'nullable',
             'location_id' => 'required|integer|between:1,5',
-            'from_metal_line' => 'nullable|json' // Created_by_id, Production_type
+            'from_metal_line_user' => 'nullable' // Created_by_id
         ]);
         try {
             DB::beginTransaction();
@@ -91,9 +91,9 @@ class SubStandardItemController extends Controller
                 $this->createProductionLog(SubStandardItemModel::class, $record->id, $record, $createdById, 1, $value['sticker_no']);
             }
 
-            if (isset($fields['from_metal_line'])) {
-                $fromMetalLine = json_decode($fields['from_metal_line'], true);
-                $this->onReceiveItem($fromMetalLine);
+            if (isset($fields['from_metal_line_user'])) {
+                $metalLineUser = $fields['from_metal_line_user'];
+                $this->onReceiveItem($metalLineUser);
             }
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
@@ -174,17 +174,16 @@ class SubStandardItemController extends Controller
 
     // }
 
-    public function onReceiveItem($fromMetalLineData)
+    public function onReceiveItem($metalLineUser)
     {
         $productionForReceive = new ProductionForReceiveController();
-        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($fromMetalLineData['production_type'], $fromMetalLineData['created_by_id'])->getContent(), true);
-
+        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
 
             $productionItemController = new ProductionItemController();
             $productionItemController->onWarehouseReceiveItem(json_decode($data['production_items'], true), $data['created_by_id'], $data['sub_location_id']);
-            $productionForReceive->onDelete($fromMetalLineData['production_type'], $fromMetalLineData['created_by_id']);
+            $productionForReceive->onDelete($metalLineUser);
         }
     }
 }
