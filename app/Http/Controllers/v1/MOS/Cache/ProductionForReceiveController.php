@@ -29,6 +29,7 @@ class ProductionForReceiveController extends Controller
             ->first();
 
         if ($productionForReceive) {
+            $productionForReceive->sub_location_code = $productionForReceive->subLocation->code;
             return $this->dataResponse('success', 200, __('msg.record_found'), $productionForReceive);
         }
         return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionForReceive);
