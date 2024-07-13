@@ -29,6 +29,8 @@ class ItemMasterdataController extends Controller
             'item_code' => 'required|string|unique:wms_item_masterdata,item_code,' . $itemId,
             'description' => 'required|string',
             'short_name' => 'required|string',
+            'long_name' => 'required|string',
+            'unit_price' => 'required|integer',
             'parent_item_id' => 'nullable|integer|exists:wms_item_masterdata,id',
             'item_category_id' => 'required|integer|exists:wms_item_categories,id',
             'item_classification_id' => 'nullable|integer|exists:wms_item_categories,id',

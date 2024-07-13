@@ -178,6 +178,8 @@ return new class extends Migration {
             $table->string('item_code')->unique()->index();
             $table->string('description');
             $table->string('short_name');
+            $table->string('long_name');
+            $table->integer('price_unit')->nullable();
             $table->unsignedBigInteger('item_category_id')->nullable();
             $table->unsignedBigInteger('item_classification_id')->nullable();
             $table->unsignedBigInteger('item_variant_type_id')->nullable();
