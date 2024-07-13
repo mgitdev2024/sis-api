@@ -180,7 +180,7 @@ class SubStandardItemController extends Controller
         $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
-            $scannedItemQr = json_decode($data['scanned_item_qr'], true);
+            $scannedItemQr = $data['scanned_item_qr'];
             $createdById = $data['created_by_id'];
             $temporary_storage_id = $data['temporary_storage_id'] ?? null;
             $productionItemController = new ProductionItemController();
