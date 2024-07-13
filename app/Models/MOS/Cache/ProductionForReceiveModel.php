@@ -11,9 +11,8 @@ class ProductionForReceiveModel extends Model
     use HasFactory;
     protected $table = 'mos_production_for_receive';
     protected $fillable = [
-        'production_items',
-        'sub_location_id',
-        'production_type',
+        'scanned_items_qr',
+        'temporary_storage_id',
         'created_by_id'
     ];
     public function subLocation()
