@@ -133,8 +133,8 @@ return new class extends Migration {
 
         Schema::create('mos_production_for_receive', function (Blueprint $table) {
             $table->id();
-            $table->longText('production_items');
-            $table->unsignedBigInteger('sub_location_id')->nullable();
+            $table->longText('scanned_item_qr');
+            $table->unsignedBigInteger('temporary_storage_id')->nullable();
             $table->tinyInteger('action'); // 0 = otb, 1 = ota
             SchemaHelper::addCommonColumns($table);
         });
