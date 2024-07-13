@@ -17,6 +17,6 @@ class ProductionForReceiveModel extends Model
     ];
     public function subLocation()
     {
-        return $this->belongsTo(SubLocationModel::class);
+        return $this->belongsTo(SubLocationModel::class, 'temporary_storage_id', 'id');
     }
 }
