@@ -13,6 +13,7 @@ class ProductionForReceiveModel extends Model
     protected $fillable = [
         'scanned_item_qr',
         'temporary_storage_id',
+        'production_type', // 0 = otb, 1 = ota
         'created_by_id'
     ];
     public function subLocation()

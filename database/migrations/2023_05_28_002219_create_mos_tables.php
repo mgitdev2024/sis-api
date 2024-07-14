@@ -135,6 +135,7 @@ return new class extends Migration {
             $table->id();
             $table->longText('scanned_item_qr');
             $table->unsignedBigInteger('temporary_storage_id')->nullable();
+            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             SchemaHelper::addCommonColumns($table);
         });
 

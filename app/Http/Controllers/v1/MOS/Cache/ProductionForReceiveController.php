@@ -15,15 +15,17 @@ class ProductionForReceiveController extends Controller
         $rules = [
             'scanned_item_qr' => 'required|json',
             'temporary_storage_id' => 'nullable|exists:wms_storage_sub_locations,id',
+            'production_type' => 'required|in:0,1', // 0= otb, 1 = ota
             'created_by_id' => 'required'
         ];
         return $this->createRecord(ProductionForReceiveModel::class, $request, $rules, 'Production For Receive');
     }
 
-    public function onGetCurrent($created_by_id)
+    public function onGetCurrent($production_type, $created_by_id)
     {
         $productionForReceive = ProductionForReceiveModel::where([
             'created_by_id' => $created_by_id,
+            'production_type' => $production_type,
         ])
             ->orderBy('id', 'DESC')
             ->first();
@@ -34,11 +36,12 @@ class ProductionForReceiveController extends Controller
         }
         return $this->dataResponse('success', 200, __('msg.record_not_found'), $productionForReceive);
     }
-    public function onDelete($created_by_id)
+    public function onDelete($production_type, $created_by_id)
     {
         try {
             $productionForReceive = ProductionForReceiveModel::where([
                 'created_by_id' => $created_by_id,
+                'production_type' => $production_type,
             ]);
             if ($productionForReceive->count() > 0) {
                 $productionForReceive->delete();

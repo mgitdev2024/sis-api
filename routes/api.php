@@ -286,9 +286,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Cache For Receive Items
-    Route::post('v1/produced/items/cache/for-receive', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
-    Route::get('v1/produced/items/cache/for-receive/current/get/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
-    Route::delete('v1/produced/items/cache/for-receive/delete/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
+    Route::post('v1/produced/items/cache/for-receive/create', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
+    Route::get('v1/produced/items/cache/for-receive/current/get/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
+    Route::delete('v1/produced/items/cache/for-receive/delete/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
     #endregion
 
     #region Production Archived Batches
