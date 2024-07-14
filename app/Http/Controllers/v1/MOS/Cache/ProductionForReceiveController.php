@@ -15,7 +15,7 @@ class ProductionForReceiveController extends Controller
         $rules = [
             'scanned_item_qr' => 'required|json',
             'temporary_storage_id' => 'nullable|exists:wms_storage_sub_locations,id',
-            'production_type' => 'required|in:0,1',
+            'production_type' => 'required|in:0,1', // 0= otb, 1 = ota
             'created_by_id' => 'required'
         ];
         return $this->createRecord(ProductionForReceiveModel::class, $request, $rules, 'Production For Receive');
