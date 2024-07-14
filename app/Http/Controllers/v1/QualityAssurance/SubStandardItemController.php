@@ -174,10 +174,10 @@ class SubStandardItemController extends Controller
 
     // }
 
-    public function onReceiveItem($metalLineUser)
+    public function onReceiveItem($production_type, $metalLineUser)
     {
         $productionForReceive = new ProductionForReceiveController();
-        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($metalLineUser)->getContent(), true);
+        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($production_type, $metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
             $scannedItemQr = $data['scanned_item_qr'];
@@ -191,7 +191,7 @@ class SubStandardItemController extends Controller
                 'temporary_storage_id' => $temporary_storage_id
             ]);
             $productionItemController->onChangeStatus($productionItemRequest);
-            $productionForReceive->onDelete($metalLineUser);
+            $productionForReceive->onDelete($production_type, $metalLineUser);
         }
     }
 }
