@@ -47,7 +47,7 @@ class SubStandardItemController extends Controller
             'reason' => 'required',
             'attachment' => 'nullable',
             'location_id' => 'required|integer|between:1,5',
-            'from_metal_line_user' => 'nullable' // Created_by_id
+            'from_metal_line_user' => 'nullable' // {"production_type":0,"created_by_id":0000}
         ]);
         try {
             DB::beginTransaction();
