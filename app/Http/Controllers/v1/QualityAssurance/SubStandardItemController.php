@@ -92,8 +92,10 @@ class SubStandardItemController extends Controller
             }
 
             if (isset($fields['from_metal_line_user'])) {
-                $metalLineUser = $fields['from_metal_line_user'];
-                $this->onReceiveItem($metalLineUser);
+                $metalLineArr = json_decode($fields['from_metal_line_user'], true);
+                $metalLineProductionType = $metalLineArr['production_type'];
+                $metalLineEmp = $metalLineArr['created_by_id'];
+                $this->onReceiveItem($metalLineProductionType, $metalLineEmp);
             }
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
@@ -174,10 +176,10 @@ class SubStandardItemController extends Controller
 
     // }
 
-    public function onReceiveItem($production_type, $metalLineUser)
+    public function onReceiveItem($productionType, $metalLineUser)
     {
         $productionForReceive = new ProductionForReceiveController();
-        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($production_type, $metalLineUser)->getContent(), true);
+        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($productionType, $metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
             $scannedItemQr = $data['scanned_item_qr'];
@@ -191,7 +193,7 @@ class SubStandardItemController extends Controller
                 'temporary_storage_id' => $temporary_storage_id
             ]);
             $productionItemController->onChangeStatus($productionItemRequest);
-            $productionForReceive->onDelete($production_type, $metalLineUser);
+            $productionForReceive->onDelete($productionType, $metalLineUser);
         }
     }
 }
