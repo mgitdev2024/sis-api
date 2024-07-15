@@ -21,7 +21,6 @@ class QueuedSubLocationController extends Controller
         $fields = $request->validate([
             'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
             'item_code' => 'required|exists:wms_item_masterdata,item_code',
-            'scanned_items' => 'required|json',
             'created_by_id' => 'required'
         ]);
         try {
@@ -37,14 +36,14 @@ class QueuedSubLocationController extends Controller
                 $subLocationId = $warehouseForPutAway->sub_location_id;
                 $layerLevel = $warehouseForPutAway->layer_level;
                 $warehouseForPutAwayProductionItems = json_decode($warehouseForPutAway->production_items, true);
-                $scannedItems = json_decode($fields['scanned_items'], true);
+                $scannedItems = json_decode($warehouseForPutAway->transfer_items, true);
 
                 $this->onUpdatePutAway($warehouseForPutAway, $scannedItems);
                 $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel);
                 DB::commit();
             }
 
-            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+            return $this->dataResponse('success', 200, __('msg.create_success'));
 
 
         } catch (Exception $exception) {
@@ -52,7 +51,8 @@ class QueuedSubLocationController extends Controller
             return $this->dataResponse('error', 400, __('msg.create_failed'), $exception->getMessage());
         }
     }
-    // substandarddddddd
+
+
     public function onUpdatePutAway($warehouseForPutAway, $scannedItems)
     {
         try {
@@ -65,7 +65,13 @@ class QueuedSubLocationController extends Controller
             foreach ($scannedItems as $scannedValue) {
                 foreach ($warehouseForPutAwayItems as $key => $warehouseForPutAwayItem) {
                     if ($scannedValue['sticker_no'] == $warehouseForPutAwayItem['sticker_no']) {
+
                         $productionBatch = ProductionBatchModel::find($warehouseForPutAwayItem['bid']);
+
+                        $productionItemStatus = json_decode($productionBatch->productionItems->produced_items, true)[$scannedValue['sticker_no']]['status'];
+                        if ($productionItemStatus != '3.1') {
+                            continue;
+                        }
                         $itemMasterdata = $productionBatch->productionOta->itemMasterdata ?? $productionBatch->productionOtb->itemMasterdata;
                         $primaryUom = $itemMasterdata->uom->long_name ?? null;
                         $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
@@ -95,21 +101,18 @@ class QueuedSubLocationController extends Controller
                     }
                 }
             }
-            $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode($warehouseForPutAwayItems) : null;
 
-
-
+            $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode(array_values($warehouseForPutAwayItems)) : null;
             $warehousePutAwayModel->transferred_quantity = json_encode($transferredQuantity);
             $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAwayModel->save();
 
             if ($encodedPutAwayItems != null) {
-                $warehouseForPutAway->production_items = null;
+                $warehouseForPutAway->production_items = json_encode($warehouseForPutAwayItems);
                 $warehouseForPutAway->save();
             } else {
                 $warehouseForPutAway->delete();
             }
-            dd($warehousePutAwayModel);
 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -215,7 +218,7 @@ class QueuedSubLocationController extends Controller
                 if (($value['sticker_no'] == $stickerNumber) && $value['bid'] == $batchId) {
                     $productionItems = ProductionItemModel::where('production_batch_id', $batchId)->first();
                     $item = json_decode($productionItems->produced_items, true)[$stickerNumber];
-                    if ($item['status'] == 3) {
+                    if ($item['status'] == '3.1') {
                         return true;
                     }
                 }

@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\v1\QualityAssurance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController;
 use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
+use App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController;
+use App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController;
+use App\Models\MOS\Cache\ProductionForReceiveModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Http\Request;
 use App\Models\QualityAssurance\SubStandardItemModel;
@@ -42,7 +46,8 @@ class SubStandardItemController extends Controller
             'scanned_items' => 'required',
             'reason' => 'required',
             'attachment' => 'nullable',
-            'location_id' => 'required|integer|between:1,5'
+            'location_id' => 'required|integer|between:1,5',
+            'from_metal_line_user' => 'nullable' // {"production_type":0,"created_by_id":0000}
         ]);
         try {
             DB::beginTransaction();
@@ -86,6 +91,12 @@ class SubStandardItemController extends Controller
                 $this->createProductionLog(SubStandardItemModel::class, $record->id, $record, $createdById, 1, $value['sticker_no']);
             }
 
+            if (isset($fields['from_metal_line_user'])) {
+                $metalLineArr = json_decode($fields['from_metal_line_user'], true);
+                $metalLineProductionType = $metalLineArr['production_type'];
+                $metalLineEmp = $metalLineArr['created_by_id'];
+                $this->onReceiveItem($metalLineProductionType, $metalLineEmp);
+            }
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
@@ -164,4 +175,25 @@ class SubStandardItemController extends Controller
     //     }
 
     // }
+
+    public function onReceiveItem($productionType, $metalLineUser)
+    {
+        $productionForReceive = new ProductionForReceiveController();
+        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($productionType, $metalLineUser)->getContent(), true);
+        if (isset($currentProductionForReceive['success'])) {
+            $data = $currentProductionForReceive['success']['data'];
+            $scannedItemQr = $data['scanned_item_qr'];
+            $createdById = $data['created_by_id'];
+            $temporary_storage_id = $data['temporary_storage_id'] ?? null;
+            $productionItemController = new ProductionItemController();
+            $productionItemRequest = new Request([
+                'scanned_item_qr' => $scannedItemQr,
+                'status_id' => 2,
+                'created_by_id' => $createdById,
+                'temporary_storage_id' => $temporary_storage_id
+            ]);
+            $productionItemController->onChangeStatus($productionItemRequest);
+            $productionForReceive->onDelete($productionType, $metalLineUser);
+        }
+    }
 }

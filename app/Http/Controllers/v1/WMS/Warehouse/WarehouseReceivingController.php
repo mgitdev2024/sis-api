@@ -54,20 +54,6 @@ class WarehouseReceivingController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    #region Separate batches per item code
-    // public function onGetCurrent($referenceNumber, $status)
-    // {
-    //     $whereFields = [
-    //         'reference_number' => $referenceNumber,
-    //         'status' => $status // 0, 1
-    //     ];
-
-    //     $orderFields = [
-    //         'reference_number' => 'ASC'
-    //     ];
-    //     return $this->readCurrentRecord(WarehouseReceivingModel::class, null, $whereFields, null, $orderFields, null, 'Warehouse Receiving');
-    // }
-    #endregion
     public function onGetCurrent($referenceNumber, $status, $received_status = null)
     {
         try {
@@ -292,11 +278,6 @@ class WarehouseReceivingController extends Controller
                 $inclusionArray = [2];
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
-                    $decodeItems = json_decode($productionItem->produced_items, true);
-                    $decodeItems[$itemDetails['sticker_no']]['status'] = 1.1;
-                    $productionItem->produced_items = json_encode($decodeItems);
-                    $productionItem->save();
-
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
                         ->where('batch_number', $productionBatch->batch_number)
@@ -335,12 +316,15 @@ class WarehouseReceivingController extends Controller
     {
         try {
             $itemCodeArr = [];
+            $subLocationId = null;
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $itemCode = $productionBatch->productionOta->itemMasterdata->item_code ?? $productionBatch->productionOtb->itemMasterdata->item_code;
                 if (!in_array($itemCode, $itemCodeArr)) {
                     $itemCodeArr[] = $itemCode;
                 }
+                $productionItem = json_decode($productionBatch->productionItems->produced_items, true);
+                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'];
             }
             $warehouseReceivingArr = [];
             foreach ($itemCodeArr as $itemCode) {
@@ -369,7 +353,10 @@ class WarehouseReceivingController extends Controller
                 $mergedProducedItemsContainer = [];
                 foreach ($warehouseReceivingModel as $productionItems) {
                     $items = json_decode($productionItems, true);
-                    $mergedProducedItemsContainer = array_merge($mergedProducedItemsContainer, $items);
+                    $filteredItems = array_filter($items, function ($item) {
+                        return isset($item['status']) && $item['status'] == '2.1';
+                    });
+                    $mergedProducedItemsContainer = array_merge($mergedProducedItemsContainer, $filteredItems);
                 }
 
                 $warehousePutAwayController = new WarehousePutAwayController();
@@ -380,6 +367,7 @@ class WarehouseReceivingController extends Controller
                     'production_items' => json_encode($mergedProducedItemsContainer),
                     'item_code' => $warehouseReceiving['item_code'],
                     'scanned_items' => json_encode($scannedItems),
+                    'temporary_storage_id' => $subLocationId
                 ]);
                 $warehousePutAwayController->onCreate($warehousePutAwayRequest);
             }
@@ -416,7 +404,7 @@ class WarehouseReceivingController extends Controller
 
                 // $queueTemporaryStorage
                 foreach ($itemsInQueue as $queuedItems) {
-                    $subLocationId = $queuedItems['sub_location']['sub_location_id'];
+                    $subLocationId = $queuedItems['sub_location']['sub_location_id'] ?? null;
                     $queuedTemporaryStorage = QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->first();
 
                     if ($queuedTemporaryStorage) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
@@ -156,8 +157,10 @@ class ProductionOTBController extends Controller
 
                 $data = null;
                 if ($itemStatus == 9) {
-
                     $produceItem = $producedItems[$itemDisposition->item_key];
+                    $productionBatch = ProductionBatchModel::find($produceItem['bid']);
+                    $productionBatch->has_endorsement_from_qa = 1;
+                    $productionBatch->save();
                     $printHistory = new PrintHistoryController();
                     $printHistoryRequest = new Request([
                         'production_batch_id' => $itemDisposition->production_batch_id,
@@ -192,7 +195,6 @@ class ProductionOTBController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

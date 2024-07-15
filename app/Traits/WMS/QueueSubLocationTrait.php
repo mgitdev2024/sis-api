@@ -240,7 +240,7 @@ trait QueueSubLocationTrait
         return $decodedArr;
     }
 
-    public function onCheckAvailability($subLocationId, $isPermanent, $layerLevel = null)
+    public function onCheckAvailability($subLocationId, $isPermanent, $layerLevel = null, $createdById = null)
     {
         try {
             if ($isPermanent) {
@@ -249,7 +249,11 @@ trait QueueSubLocationTrait
                 if (!$subLocation) {
                     return false;
                 }
-                return QueuedSubLocationModel::where('sub_location_id', $subLocationId)->where('layer_level', $layerLevel)->exists();
+                return QueuedSubLocationModel::where('sub_location_id', $subLocationId)
+                    ->where('layer_level', $layerLevel)
+                    ->where('status', 1) // Add this condition to check if status is active
+                    ->where('created_by_id', '!=', $createdById)
+                    ->exists();
             } else {
                 $subLocation = SubLocationModel::where('id', $subLocationId)->where('is_permanent', 0)->first();
 
