@@ -187,7 +187,7 @@ class ProductionBatchController extends Controller
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
             $endorsedQA = $fields['endorsed_by_qa'];
-            $productionDate = $fields['production_date'] ?? null;
+            $productionDate = $fields['production_date'] ?? $productionToBakeAssemble->productionOrder->production_date;
             $expirationDate = $this->onGetExpirationDate($productionDate, $productionToBakeAssemble);
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $expirationDate['chilled_exp'];
             $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $expirationDate['frozen_exp'];
