@@ -238,7 +238,7 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($batch_id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key, $item_quantity)
     {
         try {
             $productionBatch = ProductionBatchModel::find($batch_id);
@@ -248,13 +248,20 @@ class ProductionItemController extends Controller
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
 
+                $stickerStatus = $item['sticker_status'];
+
+                if ($stickerStatus == 9) {
+                    if ($item_quantity != $item['q']) {
+                        $stickerStatus = 0;
+                    }
+                }
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
                 $data = [
                     'item_code' => $itemCode,
                     'item_status' => $item['status'],
-                    'sticker_status' => $item['sticker_status'],
+                    'sticker_status' => $stickerStatus,
                     'production_order_status' => $productionBatch->productionOrder->status,
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
