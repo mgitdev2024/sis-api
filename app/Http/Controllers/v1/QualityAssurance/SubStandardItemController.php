@@ -95,13 +95,15 @@ class SubStandardItemController extends Controller
                 $metalLineArr = json_decode($fields['from_metal_line_user'], true);
                 $metalLineProductionType = $metalLineArr['production_type'];
                 $metalLineEmp = $metalLineArr['created_by_id'];
-                $this->onReceiveItem($metalLineProductionType, $metalLineEmp);
+                $scannedSubStandard = $scannedItems;
+                $this->onReceiveItem($metalLineProductionType, $metalLineEmp, $scannedSubStandard);
             }
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
@@ -176,18 +178,27 @@ class SubStandardItemController extends Controller
 
     // }
 
-    public function onReceiveItem($productionType, $metalLineUser)
+    public function onReceiveItem($productionType, $metalLineUser, $scannedSubStandard)
     {
         $productionForReceive = new ProductionForReceiveController();
         $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($productionType, $metalLineUser)->getContent(), true);
         if (isset($currentProductionForReceive['success'])) {
             $data = $currentProductionForReceive['success']['data'];
-            $scannedItemQr = $data['scanned_item_qr'];
+            $scannedItemQr = json_decode($data['scanned_item_qr'], true);
+            $filteredArr = array_filter($scannedItemQr, function ($item1) use ($scannedSubStandard) {
+                foreach ($scannedSubStandard as $item2) {
+                    if ($item1['bid'] == $item2['bid'] && $item1['sticker_no'] == $item2['sticker_no']) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            $filteredArr = array_values($filteredArr);
             $createdById = $data['created_by_id'];
             $temporary_storage_id = $data['temporary_storage_id'] ?? null;
             $productionItemController = new ProductionItemController();
             $productionItemRequest = new Request([
-                'scanned_item_qr' => $scannedItemQr,
+                'scanned_item_qr' => json_encode($filteredArr),
                 'status_id' => 2,
                 'created_by_id' => $createdById,
                 'temporary_storage_id' => $temporary_storage_id

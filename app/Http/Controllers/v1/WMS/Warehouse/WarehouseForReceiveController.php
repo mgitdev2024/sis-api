@@ -26,6 +26,14 @@ class WarehouseForReceiveController extends Controller
         return $this->createRecord(WarehouseForReceiveModel::class, $request, $this->getRules(), 'Warehouse For Receive');
     }
 
+    public function onTransfer(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'scanned_items' => 'required|json'
+        ]);
+    }
+
     public function onGetCurrent($reference_number, $created_by_id)
     {
         $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $reference_number)
