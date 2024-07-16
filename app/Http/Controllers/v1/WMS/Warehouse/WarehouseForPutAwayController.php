@@ -155,8 +155,11 @@ class WarehouseForPutAwayController extends Controller
                 $warehousePutAwayModel->save();
                 $transferItemsArr[] = $value;
             }
-            $warehouseForPutAwayModel->transfer_items = json_encode($transferItemsArr);
-            $warehouseForPutAwayModel->save();
+            if (count($transferItemsArr) > 0) {
+                $warehouseForPutAwayModel->transfer_items = json_encode($transferItemsArr);
+                $warehouseForPutAwayModel->save();
+            }
+
 
             DB::commit();
             return $this->dataResponse('success', 201, __('msg.create_success'));

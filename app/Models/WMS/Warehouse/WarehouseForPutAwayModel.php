@@ -18,6 +18,7 @@ class WarehouseForPutAwayModel extends Model
         'warehouse_put_away_id',
         'item_code',
         'production_items',
+        'transfer_items',
         'sub_location_id',
         'layer_level',
         'status',
