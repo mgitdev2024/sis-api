@@ -112,7 +112,7 @@ class ItemDispositionController extends Controller
                     if ($checkIfTriggerReviewedStatus) {
                         $items['status'] = 10;
                         $items['sticker_status'] = 0;
-                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items[$itemKey], $createdById, 1, $itemKey);
+                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items, $createdById, 1, $itemKey);
                     }
 
                     $itemDisposition = ItemDispositionModel::where('production_batch_id', $items['bid'])
