@@ -103,7 +103,6 @@ class SubStandardItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
