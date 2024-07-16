@@ -237,7 +237,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onChangeStatus']);
     Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
-    Route::get('v1/production/order/get/batches/{id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
+    Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
     #endregion
 
     #region Production OTA
@@ -349,7 +349,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/warehouse/put-away/current/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
     Route::post('v1/warehouse/put-away/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
-
     #endregion
 
     #region Warehouse For Put Away
