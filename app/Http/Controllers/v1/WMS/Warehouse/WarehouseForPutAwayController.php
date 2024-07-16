@@ -190,8 +190,27 @@ class WarehouseForPutAwayController extends Controller
     public function onDelete($warehouse_put_away_id)
     {
         try {
-            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->first();
+            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->firstOrFail();
+            $warehousePutAway = $warehouseForPutAway->warehousePutAway;
+            $warehousePutAwayItems = json_decode($warehousePutAway->production_items, true);
             if ($warehouseForPutAway->count() > 0) {
+                $productionItemsWarehouse = json_decode($warehouseForPutAway->production_items, true);
+                foreach ($productionItemsWarehouse as &$items) {
+                    $productionItemOrder = ProductionItemModel::where('production_batch_id', $items['bid'])->first();
+                    $producedItems = json_decode($productionItemOrder->produced_items, true);
+                    $producedItems[$items['sticker_no']]['status'] = 3;
+                    $productionItemOrder->produced_items = json_encode($producedItems);
+                    $productionItemOrder->save();
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemOrder->id, $producedItems[$items['sticker_no']], $warehouseForPutAway->created_by_id, 3, $items['sticker_no']);
+
+                    foreach ($warehousePutAwayItems as &$value) {
+                        if (($value['bid'] == $items['bid']) && ($value['sticker_no'] == $items['sticker_no'])) {
+                            $value['status'] = 3;
+                        }
+                    }
+                }
+                $warehousePutAway->production_items = json_encode($warehousePutAwayItems);
+                $warehousePutAway->save();
                 $warehouseForPutAway->delete();
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
