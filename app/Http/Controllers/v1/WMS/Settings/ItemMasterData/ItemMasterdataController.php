@@ -24,32 +24,38 @@ class ItemMasterdataController extends Controller
     {
 
         return [
-            'created_by_id' => 'required',
+            'created_by_id' => 'nullable',
             'updated_by_id' => 'nullable',
-            'item_code' => 'required|string|unique:wms_item_masterdata,item_code,' . $itemId,
-            'description' => 'required|string',
-            'short_name' => 'required|string',
-            'long_name' => 'required|string',
-            'unit_price' => 'required|integer',
+            'item_code' => 'nullable|string|unique:wms_item_masterdata,item_code,' . $itemId,
+            'description' => 'nullable|string',
+            'short_name' => 'nullable|string',
+            'long_name' => 'nullable|string',
+            'unit_price' => 'nullable|integer',
             'parent_item_id' => 'nullable|integer|exists:wms_item_masterdata,id',
-            'item_category_id' => 'required|integer|exists:wms_item_categories,id',
+            'item_category_id' => 'nullable|integer|exists:wms_item_categories,id',
             'item_classification_id' => 'nullable|integer|exists:wms_item_categories,id',
-            'item_variant_type_id' => 'required|integer|exists:wms_item_variant_types,id',
+            'item_variant_type_id' => 'nullable|integer|exists:wms_item_variant_types,id',
             'uom_id' => 'nullable|integer|exists:wms_item_uoms,id',
             'storage_type_id' => 'nullable|integer|exists:wms_storage_types,id',
-            'warehouse_location_id' => 'required|integer|exists:wms_storage_warehouses,id',
+            'warehouse_location_id' => 'nullable|integer|exists:wms_storage_warehouses,id',
             'zone_id' => 'nullable|integer|exists:wms_storage_zones,id',
-            'stock_type_id' => 'nullable|integer|exists:wms_item_stock_type,id',
-            'item_movement_id' => 'nullable|integer|exists:item_movement,id',
+            'stock_type_id' => 'nullable|integer|exists:wms_item_stock_types,id',
+            'item_movement_id' => 'nullable|integer|exists:wms_item_movements,id',
             'delivery_lead_time' => 'nullable|integer',
+            'inbound_shelf_life' => 'nullable|integer',
+            'outbound_shelf_life' => 'nullable|integer',
             're_order_level' => 'nullable|integer',
-            'stock_rotation_type' => 'nullable|integer',
+            'max_qty' => 'nullable|integer',
+            'stock_rotation_type' => 'nullable|string',
             'qty_per_pallet' => 'nullable|integer',
-            'dimension' => 'nullable|string',
+            'dimension_l' => 'nullable|string',
+            'dimension_h' => 'nullable|string',
+            'item_weight' => 'nullable|string',
             'is_viewable_by_otb' => 'nullable|integer',
             'is_qa_required' => 'nullable|integer',
+            'is_qa_nullable' => 'nullable|integer',
             'is_qa_disposal' => 'nullable|integer',
-            'attachment' => 'nullable|string',
+            'attachment' => 'nullable',
             'primary_item_packing_size' => 'nullable|integer',
             'primary_conversion_id' => 'nullable|integer|exists:wms_item_conversions,id',
             'secondary_item_packing_size' => 'nullable|integer',
@@ -58,8 +64,8 @@ class ItemMasterdataController extends Controller
             'chilled_shelf_life' => 'nullable|integer',
             'frozen_shelf_life' => 'nullable|integer',
             'sticker_remarks_code' => 'nullable|string',
-            'plant_id' => 'required|integer|exists:wms_storage_facility_plants,id',
-            'status' => 'required|integer', 
+            'plant_id' => 'nullable|integer|exists:wms_storage_facility_plants,id',
+            'status' => 'nullable|integer', 
         ];
     }
     public function onCreate(Request $request)
@@ -106,8 +112,8 @@ class ItemMasterdataController extends Controller
     public function onBulk(Request $request)
     {
         $fields = $request->validate([
-            'created_by_id' => 'required',
-            'bulk_data' => 'required',
+            'created_by_id' => 'nullable',
+            'bulk_data' => 'nullable',
         ]);
         try {
             DB::beginTransaction();

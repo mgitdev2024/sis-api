@@ -17,7 +17,7 @@ class ItemMasterdataModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_item_masterdata';
-    protected $appends = [
+   /*  protected $appends = [
         'item_category_label',
         'item_variant_type_label',
         'uom_label',
@@ -27,7 +27,7 @@ class ItemMasterdataModel extends Model
         'sticker_remarks_label',
         'storage_type_label',
         // 'stock_rotation_type_label'
-    ];
+    ]; */
     protected $fillable = [
         'item_code',
         'description',
@@ -51,10 +51,15 @@ class ItemMasterdataModel extends Model
         'warehouse_location_id',
         'item_movement_id',
         'delivery_lead_time',
+        'inbound_shelf_life',
+        'outbound_shelf_life',
         're_order_level',
         'stock_rotation_type',
         'qty_per_pallet',
-        'dimension',
+        'max_qty',
+        'dimension_l',
+        'dimension_h',
+        'item_weight',
         'is_viewable_by_otb',
         'is_qa_required',
         'is_qa_disposal',
