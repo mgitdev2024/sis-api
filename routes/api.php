@@ -213,7 +213,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onChangeStatus']);
     Route::delete('v1/storage/sub_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onDeleteById']);
     Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
-    Route::get('v1/storage/sub_location/generate-code/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
+    Route::get('v1/storage/sub_location/generate-code/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
     #endregion
 
     #region Item Masterdata
@@ -237,7 +237,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onChangeStatus']);
     Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
-    Route::get('v1/production/order/get/batches/{id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
+    Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
     #endregion
 
     #region Production OTA
@@ -279,10 +279,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onUpdateById']);
     Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
-    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/status/check/{batch_id}/{item_key}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/status/check/{batch_id}/{item_key}/{item_quantity}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
+    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
+    #endregion
+
+    #region Cache For Receive Items
+    Route::post('v1/produced/items/cache/for-receive/create', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
+    Route::get('v1/produced/items/cache/for-receive/current/get/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
+    Route::delete('v1/produced/items/cache/for-receive/delete/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
     #endregion
 
     #region Production Archived Batches
@@ -339,13 +345,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Warehouse Put Away
     Route::post('v1/warehouse/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCreate']);
+    Route::post('v1/warehouse/put-away/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
     Route::get('v1/warehouse/put-away/current/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
+    Route::post('v1/warehouse/put-away/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Warehouse For Put Away
     Route::post('v1/warehouse/for/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onCreate']);
-    Route::post('v1/warehouse/for/put-away/update/{warehouse_for_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onUpdate']);
+    Route::post('v1/warehouse/for/put-away/update/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onUpdate']);
+    Route::post('v1/warehouse/for/put-away/transfer/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onTransferItems']);
     Route::get('v1/warehouse/for/put-away/current/get/{warehouse_put_away_id}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onGetCurrent']);
     Route::delete('v1/warehouse/for/put-away/delete/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onDelete']);
     #endregion
@@ -357,7 +366,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Queued Permanent Storage
-    Route::get('v1/queue/storage/permanent/{sub_location_id}/{layer}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
+    Route::post('v1/queue/storage/permanent/create', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onCreate']);
+    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_code}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
     Route::get('v1/queue/storage/permanent/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetStatus']);
     #endregion

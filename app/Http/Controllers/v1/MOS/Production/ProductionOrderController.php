@@ -216,21 +216,31 @@ class ProductionOrderController extends Controller
 
     }
 
-    public function onGetBatches(Request $request, $id, $order_type)
+    public function onGetBatches(Request $request, $production_order_id, $order_type)
     {
-        $productionOrder = ProductionOrderModel::find($id);
+        $productionOrder = ProductionOrderModel::find($production_order_id);
         if ($productionOrder) {
-            $otbIds = $productionOrder->productionOtb->pluck('id')->toArray();
-            $otaIds = $productionOrder->productionOta->pluck('id')->toArray();
-            $productionBatches = ProductionBatchModel::orderBy('id', 'ASC');
+
+            $productionBatchAdd = ProductionBatchModel::with(['productionOtb', 'productionOta']);
+            $inclusionExclusionItemCode = ItemMasterdataModel::getViewableOtb(true);
 
             if (strcasecmp($order_type, 'otb') === 0) {
-                $productionBatches->whereIn('production_otb_id', $otbIds);
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereIn('item_code', $inclusionExclusionItemCode);
+                    })
+                        ->orWhereNotNull('production_otb_id');
+                });
             } else {
-                $productionBatches->whereIn('production_ota_id', $otaIds);
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                    $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
+                        $query->whereNotIn('item_code', $inclusionExclusionItemCode);
+                    })
+                        ->whereNotNull('production_ota_id');
+                });
             }
 
-            $productionBatches = $productionBatches->get();
+            $productionBatches = $productionBatchAdd->get();
 
             foreach ($productionBatches as $value) {
                 $value['batch_quantity'] = count(json_decode($value->productionItems->produced_items, true));

@@ -89,7 +89,8 @@ class SubLocationModel extends Model
         }
         $data = [
             'storage_code' => $storageCode,
-            'storage_type' => $subLocationModel->zone->storageType->long_name
+            'storage_type' => $subLocationModel->zone->storageType->long_name,
+            'is_permanent' => $subLocationModel->is_permanent
         ];
         return $data;
     }

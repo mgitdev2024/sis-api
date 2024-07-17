@@ -62,7 +62,6 @@ class ProductionItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         // 13 => 'Stored',
-
         #endregion
 
         $rules = [
@@ -74,7 +73,7 @@ class ProductionItemController extends Controller
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-        $statusId = isset($fields['status_id']) ? $fields['status_id'] : 0;
+        $statusId = $fields['status_id'] ?? 0;
         $createdBy = $fields['created_by_id'];
         return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
@@ -239,7 +238,7 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($batch_id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key, $item_quantity)
     {
         try {
             $productionBatch = ProductionBatchModel::find($batch_id);
@@ -248,22 +247,34 @@ class ProductionItemController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+
+                $stickerStatus = $item['sticker_status'];
+                $itemStatus = $item['status'];
+                if ($item['status'] == 9) {
+                    if ($item_quantity != $item['q']) {
+                        $stickerStatus = 0;
+                    }
+                }
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
-
-                $warehouseReceivingArr['warehouse_receiving'] = [
-                    'reference_number' => $warehouseReceivingRefNo
-                ];
+                $subLocationArr = $item['sub_location'] ?? null;
                 $data = [
                     'item_code' => $itemCode,
-                    'item_status' => $item['status'],
-                    'sticker_status' => $item['sticker_status'],
+                    'item_status' => $itemStatus,
+                    'sticker_status' => $stickerStatus,
                     'production_order_status' => $productionBatch->productionOrder->status,
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
                     'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
-                    'warehouse' => $warehouseReceivingArr
                 ];
+
+                if ($warehouseReceivingRefNo) {
+                    $data['warehouse'] = $item['warehouse'];
+                }
+
+                if ($subLocationArr) {
+                    $data['sub_location'] = $subLocationArr;
+                }
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
             }

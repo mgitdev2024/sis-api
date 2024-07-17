@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->integer('item_key');
             $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
             $table->tinyInteger('type'); //  0 = For Investigation , 1 = For Sampling
-            $table->string('produced_items');
+            $table->longText('produced_items');
             $table->integer('quantity_update')->nullable();
             $table->string('reason')->nullable();
             $table->string('attachment')->nullable();

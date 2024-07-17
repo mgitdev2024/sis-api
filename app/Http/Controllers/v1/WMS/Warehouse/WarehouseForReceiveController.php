@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -22,6 +24,14 @@ class WarehouseForReceiveController extends Controller
     public function onCreate(Request $request)
     {
         return $this->createRecord(WarehouseForReceiveModel::class, $request, $this->getRules(), 'Warehouse For Receive');
+    }
+
+    public function onTransfer(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'scanned_items' => 'required|json'
+        ]);
     }
 
     public function onGetCurrent($reference_number, $created_by_id)

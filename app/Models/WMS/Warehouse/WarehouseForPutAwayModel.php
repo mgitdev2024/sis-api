@@ -18,6 +18,7 @@ class WarehouseForPutAwayModel extends Model
         'warehouse_put_away_id',
         'item_code',
         'production_items',
+        'transfer_items',
         'sub_location_id',
         'layer_level',
         'status',
@@ -26,7 +27,7 @@ class WarehouseForPutAwayModel extends Model
 
     public function warehouseReceiving()
     {
-        return $this->belongsTo(WarehouseReceivingModel::class, 'warehouse_receiving_id');
+        return $this->hasMany(WarehouseReceivingModel::class, 'warehouse_receiving_reference_number');
     }
 
     public function warehousePutAway()
