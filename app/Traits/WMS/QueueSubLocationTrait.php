@@ -62,7 +62,7 @@ trait QueueSubLocationTrait
             if ($queuedPermanentStorageModel) {
                 $currentLayerCapacity = $queuedPermanentStorageModel->storage_remaining_space;
             }
-
+ 
             $itemCode = null;
             $currentScannedItems = [];
             foreach ($scannedItems as $value) {
@@ -312,7 +312,10 @@ trait QueueSubLocationTrait
                 $subLocationDefaultCapacity = json_decode($subLocation->layers, true)[$layer]['max'];
                 $currentSize = $subLocationDefaultCapacity;
 
-                $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $subLocationId)->first();
+                $queuedSubLocation = QueuedSubLocationModel::where([
+                    'sub_location_id'=> $subLocationId,
+                    'layer_level'=> $layer
+                    ])->first(); 
                 if ($queuedSubLocation) {
                     $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
                 }
