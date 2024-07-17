@@ -17,7 +17,7 @@ class ItemMasterdataModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_item_masterdata';
-    protected $appends = [
+   /*  protected $appends = [
         'item_category_label',
         'item_variant_type_label',
         'uom_label',
@@ -27,19 +27,20 @@ class ItemMasterdataModel extends Model
         'sticker_remarks_label',
         'storage_type_label',
         // 'stock_rotation_type_label'
-    ];
+    ]; */
     protected $fillable = [
         'item_code',
         'description',
         'short_name',
+        'long_name',
         'parent_item_id',
-        'item_code',
+        'unit_price',
         'item_classification_id',
+        'item_category_id',
         'item_variant_type_id',
+        'zone_id',
         'chilled_shelf_life',
         'frozen_shelf_life',
-        'category_id',
-        'sub_category_id',
         'uom_id',
         'primary_item_packing_size',
         'primary_conversion_id',
@@ -47,25 +48,29 @@ class ItemMasterdataModel extends Model
         'secondary_conversion_id',
         'storage_type_id',
         'stock_type_id',
+        'warehouse_location_id',
         'item_movement_id',
         'delivery_lead_time',
+        'inbound_shelf_life',
+        'outbound_shelf_life',
         're_order_level',
         'stock_rotation_type',
         'qty_per_pallet',
-        'dimension',
+        'max_qty',
+        'dimension_l',
+        'dimension_h',
+        'item_weight',
         'is_viewable_by_otb',
         'is_qa_required',
         'is_qa_disposal',
         'shelf_life',
         'plant_id',
-        'image',
+        'attachment',
         'sticker_remarks_code',
         'created_by_id',
         'updated_by_id',
         'status',
     ];
-
-
 
     public function getStockRotationTypeLabelAttribute()
     {
