@@ -20,6 +20,7 @@ class SubLocationController extends Controller
             'updated_by_id' => 'nullable',
             'code' => 'required|string|unique:wms_storage_types,code,' . $itemId,
             'number' => 'integer',
+            'is_permanent' => 'integer|nullable',
             'has_layer' => 'integer|nullable',
             'layers' => 'string|nullable',
             'facility_id' => 'required|integer|exists:wms_storage_facility_plants,id',
@@ -108,5 +109,19 @@ class SubLocationController extends Controller
         $subLocation = SubLocationTypeModel::where('code', $subLocationCode)->first();
 
         return $subLocation ? $subLocation->id : null;
+    }
+
+    public function onGenerateCode($id)
+    {
+        $subLocationCodes = [];
+
+        $subLocationModel = SubLocationModel::find($id);
+        $layers = array_keys(json_decode($subLocationModel->layers, true));
+        $subLocationCodes['storage_type'] = SubLocationModel::onGenerateStorageCode($id)['storage_type'];
+        foreach ($layers as $keys) {
+            $subLocationCodes['storage_codes'][] = SubLocationModel::onGenerateStorageCode($id, $keys)['storage_code'];
+        }
+
+        return $this->dataResponse('success', 201, 'Storage Warehouse ' . __('msg.record_found'), $subLocationCodes);
     }
 }

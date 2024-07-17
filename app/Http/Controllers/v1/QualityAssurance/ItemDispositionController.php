@@ -78,10 +78,11 @@ class ItemDispositionController extends Controller
         #region status list
         // 0 => 'Good',
         // 1 => 'On Hold',
-        // 1.1 => 'On Hold - Substandard',
+        // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
         // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
+        // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
         // 6 => 'For Retouch',
@@ -91,6 +92,7 @@ class ItemDispositionController extends Controller
         // 10 => 'Reviewed',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
+        // 13 => 'Stored',
         #endregion
         $fields = $request->validate([
             'created_by_id' => 'required',
@@ -110,7 +112,7 @@ class ItemDispositionController extends Controller
                     if ($checkIfTriggerReviewedStatus) {
                         $items['status'] = 10;
                         $items['sticker_status'] = 0;
-                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items[$itemKey], $createdById, 1, $itemKey);
+                        $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items, $createdById, 1, $itemKey);
                     }
 
                     $itemDisposition = ItemDispositionModel::where('production_batch_id', $items['bid'])

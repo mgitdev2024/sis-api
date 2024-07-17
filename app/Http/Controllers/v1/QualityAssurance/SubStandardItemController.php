@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\v1\QualityAssurance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController;
 use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
+use App\Http\Controllers\v1\WMS\Settings\StorageMasterData\WarehouseController;
+use App\Http\Controllers\v1\WMS\Warehouse\WarehouseForReceiveController;
+use App\Models\MOS\Cache\ProductionForReceiveModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use Illuminate\Http\Request;
 use App\Models\QualityAssurance\SubStandardItemModel;
@@ -25,6 +29,7 @@ class SubStandardItemController extends Controller
         // 2 => 'For Receive',
         // 2.1 => 'For Receive - Inbound',
         // 3 => 'Received',
+        // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
         // 5 => 'For Sampling',
         // 6 => 'For Retouch',
@@ -34,13 +39,15 @@ class SubStandardItemController extends Controller
         // 10 => 'Reviewed',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
+        // 13 => 'Stored',
         #endregion
         $fields = $request->validate([
             'created_by_id' => 'required',
             'scanned_items' => 'required',
             'reason' => 'required',
             'attachment' => 'nullable',
-            'location_id' => 'required|integer|between:1,5'
+            'location_id' => 'required|integer|between:1,5',
+            'from_metal_line_user' => 'nullable' // {"production_type":0,"created_by_id":0000}
         ]);
         try {
             DB::beginTransaction();
@@ -84,6 +91,13 @@ class SubStandardItemController extends Controller
                 $this->createProductionLog(SubStandardItemModel::class, $record->id, $record, $createdById, 1, $value['sticker_no']);
             }
 
+            if (isset($fields['from_metal_line_user'])) {
+                $metalLineArr = json_decode($fields['from_metal_line_user'], true);
+                $metalLineProductionType = $metalLineArr['production_type'];
+                $metalLineEmp = $metalLineArr['created_by_id'];
+                $scannedSubStandard = $scannedItems;
+                $this->onReceiveItem($metalLineProductionType, $metalLineEmp, $scannedSubStandard);
+            }
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
@@ -162,4 +176,34 @@ class SubStandardItemController extends Controller
     //     }
 
     // }
+
+    public function onReceiveItem($productionType, $metalLineUser, $scannedSubStandard)
+    {
+        $productionForReceive = new ProductionForReceiveController();
+        $currentProductionForReceive = json_decode($productionForReceive->onGetCurrent($productionType, $metalLineUser)->getContent(), true);
+        if (isset($currentProductionForReceive['success'])) {
+            $data = $currentProductionForReceive['success']['data'];
+            $scannedItemQr = json_decode($data['scanned_item_qr'], true);
+            $filteredArr = array_filter($scannedItemQr, function ($item1) use ($scannedSubStandard) {
+                foreach ($scannedSubStandard as $item2) {
+                    if ($item1['bid'] == $item2['bid'] && $item1['sticker_no'] == $item2['sticker_no']) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            $filteredArr = array_values($filteredArr);
+            $createdById = $data['created_by_id'];
+            $temporary_storage_id = $data['temporary_storage_id'] ?? null;
+            $productionItemController = new ProductionItemController();
+            $productionItemRequest = new Request([
+                'scanned_item_qr' => json_encode($filteredArr),
+                'status_id' => 2,
+                'created_by_id' => $createdById,
+                'temporary_storage_id' => $temporary_storage_id
+            ]);
+            $productionItemController->onChangeStatus($productionItemRequest);
+            $productionForReceive->onDelete($productionType, $metalLineUser);
+        }
+    }
 }

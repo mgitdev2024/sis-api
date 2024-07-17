@@ -88,9 +88,9 @@ class ProductionBatchController extends Controller
                 $secondaryValue = $primaryValue;
             }
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                $productionBatch->productionOtb->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                    $productionBatch->productionOta->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                     1);
 
             $producedItemsArray = json_decode($productionItems->produced_items, true);
@@ -108,6 +108,7 @@ class ProductionBatchController extends Controller
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
+                    'sticker_no' => $producedItemCount,
                     'status' => 0,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($fields['batch_type']),
                     'parent_batch_code' => $productionBatch->batch_code,
@@ -186,7 +187,7 @@ class ProductionBatchController extends Controller
                 $productionToBakeAssemble = ProductionOTAModel::find($fields['production_ota_id']);
             }
             $endorsedQA = $fields['endorsed_by_qa'];
-            $productionDate = $fields['production_date'] ?? null;
+            $productionDate = $fields['production_date'] ?? $productionToBakeAssemble->productionOrder->production_date;
             $expirationDate = $this->onGetExpirationDate($productionDate, $productionToBakeAssemble);
             $fields['chilled_exp_date'] = $fields['chilled_exp_date'] ?? $expirationDate['chilled_exp'];
             $fields['frozen_exp_date'] = $fields['frozen_exp_date'] ?? $expirationDate['frozen_exp'];
@@ -271,9 +272,9 @@ class ProductionBatchController extends Controller
 
             $producedItemsArray = [];
             $stickerMultiplier = $productionBatch->productionOtb ?
-                $productionBatch->productionOtb->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                $productionBatch->productionOtb->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                 ($productionBatch->productionOta ?
-                    $productionBatch->productionOta->itemMasterData->itemVariantType->stickerMultiplier->multiplier :
+                    $productionBatch->productionOta->itemMasterdata->itemVariantType->stickerMultiplier->multiplier :
                     1);
 
             for ($i = 1; $i <= $primaryValue; $i++) {
@@ -290,6 +291,7 @@ class ProductionBatchController extends Controller
                     'bid' => $productionBatch->id,
                     'q' => $itemQuantity,
                     'sticker_status' => 1,
+                    'sticker_no' => $i,
                     'status' => 0,
                     'quality' => ProductionBatchModel::setBatchTypeLabel($batchType),
                     'parent_batch_code' => $productionBatch->batch_code,
