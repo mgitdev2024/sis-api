@@ -131,7 +131,16 @@ return new class extends Migration {
             SchemaHelper::addCommonColumns($table);
         });
 
+        Schema::create('mos_production_for_receive', function (Blueprint $table) {
+            $table->id();
+            $table->longText('scanned_item_qr');
+            $table->unsignedBigInteger('temporary_storage_id')->nullable();
+            $table->tinyInteger('production_type'); // 0 = otb, 1 = ota
+            SchemaHelper::addCommonColumns($table);
+        });
 
+
+        #region MOS Dependent tables
         Schema::create('wms_warehouse_receiving', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number');
@@ -167,7 +176,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('temporary_storage_id')->nullable();
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-            $table->foreign('temporary_storage_id')->references('id')->on('wms_queued_temporary_storages');
+            $table->foreign('temporary_storage_id')->references('id')->on('wms_storage_sub_locations');
 
         });
 
@@ -187,6 +196,7 @@ return new class extends Migration {
             $table->foreign('warehouse_put_away_id')->references('id')->on('wms_warehouse_put_away');
             $table->foreign('sub_location_id')->references('id')->on('wms_storage_sub_locations');
         });
+        #endregion
     }
 
     /**
@@ -202,10 +212,11 @@ return new class extends Migration {
         Schema::dropIfExists('mos_production_logs');
         Schema::dropIfExists('mos_production_print_histories');
         Schema::dropIfExists('mos_production_archived_batches');
+        Schema::dropIfExists('mos_production_for_receive');
+
         Schema::dropIfExists('wms_warehouse_receiving');
         Schema::dropIfExists('wms_warehouse_put_away');
         Schema::dropIfExists('wms_warehouse_for_put_away');
-
     }
 
 };

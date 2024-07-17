@@ -62,19 +62,18 @@ class ProductionItemController extends Controller
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         // 13 => 'Stored',
-
         #endregion
 
         $rules = [
             'scanned_item_qr' => 'required|string',
-            'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
+            'status_id' => 'nullable|between:0,5|required_without_all:is_deactivate',
             'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
             'production_batch_id' => 'nullable|required_if:is_deactivate,1',
             'temporary_storage_id' => 'nullable|exists:wms_storage_sub_locations,id',
             'created_by_id' => 'required'
         ];
         $fields = $request->validate($rules);
-        $statusId = isset($fields['status_id']) ? $fields['status_id'] : 0;
+        $statusId = $fields['status_id'] ?? 0;
         $createdBy = $fields['created_by_id'];
         return isset($fields['is_deactivate']) ? $this->onDeactivateItem($fields) : $this->onUpdateItemStatus($statusId, $fields, $createdBy);
     }
@@ -224,8 +223,7 @@ class ProductionItemController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
-            }
-
+            } 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -239,7 +237,7 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($batch_id, $item_key)
+    public function onCheckItemStatus($batch_id, $item_key, $item_quantity)
     {
         try {
             $productionBatch = ProductionBatchModel::find($batch_id);
@@ -249,13 +247,20 @@ class ProductionItemController extends Controller
                 $itemCode = $productionOrderToMake->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
 
+                $stickerStatus = $item['sticker_status'];
+                $itemStatus = $item['status'];
+                if ($item['status'] == 9) {
+                    if ($item_quantity != $item['q']) {
+                        $stickerStatus = 0;
+                    }
+                }
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
                 $data = [
                     'item_code' => $itemCode,
-                    'item_status' => $item['status'],
-                    'sticker_status' => $item['sticker_status'],
+                    'item_status' => $itemStatus,
+                    'sticker_status' => $stickerStatus,
                     'production_order_status' => $productionBatch->productionOrder->status,
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,

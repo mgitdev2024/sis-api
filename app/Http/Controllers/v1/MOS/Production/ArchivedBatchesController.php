@@ -46,7 +46,7 @@ class ArchivedBatchesController extends Controller
             $record->produced_items_data = json_encode($producedItems);
             if ($request->hasFile('attachment')) {
                 $attachmentPath = $request->file('attachment')->store('public/attachments/archived-batch');
-                $filepath = 'storage/' . substr($attachmentPath, 7);
+                $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
                 $record->attachment = $filepath;
             }
             $record->save();

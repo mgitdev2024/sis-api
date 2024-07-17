@@ -404,7 +404,7 @@ class WarehouseReceivingController extends Controller
 
                 // $queueTemporaryStorage
                 foreach ($itemsInQueue as $queuedItems) {
-                    $subLocationId = $queuedItems['sub_location']['sub_location_id'];
+                    $subLocationId = $queuedItems['sub_location']['sub_location_id'] ?? null;
                     $queuedTemporaryStorage = QueuedTemporaryStorageModel::where('sub_location_id', $subLocationId)->first();
 
                     if ($queuedTemporaryStorage) {
