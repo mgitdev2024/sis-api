@@ -17,7 +17,7 @@ class ItemMasterdataModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_item_masterdata';
-   /*  protected $appends = [
+    protected $appends = [
         'item_category_label',
         'item_variant_type_label',
         'uom_label',
@@ -27,7 +27,7 @@ class ItemMasterdataModel extends Model
         'sticker_remarks_label',
         'storage_type_label',
         // 'stock_rotation_type_label'
-    ]; */
+    ];
     protected $fillable = [
         'item_code',
         'description',
@@ -74,7 +74,7 @@ class ItemMasterdataModel extends Model
 
     public function getStockRotationTypeLabelAttribute()
     {
-        $stockRotationTypeLabel = array("FIFO", "FEFO");
+        $stockRotationTypeLabel = ["FIFO", "FEFO"];
         return $stockRotationTypeLabel[$this->stock_rotation_type];
     }
     public function getStickerRemarksLabelAttribute()
