@@ -176,7 +176,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('temporary_storage_id')->nullable();
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-            $table->foreign('temporary_storage_id')->references('id')->on('wms_queued_temporary_storages');
+            $table->foreign('temporary_storage_id')->references('id')->on('wms_storage_sub_locations');
 
         });
 

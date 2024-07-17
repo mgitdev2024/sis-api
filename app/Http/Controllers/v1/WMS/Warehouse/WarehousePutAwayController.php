@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
+use App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Storage\QueuedSubLocationModel;
@@ -264,6 +265,8 @@ class WarehousePutAwayController extends Controller
             $reason = $fields['reason'];
             $attachment = $fields['attachment'] ?? null;
             $locationId = 4; // Warehouse Transfer
+            $warehousePutAwayId = null;
+            $itemCode = null;
             foreach ($scannedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionItem = $productionBatch->productionItems;
@@ -284,7 +287,7 @@ class WarehousePutAwayController extends Controller
                         $warehousePutAway->production_items = json_encode($warehousePutAwayProducedItems);
                         $substandardQuantity = json_decode($warehousePutAway->substandard_quantity, true);
                         $remainingQuantity = json_decode($warehousePutAway->remaining_quantity, true);
-
+                        $warehousePutAwayId = $warehousePutAway->id;
                         if ($primaryUom) {
                             if (!isset($remainingQuantity[$primaryUom])) {
                                 $remainingQuantity[$primaryUom] = 0;
@@ -323,6 +326,14 @@ class WarehousePutAwayController extends Controller
             ]);
 
             $substandardController->onCreate($substandardRequest);
+            $queueSubLocationController = new QueuedSubLocationController();
+            $queueSubLocationRequest = new Request([
+                'created_by_id' => $createdById,
+                'warehouse_put_away_id' => $warehousePutAwayId,
+                'item_code' => $itemCode,
+            ]);
+            $queueSubLocationController->onCreate($queueSubLocationRequest);
+
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 

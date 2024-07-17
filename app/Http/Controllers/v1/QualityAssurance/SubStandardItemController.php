@@ -77,7 +77,8 @@ class SubStandardItemController extends Controller
                 $record->reason = $fields['reason'];
                 if ($request->hasFile('attachment')) {
                     $attachmentPath = $request->file('attachment')->store('public/attachments/substandard-items');
-                    $filepath = 'storage/' . substr($attachmentPath, 7);
+                    $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
+
                     $record->attachment = $filepath;
                 }
                 $record->created_by_id = $createdById;
@@ -103,7 +104,6 @@ class SubStandardItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
