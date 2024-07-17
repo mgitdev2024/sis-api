@@ -17,7 +17,7 @@ trait WmsCrudOperationsTrait
             $record->fill($fields);
             if ($request->hasFile('attachment')) {
                 $attachmentPath = $request->file('attachment')->store($path);
-                $filepath = 'storage/' . substr($attachmentPath, 7);
+                $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
                 $record->attachment = $filepath;
             }
             $record->save();
