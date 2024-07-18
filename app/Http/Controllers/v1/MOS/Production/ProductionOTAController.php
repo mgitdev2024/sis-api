@@ -73,6 +73,9 @@ class ProductionOTAController extends Controller
             } else {
                 $productionOrder = new ProductionOrderController();
                 $currentProductionOrder = $productionOrder->onGetCurrent();
+                if(isset($currentProductionOrder->getOriginalContent()['error'])){
+                    return $currentProductionOrder->getOriginalContent();
+                }
                 $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
             }
             $productionOta = [];
