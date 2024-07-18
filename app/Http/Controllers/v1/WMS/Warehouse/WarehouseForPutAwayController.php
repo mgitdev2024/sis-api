@@ -37,16 +37,19 @@ class WarehouseForPutAwayController extends Controller
                 'warehouse_put_away_id' => $fields['warehouse_put_away_id'],
                 'item_code' => $fields['item_code'],
             ])->first();
+            $data = null;
             if (!$warehouseForPutAway) {
                 $record = new WarehouseForPutAwayModel();
                 $record->fill($fields);
                 $record->save();
+                $data = $record;
             } else {
                 $warehouseForPutAway->production_items = $fields['production_items'];
                 $warehouseForPutAway->save();
+                $data = $warehouseForPutAway;
             }
 
-            return $this->dataResponse('success', 201, 'Warehouse For Put Away ' . __('msg.create_success'), $record);
+            return $this->dataResponse('success', 201, 'Warehouse For Put Away ' . __('msg.create_success'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse For Put Away ' . __('msg.create_failed'));
         }
