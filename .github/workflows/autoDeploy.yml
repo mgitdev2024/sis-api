@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - test
-      # - staging
+      - staging
       - main
 name: 🚀 Deploy website on push
 jobs:
@@ -21,13 +21,13 @@ jobs:
           username: ${{ secrets.FTP_TEST_USERNAME }}
           password: ${{ secrets.FTP_TEST_PASSWORD }}
 
-      # - name: 📂 Sync files - Staging
-      #   if: github.ref == 'refs/heads/staging'
-      #   uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      #   with:
-      #     server: ${{ secrets.FTP_SERVER }}
-      #     username: ${{ secrets.FTP_STAGING_USERNAME }}
-      #     password: ${{ secrets.FTP_STAGING_PASSWORD }}
+      - name: 📂 Sync files - Staging
+        if: github.ref == 'refs/heads/staging'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_STAGING_USERNAME }}
+          password: ${{ secrets.FTP_STAGING_PASSWORD }}
 
       - name: 📂 Sync files - Main
         if: github.ref == 'refs/heads/main'

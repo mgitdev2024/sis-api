@@ -66,7 +66,7 @@ class ProductionItemController extends Controller
 
         $rules = [
             'scanned_item_qr' => 'required|string',
-            'status_id' => 'nullable|integer|between:0,5|required_without_all:is_deactivate',
+            'status_id' => 'nullable|between:0,5|required_without_all:is_deactivate',
             'is_deactivate' => 'nullable|in:1|required_without_all:status_id',
             'production_batch_id' => 'nullable|required_if:is_deactivate,1',
             'temporary_storage_id' => 'nullable|exists:wms_storage_sub_locations,id',
@@ -223,8 +223,7 @@ class ProductionItemController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
-            }
-
+            } 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }

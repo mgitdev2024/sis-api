@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Storage;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
@@ -21,7 +22,8 @@ class QueuedSubLocationController extends Controller
         $fields = $request->validate([
             'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
             'item_code' => 'required|exists:wms_item_masterdata,item_code',
-            'created_by_id' => 'required'
+            'created_by_id' => 'required',
+            'storage_full_scanned_items' => 'nullable|json'
         ]);
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
@@ -29,18 +31,26 @@ class QueuedSubLocationController extends Controller
                 'item_code' => $fields['item_code'],
                 'status' => 1
             ])->first();
-
+   
             if ($warehouseForPutAway && $warehouseForPutAway->sub_location_id) {
                 DB::beginTransaction();
                 $createdById = $fields['created_by_id'];
                 $subLocationId = $warehouseForPutAway->sub_location_id;
-                $layerLevel = $warehouseForPutAway->layer_level;
+                $layerLevel = $warehouseForPutAway->layer_level; 
                 $warehouseForPutAwayProductionItems = json_decode($warehouseForPutAway->production_items, true);
-                $scannedItems = json_decode($warehouseForPutAway->transfer_items, true);
+                $scannedItems = null;
+                if(isset($fields['storage_full_scanned_items'])){
+                    $scannedItems = json_decode($fields['storage_full_scanned_items'], true); 
+                    $this->onUpdateItemStatus($fields['storage_full_scanned_items'], $createdById);
+                }else{
+                    $scannedItems = json_decode($warehouseForPutAway->transfer_items, true); 
+                } 
 
                 $this->onUpdatePutAway($warehouseForPutAway, $scannedItems);
                 $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel);
                 DB::commit();
+            }else{
+                return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
 
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -48,10 +58,24 @@ class QueuedSubLocationController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'), $exception->getMessage());
         }
     }
 
+    public function onUpdateItemStatus($scannedItems,$createdById){
+        try{ 
+            $productionItemController= new ProductionItemController();
+            $productionItemRequest = new Request([
+                'created_by_id' => $createdById,
+                'scanned_item_qr' => $scannedItems,
+                'status_id' => 3.1,
+            ]);
+            $productionItemController->onChangeStatus($productionItemRequest);
+        }catch (Exception $exception){
+            throw new Exception($exception->getMessage());
+        }
+    }
 
     public function onUpdatePutAway($warehouseForPutAway, $scannedItems)
     {
@@ -68,7 +92,7 @@ class QueuedSubLocationController extends Controller
 
                         $productionBatch = ProductionBatchModel::find($warehouseForPutAwayItem['bid']);
 
-                        $productionItemStatus = json_decode($productionBatch->productionItems->produced_items, true)[$scannedValue['sticker_no']]['status'];
+                        $productionItemStatus = json_decode($productionBatch->productionItems->produced_items, true)[$scannedValue['sticker_no']]['status'];   
                         if ($productionItemStatus != '3.1') {
                             continue;
                         }
@@ -105,11 +129,10 @@ class QueuedSubLocationController extends Controller
             $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode(array_values($warehouseForPutAwayItems)) : null;
             $warehousePutAwayModel->transferred_quantity = json_encode($transferredQuantity);
             $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
-            $warehousePutAwayModel->save();
-
+            $warehousePutAwayModel->save(); 
             if ($encodedPutAwayItems != null) {
-                $warehouseForPutAway->production_items = json_encode($warehouseForPutAwayItems);
-                $warehouseForPutAway->save();
+                $warehouseForPutAway->production_items = $encodedPutAwayItems;
+                $warehouseForPutAway->save(); 
             } else {
                 $warehouseForPutAway->delete();
             }
@@ -201,7 +224,7 @@ class QueuedSubLocationController extends Controller
 
             if (count($itemsPerBatchArr) > 0) {
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
-                    $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
+                    $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first(); 
                     $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId);
                 }
             }
