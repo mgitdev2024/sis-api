@@ -250,7 +250,7 @@ class WarehousePutAwayController extends Controller
     #endregion
 
     #region Sub-Standard Items
-    public function onSubStandard(Request $request, $referenceNumber)
+    public function onSubStandard(Request $request, $warehouse_put_away_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
@@ -278,7 +278,7 @@ class WarehousePutAwayController extends Controller
                 $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if (true) {
-                    $warehousePutAway = WarehousePutAwayModel::where('reference_number', $referenceNumber)
+                    $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
                         ->where('item_code', $itemCode)
                         ->first();
                     if ($warehousePutAway) {
@@ -343,14 +343,14 @@ class WarehousePutAwayController extends Controller
         }
     }
 
-    public function onCompleteTransaction(Request $request, $referenceNumber)
+    public function onCompleteTransaction(Request $request, $warehouse_put_away_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $referenceNumber)
+            $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
                 ->where('status', 0)
                 ->firstOrFail();
 

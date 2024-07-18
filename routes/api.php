@@ -345,10 +345,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Warehouse Put Away
     Route::post('v1/warehouse/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCreate']);
-    Route::post('v1/warehouse/put-away/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
+    Route::post('v1/warehouse/put-away/sub-standard/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
     Route::get('v1/warehouse/put-away/current/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
-    Route::post('v1/warehouse/put-away/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
+    Route::post('v1/warehouse/put-away/complete-transaction/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Warehouse For Put Away
