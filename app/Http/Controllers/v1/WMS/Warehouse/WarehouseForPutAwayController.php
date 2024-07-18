@@ -42,8 +42,8 @@ class WarehouseForPutAwayController extends Controller
                 $record->fill($fields);
                 $record->save();
             } else {
-                return $this->dataResponse('success', 200, 'Warehouse For Put Away ' . __('msg.record_found'));
-
+                $warehouseForPutAway->production_items = $fields['production_items'];
+                $warehouseForPutAway->save();
             }
 
             return $this->dataResponse('success', 201, 'Warehouse For Put Away ' . __('msg.create_success'), $record);
