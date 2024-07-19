@@ -29,7 +29,7 @@ class ItemVariantTypeMultiplierSeeder extends Seeder
             ['item_variant_type_id' => 11, 'multiplier' => 2],
         ];
 
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($variantType as $value) {
             ItemVariantTypeMultiplierModel::create([

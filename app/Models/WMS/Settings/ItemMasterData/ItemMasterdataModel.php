@@ -59,6 +59,7 @@ class ItemMasterdataModel extends Model
         'max_qty',
         'dimension_l',
         'dimension_h',
+        'dimension_w',
         'item_weight',
         'is_viewable_by_otb',
         'is_qa_required',

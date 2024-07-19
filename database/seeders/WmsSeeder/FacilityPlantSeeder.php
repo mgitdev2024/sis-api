@@ -52,7 +52,7 @@ class FacilityPlantSeeder extends Seeder
                 'created_by_id' => '1',
             ],
         ];
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($plantData as $value) {
             FacilityPlantModel::create([

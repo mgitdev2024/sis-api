@@ -19,7 +19,7 @@ class ZoneSeeder extends Seeder
      */
     public function run()
     {
-        $createdById = 1;
+        $createdById = 0000;
         $zone = [
             [
                 "code" => "Z01",

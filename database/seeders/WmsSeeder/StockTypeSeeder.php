@@ -2,11 +2,11 @@
 
 namespace Database\Seeders\WmsSeeder;
 
-use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemStockTypeModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class ItemClassificationSeeder extends Seeder
+class StockTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,22 +15,22 @@ class ItemClassificationSeeder extends Seeder
      */
     public function run()
     {
-        $classifications = [
+        $stockType = [
             [
-                'code' => 'CLS-FG',
-                'short_name' => 'FG',
-                'long_name' => 'Finish Goods',
+                'code' => 'MTO',
+                'short_name' => 'MTO',
+                'long_name' => 'Made to Order',
             ],
             [
-                'code' => 'CLS-RM',
-                'short_name' => 'RM',
-                'long_name' => 'Raw Materials',
-            ]
+                'code' => 'MTS',
+                'short_name' => 'MTS',
+                'long_name' => 'Made to Stock',
+            ],
         ];
         $createdById = 0000;
 
-        foreach ($classifications as $value) {
-            ItemClassificationModel::create([
+        foreach ($stockType as $value) {
+            ItemStockTypeModel::create([
                 'created_by_id' => $createdById,
                 'code' => $value['code'],
                 'short_name' => $value['short_name'],

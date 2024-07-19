@@ -28,7 +28,7 @@ trait MosCrudOperationsTrait
             return $this->dataResponse('error', 400, $exception /* __('msg.create_failed') */);
         }
     }
-    public function updateRecordById($model, $request, $rules, $modelName, $id)
+    public function updateRecordById($model, $request, $rules, $modelName, $id, $path = null)
     {
         $fields = $request->validate($rules);
         try {
@@ -36,6 +36,12 @@ trait MosCrudOperationsTrait
             $record = $model::find($id);
             if ($record) {
                 $record->update($fields);
+                if ($request->hasFile('attachment')) {
+                    $attachmentPath = $request->file('attachment')->store($path);
+                    $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
+                    $record->attachment = $filepath;
+                    $record->save();
+                }
                 $this->createProductionLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }

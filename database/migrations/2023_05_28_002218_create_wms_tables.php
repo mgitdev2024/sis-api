@@ -176,20 +176,20 @@ return new class extends Migration {
         Schema::create('wms_item_masterdata', function (Blueprint $table) {
             $table->id();
             $table->string('item_code')->unique()->index();
-            $table->string('description')->nullable();
-            $table->string('short_name')->nullable();
+            $table->string('description');
+            $table->string('short_name');
             $table->string('long_name')->nullable();
-            $table->integer('unit_price')->nullable();
-            $table->unsignedBigInteger('item_category_id')->nullable();
-            $table->unsignedBigInteger('item_classification_id')->nullable();
-            $table->unsignedBigInteger('item_variant_type_id')->nullable();
+            $table->float('unit_price')->nullable();
+            $table->unsignedBigInteger('item_category_id');
+            $table->unsignedBigInteger('item_classification_id');
+            $table->unsignedBigInteger('item_variant_type_id');
             $table->unsignedBigInteger('parent_item_id')->nullable();
-            $table->unsignedBigInteger('warehouse_location_id')->nullable();
-            $table->unsignedBigInteger('zone_id')->nullable();
-            $table->unsignedBigInteger('uom_id')->nullable();
-            $table->unsignedBigInteger('storage_type_id')->nullable();
-            $table->unsignedBigInteger('stock_type_id')->nullable();
-            $table->unsignedBigInteger('item_movement_id')->nullable();
+            $table->unsignedBigInteger('warehouse_location_id');
+            $table->unsignedBigInteger('zone_id');
+            $table->unsignedBigInteger('uom_id');
+            $table->unsignedBigInteger('storage_type_id');
+            $table->unsignedBigInteger('stock_type_id');
+            $table->unsignedBigInteger('item_movement_id');
             $table->integer('delivery_lead_time')->nullable();
             $table->integer('inbound_shelf_life')->nullable();
             $table->integer('outbound_shelf_life')->nullable();
@@ -199,10 +199,11 @@ return new class extends Migration {
             $table->integer('max_qty')->nullable();
             $table->string('dimension_l')->nullable();
             $table->string('dimension_h')->nullable();
+            $table->string('dimension_w')->nullable();
             $table->string('item_weight')->nullable();
             $table->tinyInteger('is_viewable_by_otb')->default(0);
-            $table->integer('is_qa_required')->nullable();
-            $table->integer('is_qa_disposal')->nullable();
+            $table->integer('is_qa_required');
+            $table->integer('is_qa_disposal');
             $table->string('attachment')->nullable();
             $table->integer('primary_item_packing_size')->nullable();
             $table->unsignedBigInteger('primary_conversion_id')->nullable();
@@ -212,7 +213,6 @@ return new class extends Migration {
             $table->integer('chilled_shelf_life')->nullable();
             $table->integer('frozen_shelf_life')->nullable();
             $table->string('sticker_remarks_code')->nullable();
-
             $table->unsignedBigInteger('plant_id');
             SchemaHelper::addCommonColumns($table);
 

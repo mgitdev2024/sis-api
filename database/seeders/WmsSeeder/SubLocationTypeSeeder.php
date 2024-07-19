@@ -28,10 +28,10 @@ class SubLocationTypeSeeder extends Seeder
                 "code" => "SLT-CRTS",
                 "short_name" => "Crate Chill",
                 "long_name" => "Crate Chill",
-        
+
             ]
         ];
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($subLocationType as $value) {
             SubLocationTypeModel::create([
