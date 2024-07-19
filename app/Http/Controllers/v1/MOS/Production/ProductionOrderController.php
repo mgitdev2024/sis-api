@@ -98,7 +98,7 @@ class ProductionOrderController extends Controller
         }
 
         $orderFields = [
-            "production_date" => "ASC",
+            "created_at" => "DESC",
         ];
         return $this->readCurrentRecord(ProductionOrderModel::class, $filter, $whereFields, null, $orderFields, 'Production Order', true);
     }
