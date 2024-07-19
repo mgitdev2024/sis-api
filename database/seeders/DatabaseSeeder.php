@@ -53,13 +53,13 @@ class DatabaseSeeder extends Seeder
             ItemVariantTypeSeeder::class,
             DeliveryTypeSeeder::class,
             ItemVariantTypeMultiplierSeeder::class,
-                // ItemMasterdataSeeder::class,
             StorageWarehouseSeeder::class,
             ZoneSeeder::class,
             SubLocationTypeSeeder::class,
             SubLocationSeeder::class,
             StockTypeSeeder::class,
             ItemMovementSeeder::class,
+            // ItemMasterdataSeeder::class,
         ]);
         #endregion
     }
