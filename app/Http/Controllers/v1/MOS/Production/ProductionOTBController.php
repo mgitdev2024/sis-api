@@ -230,7 +230,7 @@ class ProductionOTBController extends Controller
                     'item_code' => $itemCode,
                     'requested_quantity' => 0,
                     'plotted_quantity' => 0,
-                    'actual_quantity' => $quantity,
+                    // 'actual_quantity' => $quantity,
                 ]);
                 $productionOtaId = $this->onCreate($otaRequest)->getOriginalContent()['success']['data']['id'];
             }
