@@ -34,7 +34,7 @@ class StorageWarehouseSeeder extends Seeder
         ];
 
 
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($storageWarehouse as $value) {
             WarehouseModel::create([

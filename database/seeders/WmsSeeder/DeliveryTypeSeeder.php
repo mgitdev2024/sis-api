@@ -15,7 +15,7 @@ class DeliveryTypeSeeder extends Seeder
      */
     public function run()
     {
-        $createdById = 1;
+        $createdById = 0000;
         $classifications = [
             [
                 'code' => '1D',

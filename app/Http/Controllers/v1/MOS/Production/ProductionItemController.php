@@ -223,7 +223,7 @@ class ProductionItemController extends Controller
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
-            } 
+            }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -313,7 +313,6 @@ class ProductionItemController extends Controller
                 $productionItems->save();
 
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $currentStickerNo, $inclusionArray, []);
-
                 if (!isset($itemsToTransfer[$currentBatchId])) {
                     $itemsToTransfer[$currentBatchId] = [
                         'production_order_id' => $productionOrderId,

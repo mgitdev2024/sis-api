@@ -16,7 +16,7 @@ class UomSeeder extends Seeder
      */
     public function run()
     {
-        $createdById = 1;
+        $createdById = 0000;
         $conversionUnits = [
             [
                 'code' => 'UOM-PCS',

@@ -389,29 +389,41 @@ class ProductionBatchController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
-
-    public function onGetProductionBatchMetalLine($orderType)
+    public function onGetProductionBatchMetalLine($orderType, $id = null)
     {
         try {
+            $productionOrderId = null;
+            if ($id != null) {
+                $productionOrderId = $id;
+            } else {
+                $productionOrder = new ProductionOrderController();
+                $currentProductionOrder = $productionOrder->onGetCurrent();
+                if (isset($currentProductionOrder->getOriginalContent()['error'])) {
+                    return $currentProductionOrder->getOriginalContent();
+                }
+                $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
+            }
+
             // 0 = otb, 1 = ota
             $inclusionExclusionItemCode = ItemMasterdataModel::getViewableOtb(true);
-            $orderTypeString = $orderType == 0 ? 'production_otb_id' : 'production_ota_id';
 
             $productionBatchAdd = ProductionBatchModel::with(['productionOtb', 'productionOta']);
 
             if ($orderType == 0) {
-                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode, $productionOrderId) {
                     $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
                         $query->whereIn('item_code', $inclusionExclusionItemCode);
                     })
-                        ->orWhereNotNull('production_otb_id');
+                        ->orWhereNotNull('production_otb_id')
+                        ->where('production_order_id', $productionOrderId);
                 });
             } else {
-                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode) {
+                $productionBatchAdd->where(function ($query) use ($inclusionExclusionItemCode, $productionOrderId) {
                     $query->whereHas('productionOta', function ($query) use ($inclusionExclusionItemCode) {
                         $query->whereNotIn('item_code', $inclusionExclusionItemCode);
                     })
-                        ->whereNotNull('production_ota_id');
+                        ->whereNotNull('production_ota_id')
+                        ->where('production_order_id', $productionOrderId);
                 });
             }
 
@@ -425,7 +437,6 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
-
     public function onSetInitialPrint($id)
     {
         try {

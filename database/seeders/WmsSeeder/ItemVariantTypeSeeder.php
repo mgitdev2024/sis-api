@@ -75,7 +75,7 @@ class ItemVariantTypeSeeder extends Seeder
 
 
 
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($variantType as $value) {
             ItemVariantTypeModel::create([

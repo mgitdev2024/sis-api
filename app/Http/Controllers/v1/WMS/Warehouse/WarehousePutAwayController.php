@@ -269,19 +269,31 @@ class WarehousePutAwayController extends Controller
             $itemCode = null;
 
             // Checking of Scanned For Transfer items, will be removed when it is also scanned for substandard
+            $matchedScannedItemSubstandard = [];
             $warehouseForPutAwayModel = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->first();
             if ($warehouseForPutAwayModel) {
                 $transferItems = json_decode($warehouseForPutAwayModel->transfer_items, true);
-                $filteredArr = array_filter($transferItems, function ($item1) use ($scannedItems) {
+                $filteredArr = array_filter($transferItems, function ($item1) use ($scannedItems, &$matchedScannedItemSubstandard) {
                     foreach ($scannedItems as $item2) {
                         if ($item1['bid'] == $item2['bid'] && $item1['sticker_no'] == $item2['sticker_no']) {
+                            $matchedScannedItemSubstandard[] = $item1;
                             return false;
                         }
                     }
                     return true;
                 });
                 $transferItems = $filteredArr;
-                $warehouseForPutAwayModel->transfer_items = json_encode($transferItems);
+                $productionItems = json_decode($warehouseForPutAwayModel->production_items, true);
+                $filteredProductionItemForPutAway = array_filter($productionItems, function ($item1) use ($matchedScannedItemSubstandard) {
+                    foreach ($matchedScannedItemSubstandard as $item2) {
+                        if ($item1['bid'] == $item2['bid'] && $item1['sticker_no'] == $item2['sticker_no']) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                $warehouseForPutAwayModel->production_items = json_encode(array_values($filteredProductionItemForPutAway));
+                $warehouseForPutAwayModel->transfer_items = json_encode(array_values($transferItems));
                 $warehouseForPutAwayModel->save();
             }
 
@@ -343,6 +355,7 @@ class WarehousePutAwayController extends Controller
             ]);
 
             $substandardController->onCreate($substandardRequest);
+
             $queueSubLocationController = new QueuedSubLocationController();
             $queueSubLocationRequest = new Request([
                 'created_by_id' => $createdById,
@@ -350,7 +363,6 @@ class WarehousePutAwayController extends Controller
                 'item_code' => $itemCode,
             ]);
             $queueSubLocationController->onCreate($queueSubLocationRequest);
-
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 

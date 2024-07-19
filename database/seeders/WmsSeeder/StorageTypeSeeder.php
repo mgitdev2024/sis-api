@@ -32,7 +32,7 @@ class StorageTypeSeeder extends Seeder
                 'long_name' => 'Frozen Storage',
             ],
         ];
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($storageType as $value) {
             StorageTypeModel::create([

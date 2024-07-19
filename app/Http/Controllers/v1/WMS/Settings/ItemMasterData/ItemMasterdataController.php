@@ -7,10 +7,14 @@ use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemConversionModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMovementModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemStockTypeModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemUomModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemVariantTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
+use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
+use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
@@ -26,21 +30,21 @@ class ItemMasterdataController extends Controller
         return [
             'created_by_id' => 'nullable',
             'updated_by_id' => 'nullable',
-            'item_code' => 'nullable|string|unique:wms_item_masterdata,item_code,' . $itemId,
-            'description' => 'nullable|string',
-            'short_name' => 'nullable|string',
+            'item_code' => 'required|string|unique:wms_item_masterdata,item_code,' . $itemId,
+            'description' => 'required|string',
+            'short_name' => 'required|string',
             'long_name' => 'nullable|string',
-            'unit_price' => 'nullable|integer',
+            'unit_price' => 'nullable|float',
             'parent_item_id' => 'nullable|integer|exists:wms_item_masterdata,id',
-            'item_category_id' => 'nullable|integer|exists:wms_item_categories,id',
-            'item_classification_id' => 'nullable|integer|exists:wms_item_categories,id',
-            'item_variant_type_id' => 'nullable|integer|exists:wms_item_variant_types,id',
-            'uom_id' => 'nullable|integer|exists:wms_item_uoms,id',
-            'storage_type_id' => 'nullable|integer|exists:wms_storage_types,id',
-            'warehouse_location_id' => 'nullable|integer|exists:wms_storage_warehouses,id',
-            'zone_id' => 'nullable|integer|exists:wms_storage_zones,id',
-            'stock_type_id' => 'nullable|integer|exists:wms_item_stock_types,id',
-            'item_movement_id' => 'nullable|integer|exists:wms_item_movements,id',
+            'item_category_id' => 'required|integer|exists:wms_item_categories,id',
+            'item_classification_id' => 'required|integer|exists:wms_item_categories,id',
+            'item_variant_type_id' => 'required|integer|exists:wms_item_variant_types,id',
+            'uom_id' => 'required|integer|exists:wms_item_uoms,id',
+            'storage_type_id' => 'required|integer|exists:wms_storage_types,id',
+            'warehouse_location_id' => 'required|integer|exists:wms_storage_warehouses,id',
+            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
+            'stock_type_id' => 'required|integer|exists:wms_item_stock_types,id',
+            'item_movement_id' => 'required|integer|exists:wms_item_movements,id',
             'delivery_lead_time' => 'nullable|integer',
             'inbound_shelf_life' => 'nullable|integer',
             'outbound_shelf_life' => 'nullable|integer',
@@ -50,11 +54,11 @@ class ItemMasterdataController extends Controller
             'qty_per_pallet' => 'nullable|integer',
             'dimension_l' => 'nullable|string',
             'dimension_h' => 'nullable|string',
+            'dimension_w' => 'nullable|string',
             'item_weight' => 'nullable|string',
             'is_viewable_by_otb' => 'nullable|integer',
-            'is_qa_required' => 'nullable|integer',
-            'is_qa_nullable' => 'nullable|integer',
-            'is_qa_disposal' => 'nullable|integer',
+            'is_qa_required' => 'required|integer',
+            'is_qa_disposal' => 'required|integer',
             'attachment' => 'nullable',
             'primary_item_packing_size' => 'nullable|integer',
             'primary_conversion_id' => 'nullable|integer|exists:wms_item_conversions,id',
@@ -63,9 +67,9 @@ class ItemMasterdataController extends Controller
             'ambient_shelf_life' => 'nullable|integer',
             'chilled_shelf_life' => 'nullable|integer',
             'frozen_shelf_life' => 'nullable|integer',
-            'sticker_remarks_code' => 'nullable|string',
-            'plant_id' => 'nullable|integer|exists:wms_storage_facility_plants,id',
-            'status' => 'nullable|integer', 
+            'sticker_remarks_code' => 'required|string',
+            'plant_id' => 'required|integer|exists:wms_storage_facility_plants,id',
+            'status' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -74,7 +78,7 @@ class ItemMasterdataController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id);
+        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id, 'public/attachments/item-masterdata');
     }
     public function onGetPaginatedList(Request $request)
     {
@@ -124,6 +128,7 @@ class ItemMasterdataController extends Controller
                 $record->item_code = $this->onCheckValue($data['item_code']);
                 $record->description = $this->onCheckValue($data['description']);
                 $record->short_name = $this->onCheckValue($data['item_short_name']);
+                $record->long_name = $this->onCheckValue($data['item_long_name']);
                 $record->item_category_id = $this->onGetItemCategory($data['item_category_code']);
                 $record->item_classification_id = $this->onGetItemClassification($data['item_classification_code']);
                 $record->item_variant_type_id = $this->onGetItemVariantType($data['item_variant_type_code']);
@@ -140,6 +145,27 @@ class ItemMasterdataController extends Controller
                 $record->sticker_remarks_code = $data['sticker_remarks_code'];
                 $record->plant_id = $this->onGetPlant($data['plant_code']);
                 $record->parent_item_id = $this->onGetParentId($this->onCheckValue($data['parent_code']));
+
+                // Added Data
+                $record->item_movement_id = $this->onGetItemMovement($data['item_movement_code']);
+                $record->stock_type_id = $this->onGetStockType($data['stock_type_code']);
+                $record->unit_price = $this->onCheckValue($data['unit_price']);
+                $record->zone_id = $this->onGetZone($data['zone_code']);
+                $record->delivery_lead_time = $this->onCheckValue($data['delivery_lead_time']);
+                $record->inbound_shelf_life = $this->onCheckValue($data['inbound_shelf_life']);
+                $record->outbound_shelf_life = $this->onCheckValue($data['outbound_shelf_life']);
+                $record->re_order_level = $this->onCheckValue($data['re_order_level']);
+                $record->stock_rotation_type = $this->onCheckValue($data['stock_rotation_type']);
+                $record->qty_per_pallet = $this->onCheckValue($data['qty_per_pallet']);
+                $record->max_qty = $this->onCheckValue($data['max_qty']);
+                $record->dimension_l = $this->onCheckValue($data['dimension_l']);
+                $record->dimension_h = $this->onCheckValue($data['dimension_h']);
+                $record->dimension_w = $this->onCheckValue($data['dimension_w']);
+                $record->item_weight = $this->onCheckValue($data['item_weight']);
+                $record->is_viewable_by_otb = $this->onBooleanConversion($data['is_viewable_by_otb']);
+                $record->is_qa_required = $this->onBooleanConversion($data['is_qa_required']);
+                $record->is_qa_disposal = $this->onBooleanConversion($data['is_qa_disposal']);
+                $record->warehouse_location_id = $this->onGetWarehouseLocation($data['warehouse_location_code']);
                 $record->save();
             }
             DB::commit();
@@ -192,5 +218,25 @@ class ItemMasterdataController extends Controller
     public function onGetSecondaryConversion($value)
     {
         return ItemConversionModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetItemMovement($value)
+    {
+        return ItemMovementModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetStockType($value)
+    {
+        return ItemStockTypeModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetZone($value)
+    {
+        return ZoneModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onGetWarehouseLocation($value)
+    {
+        return WarehouseModel::where('code', $value)->first()->id ?? null;
+    }
+    public function onBooleanConversion($value)
+    {
+        return strcasecmp($value, 'yes') == 0 ? true : false;
     }
 }
