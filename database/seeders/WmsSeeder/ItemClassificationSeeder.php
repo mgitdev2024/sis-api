@@ -23,7 +23,7 @@ class ItemClassificationSeeder extends Seeder
             ],
             [
                 'code' => 'CLS-RM',
-                'short_name' => 'FG',
+                'short_name' => 'RM',
                 'long_name' => 'Raw Materials',
             ]
         ];
@@ -33,7 +33,8 @@ class ItemClassificationSeeder extends Seeder
             ItemClassificationModel::create([
                 'created_by_id' => $createdById,
                 'code' => $value['code'],
-                'short_name' => $value['short_name']
+                'short_name' => $value['short_name'],
+                'long_name' => $value['long_name'],
             ]);
         }
     }

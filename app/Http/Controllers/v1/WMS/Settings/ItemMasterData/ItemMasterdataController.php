@@ -65,7 +65,7 @@ class ItemMasterdataController extends Controller
             'frozen_shelf_life' => 'nullable|integer',
             'sticker_remarks_code' => 'nullable|string',
             'plant_id' => 'nullable|integer|exists:wms_storage_facility_plants,id',
-            'status' => 'nullable|integer', 
+            'status' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -74,7 +74,7 @@ class ItemMasterdataController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id);
+        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id, 'public/attachments/item-masterdata');
     }
     public function onGetPaginatedList(Request $request)
     {

@@ -343,6 +343,7 @@ class WarehousePutAwayController extends Controller
             ]);
 
             $substandardController->onCreate($substandardRequest);
+
             $queueSubLocationController = new QueuedSubLocationController();
             $queueSubLocationRequest = new Request([
                 'created_by_id' => $createdById,
@@ -350,12 +351,14 @@ class WarehousePutAwayController extends Controller
                 'item_code' => $itemCode,
             ]);
             $queueSubLocationController->onCreate($queueSubLocationRequest);
+            dd('sdf');
 
-            DB::commit();
+            // DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
