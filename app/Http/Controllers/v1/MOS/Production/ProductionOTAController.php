@@ -73,7 +73,7 @@ class ProductionOTAController extends Controller
             } else {
                 $productionOrder = new ProductionOrderController();
                 $currentProductionOrder = $productionOrder->onGetCurrent();
-                if(isset($currentProductionOrder->getOriginalContent()['error'])){
+                if (isset($currentProductionOrder->getOriginalContent()['error'])) {
                     return $currentProductionOrder->getOriginalContent();
                 }
                 $productionOrderId = $currentProductionOrder->getOriginalContent()['success']['data'][0]['id'];
@@ -262,21 +262,13 @@ class ProductionOTAController extends Controller
                 $quantity = 1;
                 $isRetouch = 1;
             }
-            $productionOta = ProductionOTAModel::where('production_order_id', $productionOrder->id)->get();
-            $productionOtaId = null;
-            $isExist = false;
-            foreach ($productionOta as $value) {
-                if ($value->item_code == $itemCode) {
-                    $value->actual_quantity += $quantity;
-                    $productionOtaId = $value->id;
-                    $value->save();
-                    $isExist = true;
-                    $this->createProductionLog(ProductionOTAModel::class, $value->id, $value, $fields['created_by_id'], 1);
-                    break;
-                }
-            }
+            $productionOta = ProductionOTAModel::where([
+                'production_order_id' => $productionOrder->id,
+                'item_code' => $itemCode,
+            ])->first();
+            $productionOtaId = $productionOta->id;
 
-            if (!$isExist) {
+            if (!$productionOta) {
                 $otaRequest = new Request([
                     'created_by_id' => $fields['created_by_id'],
                     'production_order_id' => $productionOrder->id,
@@ -284,7 +276,7 @@ class ProductionOTAController extends Controller
                     'item_code' => $itemCode,
                     'requested_quantity' => 0,
                     'plotted_quantity' => 0,
-                    'actual_quantity' => $quantity,
+                    // 'actual_quantity' => $quantity,
                 ]);
                 $productionOtaId = $this->onCreate($otaRequest)->getOriginalContent()['success']['data']['id'];
             }
