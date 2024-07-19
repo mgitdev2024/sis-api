@@ -15,7 +15,7 @@ class ScmSystemSeeder extends Seeder
      */
     public function run()
     {
-        $createdById = 1;
+        $createdById = 0000;
         $scmSystem = [
             [
                 'name' => 'Manufacturing Operations System',

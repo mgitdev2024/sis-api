@@ -7,8 +7,10 @@ use Database\Seeders\CredentialSeeder;
 use Database\Seeders\SubModulePermissionSeeder;
 use Database\Seeders\ModulePermissionSeeder;
 
+use Database\Seeders\WmsSeeder\ItemMovementSeeder;
 use Database\Seeders\WmsSeeder\ItemVariantTypeMultiplierSeeder;
 use Database\Seeders\WmsSeeder\ScmSystemSeeder;
+use Database\Seeders\WmsSeeder\StockTypeSeeder;
 use Database\Seeders\WmsSeeder\StorageWarehouseSeeder;
 use Database\Seeders\WmsSeeder\FacilityPlantSeeder;
 use Database\Seeders\WmsSeeder\SubLocationTypeSeeder;
@@ -51,11 +53,13 @@ class DatabaseSeeder extends Seeder
             ItemVariantTypeSeeder::class,
             DeliveryTypeSeeder::class,
             ItemVariantTypeMultiplierSeeder::class,
-            ItemMasterdataSeeder::class,
+                // ItemMasterdataSeeder::class,
             StorageWarehouseSeeder::class,
             ZoneSeeder::class,
             SubLocationTypeSeeder::class,
             SubLocationSeeder::class,
+            StockTypeSeeder::class,
+            ItemMovementSeeder::class,
         ]);
         #endregion
     }

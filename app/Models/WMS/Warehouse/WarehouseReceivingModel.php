@@ -39,8 +39,14 @@ class WarehouseReceivingModel extends Model
 
     public static function onGenerateWarehouseReceiveReferenceNumber()
     {
-        $latestWarehouseReceive = static::latest()->value('id');
-        $nextWarehouseReceive = $latestWarehouseReceive + 1;
+        $latestWarehouseReceive = static::orderBy('reference_number', 'DESC')->value('reference_number');
+
+        if (!$latestWarehouseReceive) {
+            $nextWarehouseReceive = 1;
+        } else {
+            $latestNumber = intval(substr($latestWarehouseReceive, 1));
+            $nextWarehouseReceive = $latestNumber + 1;
+        }
         $referenceNumber = '8' . str_pad($nextWarehouseReceive, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;

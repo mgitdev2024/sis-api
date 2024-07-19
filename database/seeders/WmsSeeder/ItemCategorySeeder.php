@@ -37,7 +37,7 @@ class ItemCategorySeeder extends Seeder
                 'name' => 'Others',
             ],
         ];
-        $createdById = 1;
+        $createdById = 0000;
 
         foreach ($classifications as $value) {
             ItemCategoryModel::create([

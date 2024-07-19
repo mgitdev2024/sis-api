@@ -22,7 +22,7 @@ class ItemMasterdataSeeder extends Seeder
      */
     public function run()
     {
-        $createdById = 1;
+        $createdById = 0000;
         $itemMasterdata =
             [
                 [
@@ -1357,7 +1357,7 @@ class ItemMasterdataSeeder extends Seeder
                 'description' => $value['description'],
                 'short_name' => $value['item_short_name'],
                 'item_code' => $value['item_code'],
-                'item_classification_id' => $this->onGetItemCategory($value['item_classification_code']),
+                'item_classification_id' => $this->onGetItemClassification($value['item_classification_code']),
                 'item_category_id' => $this->onGetItemCategory($value['item_category_code']),
                 'storage_type_id' => $this->onGetStorageType($value['storage_type_code']),
                 'item_variant_type_id' => $this->onGetItemVariantType($value['item_variant_type_code']),
