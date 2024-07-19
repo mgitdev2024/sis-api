@@ -134,7 +134,6 @@ class QueuedSubLocationController extends Controller
             } else {
                 $warehouseForPutAway->delete();
             }
-
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }

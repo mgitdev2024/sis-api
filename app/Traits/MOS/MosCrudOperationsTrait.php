@@ -40,6 +40,7 @@ trait MosCrudOperationsTrait
                     $attachmentPath = $request->file('attachment')->store($path);
                     $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
                     $record->attachment = $filepath;
+                    $record->save();
                 }
                 $this->createProductionLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
