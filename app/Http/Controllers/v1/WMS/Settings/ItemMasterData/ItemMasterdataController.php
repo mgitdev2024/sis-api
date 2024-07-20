@@ -205,7 +205,7 @@ class ItemMasterdataController extends Controller
     }
     public function onGetPlant($value)
     {
-        return FacilityPlantModel::where('code', $value)->first()->id ?? null;
+        return FacilityPlantModel::where('code', intval($value))->first()->id ?? null;
     }
     public function onGetUom($value)
     {
