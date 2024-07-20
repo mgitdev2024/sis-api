@@ -111,7 +111,7 @@ class ItemMasterdataController extends Controller
             }
 
             foreach ($selectedItems as $items) {
-                $data = ItemMasterdataModel::find($items['id']);
+                $data = ItemMasterdataModel::find($items);
                 if ($data) {
                     $data->status = $status;
                     $data->updated_by_id = $fields['created_by_id'];
