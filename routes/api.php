@@ -224,7 +224,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item/masterdata/paginated', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetPaginatedList']);
     Route::get('v1/item/masterdata/all', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetAll']);
     Route::get('v1/item/masterdata/get/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetById']);
-    Route::post('v1/item/masterdata/status/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onChangeStatus']);
+    Route::post('v1/item/masterdata/status/{status}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onChangeStatus']);
     Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onDeleteById']);
     Route::get('v1/item/masterdata/current/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetCurrent']);
     #endregion
