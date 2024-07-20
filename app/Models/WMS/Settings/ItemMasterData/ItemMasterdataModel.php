@@ -18,6 +18,7 @@ class ItemMasterdataModel extends Model
     use HasFactory;
     protected $table = 'wms_item_masterdata';
     protected $appends = [
+        'item_classification_label',
         'item_category_label',
         'item_variant_type_label',
         'uom_label',
@@ -88,7 +89,6 @@ class ItemMasterdataModel extends Model
         ];
         return $stickerRemarksLabel[$this->sticker_remarks_code] ?? null;
     }
-
     public function itemCategory()
     {
         return $this->belongsTo(ItemCategoryModel::class, 'item_category_id', 'id');
@@ -125,18 +125,30 @@ class ItemMasterdataModel extends Model
     {
         return $this->hasMany(StockLogModel::class, 'item_code', 'item_code');
     }
+    public function itemClassification()
+    {
+        return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');
+
+    }
     public function getItemCategoryLabelAttribute()
     {
         $itemCategory = $this->itemCategory->toArray();
         return isset($itemCategory) ? $itemCategory['name'] : 'n/a';
     }
-
     public function getItemVariantTypeLabelAttribute()
     {
         $itemVariantType = $this->itemVariantType->toArray();
         return isset($itemVariantType) ? $itemVariantType['name'] : 'n/a';
     }
-
+    public function getItemClassificationLabelAttribute()
+    {
+        $itemClassification = $this->itemClassification->toArray();
+        $data = [
+            'short_name' => $itemClassification['short_name'],
+            'long_name' => $itemClassification['long_name'],
+        ];
+        return isset($itemClassification) ? $data : 'n/a';
+    }
     public function getUomLabelAttribute()
     {
         $uom = $this->uom->toArray();

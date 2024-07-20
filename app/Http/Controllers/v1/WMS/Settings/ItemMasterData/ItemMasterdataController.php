@@ -34,7 +34,7 @@ class ItemMasterdataController extends Controller
             'description' => 'required|string',
             'short_name' => 'required|string',
             'long_name' => 'nullable|string',
-            'unit_price' => 'nullable|float',
+            'unit_price' => 'nullable|numeric',
             'parent_item_id' => 'nullable|integer|exists:wms_item_masterdata,id',
             'item_category_id' => 'required|integer|exists:wms_item_categories,id',
             'item_classification_id' => 'required|integer|exists:wms_item_categories,id',
@@ -57,8 +57,8 @@ class ItemMasterdataController extends Controller
             'dimension_w' => 'nullable|string',
             'item_weight' => 'nullable|string',
             'is_viewable_by_otb' => 'nullable|integer',
-            'is_qa_required' => 'required|integer',
-            'is_qa_disposal' => 'required|integer',
+            'is_qa_required' => 'nullable|integer',
+            'is_qa_disposal' => 'nullable|integer',
             'attachment' => 'nullable',
             'primary_item_packing_size' => 'nullable|integer',
             'primary_conversion_id' => 'nullable|integer|exists:wms_item_conversions,id',
@@ -97,9 +97,32 @@ class ItemMasterdataController extends Controller
     {
         return $this->deleteRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onChangeStatus(Request $request, $id)
+    public function onChangeStatus(Request $request, $status)
     {
-        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata', $request);
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'selected_items' => 'required|json',
+        ]);
+        try {
+            $selectedItems = json_decode($fields['selected_items'], true);
+
+            if ($selectedItems == null || count($selectedItems) <= 0) {
+                return $this->dataResponse('error', 200, 'Item Masterdata ' . __('msg.update_failed'));
+            }
+
+            foreach ($selectedItems as $items) {
+                $data = ItemMasterdataModel::find($items);
+                if ($data) {
+                    $data->status = $status;
+                    $data->updated_by_id = $fields['created_by_id'];
+                    $data->save();
+                    $this->createProductionLog(ItemMasterdataModel::class, $data->id, $data, $fields['created_by_id'], 1);
+                }
+            }
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetCurrent($id = null)
     {
