@@ -97,9 +97,32 @@ class ItemMasterdataController extends Controller
     {
         return $this->deleteRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
     }
-    public function onChangeStatus(Request $request, $id)
+    public function onChangeStatus(Request $request)
     {
-        return $this->changeStatusRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata', $request);
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'inactive_items' => 'required|json',
+        ]);
+        try {
+            $inactiveItems = json_decode($fields['inactive_items'], true);
+
+            if ($inactiveItems == null || count($inactiveItems) <= 0) {
+                return $this->dataResponse('error', 200, 'Item Masterdata ' . __('msg.update_failed'));
+            }
+
+            foreach ($inactiveItems as $items) {
+                $data = ItemMasterdataModel::find($items['id']);
+                if ($data) {
+                    $response = $data->toArray();
+                    $response['status'] = !$response['status'];
+                    $data->update($response);
+                    $this->createProductionLog(ItemMasterdataModel::class, $data->id, $data, $fields['created_by_id'], 1);
+                }
+            }
+            return $this->dataResponse('success', 200, __('msg.update_success'), $response);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onGetCurrent($id = null)
     {
