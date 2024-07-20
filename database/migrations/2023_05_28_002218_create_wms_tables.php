@@ -202,8 +202,8 @@ return new class extends Migration {
             $table->string('dimension_w')->nullable();
             $table->string('item_weight')->nullable();
             $table->tinyInteger('is_viewable_by_otb')->default(0);
-            $table->integer('is_qa_required');
-            $table->integer('is_qa_disposal');
+            $table->integer('is_qa_required')->default(0);
+            $table->integer('is_qa_disposal')->default(0);
             $table->string('attachment')->nullable();
             $table->integer('primary_item_packing_size')->nullable();
             $table->unsignedBigInteger('primary_conversion_id')->nullable();
