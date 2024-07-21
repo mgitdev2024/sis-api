@@ -145,6 +145,7 @@ class ProductionOTAController extends Controller
                 ->whereNotNull('action');
             if ($id != null) {
                 $itemDisposition->where('id', $id);
+                $this->onGetUpdatedItemEndorsed($id);
             }
             $result = $itemDisposition->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $result);
@@ -152,7 +153,6 @@ class ProductionOTAController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-
     public function onFulfillEndorsement(Request $request, $id)
     {
 
@@ -197,7 +197,6 @@ class ProductionOTAController extends Controller
                 if (isset($fields['frozen_exp_date'])) {
                     $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
                 }
-
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
@@ -230,11 +229,9 @@ class ProductionOTAController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
                     ];
                 }
-
-                DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
@@ -296,6 +293,7 @@ class ProductionOTAController extends Controller
                 'frozen_exp_date' => $fields['frozen_exp_date'] ?? null,
                 'created_by_id' => $fields['created_by_id'],
             ]);
+
             return $productionBatch->onCreate($productionBatchRequest);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

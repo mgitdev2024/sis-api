@@ -185,7 +185,7 @@ class ProductionOTBController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
                     ];
                 }
 
