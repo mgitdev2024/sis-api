@@ -128,10 +128,9 @@ class ProductionOrderController extends Controller
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
+                    $itemMasterDataCounter++;
                     continue;
                 }
-                $itemMasterDataCounter++;
-
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
