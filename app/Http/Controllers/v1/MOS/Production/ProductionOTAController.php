@@ -134,8 +134,8 @@ class ProductionOTAController extends Controller
             $excludedItemCode = ItemMasterdataModel::getViewableOtb(true);
             $itemDisposition = ItemDispositionModel::with('productionBatch')
                 ->where(function ($query) use ($excludedItemCode) {
-                    $query->whereIn('item_code', $excludedItemCode)
-                        ->orWhere(function ($query) {
+                    $query->whereNotIn('item_code', $excludedItemCode)
+                        ->where(function ($query) {
                             $query->where('production_type', 1)
                                 ->where('production_status', 1)
                                 ->whereNotNull('action');

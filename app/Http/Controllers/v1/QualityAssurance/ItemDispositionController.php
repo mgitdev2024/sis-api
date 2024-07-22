@@ -96,7 +96,7 @@ class ItemDispositionController extends Controller
         #endregion
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'item_dispostion_type' => 'required|in:0,1'
+            'item_disposition_type' => 'required|in:0,1'
         ]);
         try {
             // status to be excluded
