@@ -173,7 +173,8 @@ class ProductionOTBController extends Controller
 
                     $data = [
                         'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
-                        'production_batch_id' => $itemDisposition->production_batch_id
+                        'production_batch_id' => $itemDisposition->production_batch_id,
+                        'production_batch' => $itemDisposition->productionBatch
                     ];
                 } else {
                     $productionItem = $this->onSetProductionOrderBatch(
@@ -185,7 +186,7 @@ class ProductionOTBController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch_id' => json_decode($productionItem->content(), true)['success']['data']['production_batch']['id']
+                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
                     ];
                 }
 

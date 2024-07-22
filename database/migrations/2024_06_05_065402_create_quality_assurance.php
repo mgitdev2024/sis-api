@@ -26,7 +26,7 @@ return new class extends Migration {
             $table->tinyInteger('is_release')->default(1); //  0 = hold , 1 = not hold
             $table->integer('action')->nullable(); //  action status
             $table->integer('aging_period')->nullable();
-            $table->unsignedBigInteger('fulfilled_by_id')->nullable();
+            $table->string('fulfilled_by_id')->nullable();
             $table->timestamp('fulfilled_at')->nullable();
             SchemaHelper::addCommonColumns($table);  //  0 = closed , 1 = open
 
