@@ -96,6 +96,7 @@ class ItemDispositionController extends Controller
         #endregion
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'item_disposition_type' => 'required|in:0,1'
         ]);
         try {
             // status to be excluded
@@ -115,8 +116,11 @@ class ItemDispositionController extends Controller
                         $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items, $createdById, 1, $itemKey);
                     }
 
-                    $itemDisposition = ItemDispositionModel::where('production_batch_id', $items['bid'])
-                        ->where('item_key', $itemKey)
+                    $itemDisposition = ItemDispositionModel::where([
+                        'production_batch_id' => $items['bid'],
+                        'item_key' => $itemKey,
+                        'type' => intval($fields['item_disposition_type'])
+                    ])
                         ->first();
 
                     if ($itemDisposition) {
