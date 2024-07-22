@@ -145,7 +145,6 @@ class ProductionOTAController extends Controller
                 ->whereNotNull('action');
             if ($id != null) {
                 $itemDisposition->where('id', $id);
-                $this->onGetUpdatedItemEndorsed($id);
             }
             $result = $itemDisposition->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $result);
@@ -232,6 +231,7 @@ class ProductionOTAController extends Controller
                         'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
                     ];
                 }
+                DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
