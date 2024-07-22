@@ -184,8 +184,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('item_classification_id');
             $table->unsignedBigInteger('item_variant_type_id');
             $table->unsignedBigInteger('parent_item_id')->nullable();
-            $table->unsignedBigInteger('warehouse_location_id');
-            $table->unsignedBigInteger('zone_id');
+            $table->unsignedBigInteger('warehouse_location_id')->nullable();
+            $table->unsignedBigInteger('zone_id')->nullable();
             $table->unsignedBigInteger('uom_id');
             $table->unsignedBigInteger('storage_type_id');
             $table->unsignedBigInteger('stock_type_id');
