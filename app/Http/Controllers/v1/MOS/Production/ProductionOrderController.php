@@ -121,6 +121,7 @@ class ProductionOrderController extends Controller
             $productionOrder->created_by_id = $request->created_by_id;
             $productionOrder->save();
             $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $createdById, 0);
+            $itemMasterDataCounter = 0;
             foreach ($bulkUploadData as $value) {
                 $productionOTA = new ProductionOTAModel();
                 $productionOTB = new ProductionOTBModel();
@@ -129,6 +130,8 @@ class ProductionOrderController extends Controller
                 if (!$itemMasterdata) {
                     continue;
                 }
+
+                $itemMasterDataCounter++;
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
@@ -203,7 +206,9 @@ class ProductionOrderController extends Controller
                 $message = "Bulk upload cancelled: Duplicate entries were uploaded";
                 $response["is_duplicate"] = true;
                 $response['duplicated_entries'] = $duplicates;
-            } else {
+            }
+
+            if ($itemMasterDataCounter > 0) {
                 DB::commit();
             }
 
