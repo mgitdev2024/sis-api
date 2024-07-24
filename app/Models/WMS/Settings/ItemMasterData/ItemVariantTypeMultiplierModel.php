@@ -9,7 +9,7 @@ class ItemVariantTypeMultiplierModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_item_variant_type_multipliers';
-    // protected $appends = ['variant_type_label'];
+    protected $appends = ['variant_type_label'];
     protected $fillable = [
         'item_variant_type_id',
         'multiplier',
@@ -22,8 +22,9 @@ class ItemVariantTypeMultiplierModel extends Model
     {
         return $this->belongsTo(ItemVariantTypeModel::class, 'item_variant_type_id');
     }
-    // public function getVariantTypeLabelAttribute()
-    // {
-    //     return $this->variantType ? $this->variantType->name : null;
-    // }
+    public function getVariantTypeLabelAttribute()
+    {
+        $itemVariantType = ItemVariantTypeModel::find($this['item_variant_type_id']);
+        return $itemVariantType->name ?? null;
+    }
 }

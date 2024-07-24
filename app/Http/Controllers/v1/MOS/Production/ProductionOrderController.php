@@ -130,8 +130,8 @@ class ProductionOrderController extends Controller
                 if (!$itemMasterdata) {
                     continue;
                 }
-                $itemMasterDataCounter++;
 
+                $itemMasterDataCounter++;
                 $itemCategory = $itemMasterdata
                     ->itemCategory
                     ->name;
