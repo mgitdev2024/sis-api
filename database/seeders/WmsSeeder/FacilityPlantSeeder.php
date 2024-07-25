@@ -16,13 +16,13 @@ class FacilityPlantSeeder extends Seeder
     public function run()
     {
         $plantData = [
-            [
-                'short_name' => 'Commi',
-                'long_name' => 'Commissary',
-                'code' => '01',
-                'description' => 'Facility that handles proccessed goods through cooking',
-                'created_by_id' => '1',
-            ],
+            // [
+            //     'short_name' => 'Commi',
+            //     'long_name' => 'Commissary',
+            //     'code' => '01',
+            //     'description' => 'Facility that handles proccessed goods through cooking',
+            //     'created_by_id' => '1',
+            // ],
             [
                 'short_name' => 'Bakery',
                 'long_name' => 'Bakery',
@@ -30,27 +30,27 @@ class FacilityPlantSeeder extends Seeder
                 'description' => 'Facility that handles baked goods',
                 'created_by_id' => '1',
             ],
-            [
-                'short_name' => 'Central',
-                'long_name' => 'Central Warehouse',
-                'code' => '03',
-                'description' => 'Facility that handles baked goods',
-                'created_by_id' => '1',
-            ],
-            [
-                'short_name' => 'Engr',
-                'long_name' => 'Engineering',
-                'code' => '05',
-                'description' => 'Facility that handles industrial materials',
-                'created_by_id' => '1',
-            ],
-            [
-                'short_name' => 'HO',
-                'long_name' => 'Head Office',
-                'code' => '06',
-                'description' => 'Facility that handles head office materials',
-                'created_by_id' => '1',
-            ],
+            // [
+            //     'short_name' => 'Central',
+            //     'long_name' => 'Central Warehouse',
+            //     'code' => '03',
+            //     'description' => 'Facility that handles baked goods',
+            //     'created_by_id' => '1',
+            // ],
+            // [
+            //     'short_name' => 'Engr',
+            //     'long_name' => 'Engineering',
+            //     'code' => '05',
+            //     'description' => 'Facility that handles industrial materials',
+            //     'created_by_id' => '1',
+            // ],
+            // [
+            //     'short_name' => 'HO',
+            //     'long_name' => 'Head Office',
+            //     'code' => '06',
+            //     'description' => 'Facility that handles head office materials',
+            //     'created_by_id' => '1',
+            // ],
         ];
         $createdById = 0000;
 
