@@ -116,10 +116,10 @@ class SubLocationController extends Controller
         $subLocationCodes = [];
 
         $subLocationModel = SubLocationModel::find($id);
-        $layers = array_keys(json_decode($subLocationModel->layers, true));
+        $layers = json_decode($subLocationModel->layers, true);
         $subLocationCodes['storage_type'] = SubLocationModel::onGenerateStorageCode($id)['storage_type'];
-        foreach ($layers as $keys) {
-            $subLocationCodes['storage_codes'][] = SubLocationModel::onGenerateStorageCode($id, $keys)['storage_code'];
+        foreach ($layers as $value) {
+            $subLocationCodes['storage_codes'][] = SubLocationModel::onGenerateStorageCode($id, $value['layer_no'])['storage_code'];
         }
 
         return $this->dataResponse('success', 201, 'Storage Warehouse ' . __('msg.record_found'), $subLocationCodes);
