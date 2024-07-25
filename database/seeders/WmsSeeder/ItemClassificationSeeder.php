@@ -21,11 +21,11 @@ class ItemClassificationSeeder extends Seeder
                 'short_name' => 'FG',
                 'long_name' => 'Finish Goods',
             ],
-            [
-                'code' => 'CLS-RM',
-                'short_name' => 'RM',
-                'long_name' => 'Raw Materials',
-            ]
+            // [
+            //     'code' => 'CLS-RM',
+            //     'short_name' => 'RM',
+            //     'long_name' => 'Raw Materials',
+            // ]
         ];
         $createdById = 0000;
 

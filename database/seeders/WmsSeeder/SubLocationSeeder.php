@@ -20,118 +20,20 @@ class SubLocationSeeder extends Seeder
     public function run()
     {
         #region Ambient Temporary Storage
-        $ambientTemporaryStorage = [
-            [
-                "code" => "RCK001",
+        $ambientTemporaryStorage = [];
+        for ($i = 1; $i <= 50; $i++) {
+            $ambientTemporaryStorage[] = [
+                "code" => "RCK" . str_pad($i, 3, '0', STR_PAD_LEFT),
                 "number" => "1",
                 "has_layer" => 1,
                 "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
+                "layers" => '{"1":{"min":1,"max":500,"layer_no":1}}',
+                "facility_id" => 1,
+                "warehouse_id" => null,
+                "zone_id" => null,
                 "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK002",
-                "number" => "2",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK003",
-                "number" => "3",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK004",
-                "number" => "4",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK005",
-                "number" => "5",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK006",
-                "number" => "6",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK007",
-                "number" => "7",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK008",
-                "number" => "8",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK009",
-                "number" => "9",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ],
-            [
-                "code" => "RCK010",
-                "number" => "10",
-                "has_layer" => 1,
-                "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":20,"layer_no":1},"2":{"min":1,"max":20,"layer_no":2},"3":{"min":1,"max":20,"layer_no":3},"4":{"min":1,"max":20,"layer_no":4}}',
-                "facility_id" => 2,
-                "warehouse_id" => 1,
-                "zone_id" => 1,
-                "sub_location_type_id" => 1
-            ]
-        ];
+            ];
+        }
         #endregion
 
         #region Ambient Permanent Storage
@@ -709,7 +611,7 @@ class SubLocationSeeder extends Seeder
         ];
         #endregion
 
-        $subLocations = array_merge($ambientTemporaryStorage, $ambientPermanentStorage, $chillerTemporaryStorage, $chillerPermanentStorage, $frozenTemporaryStorage, $frozenPermanentStorage);
+        $subLocations = array_merge($ambientTemporaryStorage);
 
         $createdById = 0000;
 
