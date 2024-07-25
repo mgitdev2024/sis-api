@@ -27,7 +27,7 @@ class SubLocationSeeder extends Seeder
                 "number" => "1",
                 "has_layer" => 1,
                 "is_permanent" => 0,
-                "layers" => '[{"min":1,"max":500,"layer_no":1}]',
+                "layers" => '{"1":{"min":1,"max":500,"layer_no":1}}',
                 "facility_id" => 1,
                 "warehouse_id" => null,
                 "zone_id" => null,
