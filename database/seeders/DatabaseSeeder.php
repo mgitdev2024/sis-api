@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
             StorageWarehouseSeeder::class,
             ZoneSeeder::class,
             SubLocationTypeSeeder::class,
-                // SubLocationSeeder::class,
+            SubLocationSeeder::class,
             StockTypeSeeder::class,
             ItemMovementSeeder::class,
             // ItemMasterdataSeeder::class,
