@@ -245,7 +245,7 @@ trait MosCrudOperationsTrait
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.delete_failed'));
-        } catch (QueryException $e) {
+        } catch (QueryException $exceptionxception) {
             if ($exception->getCode() == 23000) {
                 return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => $modelName]));
             }
