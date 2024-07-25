@@ -8,6 +8,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 
 class WarehouseForReceiveController extends Controller
 {
@@ -58,6 +59,11 @@ class WarehouseForReceiveController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
 
+        } catch (QueryException $e) {
+            if ($exception->getCode() == 23000) {
+                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Warehouse For Receive']));
+            }
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
         } catch (\Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.delete_failed'));
         }
