@@ -21,13 +21,13 @@ class SubLocationTypeSeeder extends Seeder
         $subLocationType = [
             [
                 "code" => "SLT-RCK",
-                "short_name" => "Rack Chill",
-                "long_name" => "Rack Chill",
+                "short_name" => "Rack",
+                "long_name" => null,
             ],
             [
                 "code" => "SLT-CRTS",
-                "short_name" => "Crate Chill",
-                "long_name" => "Crate Chill",
+                "short_name" => "Crate",
+                "long_name" => null,
 
             ]
         ];
