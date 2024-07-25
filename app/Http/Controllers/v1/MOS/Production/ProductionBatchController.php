@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\History\PrintHistoryController;
+use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Traits\MOS\ProductionLogTrait;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
@@ -443,6 +444,15 @@ class ProductionBatchController extends Controller
             $productionBatch = ProductionBatchModel::find($id);
             $productionBatch->is_printed = 1;
             $productionBatch->save();
+
+            $itemDisposition = ItemDispositionModel::where([
+                'production_batch_id' => $id,
+                'is_printed' => 0
+            ])->first();
+            if ($itemDisposition) {
+                $itemDisposition->is_printed = 1;
+                $itemDisposition->save();
+            }
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.update_success'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));

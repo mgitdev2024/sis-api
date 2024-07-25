@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Cache\ProductionForReceiveModel;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 
 class ProductionForReceiveController extends Controller
 {
@@ -50,6 +51,11 @@ class ProductionForReceiveController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
 
+        } catch (QueryException $exception) {
+            if ($exception->getCode() == 23000) {
+                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Production For Receive']));
+            }
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
         } catch (\Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.delete_failed'));
         }
