@@ -51,7 +51,7 @@ class ProductionForReceiveController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
 
-        } catch (QueryException $e) {
+        } catch (QueryException $exception) {
             if ($exception->getCode() == 23000) {
                 return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Production For Receive']));
             }
