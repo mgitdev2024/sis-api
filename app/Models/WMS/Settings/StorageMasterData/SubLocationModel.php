@@ -79,9 +79,14 @@ class SubLocationModel extends Model
 
         $subLocationModel = SubLocationModel::find($subLocationId);
         $subLocationCode = $subLocationModel->code;
-        $zoneCode = $subLocationModel->zone->code;
 
-        $storageCode = $zoneCode . '-' . $subLocationCode;
+        $storageType = null;
+        if ($subLocationModel->is_permanent == 1) {
+            $zoneCode = $subLocationModel->zone->code;
+            $storageCode = $zoneCode . '-';
+            $storageType = $subLocationModel->zone->storageType->long_name;
+        }
+        $storageCode = $subLocationCode;
 
         if ($layer !== null) {
             $layerCode = str_pad($layer, 2, '0', STR_PAD_LEFT);
@@ -89,7 +94,7 @@ class SubLocationModel extends Model
         }
         $data = [
             'storage_code' => $storageCode,
-            'storage_type' => $subLocationModel->zone->storageType->long_name,
+            'storage_type' => $storageType,
             'is_permanent' => $subLocationModel->is_permanent
         ];
         return $data;
