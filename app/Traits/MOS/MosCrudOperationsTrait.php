@@ -6,6 +6,7 @@ use App\Http\Controllers\v1\History\ProductionLogController;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
+use Illuminate\Database\QueryException;
 
 trait MosCrudOperationsTrait
 {
@@ -244,6 +245,11 @@ trait MosCrudOperationsTrait
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.delete_failed'));
+        } catch (QueryException $exception) {
+            if ($exception->getCode() == 23000) {
+                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => $modelName]));
+            }
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }

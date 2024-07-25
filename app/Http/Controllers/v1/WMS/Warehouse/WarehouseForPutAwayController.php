@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
-use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
@@ -14,6 +12,8 @@ use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
 use Exception;
 use DB;
+use Illuminate\Database\QueryException;
+use Response;
 
 class WarehouseForPutAwayController extends Controller
 {
@@ -241,6 +241,11 @@ class WarehouseForPutAwayController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
 
+        } catch (QueryException $exception) {
+            if ($exception->getCode() == 23000) {
+                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Warehouse For Put Away']));
+            }
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.delete_failed'));
         }
