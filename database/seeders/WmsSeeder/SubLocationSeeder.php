@@ -27,14 +27,13 @@ class SubLocationSeeder extends Seeder
                 "number" => "1",
                 "has_layer" => 1,
                 "is_permanent" => 0,
-                "layers" => '{"1":{"min":1,"max":500,"layer_no":1}}',
+                "layers" => '[{"min":1,"max":500,"layer_no":1}]',
                 "facility_id" => 1,
                 "warehouse_id" => 1,
                 "zone_id" => 1,
                 "sub_location_type_id" => 1
             ];
         }
-
         #endregion
 
         #region Ambient Permanent Storage
