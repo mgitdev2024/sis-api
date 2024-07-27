@@ -215,6 +215,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('v1/storage/sub_location/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onDeleteById']);
     Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
     Route::get('v1/storage/sub_location/generate_code/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
+    Route::get('v1/storage/sub_location/generate_code/all/get', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCodeAll']);
     #endregion
 
     #region Item Masterdata
