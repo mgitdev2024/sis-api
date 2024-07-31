@@ -135,9 +135,13 @@ class ItemDispositionController extends Controller
                     }
                     unset($items);
                 }
+                $productionItems->produced_items = json_encode($productionItemsArr);
+                $productionItems->save();
+                DB::commit();
+                return $this->dataResponse('success', 200, 'Item Disposition ' . __('msg.update_success'));
+            } else {
+                return $this->dataResponse('error', 200, 'Item Disposition ' . __('msg.record_not_found'));
             }
-            DB::commit();
-            return $this->dataResponse('error', 200, ItemDispositionModel::class . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 400, $exception->getMessage());
