@@ -257,6 +257,7 @@ class ProductionItemController extends Controller
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
+
                 $data = [
                     'item_code' => $itemCode,
                     'item_status' => $itemStatus,
@@ -265,6 +266,8 @@ class ProductionItemController extends Controller
                     'production_type' => $productionItemsModel->production_type, // 0 = otb, = 1 ota
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
                     'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
+                    'item_sticker_code' => $productionBatch->batch_code . '-' . str_pad($item_key, 3, '0', STR_PAD_LEFT),
+                    'item_details' => $productionBatch,
                 ];
 
                 if ($warehouseReceivingRefNo) {

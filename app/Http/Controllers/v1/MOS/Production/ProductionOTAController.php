@@ -144,6 +144,7 @@ class ProductionOTAController extends Controller
                 })
                 ->where('production_status', 1)
                 ->whereNotNull('action')
+                ->where('action', '!=', 10)
                 ->where('is_printed', 0);
             if ($id != null) {
                 $itemDisposition->where('id', $id);
