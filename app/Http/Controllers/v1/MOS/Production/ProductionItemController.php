@@ -267,7 +267,7 @@ class ProductionItemController extends Controller
                     'endorsed_by_qa' => $item['endorsed_by_qa'] ?? 0,
                     'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
                     'item_sticker_code' => $productionBatch->batch_code . '-' . str_pad($item_key, 3, '0', STR_PAD_LEFT),
-                    'batch_number' => $productionBatch->batch_number,
+                    'item_details' => $productionBatch,
                 ];
 
                 if ($warehouseReceivingRefNo) {
