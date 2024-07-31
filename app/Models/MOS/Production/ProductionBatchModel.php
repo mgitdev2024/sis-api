@@ -112,7 +112,6 @@ class ProductionBatchModel extends Model
         $day = date('j', $timestamp);
 
         $batchCode = $monthCode . $day . '-' . $itemCode . str_pad($batchNumber, 2, '0', STR_PAD_LEFT);
-
         if ($deliveryType != null || $deliveryType != "") {
             $batchCode .= '-' . $deliveryType;
         }
