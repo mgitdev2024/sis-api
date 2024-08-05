@@ -13,6 +13,7 @@ class StockLogModel extends Model
     protected $table = 'wms_stock_logs';
 
     protected $fillable = [
+        'reference_number',
         'item_code',
         'action', // 1 = In, 0 = Out;
         'quantity',

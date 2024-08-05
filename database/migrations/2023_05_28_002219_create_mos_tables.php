@@ -40,7 +40,7 @@ return new class extends Migration {
         Schema::create('mos_production_otbs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_order_id');
-            $table->string('delivery_type');
+            $table->string('delivery_type')->nullable();
             $table->string('item_code');
             $table->integer('requested_quantity');
             $table->float('buffer_level');

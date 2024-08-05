@@ -244,6 +244,7 @@ return new class extends Migration {
         #region Stock Logs
         Schema::create('wms_stock_logs', function (Blueprint $table) {
             $table->id();
+            $table->string('reference_number');
             $table->string('item_code');
             $table->tinyInteger('action'); // 1 = In, 0 = Out;
             $table->integer('quantity');
