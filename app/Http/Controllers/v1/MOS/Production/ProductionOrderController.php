@@ -149,7 +149,7 @@ class ProductionOrderController extends Controller
                     }
 
                     $productionOTB->production_order_id = $productionOrder->id;
-                    $productionOTB->delivery_type = $value['delivery_type'] ?? null;
+                    $productionOTB->delivery_type = $value['delivery_type'] != "" ? $value['delivery_type'] : null;
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $requestedQuantity;
                     $productionOTB->buffer_level = $bufferLevel;
@@ -167,6 +167,7 @@ class ProductionOrderController extends Controller
                     }
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
+
                     $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
