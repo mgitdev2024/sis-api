@@ -195,6 +195,7 @@ class WarehousePutAwayController extends Controller
             $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $fields['created_by_id'], 0);
 
         } catch (Exception $exception) {
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
 
