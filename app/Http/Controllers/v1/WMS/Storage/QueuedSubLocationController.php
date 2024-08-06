@@ -214,6 +214,7 @@ class QueuedSubLocationController extends Controller
                 $batchId = $scannedValue['bid'];
 
                 $flag = $this->onCheckScannedItems($warehouseForPutAwayProductionItems, $stickerNumber, $batchId);
+
                 if ($flag) {
                     $itemsPerBatchArr[$batchId][] = $scannedValue;
                 }
@@ -222,7 +223,7 @@ class QueuedSubLocationController extends Controller
             if (count($itemsPerBatchArr) > 0) {
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId);
+                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
                 }
             }
 
