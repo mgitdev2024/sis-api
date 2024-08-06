@@ -55,8 +55,7 @@ return new class extends Migration {
 
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
-            $table->foreign('delivery_type')->references('code')->on('wms_item_delivery_types');
-
+            // $table->foreign('delivery_type')->references('code')->on('wms_item_delivery_types');
         });
 
         Schema::create('mos_production_batches', function (Blueprint $table) {
