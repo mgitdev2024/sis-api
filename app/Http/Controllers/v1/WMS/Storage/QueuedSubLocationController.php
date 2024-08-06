@@ -46,7 +46,7 @@ class QueuedSubLocationController extends Controller
                     $scannedItems = json_decode($warehouseForPutAway->transfer_items, true);
                 }
                 $this->onUpdatePutAway($warehouseForPutAway, $scannedItems);
-                $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel);
+                $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel, $warehouseForPutAway->warehouse_receiving_reference_number);
                 DB::commit();
             } else {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
@@ -205,7 +205,7 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel)
+    public function onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel, $referenceNumber)
     {
         try {
             $itemsPerBatchArr = [];
