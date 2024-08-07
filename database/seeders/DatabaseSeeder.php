@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
             SubLocationSeeder::class,
             StockTypeSeeder::class,
             ItemMovementSeeder::class,
-            // ItemMasterdataSeeder::class,
+            ItemMasterdataSeeder::class,
         ]);
         #endregion
     }

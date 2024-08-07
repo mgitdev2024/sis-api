@@ -1510,7 +1510,7 @@ class ItemMasterdataSeeder extends Seeder
                     "is_qa_disposal" => "Yes"
                 ],
                 [
-                    "item_code" => "LI  WH",
+                    "item_code" => "LI WH",
                     "description" => "Limone Santi Whole",
                     "item_short_name" => "Limone WH",
                     "item_long_name" => "",

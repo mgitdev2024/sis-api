@@ -29,6 +29,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return 'Migrations and Seed completed successfully!';
     });
 
+    #region Admin Access
+    Route::post('v1/asset/list/upload', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onCreate']);
+    Route::post('v1/asset/list/keyword/get', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onGetAssetListByKeyword']);
+    Route::get('v1/asset/list/keyword/get/{keyword}', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onGetAssetBykeyword']);
+    #endregion
+
     #region User Access
     Route::post('v1/user/access', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccess']);
     Route::post('v1/user/access/update', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onUpdateAccess']);
@@ -372,5 +378,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_code}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
     Route::get('v1/queue/storage/permanent/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetStatus']);
+    #endregion
+
+    #region Item Stocks Logs
+    Route::get('v1/item/stock/logs/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
+    #endregion
+
+    #region Item Stocks Inventory
+    Route::get('v1/item/stock/inventory/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemCode']);
+    Route::post('v1/item/stock/inventory/bulk', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onBulk']);
+    Route::post('v1/item/stock/inventory/update/{id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onUpdate']);
     #endregion
 });

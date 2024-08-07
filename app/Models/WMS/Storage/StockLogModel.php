@@ -19,6 +19,8 @@ class StockLogModel extends Model
         'quantity',
         'sub_location_id',
         'layer_level',
+        'initial_stock',
+        'final_stock',
         'storage_remaining_space'
     ];
 

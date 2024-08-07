@@ -95,10 +95,18 @@ trait QueueSubLocationTrait
     public function onCreateStockLogs($itemCode, $action, $quantity, $subLocationId, $layerLevel, $storageRemainingSpace, $createdById, $referenceNumber)
     {
         try {
+            $stockInventory = StockInventoryModel::where('item_code', $itemCode)->first();
+            $currentStock = 0;
+            if ($stockInventory) {
+                $currentStock = $stockInventory->stock_count;
+            }
+            $totalCurrentStock = $currentStock + $quantity;
             $stockLogs = new StockLogModel();
             $stockLogs->item_code = $itemCode;
             $stockLogs->action = $action;
             $stockLogs->quantity = $quantity;
+            $stockLogs->initial_stock = $currentStock;
+            $stockLogs->final_stock = $totalCurrentStock;
             $stockLogs->sub_location_id = $subLocationId;
             $stockLogs->layer_level = $layerLevel;
             $stockLogs->reference_number = $referenceNumber;
@@ -286,7 +294,10 @@ trait QueueSubLocationTrait
             $remainingCapacity = $size;
 
             $queuedModel = $isPermanent ? QueuedSubLocationModel::class : QueuedTemporaryStorageModel::class;
-            $subLocationStorageSpace = $queuedModel::where('sub_location_id', $subLocationId)->first();
+            $subLocationStorageSpace = $queuedModel::where([
+                'sub_location_id' => $subLocationId,
+                'layer_level' => $layer
+            ])->first();
 
             if ($subLocationStorageSpace) {
                 $remainingCapacity = $subLocationStorageSpace->storage_remaining_space;

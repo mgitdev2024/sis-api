@@ -130,6 +130,30 @@ trait WmsCrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+    public function readRecordByColumnName($model, $whereFields, $modelName, $withField = null)
+    {
+        try {
+            $query = $model::query();
+
+            if ($withField != null) {
+                $query = $query->with($withField);
+            }
+
+            $data = $query->where([
+                $whereFields['field'] => $whereFields['value'],
+            ]);
+            $data = $data->first();
+            if ($data) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+            }
+
+            return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
     public function readRecordByParentId($model, $modelName, $parentField, $id = null, $withField = null)
     {
         try {
