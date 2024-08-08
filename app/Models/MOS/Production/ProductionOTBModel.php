@@ -27,6 +27,8 @@ class ProductionOTBModel extends Model
         'created_by_id',
         'updated_by_id',
         'status',
+        'produced_items_count',
+        'received_items_count',
     ];
 
     public function productionOrder()
