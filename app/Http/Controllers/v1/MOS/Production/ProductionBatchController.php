@@ -64,9 +64,13 @@ class ProductionBatchController extends Controller
     {
         try {
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
-            $productionToBakeAssemble = isset($fields['production_otb_id'])
-                ? ProductionOTBModel::find($fields['production_otb_id'])
-                : ProductionOTAModel::find($fields['production_ota_id']);
+            $modelClass = isset($fields['production_otb_id'])
+                ? ProductionOTBModel::class
+                : ProductionOTAModel::class;
+
+            $productionToBakeAssemble = $modelClass::find(
+                $fields['production_otb_id'] ?? $fields['production_ota_id']
+            );
             $productionType = $productionBatch->production_otb_id ? 0 : 1;
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
             $primaryPackingSize = intval($itemMasterdata->primary_item_packing_size) > 0 ? intval($itemMasterdata->primary_item_packing_size) : 1;
@@ -135,12 +139,16 @@ class ProductionBatchController extends Controller
             $toBeAddedQuantity = json_decode($fields['quantity'], true);
 
             foreach ($toBeAddedQuantity as $key => $value) {
-                $productionBatchCurrent[$key] = $productionBatchCurrent[$key] + $value;
+                $productionBatchCurrent[$key] += $value;
             }
             $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->quantity = json_encode($productionBatchCurrent);
             $productionBatch->save();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 1);
+
+            $productionToBakeAssemble->produced_items_count += count($addedProducedItem);
+            $productionToBakeAssemble->save();
+            $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             $data = [
                 'item_name' => $itemMasterdata->description,
                 'production_batch' => $productionBatch,
@@ -259,10 +267,14 @@ class ProductionBatchController extends Controller
             } else {
                 $secondaryValue = $primaryValue;
             }
-            $productionToBakeAssemble = $productionBatch->production_otb_id
-                ? ProductionOTBModel::find($productionBatch->production_otb_id)
-                : ProductionOTAModel::find($productionBatch->production_ota_id);
+            $modelClass = $productionBatch->production_otb_id
+                ? ProductionOTBModel::class
+                : ProductionOTAModel::class;
 
+            $productionToBakeAssemble = $modelClass::find(
+                $productionBatch->production_otb_id
+                ?? $productionBatch->production_ota_id
+            );
             $productionType = $productionBatch->production_otb_id ? 0 : 1;
 
             $itemMasterdata = ItemMasterdataModel::where('item_code', $productionToBakeAssemble->item_code)->first();
@@ -314,6 +326,11 @@ class ProductionBatchController extends Controller
             $this->onPrintHistory($productionBatch->id, $producedItemsArray, $fields);
             $productionBatch->production_item_id = $productionItems->id;
             $productionBatch->save();
+
+            $productionToBakeAssemble->produced_items_count += count($producedItemsArray);
+            $productionToBakeAssemble->save();
+            $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 0);
+
             return $productionItems;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

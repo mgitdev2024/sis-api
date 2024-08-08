@@ -179,6 +179,10 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceiving->save();
                     $this->createWarehouseLog(ProductionItemModel::class, $produceItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $fields['created_by_id'], 1);
 
+                    $productionToBakeAssemble = $productionBatch->productionOta ?? $productionBatch->productionOtb;
+                    $productionToBakeAssemble->received_items_count += 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog(get_class($productionToBakeAssemble), $productionToBakeAssemble->id, $producedItems[$value['sticker_no']], $fields['created_by_id'], 1, $value['sticker_no']);
                 }
                 unset($value);
             }
@@ -195,7 +199,6 @@ class WarehousePutAwayController extends Controller
             $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $fields['created_by_id'], 0);
 
         } catch (Exception $exception) {
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
 

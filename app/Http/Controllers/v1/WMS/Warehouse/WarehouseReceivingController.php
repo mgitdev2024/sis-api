@@ -393,6 +393,12 @@ class WarehouseReceivingController extends Controller
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
                 $producedItems = json_decode($productionItemModel->produced_items, true);
                 foreach ($warehouseReceivingProducedItems as $stickerNumber => &$itemDetails) {
+                    $productionBatch = ProductionBatchModel::find($producedItems[$stickerNumber]['bid']);
+                    $productionToBakeAssemble = $productionBatch->productionOta ?? $productionBatch->productionOtb;
+                    $productionToBakeAssemble->received_items_count += 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog(get_class($productionToBakeAssemble), $productionToBakeAssemble->id, $producedItems[$stickerNumber], $fields['created_by_id'], 1, $stickerNumber);
+
                     $itemDetails['status'] = 3;
                     $producedItems[$stickerNumber]['status'] = 3;
                     $itemsInQueue[$stickerNumber] = $producedItems[$stickerNumber];
