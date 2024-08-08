@@ -211,9 +211,11 @@ class ProductionOrderController extends Controller
 
             if ($itemMasterDataCounter > 0) {
                 DB::commit();
+                return $this->dataResponse('success', 200, $message, $response);
+            } else {
+                return $this->dataResponse('error', 200, 'No Item Masterdata found.');
             }
 
-            return $this->dataResponse('success', 200, $message, $response);
 
         } catch (\Exception $exception) {
             DB::rollBack();

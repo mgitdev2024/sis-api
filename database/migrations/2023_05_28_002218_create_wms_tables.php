@@ -251,8 +251,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('sub_location_id');
             $table->integer('layer_level');
             $table->integer('storage_remaining_space')->nullable();
-            $table->integer('initial_stock')->nullable();
-            $table->integer('final_stock')->nullable();
+            // $table->integer('initial_stock')->nullable();
+            // $table->integer('final_stock')->nullable();
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');

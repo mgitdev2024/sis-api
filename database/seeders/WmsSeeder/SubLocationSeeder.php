@@ -611,7 +611,7 @@ class SubLocationSeeder extends Seeder
         ];
         #endregion
 
-        $subLocations = array_merge($ambientTemporaryStorage, $ambientPermanentStorage);
+        $subLocations = array_merge($ambientTemporaryStorage);
 
         $createdById = 0000;
 
