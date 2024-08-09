@@ -23,11 +23,11 @@ class PrintHistoryModel extends Model
 
     public function productionBatch()
     {
-        return $this->belongsTo(ProductionBatchModel::class);
+        return $this->belongsTo(ProductionBatchModel::class, 'production_batch_id');
     }
 
     public function itemDisposition()
     {
-        return $this->belongsTo(ItemDispositionModel::class);
+        return $this->belongsTo(ItemDispositionModel::class, 'item_disposition_id');
     }
 }
