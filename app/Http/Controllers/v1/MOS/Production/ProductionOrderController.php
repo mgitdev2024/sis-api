@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
+use App\Models\History\PrintHistoryModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\MOS\Production\ProductionOrderModel;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
 use Illuminate\Validation\Rule;
+use Exception;
 
 class ProductionOrderController extends Controller
 {
@@ -217,7 +219,7 @@ class ProductionOrderController extends Controller
             }
 
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }

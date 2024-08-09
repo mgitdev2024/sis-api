@@ -3,6 +3,7 @@
 namespace App\Models\MOS\Production;
 
 use App\Models\CredentialModel;
+use App\Models\History\PrintHistoryModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -48,6 +49,11 @@ class ProductionBatchModel extends Model
     public function productionItems()
     {
         return $this->belongsTo(ProductionItemModel::class, 'production_item_id');
+    }
+
+    public function printHistory()
+    {
+        return $this->hasMany(PrintHistoryModel::class, 'production_batch_id');
     }
 
     public function getBatchTypeLabelAttribute()
