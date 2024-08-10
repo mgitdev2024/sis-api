@@ -31,6 +31,11 @@ class ProductionOrderModel extends Model
         return $this->hasMany(ProductionOTBModel::class, 'production_order_id', 'id');
     }
 
+    public function productionBatch()
+    {
+        return $this->hasMany(ProductionBatchModel::class, 'production_order_id', 'id');
+    }
+
     public function getStatusLabelAttribute()
     {
         return $this->status == 1 ? 'Complete' : 'Pending';

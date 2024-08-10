@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Http\Controllers\v1\History\PrintHistoryController;
 use App\Models\MOS\Production\ProductionOTAModel;
+use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Http\Request;
@@ -176,7 +178,8 @@ class ProductionOTAController extends Controller
                 ->first();
 
             if ($itemDisposition) {
-                $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+                $productionBatchModel = ProductionBatchModel::find($itemDisposition->production_batch_id);
+                $producedItemModel = $productionBatchModel->productionItems;
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
@@ -190,6 +193,15 @@ class ProductionOTAController extends Controller
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+
+                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                    $modelClass = $productionBatchModel->productionOtb
+                        ? ProductionOTBModel::class
+                        : ProductionOTAModel::class;
+
+                    $productionToBakeAssemble->produced_items_count -= 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                 }
 
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
