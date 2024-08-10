@@ -24,12 +24,18 @@ class ItemDispositionModel extends Model
         'production_status',
         'action',
         'aging_period',
+        'fulfilled_batch_id',
         'created_by_id',
         'updated_by_id'
     ];
     public function productionBatch()
     {
-        return $this->belongsTo(ProductionBatchModel::class);
+        return $this->belongsTo(ProductionBatchModel::class, 'production_batch_id');
+    }
+
+    public function fulfilledBatch()
+    {
+        return $this->belongsTo(ProductionBatchModel::class, 'fulfilled_batch_id');
     }
 
     public function getItemVariantLabelAttribute()
