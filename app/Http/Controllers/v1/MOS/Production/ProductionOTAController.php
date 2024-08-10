@@ -183,12 +183,6 @@ class ProductionOTAController extends Controller
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
-                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-                $itemDisposition->fulfilled_at = now();
-                $itemDisposition->production_status = 0;
-                $itemDisposition->action = $itemStatus;
-                $itemDisposition->save();
-                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
@@ -211,6 +205,7 @@ class ProductionOTAController extends Controller
                 if (isset($fields['frozen_exp_date'])) {
                     $producedItems[$itemDisposition->item_key]['new_frozen_exp_date'] = $fields['frozen_exp_date'];
                 }
+
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
@@ -247,6 +242,14 @@ class ProductionOTAController extends Controller
                         'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch'],
                         'batch_origin' => $itemDisposition->production_batch_id,
                     ];
+
+                    $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                    $itemDisposition->fulfilled_at = now();
+                    $itemDisposition->production_status = 0;
+                    $itemDisposition->action = $itemStatus;
+                    $itemDisposition->fulfilled_batch_id = json_decode($productionItem->content(), true)['success']['data']['production_batch']['id'];
+                    $itemDisposition->save();
+                    $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 }
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
