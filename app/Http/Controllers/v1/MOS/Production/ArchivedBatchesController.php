@@ -57,8 +57,13 @@ class ArchivedBatchesController extends Controller
             $modelClass = $productionBatch->productionOtb
                 ? ProductionOTBModel::class
                 : ProductionOTAModel::class;
-
-            $productionToBakeAssemble->produced_items_count -= count(json_decode($producedItems->produced_items));
+            $activeStickers = 0;
+            foreach (json_decode($producedItems->produced_items, true) as $value) {
+                if ($value['sticker_status'] == 1) {
+                    $activeStickers++;
+                }
+            }
+            $productionToBakeAssemble->produced_items_count -= $activeStickers;
             $productionToBakeAssemble->save();
             $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 2);
