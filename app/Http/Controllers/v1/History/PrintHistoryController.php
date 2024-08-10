@@ -74,22 +74,36 @@ class PrintHistoryController extends Controller
 
 
 
-    public function onGetPrintedDetails(Request $request, $production_order_id = null)
+    public function onGetPrintedDetails(Request $request, $filter = null)
     {
         $fields = $request->validate([
             'omg_token' => 'required|string'
         ]);
         try {
-            $productionOrderId = $production_order_id != null ? $production_order_id : ProductionOrderModel::latest()->value('id');
+            $whereFields = [];
+            $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+            if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
+                $whereFields['production_date'] = $filter;
+            } elseif ($filter) {
+                $filter != null ? $whereFields['id'] = $filter : "";
+            } else {
+                $today = new \DateTime('today');
+                $whereFields['production_date'] = $today->format('Y-m-d');
+                $whereFields['status'] = 0;
+            }
+
             $printHistoryModel = PrintHistoryModel::with('productionBatch.productionOrder')
-                ->whereHas('productionBatch.productionOrder', function ($query) use ($productionOrderId) {
-                    $query->where('id', $productionOrderId);
+                ->whereHas('productionBatch.productionOrder', function ($query) use ($whereFields) {
+                    foreach ($whereFields as $key => $value) {
+                        $query->where($key, $value);
+                    }
                 })
                 ->where([
                     'is_reprint' => 0
                 ])
                 ->get();
             $response = [];
+
             foreach ($printHistoryModel as $printHistory) {
                 $productionBatch = $printHistory->productionBatch;
                 $productionToBakeAssemble = $productionBatch->productionOta ?? $productionBatch->productionOtb;

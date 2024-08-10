@@ -129,7 +129,8 @@ class ProductionOTBController extends Controller
             DB::beginTransaction();
             $itemDisposition = ItemDispositionModel::where('id', $id)->where('production_status', 1)->first();
             if ($itemDisposition) {
-                $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+                $productionBatchModel = ProductionBatchModel::find($itemDisposition->production_batch_id);
+                $producedItemModel = $productionBatchModel->productionItems;
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
@@ -143,6 +144,14 @@ class ProductionOTBController extends Controller
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                    $modelClass = $productionBatchModel->productionOtb
+                        ? ProductionOTBModel::class
+                        : ProductionOTAModel::class;
+
+                    $productionToBakeAssemble->produced_items_count -= 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                 }
                 $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;

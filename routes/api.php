@@ -316,7 +316,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/history/print/paginated', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPaginatedList']);
     Route::get('v1/history/print/all', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetAll']);
     Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetById']);
-    Route::post('v1/history/print/production/get/{production_order_id?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPrintedDetails']);
+    Route::post('v1/history/print/production/get/{filter?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPrintedDetails']);
     #endregion
 
     #region Item Disposition
