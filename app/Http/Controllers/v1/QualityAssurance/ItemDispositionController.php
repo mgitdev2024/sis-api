@@ -115,6 +115,7 @@ class ItemDispositionController extends Controller
                     $statusItem = $items['status'];
                     $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
                     if ($checkIfTriggerReviewedStatus) {
+                        $isTriggeredReviewedStatus = true;
                         $triggeredReviewedStatusCount++;
                         $items['status'] = 10;
                         $items['sticker_status'] = 0;
