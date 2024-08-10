@@ -5,6 +5,8 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOTAModel;
+use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use Illuminate\Http\Request;
 use Exception;
@@ -105,12 +107,16 @@ class ItemDispositionController extends Controller
             $productionBatch = ProductionBatchModel::find($id);
             $productionItems = $productionBatch->productionItems;
             $productionItemsArr = json_decode($productionItems->produced_items, true);
+            $isTriggeredReviewedStatus = false;
+            $triggeredReviewedStatusCount = 0;
             DB::beginTransaction();
             if ($productionBatch) {
                 foreach ($productionItemsArr as $itemKey => &$items) {
                     $statusItem = $items['status'];
                     $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
                     if ($checkIfTriggerReviewedStatus) {
+                        $isTriggeredReviewedStatus = true;
+                        $triggeredReviewedStatusCount++;
                         $items['status'] = 10;
                         $items['sticker_status'] = 0;
                         $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $items, $createdById, 1, $itemKey);
@@ -137,6 +143,17 @@ class ItemDispositionController extends Controller
                 }
                 $productionItems->produced_items = json_encode($productionItemsArr);
                 $productionItems->save();
+
+                if ($isTriggeredReviewedStatus) {
+                    $productionToBakeAssemble = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                    $modelClass = $productionBatch->productionOtb
+                        ? ProductionOTBModel::class
+                        : ProductionOTAModel::class;
+
+                    $productionToBakeAssemble->produced_items_count -= $triggeredReviewedStatusCount;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
+                }
                 DB::commit();
                 return $this->dataResponse('success', 200, 'Item Disposition ' . __('msg.update_success'));
             } else {

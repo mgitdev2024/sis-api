@@ -79,7 +79,7 @@ class ProductionOrderController extends Controller
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
@@ -262,6 +262,11 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_found'), $response);
         }
         return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
+    }
+
+    public function onAlignProductionCount()
+    {
+
     }
 }
 
