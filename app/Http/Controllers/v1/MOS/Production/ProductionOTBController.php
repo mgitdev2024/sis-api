@@ -93,12 +93,12 @@ class ProductionOTBController extends Controller
                     $query->whereIn('item_code', $includedItemCode)
                         ->orWhere(function ($query) {
                             $query->where('production_type', 0)
-                                ->where('production_status', 1)
+                                // ->where('production_status', 1)
                                 ->whereNotNull('action')
                                 ->where('is_printed', 0);
                         });
                 })
-                ->where('production_status', 1)
+                // ->where('production_status', 1)
                 ->whereNotNull('action')
                 ->where('action', '!=', 10)
                 ->where('is_printed', 0);
@@ -197,7 +197,8 @@ class ProductionOTBController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
+                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch'],
+                        'batch_origin' => $itemDisposition->production_batch_id,
                     ];
                 }
 

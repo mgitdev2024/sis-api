@@ -263,6 +263,11 @@ class ProductionOrderController extends Controller
         }
         return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
     }
+
+    public function onAlignProductionCount()
+    {
+
+    }
 }
 
 
