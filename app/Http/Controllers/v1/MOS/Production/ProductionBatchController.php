@@ -51,7 +51,6 @@ class ProductionBatchController extends Controller
             } else {
                 $batch = $this->onInitialBatch($fields);
             }
-
             DB::commit();
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.create_success'), $batch);
         } catch (Exception $exception) {
@@ -218,7 +217,6 @@ class ProductionBatchController extends Controller
             $productionBatch->status = 0;
             $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
             $productionBatch->save();
-
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
             $data = [
@@ -251,7 +249,6 @@ class ProductionBatchController extends Controller
     public function onInitialProducedItems($productionBatch, $batchType, $endorsedQA, $fields)
     {
         try {
-
             $quantity = json_decode($productionBatch->quantity, true);
             $data = $quantity;
             $keys = array_keys($data);
