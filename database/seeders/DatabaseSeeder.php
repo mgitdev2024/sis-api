@@ -34,10 +34,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         #region Admin Seeder
-        // $this->call([
-        //     AssetListSeeder::class,
-        // ]);
+        $this->call([
+            AssetListSeeder::class,
+        ]);
         #endregion
+
         #region Credential Seeder
         $this->call([
             CredentialSeeder::class,
