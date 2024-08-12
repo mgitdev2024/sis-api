@@ -286,7 +286,7 @@ class ProductionOrderController extends Controller
                     $productionToBakeAssemble->update();
                 }
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), $productionOrder);
+                return $this->dataResponse('success', 200, __('msg.update_success'));
             } else {
                 return $this->dataResponse('error', 200, 'Production Order  ' . __('msg.record_not_found'));
             }
