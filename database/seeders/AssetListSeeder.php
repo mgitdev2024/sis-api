@@ -15,138 +15,28 @@ class AssetListSeeder extends Seeder
     public function run()
     {
 
-        $assetLists = [
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/w1kCZreXESHXIi0wQIWu0C8TnaYCLsvljr2SHgWu.mp4",
-                "keyword" => "PPIC - HOW TO IMPORT ORDERS",
-                "file_path" => "public/assets/mos/video_tutorials/supply_planner",
-                "original_file_name" => "PPIC - HOW TO IMPORT ORDERS.mp4",
-                "altered_file_name" => "w1kCZreXESHXIi0wQIWu0C8TnaYCLsvljr2SHgWu.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/ffNIykvnlnIJSYmnKkDiaHvJdVunss6534YQ6dyJ.mp4",
-                "keyword" => "PPIC - HOW TO BACKTRACK THE ORDERS",
-                "file_path" => "public/assets/mos/video_tutorials/supply_planner",
-                "original_file_name" => "PPIC - HOW TO BACKTRACK THE ORDERS.mp4",
-                "altered_file_name" => "ffNIykvnlnIJSYmnKkDiaHvJdVunss6534YQ6dyJ.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/mREbqMv5DZCdatmeueKIqZ4gfIDx1gCSx9vMYcSy.mp4",
-                "keyword" => "PPIC - HOW TO FILTER, SORT & SEARCH",
-                "file_path" => "public/assets/mos/video_tutorials/supply_planner",
-                "original_file_name" => "PPIC - HOW TO FILTER, SORT & SEARCH.mp4",
-                "altered_file_name" => "mREbqMv5DZCdatmeueKIqZ4gfIDx1gCSx9vMYcSy.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/vi0eOWHadV5aBghahdw2XuafStZ9ZQgxlT6VvPWA.mp4",
-                "keyword" => "PPIC - REOPEN AND TAG ORDER AS COMPLETED",
-                "file_path" => "public/assets/mos/video_tutorials/supply_planner",
-                "original_file_name" => "PPIC - REOPEN AND TAG ORDER AS COMPLETED.mp4",
-                "altered_file_name" => "vi0eOWHadV5aBghahdw2XuafStZ9ZQgxlT6VvPWA.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/4S8DUwQEWmTPuaxBuBM5lJqIq1GxGeHaxnrT06nw.mp4",
-                "keyword" => "PPIC - HOW TO MONITOR THE PRODUCTION ORDER",
-                "file_path" => "public/assets/mos/video_tutorials/supply_planner",
-                "original_file_name" => "PPIC - HOW TO MONITOR THE PRODUCTION ORDER.mp4",
-                "altered_file_name" => "4S8DUwQEWmTPuaxBuBM5lJqIq1GxGeHaxnrT06nw.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/l9504xk54PmFuRUp18WsquM9WJhAgyPsjAscImyL.mp4",
-                "keyword" => "TL -HOW TO CREATE AND PRINT BATCH STICKERS",
-                "file_path" => "public/assets/mos/video_tutorials/team_leader",
-                "original_file_name" => "TL -HOW TO CREATE AND PRINT BATCH STICKERS.mp4",
-                "altered_file_name" => "l9504xk54PmFuRUp18WsquM9WJhAgyPsjAscImyL.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/qgeT5Awq6ZJQr6XFKEeyc697abKXzp5gaH8PicEY.mp4",
-                "keyword" => "TL - HOW TO REPRINT BATCH STICKERS",
-                "file_path" => "public/assets/mos/video_tutorials/team_leader",
-                "original_file_name" => "TL - HOW TO REPRINT BATCH STICKERS.mp4",
-                "altered_file_name" => "qgeT5Awq6ZJQr6XFKEeyc697abKXzp5gaH8PicEY.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/k2aIkV9IH0crEdEAnPoiMq3N5qdPbnLIb7At8hHq.mp4",
-                "keyword" => "TL - HOW TO PROCESS ITEMS ENDORSED BY QA",
-                "file_path" => "public/assets/mos/video_tutorials/team_leader",
-                "original_file_name" => "TL - HOW TO PROCESS ITEMS ENDORSED BY QA.mp4",
-                "altered_file_name" => "k2aIkV9IH0crEdEAnPoiMq3N5qdPbnLIb7At8hHq.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/cbqXuj8nLWL5C82r9N67x7xWqvTORQlwaptx4jnl.mp4",
-                "keyword" => "TL - HOW TO DEACTIVATE STICKER",
-                "file_path" => "public/assets/mos/video_tutorials/team_leader",
-                "original_file_name" => "TL - HOW TO DEACTIVATE STICKER.mp4",
-                "altered_file_name" => "cbqXuj8nLWL5C82r9N67x7xWqvTORQlwaptx4jnl.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/bCa1YQU9jJt6JDMFJgFzNjRaTMHodCZ22k6ynJZA.mp4",
-                "keyword" => "TL - HOW TO ADD ADDITIONAL STICKER QUANTITY",
-                "file_path" => "public/assets/mos/video_tutorials/team_leader",
-                "original_file_name" => "TL - HOW TO ADD ADDITIONAL STICKER QUANTITY.mp4",
-                "altered_file_name" => "bCa1YQU9jJt6JDMFJgFzNjRaTMHodCZ22k6ynJZA.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/CbLCiNoo4roTvEfgKliVZuUA6KD191TanLN6YJKy.mp4",
-                "keyword" => "LINE STAFF - HOW TO DECLARE SUBSTANDARD ITEMS",
-                "file_path" => "public/assets/mos/video_tutorials/line_staff",
-                "original_file_name" => "LINE STAFF - HOW TO DECLARE SUBSTANDARD ITEMS.mp4",
-                "altered_file_name" => "CbLCiNoo4roTvEfgKliVZuUA6KD191TanLN6YJKy.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/JNSoMusRFkxN1Qm8Z8pVWPFKr10FmJ3sP5q7rtPH.mp4",
-                "keyword" => "LINE STAFF - HOW TO TRANSFER SCANNED ITEMS TO WAREHOUSE",
-                "file_path" => "public/assets/mos/video_tutorials/line_staff",
-                "original_file_name" => "LINE STAFF - HOW TO TRANSFER SCANNED ITEMS TO WAREHOUSE.mp4",
-                "altered_file_name" => "JNSoMusRFkxN1Qm8Z8pVWPFKr10FmJ3sP5q7rtPH.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/idkFdywA71Q5gRrFEuTdfnNCvDlJyWk0Zh5GE0oO.mp4",
-                "keyword" => "LINE STAFF - HOW TO TRANSFER THE PAHABOL ITEMS",
-                "file_path" => "public/assets/mos/video_tutorials/line_staff",
-                "original_file_name" => "LINE STAFF - HOW TO TRANSFER THE PAHABOL ITEMS.mp4",
-                "altered_file_name" => "idkFdywA71Q5gRrFEuTdfnNCvDlJyWk0Zh5GE0oO.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/CnI3I7zU2n6oAczZ3aLH3TzUNp2ohXeK9monBkD1.mp4",
-                "keyword" => "QA - HOW TO TAG FOR DISPOSITION OF ITEMS",
-                "file_path" => "public/assets/mos/video_tutorials/quality_assurance",
-                "original_file_name" => "QA - HOW TO TAG FOR DISPOSITION OF ITEMS.mp4",
-                "altered_file_name" => "CnI3I7zU2n6oAczZ3aLH3TzUNp2ohXeK9monBkD1.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/EcKCkspRf7gLV8XahADR3ExjSlOlEUsogbnKNwDM.mp4",
-                "keyword" => "QA - HOW TO TAG ITEMS AS FOR INVESTIGATION",
-                "file_path" => "public/assets/mos/video_tutorials/quality_assurance",
-                "original_file_name" => "QA - HOW TO TAG ITEMS AS FOR INVESTIGATION.mp4",
-                "altered_file_name" => "EcKCkspRf7gLV8XahADR3ExjSlOlEUsogbnKNwDM.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/YyZIMBb7TBev6lDP27bevsyfvvSB769snDto4Rlx.mp4",
-                "keyword" => "QA - HOW TO TAG ITEMS AS FOR SAMPLING",
-                "file_path" => "public/assets/mos/video_tutorials/quality_assurance",
-                "original_file_name" => "QA - HOW TO TAG ITEMS AS FOR SAMPLING.mp4",
-                "altered_file_name" => "YyZIMBb7TBev6lDP27bevsyfvvSB769snDto4Rlx.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/zxust9GoTvoQeZIayaTFFi7r6pU9PqunV26mgwo3.mp4",
-                "keyword" => "QA - TAGGING OF ITEMS ON HOLD AND FOR RELEASE",
-                "file_path" => "public/assets/mos/video_tutorials/quality_assurance",
-                "original_file_name" => "QA - TAGGING OF ITEMS ON HOLD AND FOR RELEASE.mp4",
-                "altered_file_name" => "zxust9GoTvoQeZIayaTFFi7r6pU9PqunV26mgwo3.mp4"
-            ],
-            [
-                "file" => "https://mos-api-test.onemarygrace.com/storage/assets/mos/video_tutorials/warehouse/f08OpPPmCpGidPJcx9AENFWtcIbLdQ2YtmIE2snL.mp4",
-                "keyword" => "WAREHOUSE - HOW TO RECEIVE THE ITEMS",
-                "file_path" => "public/assets/mos/video_tutorials/warehouse",
-                "original_file_name" => "WAREHOUSE - HOW TO RECEIVE THE ITEMS.mp4",
-                "altered_file_name" => "f08OpPPmCpGidPJcx9AENFWtcIbLdQ2YtmIE2snL.mp4"
-            ]
+        $adminAssetList = [
+            ['id' => '1', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/DIyQ3CuEBiYa2Ql7zARFylYHbSEIhQmL2pan9QAL.mp4', 'keyword' => 'LINE STAFF - HOW TO DECLARE SUBSTANDARD ITEMS', 'file_path' => 'public/assets/mos/video_tutorials/line_staff', 'original_file_name' => 'LINE STAFF - HOW TO DECLARE SUBSTANDARD ITEMS.mp4', 'altered_file_name' => 'DIyQ3CuEBiYa2Ql7zARFylYHbSEIhQmL2pan9QAL.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:49:00', 'updated_at' => '2024-08-12 07:49:00'],
+            ['id' => '2', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/Z7qUZK2ZGyabshPXWrSVoquw5N23wBtYCLnGQfHr.mp4', 'keyword' => 'LINE STAFF - HOW TO TRANSFER SCANNED ITEMS TO WAREHOUSE', 'file_path' => 'public/assets/mos/video_tutorials/line_staff', 'original_file_name' => 'LINE STAFF - HOW TO TRANSFER SCANNED ITEMS TO WAREHOUSE.mp4', 'altered_file_name' => 'Z7qUZK2ZGyabshPXWrSVoquw5N23wBtYCLnGQfHr.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:50:01', 'updated_at' => '2024-08-12 07:50:01'],
+            ['id' => '3', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/line_staff/7LrN2Fo06OdAzIWmQnyx6otm5OeI3QruWfCqnx2U.mp4', 'keyword' => 'LINE STAFF - HOW TO TRANSFER THE PAHABOL ITEMS', 'file_path' => 'public/assets/mos/video_tutorials/line_staff', 'original_file_name' => 'LINE STAFF - HOW TO TRANSFER THE PAHABOL ITEMS.mp4', 'altered_file_name' => '7LrN2Fo06OdAzIWmQnyx6otm5OeI3QruWfCqnx2U.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:50:23', 'updated_at' => '2024-08-12 07:50:23'],
+            ['id' => '4', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/XVNWRNmpHAMESNFRBMr4ERvZAQ573VgrCdP6vvxJ.mp4', 'keyword' => 'QA - HOW TO TAG FOR DISPOSITION OF ITEMS', 'file_path' => 'public/assets/mos/video_tutorials/quality_assurance', 'original_file_name' => 'QA - HOW TO TAG FOR DISPOSITION OF ITEMS.mp4', 'altered_file_name' => 'XVNWRNmpHAMESNFRBMr4ERvZAQ573VgrCdP6vvxJ.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:52:06', 'updated_at' => '2024-08-12 07:52:06'],
+            ['id' => '5', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/V1i4s4bU3Ue656zvTNcIH99Hx0v7YnZhUrstROQs.mp4', 'keyword' => 'QA - HOW TO TAG ITEMS AS FOR INVESTIGATION', 'file_path' => 'public/assets/mos/video_tutorials/quality_assurance', 'original_file_name' => 'QA - HOW TO TAG ITEMS AS FOR INVESTIGATION.mp4', 'altered_file_name' => 'V1i4s4bU3Ue656zvTNcIH99Hx0v7YnZhUrstROQs.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:53:51', 'updated_at' => '2024-08-12 07:53:51'],
+            ['id' => '6', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/8D0k9Ul7dq7Ra2nc2ZvLRjONDr1D1jxhFtF82iDi.mp4', 'keyword' => 'QA - HOW TO TAG ITEMS AS FOR SAMPLING', 'file_path' => 'public/assets/mos/video_tutorials/quality_assurance', 'original_file_name' => 'QA - HOW TO TAG ITEMS AS FOR SAMPLING.mp4', 'altered_file_name' => '8D0k9Ul7dq7Ra2nc2ZvLRjONDr1D1jxhFtF82iDi.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:54:14', 'updated_at' => '2024-08-12 07:54:14'],
+            ['id' => '7', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/quality_assurance/axkOaTf7X7SWsFEVZDonMKQOxFTMIgghZie9m9wC.mp4', 'keyword' => 'QA - TAGGING OF ITEMS ON HOLD AND FOR RELEASE', 'file_path' => 'public/assets/mos/video_tutorials/quality_assurance', 'original_file_name' => 'QA - TAGGING OF ITEMS ON HOLD AND FOR RELEASE.mp4', 'altered_file_name' => 'axkOaTf7X7SWsFEVZDonMKQOxFTMIgghZie9m9wC.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 07:54:31', 'updated_at' => '2024-08-12 07:54:31'],
+            ['id' => '8', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/eIT2Jr5cchnUzjbLZSo2hpZZ3yMwzcAamQ9CYBP9.mp4', 'keyword' => 'PPIC  - HOW TO IMPORT ORDERS', 'file_path' => 'public/assets/mos/video_tutorials/supply_planner', 'original_file_name' => 'PPIC  - HOW TO IMPORT ORDERS.mp4', 'altered_file_name' => 'eIT2Jr5cchnUzjbLZSo2hpZZ3yMwzcAamQ9CYBP9.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:19:31', 'updated_at' => '2024-08-12 23:19:31'],
+            ['id' => '9', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/BgarxQgJMAvLTNUeF9PnCxL8qfjLStiXIlRRjmAJ.mp4', 'keyword' => 'PPIC - HOW TO BACKTRACK THE ORDERS', 'file_path' => 'public/assets/mos/video_tutorials/supply_planner', 'original_file_name' => 'PPIC - HOW TO BACKTRACK THE ORDERS.mp4', 'altered_file_name' => 'BgarxQgJMAvLTNUeF9PnCxL8qfjLStiXIlRRjmAJ.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:19:47', 'updated_at' => '2024-08-12 23:19:47'],
+            ['id' => '10', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/fjKJdYgCCCIIOz8qVLHTpsYMJlSO2NiFYoJhHZ4c.mp4', 'keyword' => 'PPIC - HOW TO FILTER, SORT & SEARCH', 'file_path' => 'public/assets/mos/video_tutorials/supply_planner', 'original_file_name' => 'PPIC - HOW TO FILTER, SORT & SEARCH.mp4', 'altered_file_name' => 'fjKJdYgCCCIIOz8qVLHTpsYMJlSO2NiFYoJhHZ4c.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:20:03', 'updated_at' => '2024-08-12 23:20:03'],
+            ['id' => '11', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/BYzIYPSzMPQ3O3tbN7lT7YnxNfL1gMRjSTLjjLhE.mp4', 'keyword' => 'PPIC - HOW TO MONITOR THE PRODUCTION ORDER', 'file_path' => 'public/assets/mos/video_tutorials/supply_planner', 'original_file_name' => 'PPIC - HOW TO MONITOR THE PRODUCTION ORDER.mp4', 'altered_file_name' => 'BYzIYPSzMPQ3O3tbN7lT7YnxNfL1gMRjSTLjjLhE.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:20:12', 'updated_at' => '2024-08-12 23:20:12'],
+            ['id' => '12', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/supply_planner/Km6RysQOioVT4kgdn62wuTx5JnTIwCZBQOgJeXqV.mp4', 'keyword' => 'PPIC - REOPEN AND TAG ORDER AS COMPLETED', 'file_path' => 'public/assets/mos/video_tutorials/supply_planner', 'original_file_name' => 'PPIC - REOPEN AND TAG ORDER AS COMPLETED.mp4', 'altered_file_name' => 'Km6RysQOioVT4kgdn62wuTx5JnTIwCZBQOgJeXqV.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:20:24', 'updated_at' => '2024-08-12 23:20:24'],
+            ['id' => '13', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/kCdk2HaVDbQavmnyIhcVRE0fglLxQZgvmJQXrWlH.mp4', 'keyword' => 'TL - HOW TO ADD ADDITIONAL STICKER QUANTITY', 'file_path' => 'public/assets/mos/video_tutorials/team_leader', 'original_file_name' => 'TL - HOW TO ADD ADDITIONAL STICKER QUANTITY.mp4', 'altered_file_name' => 'kCdk2HaVDbQavmnyIhcVRE0fglLxQZgvmJQXrWlH.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:21:26', 'updated_at' => '2024-08-12 23:21:26'],
+            ['id' => '14', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/5xnWP1gWS2d9X6Ngjx5hggFZTnKaRBlC9gT1DAPn.mp4', 'keyword' => 'TL - HOW TO DEACTIVATE STICKER', 'file_path' => 'public/assets/mos/video_tutorials/team_leader', 'original_file_name' => 'TL - HOW TO DEACTIVATE STICKER.mp4', 'altered_file_name' => '5xnWP1gWS2d9X6Ngjx5hggFZTnKaRBlC9gT1DAPn.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:21:33', 'updated_at' => '2024-08-12 23:21:33'],
+            ['id' => '15', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/Pc9vc49qW0hxZfpLZO5dZrwt5IoJpipAkg1YQOQN.mp4', 'keyword' => 'TL - HOW TO PROCESS ITEMS ENDORSED BY QA', 'file_path' => 'public/assets/mos/video_tutorials/team_leader', 'original_file_name' => 'TL - HOW TO PROCESS ITEMS ENDORSED BY QA.mp4', 'altered_file_name' => 'Pc9vc49qW0hxZfpLZO5dZrwt5IoJpipAkg1YQOQN.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:21:40', 'updated_at' => '2024-08-12 23:21:40'],
+            ['id' => '16', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/MV9dP5jmmJaHPVvRGMoiwVNkxVsMVK4eQBNdMB7D.mp4', 'keyword' => 'TL - HOW TO REPRINT BATCH STICKERS', 'file_path' => 'public/assets/mos/video_tutorials/team_leader', 'original_file_name' => 'TL - HOW TO REPRINT BATCH STICKERS.mp4', 'altered_file_name' => 'MV9dP5jmmJaHPVvRGMoiwVNkxVsMVK4eQBNdMB7D.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:21:48', 'updated_at' => '2024-08-12 23:21:48'],
+            ['id' => '17', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/team_leader/NhJEDf9UbG2PvAm40l6Oy1N8CVyCoUXiMy4MggZw.mp4', 'keyword' => 'TL -HOW TO CREATE AND PRINT BATCH STICKERS', 'file_path' => 'public/assets/mos/video_tutorials/team_leader', 'original_file_name' => 'TL -HOW TO CREATE AND PRINT BATCH STICKERS.mp4', 'altered_file_name' => 'NhJEDf9UbG2PvAm40l6Oy1N8CVyCoUXiMy4MggZw.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:21:55', 'updated_at' => '2024-08-12 23:21:55'],
+            ['id' => '18', 'file' => 'https://mos-api.onemarygrace.com/storage/assets/mos/video_tutorials/warehouse/wOH25uS20Q3MxbiwkCTInbF7vLj5KXvCGo50BxT2.mp4', 'keyword' => 'WAREHOUSE - HOW TO RECEIVE THE ITEMS', 'file_path' => 'public/assets/mos/video_tutorials/warehouse', 'original_file_name' => 'WAREHOUSE - HOW TO RECEIVE THE ITEMS.mp4', 'altered_file_name' => 'wOH25uS20Q3MxbiwkCTInbF7vLj5KXvCGo50BxT2.mp4', 'created_by_id' => '0000', 'created_at' => '2024-08-12 23:22:43', 'updated_at' => '2024-08-12 23:22:43']
         ];
 
-
-
-        foreach ($assetLists as $value) {
+        foreach ($adminAssetList as $value) {
             AssetListModel::create([
                 'created_by_id' => '0000',
                 'file' => $value['file'],
