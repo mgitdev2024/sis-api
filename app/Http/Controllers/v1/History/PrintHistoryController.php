@@ -103,7 +103,7 @@ class PrintHistoryController extends Controller
                 ])
                 ->get();
             $response = [];
-
+            // dd($whereFields);
             foreach ($printHistoryModel as $printHistory) {
                 $productionBatch = $printHistory->productionBatch;
                 $productionToBakeAssemble = $productionBatch->productionOta ?? $productionBatch->productionOtb;
