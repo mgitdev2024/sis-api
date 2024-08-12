@@ -264,9 +264,36 @@ class ProductionOrderController extends Controller
         return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
     }
 
-    public function onAlignProductionCount()
+    public function onAlignProductionCount(Request $request, $production_order_id)
     {
+        try {
+            DB::beginTransaction();
+            $productionOrder = ProductionOrderModel::find($production_order_id);
+            if ($productionOrder) {
+                $productionBatches = ProductionBatchModel::where('production_order_id', $production_order_id)
+                    ->get();
+                $productionItems = [];
+                foreach ($productionBatches as $batch) {
+                    $productionItems = array_merge($productionItems, array_filter(json_decode($batch->productionItems->produced_items, true), function ($item) {
+                        return $item['sticker_status'] == 1;
+                    }));
 
+                    $productionToBakeAssemble = $batch->productionOta ?? $batch->productionOtb;
+                    $productionToBakeAssemble->produced_items_count = count($productionItems);
+                    $productionToBakeAssemble->received_items_count = count(array_filter($productionItems, function ($item) {
+                        return $item['status'] == 3;
+                    }));
+                    $productionToBakeAssemble->update();
+                }
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'), $productionOrder);
+            } else {
+                return $this->dataResponse('error', 200, 'Production Order  ' . __('msg.record_not_found'));
+            }
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.update_failed'));
+        }
     }
 }
 

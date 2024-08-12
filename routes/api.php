@@ -246,6 +246,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
     Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
+    Route::post('v1/production/order/align/{production_order_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAlignProductionCount']);
     #endregion
 
     #region Production OTA
