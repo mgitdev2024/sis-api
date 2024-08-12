@@ -40,7 +40,7 @@ return new class extends Migration {
         Schema::create('mos_production_otbs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('production_order_id');
-            $table->string('delivery_type');
+            $table->string('delivery_type')->nullable();
             $table->string('item_code');
             $table->integer('requested_quantity');
             $table->float('buffer_level');
@@ -55,8 +55,7 @@ return new class extends Migration {
 
             $table->foreign('production_order_id')->references('id')->on('mos_production_orders');
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
-            $table->foreign('delivery_type')->references('code')->on('wms_item_delivery_types');
-
+            // $table->foreign('delivery_type')->references('code')->on('wms_item_delivery_types');
         });
 
         Schema::create('mos_production_batches', function (Blueprint $table) {

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ArchivedBatchesModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOTAModel;
+use App\Models\MOS\Production\ProductionOTBModel;
 use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
@@ -50,6 +52,20 @@ class ArchivedBatchesController extends Controller
                 $record->attachment = $filepath;
             }
             $record->save();
+
+            $productionToBakeAssemble = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+            $modelClass = $productionBatch->productionOtb
+                ? ProductionOTBModel::class
+                : ProductionOTAModel::class;
+            $activeStickers = 0;
+            foreach (json_decode($producedItems->produced_items, true) as $value) {
+                if ($value['sticker_status'] == 1) {
+                    $activeStickers++;
+                }
+            }
+            $productionToBakeAssemble->produced_items_count -= $activeStickers;
+            $productionToBakeAssemble->save();
+            $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 2);
             $this->createProductionLog(ProductionItemModel::class, $producedItems->id, $producedItems->getAttributes(), $fields['created_by_id'], 2);
             $producedItems->delete();

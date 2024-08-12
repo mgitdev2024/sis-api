@@ -46,7 +46,7 @@ class QueuedSubLocationController extends Controller
                     $scannedItems = json_decode($warehouseForPutAway->transfer_items, true);
                 }
                 $this->onUpdatePutAway($warehouseForPutAway, $scannedItems);
-                $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel);
+                $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel, $warehouseForPutAway->warehouse_receiving_reference_number);
                 DB::commit();
             } else {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
@@ -205,7 +205,7 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel)
+    public function onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel, $referenceNumber)
     {
         try {
             $itemsPerBatchArr = [];
@@ -214,6 +214,7 @@ class QueuedSubLocationController extends Controller
                 $batchId = $scannedValue['bid'];
 
                 $flag = $this->onCheckScannedItems($warehouseForPutAwayProductionItems, $stickerNumber, $batchId);
+
                 if ($flag) {
                     $itemsPerBatchArr[$batchId][] = $scannedValue;
                 }
@@ -222,7 +223,7 @@ class QueuedSubLocationController extends Controller
             if (count($itemsPerBatchArr) > 0) {
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId);
+                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
                 }
             }
 

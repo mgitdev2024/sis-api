@@ -93,12 +93,12 @@ class ProductionOTBController extends Controller
                     $query->whereIn('item_code', $includedItemCode)
                         ->orWhere(function ($query) {
                             $query->where('production_type', 0)
-                                ->where('production_status', 1)
+                                // ->where('production_status', 1)
                                 ->whereNotNull('action')
                                 ->where('is_printed', 0);
                         });
                 })
-                ->where('production_status', 1)
+                // ->where('production_status', 1)
                 ->whereNotNull('action')
                 ->where('action', '!=', 10)
                 ->where('is_printed', 0);
@@ -114,7 +114,6 @@ class ProductionOTBController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
-
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',
@@ -129,20 +128,22 @@ class ProductionOTBController extends Controller
             DB::beginTransaction();
             $itemDisposition = ItemDispositionModel::where('id', $id)->where('production_status', 1)->first();
             if ($itemDisposition) {
-                $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
+                $productionBatchModel = ProductionBatchModel::find($itemDisposition->production_batch_id);
+                $producedItemModel = $productionBatchModel->productionItems;
                 $producedItems = json_decode($producedItemModel->produced_items, true);
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
-                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-                $itemDisposition->fulfilled_at = now();
-                $itemDisposition->production_status = 0;
-                $itemDisposition->action = $itemStatus;
-                $itemDisposition->save();
-                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
-
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                    $modelClass = $productionBatchModel->productionOtb
+                        ? ProductionOTBModel::class
+                        : ProductionOTAModel::class;
+
+                    $productionToBakeAssemble->produced_items_count -= 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                 }
                 $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
@@ -157,6 +158,10 @@ class ProductionOTBController extends Controller
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
 
+                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                $itemDisposition->fulfilled_at = now();
+                $itemDisposition->production_status = 0;
+                $itemDisposition->action = $itemStatus;
                 $data = null;
                 if ($itemStatus == 9) {
                     $produceItem = $producedItems[$itemDisposition->item_key];
@@ -188,10 +193,13 @@ class ProductionOTBController extends Controller
 
                     $data = [
                         'produced_items' => json_decode($productionItem->content(), true)['success']['data']['production_item'],
-                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch']
+                        'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch'],
+                        'batch_origin' => $itemDisposition->production_batch_id,
                     ];
+                    $itemDisposition->fulfilled_batch_id = json_decode($productionItem->content(), true)['success']['data']['production_batch']['id'];
                 }
-
+                $itemDisposition->save();
+                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }

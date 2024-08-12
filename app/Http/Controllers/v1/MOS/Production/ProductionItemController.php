@@ -5,6 +5,8 @@ namespace App\Http\Controllers\v1\MOS\Production;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOTAModel;
+use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
@@ -119,6 +121,7 @@ class ProductionItemController extends Controller
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
+            $productionToBakeAssemble = $productionBatch->productionOtb ?? $productionBatch->productionOta;
             $producedItemModel = $productionBatch->productionItems;
             $productionItems = $producedItemModel->produced_items;
             $producedItemArray = json_decode($productionItems, true);
@@ -132,6 +135,13 @@ class ProductionItemController extends Controller
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
 
+            $modelClass = $productionBatch->productionOtb
+                ? ProductionOTBModel::class
+                : ProductionOTAModel::class;
+
+            $productionToBakeAssemble->produced_items_count -= count($scannedItem);
+            $productionToBakeAssemble->save();
+            $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {

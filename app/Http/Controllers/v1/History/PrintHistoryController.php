@@ -4,6 +4,8 @@ namespace App\Http\Controllers\v1\History;
 
 use App\Http\Controllers\Controller;
 use App\Models\History\PrintHistoryModel;
+use App\Models\MOS\Production\ProductionOrderModel;
+use App\Traits\Credentials\CredentialsTrait;
 use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use Exception;
@@ -12,7 +14,7 @@ use Storage;
 
 class PrintHistoryController extends Controller
 {
-    use MosCrudOperationsTrait;
+    use MosCrudOperationsTrait, CredentialsTrait;
 
     public function getRules()
     {
@@ -68,5 +70,88 @@ class PrintHistoryController extends Controller
     public function onGetById($id)
     {
         return $this->readRecordById(PrintHistoryModel::class, $id, 'Print History');
+    }
+
+
+
+    public function onGetPrintedDetails(Request $request, $filter = null)
+    {
+        $fields = $request->validate([
+            'omg_token' => 'required|string'
+        ]);
+        try {
+            $whereFields = [];
+            $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+            if ($whereObject && $whereObject->format('Y-m-d') === $filter) {
+                $whereFields['production_date'] = $filter;
+            } elseif ($filter) {
+                $filter != null ? $whereFields['id'] = $filter : "";
+            } else {
+                $today = new \DateTime('today');
+                $whereFields['production_date'] = $today->format('Y-m-d');
+                $whereFields['status'] = 0;
+            }
+
+            $printHistoryModel = PrintHistoryModel::with('productionBatch.productionOrder')
+                ->whereHas('productionBatch.productionOrder', function ($query) use ($whereFields) {
+                    foreach ($whereFields as $key => $value) {
+                        $query->where($key, $value);
+                    }
+                })
+                ->where([
+                    'is_reprint' => 0
+                ])
+                ->get();
+            $response = [];
+
+            foreach ($printHistoryModel as $printHistory) {
+                $productionBatch = $printHistory->productionBatch;
+                $productionToBakeAssemble = $productionBatch->productionOta ?? $productionBatch->productionOtb;
+                $itemMasterdata = $productionToBakeAssemble->itemMasterdata;
+                $deliveryScheme = $productionToBakeAssemble->delivery_type ?? 'N/A';
+
+                $itemCode = $itemMasterdata->item_code;
+                $productionOrder = $productionBatch->productionOrder;
+                $itemCategory = $itemMasterdata->item_category_label;
+
+                $chilledShelfLife = $itemMasterdata->chilled_shelf_life;
+                $frozenShelfLife = $itemMasterdata->frozen_shelf_life;
+                $ambienShelfLife = $itemMasterdata->ambient_shelf_life;
+                $chilledExpiration = $productionBatch->chilled_exp_date;
+                $frozenExpiration = $productionBatch->frozen_exp_date;
+                $ambienExpiration = $productionBatch->ambient_shelf_life;
+
+                $data = [
+                    'PD' => $productionOrder->production_date,
+                    'BC' => $productionBatch->batch_code,
+                ];
+
+                if ($chilledShelfLife) {
+                    $data['CSL'] = $chilledShelfLife;
+                    $data['CED'] = $chilledExpiration;
+                }
+                if ($frozenShelfLife) {
+                    $data['FSL'] = $frozenShelfLife;
+                    $data['FED'] = $frozenExpiration;
+                }
+                if (!$chilledShelfLife && !$frozenShelfLife) {
+                    $data['ASL'] = $ambienShelfLife;
+                    $data['AED'] = $ambienExpiration;
+                }
+
+                $response[] = [
+                    'item_category' => $itemCategory,
+                    'item_code' => $itemCode,
+                    'item_details' => $data,
+                    'delivery_scheme' => $deliveryScheme,
+                    'quantity' => count(json_decode($printHistory->produced_items, true)),
+                    'printed_by' => $this->onGetName($printHistory->created_by_id, $fields['omg_token'])
+                ];
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
+        }
     }
 }

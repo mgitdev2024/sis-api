@@ -244,12 +244,15 @@ return new class extends Migration {
         #region Stock Logs
         Schema::create('wms_stock_logs', function (Blueprint $table) {
             $table->id();
+            $table->string('reference_number');
             $table->string('item_code');
             $table->tinyInteger('action'); // 1 = In, 0 = Out;
             $table->integer('quantity');
             $table->unsignedBigInteger('sub_location_id');
             $table->integer('layer_level');
             $table->integer('storage_remaining_space')->nullable();
+            // $table->integer('initial_stock')->nullable();
+            // $table->integer('final_stock')->nullable();
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');

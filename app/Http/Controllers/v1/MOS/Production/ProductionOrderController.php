@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\MOS\Production;
 
 use App\Http\Controllers\Controller;
+use App\Models\History\PrintHistoryModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\MOS\Production\ProductionOrderModel;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
 use Illuminate\Validation\Rule;
+use Exception;
 
 class ProductionOrderController extends Controller
 {
@@ -77,7 +79,7 @@ class ProductionOrderController extends Controller
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
@@ -149,7 +151,7 @@ class ProductionOrderController extends Controller
                     }
 
                     $productionOTB->production_order_id = $productionOrder->id;
-                    $productionOTB->delivery_type = $value['delivery_type'];
+                    $productionOTB->delivery_type = $value['delivery_type'] != "" ? $value['delivery_type'] : null;
                     $productionOTB->item_code = $value['item_code'];
                     $productionOTB->requested_quantity = $requestedQuantity;
                     $productionOTB->buffer_level = $bufferLevel;
@@ -167,6 +169,7 @@ class ProductionOrderController extends Controller
                     }
                     $productionOTB->created_by_id = $createdById;
                     $productionOTB->save();
+
                     $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
@@ -210,11 +213,13 @@ class ProductionOrderController extends Controller
 
             if ($itemMasterDataCounter > 0) {
                 DB::commit();
+                return $this->dataResponse('success', 200, $message, $response);
+            } else {
+                return $this->dataResponse('error', 200, 'No Item Masterdata found.');
             }
 
-            return $this->dataResponse('success', 200, $message, $response);
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
@@ -257,6 +262,11 @@ class ProductionOrderController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_found'), $response);
         }
         return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.record_not_found'));
+    }
+
+    public function onAlignProductionCount()
+    {
+
     }
 }
 
