@@ -459,10 +459,12 @@ class ProductionBatchController extends Controller
             $productionBatch->is_printed = 1;
             $productionBatch->save();
 
-            $itemDisposition = ItemDispositionModel::where([
-                'production_batch_id' => $id,
-                'is_printed' => 0
-            ])->first();
+            $itemDisposition = ItemDispositionModel::where('is_printed', 0)
+                ->where(function ($query) use ($id) {
+                    $query->where('production_batch_id', $id)
+                        ->orWhere('fulfilled_batch_id', $id);
+                })
+                ->first();
             if ($itemDisposition) {
                 $itemDisposition->is_printed = 1;
                 $itemDisposition->save();

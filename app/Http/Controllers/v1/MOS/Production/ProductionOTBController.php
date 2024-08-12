@@ -114,7 +114,6 @@ class ProductionOTBController extends Controller
 
     public function onFulfillEndorsement(Request $request, $id)
     {
-
         $fields = $request->validate([
             'created_by_id' => 'required',
             'chilled_exp_date' => 'nullable|date',
@@ -159,6 +158,10 @@ class ProductionOTBController extends Controller
                 $producedItemModel->save();
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $fields['created_by_id'], 1, $itemDisposition->item_key);
 
+                $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
+                $itemDisposition->fulfilled_at = now();
+                $itemDisposition->production_status = 0;
+                $itemDisposition->action = $itemStatus;
                 $data = null;
                 if ($itemStatus == 9) {
                     $produceItem = $producedItems[$itemDisposition->item_key];
@@ -193,16 +196,10 @@ class ProductionOTBController extends Controller
                         'production_batch' => json_decode($productionItem->content(), true)['success']['data']['production_batch'],
                         'batch_origin' => $itemDisposition->production_batch_id,
                     ];
-
-                    $itemDisposition->fulfilled_by_id = $fields['created_by_id'];
-                    $itemDisposition->fulfilled_at = now();
-                    $itemDisposition->production_status = 0;
-                    $itemDisposition->action = $itemStatus;
                     $itemDisposition->fulfilled_batch_id = json_decode($productionItem->content(), true)['success']['data']['production_batch']['id'];
-                    $itemDisposition->save();
-                    $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 }
-
+                $itemDisposition->save();
+                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $fields['created_by_id'], 1, $itemDisposition->item_key);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $data);
             }
