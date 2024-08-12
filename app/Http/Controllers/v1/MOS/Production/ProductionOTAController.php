@@ -227,6 +227,7 @@ class ProductionOTAController extends Controller
                         'item_disposition_id' => $id ?? null
                     ]);
                     $printHistory->onCreate($printHistoryRequest);
+                    $itemDisposition->fulfilled_batch_id = $itemDisposition->production_batch_id;
 
                     $data = [
                         'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
