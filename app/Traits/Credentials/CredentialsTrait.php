@@ -2,6 +2,7 @@
 
 namespace App\Traits\Credentials;
 
+use App\Models\User;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
@@ -12,18 +13,13 @@ trait CredentialsTrait
 {
     use ResponseTrait;
 
-    public function onGetName($employeeId, $token)
+    public function onGetName($employeeId)
     {
-        $apiUrl = env('API_URL');
-        $url = "{$apiUrl}/user/get/employee_id/{$employeeId}";
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $token,
-            ])->get($url);
-
-            if ($response->successful()) {
-                $data = $response->json()['success']['data'];
+            $userModel = User::where('employee_id', $employeeId)->first();
+            if ($userModel) {
+                $data = $userModel->toArray();
 
                 $firstName = $data['first_name'] ?? '';
                 $lastName = $data['last_name'] ?? '';
