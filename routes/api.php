@@ -246,6 +246,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
     Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
+    Route::post('v1/production/order/align/{production_order_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAlignProductionCount']);
     #endregion
 
     #region Production OTA
@@ -316,7 +317,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/history/print/paginated', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPaginatedList']);
     Route::get('v1/history/print/all', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetAll']);
     Route::get('v1/history/print/{id?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetById']);
-    Route::post('v1/history/print/production/get/{filter?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPrintedDetails']);
+    Route::get('v1/history/print/production/get/{filter?}', [App\Http\Controllers\v1\History\PrintHistoryController::class, 'onGetPrintedDetails']);
     #endregion
 
     #region Item Disposition
