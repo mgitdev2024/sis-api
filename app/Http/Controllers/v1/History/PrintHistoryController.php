@@ -137,6 +137,7 @@ class PrintHistoryController extends Controller
                 }
 
                 $response[] = [
+                    'id' => $printHistory->id,
                     'item_category' => $itemCategory,
                     'item_code' => $itemCode,
                     'item_details' => $data,
