@@ -119,7 +119,7 @@ class ItemMasterdataModel extends Model
     }
     public function stockInventories()
     {
-        return $this->hasMany(StockInventoryModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
     }
     public function stockLogs()
     {
