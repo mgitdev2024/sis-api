@@ -216,6 +216,7 @@ class ProductionBatchController extends Controller
             $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->status = 0;
             $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
+            $productionBatch->item_code = $productionToBakeAssemble->item_code;
             $productionBatch->save();
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
@@ -492,6 +493,20 @@ class ProductionBatchController extends Controller
         }
 
         return $nextBatchNumber;
+    }
+
+    public function onAlignItemCode()
+    {
+        try {
+            $productionBatches = ProductionBatchModel::all();
+            foreach ($productionBatches as $productionBatch) {
+                $productionBatch->item_code = $productionBatch->production_otb_id ? $productionBatch->productionOtb->item_code : $productionBatch->productionOta->item_code;
+                $productionBatch->save();
+            }
+            return $this->dataResponse('success', 200, 'Item Code ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 }
 

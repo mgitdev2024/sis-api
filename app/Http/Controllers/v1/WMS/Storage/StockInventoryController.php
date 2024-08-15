@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\v1\WMS\Storage;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Storage\StockInventoryModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -14,11 +17,24 @@ class StockInventoryController extends Controller
     use WmsCrudOperationsTrait;
     public function onGetByItemCode($item_code)
     {
-        $whereFields = [
-            'field' => 'item_code',
-            'value' => $item_code,
-        ];
-        return $this->readRecordByColumnName(StockInventoryModel::class, $whereFields, 'Stock Inventory');
+        try {
+            $stockInventoryModel = StockInventoryModel::where([
+                'item_code' => $item_code
+            ])->first();
+
+            $itemMasterdata = $stockInventoryModel->itemMasterdata;
+            $productionBatchCount = ProductionBatchModel::where([
+                'item_code' => $item_code
+            ])->count();
+            $stockInventoryModel->batch_count = $productionBatchCount;
+            $data = [
+                'item_details' => $itemMasterdata,
+                'stock_inventory_details' => $stockInventoryModel->getAttributes()
+            ];
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 
     public function onBulk(Request $request)
@@ -78,5 +94,44 @@ class StockInventoryController extends Controller
             'stock_count' => 'required'
         ];
         return $this->updateRecordById(StockInventoryModel::class, $request, $rules, 'Stock Inventory', $id);
+    }
+
+    public function onGetAll()
+    {
+        return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', null, 'Stock Inventory');
+    }
+
+    public function onGetInStock($item_code)
+    {
+        try {
+            $productionBatchModel = ProductionBatchModel::where([
+                'item_code' => $item_code,
+                'status' => 2
+            ])->get();
+
+            $inStockArray = [];
+            if (count($productionBatchModel) > 0) {
+                foreach ($productionBatchModel as $productionBatch) {
+                    $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+
+                    foreach ($productionItems as $productionItem) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                            $inStockData = [
+                                'batch_no' => $productionBatch->batch_number,
+                                'sticker_no' => $productionItem['batch_code'],
+                                'production_date' => $productionBatch->productionOrder->production_date,
+                                'content_quantity' => $productionItem['q']
+                            ];
+                            $inStockArray[] = $inStockData;
+                            dd($inStockArray);
+                        }
+                    }
+                }
+            }
+
+            dd($inStockArray);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 }
