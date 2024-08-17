@@ -453,25 +453,40 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
-    public function onSetInitialPrint($id)
+    public function onSetInitialPrint($id, $item_disposition_id)
     {
         try {
-            $productionBatch = ProductionBatchModel::find($id);
-            $productionBatch->is_printed = 1;
-            $productionBatch->save();
+            DB::beginTransaction();
+            $itemDisposition = null;
+            if ($item_disposition_id != null) {
+                $itemDisposition = ItemDispositionModel::where([
+                    'is_printed' => 0,
+                    'id' => $item_disposition_id,
+                ])
+                    ->first();
+                if ($itemDisposition) {
+                    $itemDisposition->is_printed = 1;
+                    $itemDisposition->save();
 
-            $itemDisposition = ItemDispositionModel::where('is_printed', 0)
-                ->where(function ($query) use ($id) {
-                    $query->where('production_batch_id', $id)
-                        ->orWhere('fulfilled_batch_id', $id);
-                })
-                ->first();
-            if ($itemDisposition) {
-                $itemDisposition->is_printed = 1;
-                $itemDisposition->save();
+                    if ($itemDisposition->fulfilled_batch_id != null) {
+                        $productionBatch = ProductionBatchModel::find($itemDisposition->fulfilled_batch_id);
+                        $productionBatch->is_printed = 1;
+                        $productionBatch->save();
+                    } else {
+                        $productionBatch = ProductionBatchModel::find($id);
+                        $productionBatch->is_printed = 1;
+                        $productionBatch->save();
+                    }
+                }
+            } else {
+                $productionBatch = ProductionBatchModel::find($id);
+                $productionBatch->is_printed = 1;
+                $productionBatch->save();
             }
+            DB::commit();
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.update_success'));
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }

@@ -195,6 +195,7 @@ class ItemMasterdataController extends Controller
             return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
