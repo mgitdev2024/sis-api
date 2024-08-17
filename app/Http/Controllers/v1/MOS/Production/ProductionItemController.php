@@ -41,7 +41,7 @@ class ProductionItemController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item');
+        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item', null, ['key' => 'production_batch_id', 'value' => $id]);
     }
 
     public function onChangeStatus(Request $request)
@@ -158,7 +158,8 @@ class ProductionItemController extends Controller
                 $type = 0;
             }
             $exclusionArray = [1, 4, 5, 6, 7, 8];
-            $producedItemModel = ProductionItemModel::where('production_batch_id', $id)->first();
+            $productionBatchModel = ProductionBatchModel::find($id);
+            $producedItemModel = $productionBatchModel->productionItems;
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
 
@@ -173,6 +174,8 @@ class ProductionItemController extends Controller
                 $itemDisposition->produced_items = json_encode([$itemKey => $value]);
                 $itemDisposition->save();
                 $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemKey);
+
+                $this->onDeductCountedItem($productionBatchModel, $producedItems, $itemKey, $value);
 
                 $producedItems[$itemKey]['status'] = $statusId;
                 $producedItemModel->produced_items = json_encode($producedItems);
@@ -194,6 +197,41 @@ class ProductionItemController extends Controller
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
+    }
+
+    public function onDeductCountedItem($productionBatchModel, $producedItems, $itemKey, $value)
+    {
+        switch ($producedItems[$itemKey]['status']) {
+            // For Actual Quantity Scanned Metal Line Deduction
+            case 2:
+                $productionBatchModel->actual_quantity -= 1;
+                $productionBatchModel->actual_secondary_quantity -= $value['q'];
+                $productionBatchModel->save();
+                $productionActualQuantity = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionActualQuantity->actual_quantity -= 1;
+                $productionActualQuantity->actual_secondary_quantity -= $value['q'];
+                $productionActualQuantity->save();
+                if (isset($producedItems[$itemKey]['warehouse']['warehouse_receiving'])) {
+                    $warehouseReceivingModel = WarehouseReceivingModel::where([
+                        'reference_number' => $producedItems[$itemKey]['warehouse']['warehouse_receiving']['reference_number'],
+                        'batch_number' => $productionBatchModel->batch_number,
+                        'status' => 0
+                    ])->first();
+                    $warehouseProducedItems = json_decode($warehouseReceivingModel->produced_items, true);
+
+                    unset($warehouseProducedItems[$itemKey]);
+
+                    $warehouseReceivingModel->quantity -= 1;
+                    $warehouseReceivingModel->produced_items = json_encode($warehouseProducedItems);
+                    $warehouseReceivingModel->save();
+                }
+                break;
+            // case 3:
+            // Add your code here for status 3
+            // break;
+
+        }
+
     }
 
     public function onForReceiveItem($id, $value, $itemKey, $createdById)

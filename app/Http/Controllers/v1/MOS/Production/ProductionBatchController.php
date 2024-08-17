@@ -216,6 +216,7 @@ class ProductionBatchController extends Controller
             $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->status = 0;
             $productionBatch->production_order_id = $productionToBakeAssemble->productionOrder->id;
+            $productionBatch->item_code = $productionToBakeAssemble->item_code;
             $productionBatch->save();
             $itemName = ItemMasterdataModel::where('item_code', $itemCode)->first();
             $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $fields['created_by_id'], 0);
@@ -452,25 +453,40 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
-    public function onSetInitialPrint($id)
+    public function onSetInitialPrint($id, $item_disposition_id)
     {
         try {
-            $productionBatch = ProductionBatchModel::find($id);
-            $productionBatch->is_printed = 1;
-            $productionBatch->save();
+            DB::beginTransaction();
+            $itemDisposition = null;
+            if ($item_disposition_id != null) {
+                $itemDisposition = ItemDispositionModel::where([
+                    'is_printed' => 0,
+                    'id' => $item_disposition_id,
+                ])
+                    ->first();
+                if ($itemDisposition) {
+                    $itemDisposition->is_printed = 1;
+                    $itemDisposition->save();
 
-            $itemDisposition = ItemDispositionModel::where('is_printed', 0)
-                ->where(function ($query) use ($id) {
-                    $query->where('production_batch_id', $id)
-                        ->orWhere('fulfilled_batch_id', $id);
-                })
-                ->first();
-            if ($itemDisposition) {
-                $itemDisposition->is_printed = 1;
-                $itemDisposition->save();
+                    if ($itemDisposition->fulfilled_batch_id != null) {
+                        $productionBatch = ProductionBatchModel::find($itemDisposition->fulfilled_batch_id);
+                        $productionBatch->is_printed = 1;
+                        $productionBatch->save();
+                    } else {
+                        $productionBatch = ProductionBatchModel::find($id);
+                        $productionBatch->is_printed = 1;
+                        $productionBatch->save();
+                    }
+                }
+            } else {
+                $productionBatch = ProductionBatchModel::find($id);
+                $productionBatch->is_printed = 1;
+                $productionBatch->save();
             }
+            DB::commit();
             return $this->dataResponse('success', 201, 'Production Batch ' . __('msg.update_success'));
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
@@ -492,6 +508,20 @@ class ProductionBatchController extends Controller
         }
 
         return $nextBatchNumber;
+    }
+
+    public function onAlignItemCode()
+    {
+        try {
+            $productionBatches = ProductionBatchModel::all();
+            foreach ($productionBatches as $productionBatch) {
+                $productionBatch->item_code = $productionBatch->production_otb_id ? $productionBatch->productionOtb->item_code : $productionBatch->productionOta->item_code;
+                $productionBatch->save();
+            }
+            return $this->dataResponse('success', 200, 'Item Code ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
 }
 

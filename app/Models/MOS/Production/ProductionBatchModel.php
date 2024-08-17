@@ -29,7 +29,7 @@ class ProductionBatchModel extends Model
         'has_endorsement_from_qa',
         'created_by_id',
         'updated_by_id',
-        'status', // 0 = In Progress, 1 = On Hold, 2 = Complete
+        'status', // 0 = In Progress, 1 = On Hold, 2 = Complete, 3 = Cleared
     ];
 
     public function productionOtb()
