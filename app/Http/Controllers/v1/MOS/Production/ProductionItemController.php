@@ -41,7 +41,7 @@ class ProductionItemController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item');
+        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item', null, ['production_batch_id' => $id]);
     }
 
     public function onChangeStatus(Request $request)

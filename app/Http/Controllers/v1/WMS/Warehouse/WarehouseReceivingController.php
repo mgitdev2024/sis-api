@@ -384,7 +384,10 @@ class WarehouseReceivingController extends Controller
         ]);
         try {
             $itemsInQueue = [];
-            $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $reference_number)->get();
+            $warehouseReceiving = WarehouseReceivingModel::where([
+                'reference_number' => $reference_number,
+                'status' => 0
+            ])->get();
             if (count($warehouseReceiving) <= 0) {
                 return $this->dataResponse('error', 400, 'Warehouse Receiving ' . __('msg.record_not_found'));
             }
