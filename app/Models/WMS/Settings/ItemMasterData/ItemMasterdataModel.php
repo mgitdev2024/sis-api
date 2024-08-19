@@ -40,6 +40,7 @@ class ItemMasterdataModel extends Model
         'item_category_id',
         'item_variant_type_id',
         'zone_id',
+        'ambient_shelf_life',
         'chilled_shelf_life',
         'frozen_shelf_life',
         'uom_id',
