@@ -294,7 +294,6 @@ class ProductionBatchController extends Controller
                     $batchCode .= '-R';
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
-
                 if ($itemQuantity <= 0) {
                     throw new Exception("Quantity discrepancy detected. Please check Item Masterdata for this item");
                 }
