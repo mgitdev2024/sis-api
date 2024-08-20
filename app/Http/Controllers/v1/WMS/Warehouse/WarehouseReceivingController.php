@@ -7,6 +7,7 @@ use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
@@ -43,7 +44,7 @@ class WarehouseReceivingController extends Controller
             foreach ($warehouseReceivingModel as $value) {
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
-                    'temporary_storage_id' => $value->temporary_storage_id,
+                    'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
                     'transaction_date' => $value->created_at ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
@@ -114,7 +115,7 @@ class WarehouseReceivingController extends Controller
                     'substandard_quantity' => $value->substandard_quantity,
                     'item_code' => $itemCode,
                     'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label,
-                    'produced_items' => $producedItemsQuantity
+                    'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
             if (count($warehouseReceivingArr) > 0) {
