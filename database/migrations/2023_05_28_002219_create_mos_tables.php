@@ -176,7 +176,6 @@ return new class extends Migration {
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
             $table->foreign('temporary_storage_id')->references('id')->on('wms_storage_sub_locations');
-
         });
 
         Schema::create('wms_warehouse_for_put_away', function (Blueprint $table) {

@@ -36,20 +36,5 @@ trait InventoryMovementTrait
     }
 
     // Add other methods for Put Away, Stock Transfer, and Distribution here
-
-    public function onGetItemList($itemCode = null)
-    {
-        try {
-            $itemMasterdataModel = ItemMasterdataModel::query();
-            if ($itemCode) {
-                $itemMasterdataModel->where('item_code', $itemCode);
-            }
-            $itemList = $itemMasterdataModel->get();
-
-            dd();
-        } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, 'Inventory Movement ' . __('msg.record_not_found'));
-        }
-    }
 }
 
