@@ -4,6 +4,7 @@ namespace App\Models\WMS\Warehouse;
 
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOrderModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,6 +36,10 @@ class WarehouseReceivingModel extends Model
     public function productionBatch()
     {
         return $this->belongsTo(ProductionBatchModel::class);
+    }
+    public function subLocation()
+    {
+        return $this->belongsTo(SubLocationModel::class);
     }
 
     public static function onGenerateWarehouseReceiveReferenceNumber()

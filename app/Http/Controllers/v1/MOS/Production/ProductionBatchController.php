@@ -294,7 +294,6 @@ class ProductionBatchController extends Controller
                     $batchCode .= '-R';
                 }
                 $itemQuantity = $secondaryValue <= $primaryPackingSize ? $secondaryValue : $primaryPackingSize;
-
                 if ($itemQuantity <= 0) {
                     throw new Exception("Quantity discrepancy detected. Please check Item Masterdata for this item");
                 }
@@ -453,7 +452,7 @@ class ProductionBatchController extends Controller
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
-    public function onSetInitialPrint($id, $item_disposition_id)
+    public function onSetInitialPrint($id, $item_disposition_id = null)
     {
         try {
             DB::beginTransaction();

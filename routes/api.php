@@ -29,6 +29,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return 'Migrations and Seed completed successfully!';
     });
 
+    Route::get('v1/run-migrations', function () {
+        // Artisan::call('migrate', ["--force" => true]);
+        Artisan::call('migrate', ["--force" => true]);
+        return 'Migrations completed successfully!';
+    });
+
     #region Admin Access
     Route::post('v1/asset/list/upload', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onCreate']);
     Route::post('v1/asset/list/keyword/get', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onGetAssetListByKeyword']);

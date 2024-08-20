@@ -2,6 +2,7 @@
 
 namespace App\Traits\WMS;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use Exception;
 use App\Traits\ResponseTrait;
@@ -33,5 +34,7 @@ trait InventoryMovementTrait
             return $this->dataResponse('error', 400, 'Inventory Movement ' . __('msg.record_not_found'));
         }
     }
+
+    // Add other methods for Put Away, Stock Transfer, and Distribution here
 }
 
