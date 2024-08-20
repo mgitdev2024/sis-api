@@ -24,7 +24,8 @@ class StockInventoryController extends Controller
 
             $itemMasterdata = $stockInventoryModel->itemMasterdata;
             $productionBatchCount = ProductionBatchModel::where([
-                'item_code' => $item_code
+                'item_code' => $item_code,
+                'status' => 2
             ])->count();
             $stockInventoryModel->batch_count = $productionBatchCount;
             $data = [
@@ -123,15 +124,33 @@ class StockInventoryController extends Controller
                                 'content_quantity' => $productionItem['q']
                             ];
                             $inStockArray[] = $inStockData;
-                            dd($inStockArray);
                         }
                     }
                 }
             }
-
-            dd($inStockArray);
+            return $this->dataResponse('success', 200, 'In Stock ' . __('msg.record_found'), $inStockArray);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+    #region status list
+    // 0 => 'Good',
+    // 1 => 'On Hold',
+    // 1.1 => 'On Hold - Sub Standard
+    // 2 => 'For Receive',
+    // 2.1 => 'For Receive - Inbound',
+    // 3 => 'Received',
+    // 3.1 => 'For Put-away - In Process',
+    // 4 => 'For Investigation',
+    // 5 => 'For Sampling',
+    // 6 => 'For Retouch',
+    // 7 => 'For Slice',
+    // 8 => 'For Sticker Update',
+    // 9 => 'Sticker Updated',
+    // 10 => 'Reviewed',
+    // 11 => 'Retouched',
+    // 12 => 'Sliced',
+    // 13 => 'Stored',
+    #endregion
 }

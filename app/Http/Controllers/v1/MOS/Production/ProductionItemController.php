@@ -192,6 +192,16 @@ class ProductionItemController extends Controller
                     $this->createProductionLog(SubStandardItemModel::class, $subStandardItem->id, $subStandardItem, $createdById, 1, $itemKey);
 
                 }
+
+                // Production batch & ota otb update in QA
+                $modelClass = $productionBatchModel->productionOtb
+                    ? ProductionOTBModel::class
+                    : ProductionOTAModel::class;
+                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionToBakeAssemble->in_qa_count += 1;
+                $productionToBakeAssemble->save();
+                $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
+
                 return $itemDisposition;
             }
         } catch (Exception $exception) {
@@ -403,6 +413,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive->sku_type = $value['sku_type'];
                     $warehouseReceive->quantity = $value['qty'];
                     $warehouseReceive->created_by_id = $createdById;
+                    $warehouseReceive->temporary_storage_id = $temporaryStorageId;
                     $warehouseReceive->save();
                     $this->createWarehouseLog(ProductionItemModel::class, $itemsToTransfer[$key]['production_item_id'], WarehouseReceivingModel::class, $warehouseReceive->id, $warehouseReceive->getAttributes(), $createdById, 0);
                 }

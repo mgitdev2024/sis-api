@@ -7,6 +7,7 @@ use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
@@ -22,8 +23,10 @@ class WarehouseReceivingController extends Controller
     public function onGetAllCategory($status)
     {
         try {
-            $itemDisposition = WarehouseReceivingModel::select(
+            $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
+                'temporary_storage_id',
+                'created_at',
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
@@ -32,13 +35,17 @@ class WarehouseReceivingController extends Controller
                 ->where('status', $status)
                 ->groupBy([
                     'reference_number',
+                    'temporary_storage_id',
+                    'created_at'
                 ])
                 ->get();
             $warehouseReceiving = [];
             $counter = 0;
-            foreach ($itemDisposition as $value) {
+            foreach ($warehouseReceivingModel as $value) {
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
+                    'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
+                    'transaction_date' => $value->created_at ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
@@ -62,7 +69,8 @@ class WarehouseReceivingController extends Controller
                 'item_code',
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
-                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count')
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
+                DB::raw('JSON_ARRAYAGG(produced_items) as aggregated_produced_items')
             )
                 ->where('status', $status)
                 ->where('reference_number', $referenceNumber)
@@ -92,13 +100,22 @@ class WarehouseReceivingController extends Controller
             ];
             foreach ($warehouseReceiving as $value) {
                 $itemCode = $value->item_code;
+
+                // aggregated produced items decoding
+                $producedItemsQuantity = 0;
+                foreach (json_decode($value->aggregated_produced_items, true) as $aggregatedValue) {
+                    foreach (json_decode($aggregatedValue, true) as $producedItemValue) {
+                        $producedItemsQuantity += $producedItemValue['q'];
+                    }
+                }
                 $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
                     'item_code' => $itemCode,
-                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label
+                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label,
+                    'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
             if (count($warehouseReceivingArr) > 0) {
