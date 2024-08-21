@@ -38,6 +38,7 @@ class WarehouseReceivingController extends Controller
                     'temporary_storage_id',
                     'created_at'
                 ])
+                ->orderBy('created_at', 'DESC')
                 ->get();
             $warehouseReceiving = [];
             $counter = 0;
@@ -45,7 +46,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
-                    'transaction_date' => $value->created_at ?? null,
+                    'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->created_at)) ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
