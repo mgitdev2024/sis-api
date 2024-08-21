@@ -11,10 +11,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('mos_production_otas', function (Blueprint $table) {
-            $table->integer('in_qa_count');
+            $table->integer('in_qa_count')->default(0);
         });
         Schema::table('mos_production_otbs', function (Blueprint $table) {
-            $table->integer('in_qa_count');
+            $table->integer('in_qa_count')->default(0);
         });
         Schema::table('wms_warehouse_receiving', function (Blueprint $table) {
             $table->integer('temporary_storage_id')->nullable();

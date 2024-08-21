@@ -23,11 +23,11 @@ class StockInventoryController extends Controller
             ])->first();
 
             $itemMasterdata = $stockInventoryModel->itemMasterdata;
-            $productionBatchCount = ProductionBatchModel::where([
-                'item_code' => $item_code,
-                'status' => 2
-            ])->count();
-            $stockInventoryModel->batch_count = $productionBatchCount;
+            // $productionBatchCount = ProductionBatchModel::where('item_code', $item_code)
+            //     ->where('status', '!=', 3)
+            //     ->get();
+
+            // $stockInventoryModel->batch_count = $productionBatchCount;
             $data = [
                 'item_details' => $itemMasterdata,
                 'stock_inventory_details' => $stockInventoryModel->getAttributes()
@@ -105,10 +105,9 @@ class StockInventoryController extends Controller
     public function onGetInStock($item_code)
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where([
-                'item_code' => $item_code,
-                'status' => 2
-            ])->get();
+            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+                ->where('status', '!=', 3)
+                ->get();
 
             $inStockArray = [];
             if (count($productionBatchModel) > 0) {
