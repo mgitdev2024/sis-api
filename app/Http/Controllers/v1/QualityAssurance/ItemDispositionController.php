@@ -56,15 +56,6 @@ class ItemDispositionController extends Controller
             $itemDisposition->action = $fields['action_status_id'];
             $itemDisposition->save();
             $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemDisposition->item_key);
-
-            $productionBatch = ProductionBatchModel::find($itemDisposition->production_batch_id);
-            $productionToBakeAssemble = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-            $modelClass = $productionBatch->productionOtb
-                ? ProductionOTBModel::class
-                : ProductionOTAModel::class;
-            $productionToBakeAssemble->produced_items_count -= 1;
-            $productionToBakeAssemble->save();
-            $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {

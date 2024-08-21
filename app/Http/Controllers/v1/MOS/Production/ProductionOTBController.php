@@ -136,14 +136,14 @@ class ProductionOTBController extends Controller
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
-                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
-                    $modelClass = $productionBatchModel->productionOtb
-                        ? ProductionOTBModel::class
-                        : ProductionOTAModel::class;
+                    // $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                    // $modelClass = $productionBatchModel->productionOtb
+                    //     ? ProductionOTBModel::class
+                    //     : ProductionOTAModel::class;
 
-                    $productionToBakeAssemble->produced_items_count -= 1;
-                    $productionToBakeAssemble->save();
-                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
+                    // $productionToBakeAssemble->produced_items_count -= 1;
+                    // $productionToBakeAssemble->save();
+                    // $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                 }
                 $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
