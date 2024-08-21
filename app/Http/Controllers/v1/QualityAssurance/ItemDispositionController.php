@@ -211,6 +211,8 @@ class ItemDispositionController extends Controller
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
 
                     $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
+                    $value['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
+
                 }
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
