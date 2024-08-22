@@ -170,9 +170,7 @@ class StockInventoryController extends Controller
                     }
                 }
             }
-
-            $arrayWarehouseLocation = array_values($warehouseLocations);
-            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $arrayWarehouseLocation);
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($warehouseLocations));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
@@ -181,10 +179,9 @@ class StockInventoryController extends Controller
     public function onGetAllZoneLocation()
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where('status', '!=', 3)
-                ->get();
+            $productionBatchModel = ProductionBatchModel::where('status', '!=', 3)->get();
 
-            $zoneLocation = [];
+            $zoneLocationList = [];
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -195,17 +192,77 @@ class StockInventoryController extends Controller
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
 
-                            if (isset($zoneLocation[$zoneId])) {
-                                $zoneLocation[$zoneId]['sku_quantity'] += 1;
-                            } else {
-                                $zoneLocation[$zoneId] = [
-                                    'sku_quantity' => 1,
+                            if (!isset($zoneLocationList[$zoneId]['sku'])) {
+                                $zoneLocationList[$zoneId]['zone_details'] = [
+                                    'id' => $zoneId,
+                                    'short_name' => $subLocationModel->zone->long_name,
+                                    'long_name' => $subLocationModel->zone->long_name,
+                                    'code' => $subLocationModel->zone->code,
+                                    'storage_type' => $subLocationModel->zone->storageType->short_name,
+                                    'sub_location_count' => $subLocationModel->zone->subLocations->count()
+
                                 ];
+                                $zoneLocationList[$zoneId]['sku'] = [];
+                            }
+
+                            if (isset($zoneLocationList[$zoneId]['sku'][$productionBatch->item_code])) {
+                                $zoneLocationList[$zoneId]['sku'][$productionBatch->item_code] += 1;
+                            } else {
+                                $zoneLocationList[$zoneId]['sku'][$productionBatch->item_code] = 1;
                             }
                         }
                     }
                 }
             }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($zoneLocationList));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onGetZoneDetails($zone_id, $item_code = null)
+    {
+        try {
+            $zoneModel = ZoneModel::find($zone_id);
+            $zoneDetails = [
+                'zone_details' => [
+                    'id' => $zoneModel->id,
+                    'short_name' => $zoneModel->long_name,
+                    'long_name' => $zoneModel->long_name,
+                    'code' => $zoneModel->code,
+                    'storage_type' => $zoneModel->storageType->short_name,
+                    'sub_location_count' => $zoneModel->subLocations->count(),
+                    'warehouse_location' => $zoneModel->warehouse->long_name,
+                ],
+                'quantity_on_hand' => 0,
+            ];
+            $productionBatchModel = ProductionBatchModel::where('status', '!=', 3)->get();
+
+            $skuList = [];
+            if (count($productionBatchModel) > 0) {
+                foreach ($productionBatchModel as $productionBatch) {
+                    $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+
+                    foreach ($productionItems as $productionItem) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                            $subLocationModel = SubLocationModel::find($subLocationId);
+                            $zoneId = $subLocationModel->zone_id;
+                            $isItemCodeFilter = $item_code ? $productionBatch->item_code == $item_code : true;
+                            if ($zoneId == $zone_id) {
+                                if (!in_array($productionBatch->item_code, $skuList)) {
+                                    $skuList[] = $productionBatch->item_code;
+                                }
+                                if ($isItemCodeFilter) {
+                                    $zoneDetails['quantity_on_hand'] += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                $zoneDetails['sku'] = $skuList;
+            }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneDetails);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
