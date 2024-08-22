@@ -30,4 +30,9 @@ class ZoneModel extends Model
     {
         return $this->belongsTo(WarehouseModel::class, 'warehouse_id');
     }
+
+    public function subLocations()
+    {
+        return $this->hasMany(SubLocationModel::class, 'zone_id');
+    }
 }
