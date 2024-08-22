@@ -401,6 +401,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/item/stock/inventory/in-stock/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
     Route::get('v1/item/stock/inventory/all-location/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
     Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
+    Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_code?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
     #endregion
 
     #region Inventory Movement
