@@ -159,6 +159,7 @@ class StockInventoryController extends Controller
                                 $warehouseLocations[$warehouseKey]['quantity'] += 1;
                             } else {
                                 $warehouseLocations[$warehouseKey] = [
+                                    'warehouse_key' => $warehouseKey,
                                     'zone' => $subLocationModel->zone->short_name,
                                     'sub_location' => $subLocationModel->code,
                                     'layer_level' => $layerLevel,
@@ -179,39 +180,35 @@ class StockInventoryController extends Controller
 
     public function onGetAllZoneLocation()
     {
-        // try {
-        //     // $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
-        //     //     ->where('status', '!=', 3)
-        //     //     ->get();
+        try {
+            $productionBatchModel = ProductionBatchModel::where('status', '!=', 3)
+                ->get();
 
-        //     // $zoneLocation = [];
-        //     // if (count($productionBatchModel) > 0) {
-        //     //     foreach ($productionBatchModel as $productionBatch) {
-        //     //         $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+            $zoneLocation = [];
+            if (count($productionBatchModel) > 0) {
+                foreach ($productionBatchModel as $productionBatch) {
+                    $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
 
-        //     //         foreach ($productionItems as $productionItem) {
-        //     //             if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
-        //     //                 $subLocationId = $productionItem['sub_location']['sub_location_id'];
-        //     //                 $subLocationModel = SubLocationModel::find($subLocationId);
-        //     //                 $zoneId = $subLocationModel->zone_id;
+                    foreach ($productionItems as $productionItem) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                            $subLocationModel = SubLocationModel::find($subLocationId);
+                            $zoneId = $subLocationModel->zone_id;
 
-        //     //                 if (isset($zoneLocation[$zoneId])) {
-        //     //                     $zoneLocation[$zoneId]['quantity'] += 1;
-        //     //                 } else {
-        //     //                     $zoneLocation[$zoneId] = [
-        //     //                         'zone' => $subLocationModel->zone->short_name,
-        //     //                         'sub_location' => $subLocationModel->code,
-        //     //                         'layer_level' => $layerLevel,
-        //     //                         'quantity' => 1
-        //     //                     ];
-        //     //                 }
-        //     //             }
-        //     //         }
-        //     //     }
-        //     }
-        // } catch (Exception $exception) {
-        //     return $this->dataResponse('error', 400, $exception->getMessage());
-        // }
+                            if (isset($zoneLocation[$zoneId])) {
+                                $zoneLocation[$zoneId]['sku_quantity'] += 1;
+                            } else {
+                                $zoneLocation[$zoneId] = [
+                                    'sku_quantity' => 1,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     #region status list
     // 0 => 'Good',
