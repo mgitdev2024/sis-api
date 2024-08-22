@@ -29,6 +29,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return 'Migrations and Seed completed successfully!';
     });
 
+    Route::get('v1/run-migrations', function () {
+        // Artisan::call('migrate', ["--force" => true]);
+        Artisan::call('migrate', ["--force" => true]);
+        return 'Migrations completed successfully!';
+    });
+
     #region Admin Access
     Route::post('v1/asset/list/upload', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onCreate']);
     Route::post('v1/asset/list/keyword/get', [App\Http\Controllers\v1\Admin\Asset\AssetListController::class, 'onGetAssetListByKeyword']);
@@ -280,7 +286,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetById']);
     Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetCurrent']);
     Route::get('v1/production/batch/metal/{order_type?}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetProductionBatchMetalLine']);
-    Route::post('v1/production/batch/print/initial/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onSetInitialPrint']);
+    Route::post('v1/production/batch/print/initial/{id}/{item_disposition_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onSetInitialPrint']);
+    Route::post('v1/production/batch/align', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onAlignItemCode']);
     // Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onChangeStatus']);
     #endregion
 
@@ -383,12 +390,21 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Item Stocks Logs
-    Route::get('v1/item/stock/logs/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
+    Route::get('v1/item/stock/logs/get/{item_code}/{date?}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
     #endregion
 
     #region Item Stocks Inventory
     Route::get('v1/item/stock/inventory/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemCode']);
     Route::post('v1/item/stock/inventory/bulk', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onBulk']);
     Route::post('v1/item/stock/inventory/update/{id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onUpdate']);
+    Route::get('v1/item/stock/inventory/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAll']);
+    Route::get('v1/item/stock/inventory/in-stock/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
+    Route::get('v1/item/stock/inventory/all-location/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
+    Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
+    Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_code?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
+    #endregion
+
+    #region Inventory Movement
+    Route::get('v1/item/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
     #endregion
 });

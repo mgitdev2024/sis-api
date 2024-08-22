@@ -121,16 +121,20 @@ trait MosCrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecordById($model, $id, $modelName, $withField = null)
+    public function readRecordById($model, $id, $modelName, $withField = null, $whereFields = null)
     {
         try {
             $query = $model::query();
-
+            $data = null;
             if ($withField != null) {
                 $query = $query->with($withField);
             }
 
-            $data = $query->find($id);
+            if ($whereFields != null) {
+                $data = $query->where($whereFields['key'], $whereFields['value'])->first();
+            } else {
+                $data = $query->find($id);
+            }
             if ($data) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }

@@ -267,7 +267,6 @@ class ProductionOrderController extends Controller
     public function onAlignProductionCount(Request $request, $production_order_id)
     {
         try {
-
             DB::beginTransaction();
             $productionOrder = ProductionOrderModel::find($production_order_id);
             if ($productionOrder) {
