@@ -134,16 +134,19 @@ class ProductionOTBController extends Controller
 
                 $itemStatus = $itemStatusArr[$producedItems[$itemDisposition->item_key]['status']];
                 $statusFlag = $producedItems[$itemDisposition->item_key]['status'];
+
+
+                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $modelClass = $productionBatchModel->productionOtb
+                    ? ProductionOTBModel::class
+                    : ProductionOTAModel::class;
                 if ($itemStatus != 9) {
                     $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
-                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
-                    $modelClass = $productionBatchModel->productionOtb
-                        ? ProductionOTBModel::class
-                        : ProductionOTAModel::class;
-
-                    $productionToBakeAssemble->produced_items_count -= 1;
-                    $productionToBakeAssemble->save();
-                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
+                    if ($itemStatus != 12) {
+                        $productionToBakeAssemble->in_qa_count -= 1;
+                        $productionToBakeAssemble->save();
+                        $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
+                    }
                 }
                 $producedItems[$itemDisposition->item_key]['endorsed_by_qa'] = 1;
                 $producedItems[$itemDisposition->item_key]['status'] = $itemStatus;
@@ -178,6 +181,12 @@ class ProductionOTBController extends Controller
                     ]);
                     $printHistory->onCreate($printHistoryRequest);
                     $itemDisposition->fulfilled_batch_id = $itemDisposition->production_batch_id;
+
+
+                    $productionToBakeAssemble->produced_items_count += 1;
+                    $productionToBakeAssemble->in_qa_count -= 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                     $data = [
                         'produced_items' => json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]),
                         'production_batch_id' => $itemDisposition->production_batch_id,

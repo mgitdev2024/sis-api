@@ -144,7 +144,7 @@ class PrintHistoryController extends Controller
                     'delivery_scheme' => $deliveryScheme,
                     'quantity' => count(json_decode($printHistory->produced_items, true)),
                     'printed_by' => $this->onGetName($printHistory->created_by_id),
-                    'printed_at' => date('Y-m-d h:i:A', strtotime($printHistory->created_at))
+                    'printed_at' => date('Y-m-d (h:i:A)', strtotime($printHistory->created_at))
                 ];
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $response);

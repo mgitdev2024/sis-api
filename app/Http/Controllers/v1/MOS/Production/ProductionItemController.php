@@ -199,9 +199,9 @@ class ProductionItemController extends Controller
                     : ProductionOTAModel::class;
                 $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
                 $productionToBakeAssemble->in_qa_count += 1;
+                $productionToBakeAssemble->produced_items_count -= 1;
                 $productionToBakeAssemble->save();
                 $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
-
                 return $itemDisposition;
             }
         } catch (Exception $exception) {

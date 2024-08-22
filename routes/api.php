@@ -390,7 +390,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Item Stocks Logs
-    Route::get('v1/item/stock/logs/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
+    Route::get('v1/item/stock/logs/get/{item_code}/{date?}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
     #endregion
 
     #region Item Stocks Inventory
@@ -399,6 +399,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/item/stock/inventory/update/{id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onUpdate']);
     Route::get('v1/item/stock/inventory/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAll']);
     Route::get('v1/item/stock/inventory/in-stock/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
+    Route::get('v1/item/stock/inventory/all-location/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
     #endregion
 
     #region Inventory Movement
