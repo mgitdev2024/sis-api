@@ -7,6 +7,7 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Models\WMS\Storage\StockInventoryModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -168,10 +169,49 @@ class StockInventoryController extends Controller
                     }
                 }
             }
-            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $warehouseLocations);
+
+            $arrayWarehouseLocation = array_values($warehouseLocations);
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $arrayWarehouseLocation);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
+    }
+
+    public function onGetAllZoneLocation()
+    {
+        // try {
+        //     // $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+        //     //     ->where('status', '!=', 3)
+        //     //     ->get();
+
+        //     // $zoneLocation = [];
+        //     // if (count($productionBatchModel) > 0) {
+        //     //     foreach ($productionBatchModel as $productionBatch) {
+        //     //         $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+
+        //     //         foreach ($productionItems as $productionItem) {
+        //     //             if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+        //     //                 $subLocationId = $productionItem['sub_location']['sub_location_id'];
+        //     //                 $subLocationModel = SubLocationModel::find($subLocationId);
+        //     //                 $zoneId = $subLocationModel->zone_id;
+
+        //     //                 if (isset($zoneLocation[$zoneId])) {
+        //     //                     $zoneLocation[$zoneId]['quantity'] += 1;
+        //     //                 } else {
+        //     //                     $zoneLocation[$zoneId] = [
+        //     //                         'zone' => $subLocationModel->zone->short_name,
+        //     //                         'sub_location' => $subLocationModel->code,
+        //     //                         'layer_level' => $layerLevel,
+        //     //                         'quantity' => 1
+        //     //                     ];
+        //     //                 }
+        //     //             }
+        //     //         }
+        //     //     }
+        //     }
+        // } catch (Exception $exception) {
+        //     return $this->dataResponse('error', 400, $exception->getMessage());
+        // }
     }
     #region status list
     // 0 => 'Good',
