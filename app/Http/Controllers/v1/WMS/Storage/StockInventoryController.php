@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\StockInventoryModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -133,6 +134,45 @@ class StockInventoryController extends Controller
         }
     }
 
+    public function onGetStockAllLocation($item_code)
+    {
+        try {
+            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+                ->where('status', '!=', 3)
+                ->get();
+
+            $warehouseLocations = [];
+            if (count($productionBatchModel) > 0) {
+                foreach ($productionBatchModel as $productionBatch) {
+                    $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+
+                    foreach ($productionItems as $productionItem) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['sub_location'])) {
+                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                            $layerLevel = $productionItem['sub_location']['layer_level'];
+                            $subLocationModel = SubLocationModel::find($subLocationId);
+                            $zoneId = $subLocationModel->zone_id;
+                            $warehouseKey = "Z${zoneId}-SL${subLocationId}-L${layerLevel}";
+
+                            if (isset($warehouseLocations[$warehouseKey])) {
+                                $warehouseLocations[$warehouseKey]['quantity'] += 1;
+                            } else {
+                                $warehouseLocations[$warehouseKey] = [
+                                    'zone' => $subLocationModel->zone->short_name,
+                                    'sub_location' => $subLocationModel->code,
+                                    'layer_level' => $layerLevel,
+                                    'quantity' => 1
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $warehouseLocations);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
     #region status list
     // 0 => 'Good',
     // 1 => 'On Hold',
