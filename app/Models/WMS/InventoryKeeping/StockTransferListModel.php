@@ -21,4 +21,12 @@ class StockTransferListModel extends Model
     {
         return $this->attributes['status'] == 0 ? 'Pending' : 'Completed';
     }
+    public static function onGenerateStockRequestReferenceNumber()
+    {
+        $latestStockRequest = static::latest()->value('id');
+        $nextStockRequest = $latestStockRequest + 1;
+        $referenceNumber = 'ST-7' . str_pad($nextStockRequest, 6, '0', STR_PAD_LEFT);
+
+        return $referenceNumber;
+    }
 }

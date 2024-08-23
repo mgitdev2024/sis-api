@@ -267,6 +267,57 @@ class StockInventoryController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+    public function onGetZoneItemList($zone_id, $item_code = null)
+    {
+        try {
+            $productionBatchModel = ProductionBatchModel::where('status', '!=', 3);
+            if ($item_code) {
+                $productionBatchModel->where('item_code', $item_code);
+            }
+            $productionBatchModel = $productionBatchModel->get();
+
+            $zoneItemList = [];
+            if (count($productionBatchModel) > 0) {
+                foreach ($productionBatchModel as $productionBatch) {
+                    $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+
+                    foreach ($productionItems as $productionItem) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                            $itemCode = $productionBatch->item_code;
+                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                            $layerLevel = $productionItem['sub_location']['layer_level'];
+                            $subLocationModel = SubLocationModel::find($subLocationId);
+                            $zoneId = $subLocationModel->zone_id;
+                            $zoneItemKey = "${itemCode}-SL${subLocationId}-L${layerLevel}";
+
+                            if ($zoneId == $zone_id) {
+                                if (isset($zoneItemList[$zoneItemKey])) {
+                                    $zoneItemList[$zoneItemKey]['quantity'] += 1;
+                                    if (!in_array($productionItem['bid'], $zoneItemList[$zoneItemKey]['batch_array'])) {
+                                        $zoneItemList[$zoneItemKey]['batch_array'][] = $productionItem['bid'];
+                                    }
+                                } else {
+                                    $zoneItemList[$zoneItemKey] = [
+                                        'zone_item_key' => $zoneItemKey,
+                                        'item_code' => $itemCode,
+                                        'batch_no' => $productionBatch->batch_number,
+                                        'sub_location' => $subLocationModel->code,
+                                        'layer_level' => "L${layerLevel}",
+                                        'batch_array' => [$productionItem['bid']],
+                                        'quantity' => 1
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($zoneItemList));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
     #region status list
     // 0 => 'Good',
     // 1 => 'On Hold',
