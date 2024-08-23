@@ -238,7 +238,12 @@ class StockInventoryController extends Controller
             ];
             $productionBatchModel = ProductionBatchModel::where('status', '!=', 3)->get();
 
-            $skuList = [];
+            $skuList = [
+                'all' => [
+                    'title' => 'All',
+                    'api' => "item/stock/inventory/zone/item/get/{$zone_id}",
+                ]
+            ];
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -250,8 +255,11 @@ class StockInventoryController extends Controller
                             $zoneId = $subLocationModel->zone_id;
                             $isItemCodeFilter = $item_code ? $productionBatch->item_code == $item_code : true;
                             if ($zoneId == $zone_id) {
-                                if (!in_array($productionBatch->item_code, $skuList)) {
-                                    $skuList[] = $productionBatch->item_code;
+                                if (!array_key_exists($productionBatch->item_code, $skuList)) {
+                                    $skuList[$productionBatch->item_code] = [
+                                        'title' => $productionBatch->item_code,
+                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$productionBatch->item_code}",
+                                    ];
                                 }
                                 if ($isItemCodeFilter) {
                                     $zoneDetails['quantity_on_hand'] += 1;
@@ -260,7 +268,7 @@ class StockInventoryController extends Controller
                         }
                     }
                 }
-                $zoneDetails['sku'] = $skuList;
+                $zoneDetails['sku'] = array_values($skuList);
             }
             return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneDetails);
         } catch (Exception $exception) {
