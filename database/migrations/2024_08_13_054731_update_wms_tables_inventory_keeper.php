@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('reference_number');
             $table->integer('requested_item_count');
             $table->text('reason');
-            SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = Completed
+            SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Transfer, 2 = In Process, 3 = Transferred
         });
         #endregion
 
@@ -26,13 +26,13 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('stock_transfer_list_id');
             $table->string('item_code');
-            $table->longText('selected_items');
+            $table->longText('selected_items')->nullable();
             $table->integer('initial_stock');
             $table->integer('transfer_quantity');
             $table->unsignedBigInteger('zone_id');
             $table->unsignedBigInteger('sub_location_id');
             $table->unsignedBigInteger('layer')->nullable();
-            SchemaHelper::addCommonColumns($table, 0); // 0 = For Stock Transfer, 1 = Stock Transfer - In Process, 2 = Stock Transferred
+            SchemaHelper::addCommonColumns($table, 0); // 0 = For Transfer, 1 = In Process, 2 = Transferred
         });
         #endregion
 
@@ -41,7 +41,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('stock_transfer_list_id');
             $table->text('reason');
-            $table->text('attachment');
+            $table->text('attachment')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
         #endregion

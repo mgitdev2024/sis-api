@@ -344,5 +344,6 @@ class StockInventoryController extends Controller
     // 11 => 'Retouched',
     // 12 => 'Sliced',
     // 13 => 'Stored',
+    // 14 => 'For Transfer',
     #endregion
 }

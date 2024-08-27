@@ -411,5 +411,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Stock Transfer
     Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCreate']);
+    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCancel']);
+    Route::get('v1/stock/transfer/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetAll']);
+    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetById']);
+
     #endregion
 });
