@@ -29,6 +29,7 @@ return new class extends Migration {
             $table->integer('is_printed')->default(0);
             $table->string('fulfilled_by_id')->nullable();
             $table->timestamp('fulfilled_at')->nullable();
+            $table->integer('fulfilled_batch_id')->nullable();
             SchemaHelper::addCommonColumns($table);  //  0 = closed , 1 = open
 
             $table->foreign('production_batch_id')->references('id')->on('mos_production_batches');
