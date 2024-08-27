@@ -181,7 +181,7 @@ trait WmsCrudOperationsTrait
     public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
     {
         try {
-            $data = $model::orderBy('id', 'ASC');
+            $data = $model::query();
             if ($whereFields) {
                 foreach ($whereFields as $field => $value) {
                     if (is_array($value)) {

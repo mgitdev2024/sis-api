@@ -28,6 +28,10 @@ return new class extends Migration {
             $table->float('plotted_quantity');
             $table->integer('actual_quantity')->default(0);
             $table->integer('actual_secondary_quantity')->default(0);
+            $table->integer('produced_items_count')->default(0);
+            $table->integer('received_items_count')->default(0);
+            $table->integer('in_qa_count')->default(0);
+
             $table->date('expected_ambient_exp_date')->nullable();
             $table->date('expected_chilled_exp_date')->nullable();
             $table->date('expected_frozen_exp_date')->nullable();
@@ -48,6 +52,10 @@ return new class extends Migration {
             $table->float('plotted_quantity');
             $table->integer('actual_quantity')->default(0);
             $table->integer('actual_secondary_quantity')->default(0);
+            $table->integer('produced_items_count')->default(0);
+            $table->integer('received_items_count')->default(0);
+            $table->integer('in_qa_count')->default(0);
+
             $table->date('expected_ambient_exp_date')->nullable();
             $table->date('expected_chilled_exp_date')->nullable();
             $table->date('expected_frozen_exp_date')->nullable();
@@ -64,6 +72,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('production_ota_id')->nullable();
             $table->unsignedBigInteger('production_order_id');
             $table->unsignedBigInteger('production_item_id')->nullable();
+            $table->string('item_code');
             $table->string('batch_code');
             $table->integer('batch_number');
             $table->tinyInteger('batch_type');
@@ -154,6 +163,7 @@ return new class extends Migration {
             $table->integer('substandard_quantity')->default(0);
             $table->longText('substandard_data')->nullable();
             $table->longText('discrepancy_data')->nullable();
+            $table->integer('temporary_storage_id')->nullable();
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
 
@@ -175,7 +185,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('temporary_storage_id')->nullable();
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-            $table->foreign('temporary_storage_id')->references('id')->on('wms_storage_sub_locations');
+            // $table->foreign('temporary_storage_id')->references('id')->on('wms_storage_sub_locations');
         });
 
         Schema::create('wms_warehouse_for_put_away', function (Blueprint $table) {

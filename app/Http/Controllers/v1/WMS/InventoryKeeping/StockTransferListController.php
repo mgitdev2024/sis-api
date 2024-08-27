@@ -3,9 +3,183 @@
 namespace App\Http\Controllers\v1\WMS\InventoryKeeping;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\InventoryKeeping\StockTransferCancelledModel;
+use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Traits\WMS\WmsCrudOperationsTrait;
+use App\Traits\Credentials\CredentialsTrait;
 use Illuminate\Http\Request;
-
+use DB;
+use Exception;
 class StockTransferListController extends Controller
 {
-    //
+    use WmsCrudOperationsTrait, CredentialsTrait;
+
+    public function onCreate(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'reason' => 'required|string',
+            'items_to_transfer' => 'required_if:is_transfer_all,0|json',
+            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
+            'is_transfer_all' => 'required|boolean',
+        ]);
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $stockTransferListModel = new StockTransferListModel();
+            $referenceCode = StockTransferListModel::onGenerateStockRequestReferenceNumber();
+            $latestId = StockTransferListModel::latest()->value('id') + 1;
+            $totalRequestedItemCount = 0;
+            $zoneId = $fields['zone_id'];
+
+            $itemsToTransfer = json_decode($fields['items_to_transfer'] ?? null, true);
+            if ($itemsToTransfer == null) {
+                dd('fdssdfdsfa');
+            }
+            foreach ($itemsToTransfer as $subLocationValue) {
+                foreach ($subLocationValue['layers'] as $layers) {
+                    $totalRequestedItemCount += $layers['transfer_quantity'];
+                    $stockTransferItemModel = new StockTransferItemModel();
+                    $stockTransferItemModel->stock_transfer_list_id = $latestId;
+                    $stockTransferItemModel->zone_id = $zoneId;
+                    $stockTransferItemModel->sub_location_id = $subLocationValue['sub_location_id'];
+                    $stockTransferItemModel->item_code = $layers['item_code'];
+                    $stockTransferItemModel->initial_stock = $layers['initial_stock'];
+                    $stockTransferItemModel->transfer_quantity = $layers['transfer_quantity'];
+                    $stockTransferItemModel->layer = $layers['layer'];
+                    $stockTransferItemModel->created_by_id = $createdById;
+                    $stockTransferItemModel->save();
+                }
+            }
+
+            $stockTransferListModel->reference_number = $referenceCode;
+            $stockTransferListModel->requested_item_count = $totalRequestedItemCount;
+            $stockTransferListModel->reason = $fields['reason'];
+            $stockTransferListModel->created_by_id = $createdById;
+            $stockTransferListModel->save();
+            DB::commit();
+            return $this->dataResponse('success', 200, 'Stock Request ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onGetAll($status)
+    {
+        try {
+            $stockTransferListModel = StockTransferListModel::orderBy('created_at', 'DESC');
+            if ($status != 'complete') {
+                $stockTransferListModel->whereNotIn('status', [0, 3]);
+            } else {
+                $stockTransferListModel->where('status', 3);
+            }
+            $stockTransferListModel = $stockTransferListModel->get();
+            if (count($stockTransferListModel) > 0) {
+                return $this->dataResponse('success', 200, 'Stock Transfer List', $stockTransferListModel);
+            }
+            return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Stock Transfer List ' . __('msg.record_not_found'));
+        }
+    }
+
+    public function onGetById($id)
+    {
+        try {
+            $stockTransferListModel = StockTransferListModel::with('stockTransferItems')->find($id);
+            $stockTransferListModel->formatted_date = date('Y-m-d', strtotime($stockTransferListModel->created_at));
+            $fullName = $this->onGetName($stockTransferListModel->created_by_id);
+            $stockTransferListModel->requested_by = $fullName;
+            if ($stockTransferListModel) {
+                return $this->dataResponse('success', 200, 'Stock Transfer List', $stockTransferListModel);
+            }
+            return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCancel(Request $request, $id)
+    {
+        try {
+            $request->merge(['stock_transfer_list_id' => $id]);
+
+            $rules = [
+                'stock_transfer_list_id' => 'required|integer',
+                'reason' => 'required|string',
+                'attachment' => 'nullable',
+                'created_by_id' => 'required',
+            ];
+
+            $this->createRecord(StockTransferCancelledModel::class, $request, $rules, 'Stock Transfer List', 0);
+
+            $stockTransferListModel = StockTransferListModel::find($id);
+            $stockTransferListModel->status = 0; // Cancelled status
+            $stockTransferListModel->save();
+
+            return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
 }
+/*
+[
+    {
+        "sub_location_id": 1,
+        "code": "RCK0001",
+        "layers":[
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 1
+            },
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 2
+            },
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 3
+            }
+        ]
+    },
+    {
+        "sub_location_id": 2,
+        "code": "RCK0002",
+        "layers":[
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 1
+            },
+            {
+                "item_code": "MM 6",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 1
+            },
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 2
+            },
+            {
+                "item_code": "CR 12",
+                "initial_stock": 10,
+                "transfer_quantity": 5,
+                "layer": 3
+            }
+        ]
+    }
+]
+ */

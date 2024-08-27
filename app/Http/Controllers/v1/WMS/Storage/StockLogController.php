@@ -26,7 +26,7 @@ class StockLogController extends Controller
             $stockLogModel = $stockLogModel->get();
             return $this->dataResponse('success', 200, 'Stock Log ' . __('msg.record_found'), $stockLogModel);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, $exception);
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 }
