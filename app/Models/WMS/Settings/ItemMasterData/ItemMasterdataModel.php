@@ -27,6 +27,7 @@ class ItemMasterdataModel extends Model
         'plant_label',
         'sticker_remarks_label',
         'storage_type_label',
+        'stock_type_label',
         // 'stock_rotation_type_label'
     ];
     protected $fillable = [
@@ -227,5 +228,16 @@ class ItemMasterdataModel extends Model
             return $itemMasterdata->toArray();
         }
         return null;
+    }
+
+    public function stockType()
+    {
+        return $this->belongsTo(ItemStockTypeModel::class, 'stock_type_id', 'id');
+    }
+
+    public function getStockTypeLabelAttribute()
+    {
+        $stockType = $this->stockType->toArray();
+        return $stockType ?? null;
     }
 }

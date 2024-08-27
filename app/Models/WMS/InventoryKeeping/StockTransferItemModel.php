@@ -11,7 +11,7 @@ class StockTransferItemModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'wms_stock_transfer_lists';
+    protected $table = 'wms_stock_transfer_items';
 
     protected $fillable = [
         'stock_transfer_list_id',

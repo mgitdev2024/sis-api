@@ -12,18 +12,21 @@ use Exception;
 class StockLogController extends Controller
 {
     use WmsCrudOperationsTrait;
-    public function onGetByItemCode($item_code)
+    public function onGetByItemCode($item_code, $date = null)
     {
         try {
-            $whereFields = [
-                'item_code' => $item_code,
-            ];
-            $orderFields = [
-                'created_at' => 'ASC',
-            ];
-            return $this->readCurrentRecord(StockLogModel::class, null, $whereFields, null, $orderFields, 'Stock Logs', false, null);
+            $stockLogModel = StockLogModel::where([
+                'item_code' => $item_code
+            ]);
+            if ($date) {
+                $stockLogModel->whereDate('created_at', $date);
+            }
+            $stockLogModel->selectRaw("*, DATE_FORMAT(created_at, '%Y-%m-%d') as formatted_date")
+                ->selectRaw("CASE WHEN action = 1 THEN 'Inbound' ELSE 'Outbound' END as action_label");
+            $stockLogModel = $stockLogModel->get();
+            return $this->dataResponse('success', 200, 'Stock Log ' . __('msg.record_found'), $stockLogModel);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, $exception);
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 }

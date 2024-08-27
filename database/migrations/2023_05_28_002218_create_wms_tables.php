@@ -251,8 +251,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('sub_location_id');
             $table->integer('layer_level');
             $table->integer('storage_remaining_space')->nullable();
-            // $table->integer('initial_stock')->nullable();
-            // $table->integer('final_stock')->nullable();
+            $table->integer('initial_stock')->nullable();
+            $table->integer('final_stock')->nullable();
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('item_code')->references('item_code')->on('wms_item_masterdata');
@@ -283,6 +283,40 @@ return new class extends Migration {
         });
         #endregion
 
+        #region Warehouse Stock Transfer List
+        Schema::create('wms_stock_transfer_lists', function (Blueprint $table) {
+            $table->id();
+            $table->string('reference_number');
+            $table->integer('requested_item_count');
+            $table->text('reason');
+            SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Transfer, 2 = In Process, 3 = Transferred
+        });
+        #endregion
+
+        #region Warehouse Stock Transfer List
+        Schema::create('wms_stock_transfer_items', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('stock_transfer_list_id');
+            $table->string('item_code');
+            $table->longText('selected_items')->nullable();
+            $table->integer('initial_stock');
+            $table->integer('transfer_quantity');
+            $table->unsignedBigInteger('zone_id');
+            $table->unsignedBigInteger('sub_location_id');
+            $table->unsignedBigInteger('layer')->nullable();
+            SchemaHelper::addCommonColumns($table, 0); // 0 = For Transfer, 1 = In Process, 2 = Transferred
+        });
+        #endregion
+
+        #region Warehouse Stock Transfer List
+        Schema::create('wms_stock_transfer_cancelled', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('stock_transfer_list_id');
+            $table->text('reason');
+            $table->text('attachment')->nullable();
+            SchemaHelper::addCommonColumns($table);
+        });
+        #endregion
     }
 
     /**
@@ -316,5 +350,9 @@ return new class extends Migration {
         Schema::dropIfExists('wms_queued_temporary_storages');
         Schema::dropIfExists('wms_warehouse_logs');
         Schema::dropIfExists('wms_warehouse_for_receive');
+
+        Schema::dropIfExists('wms_stock_transfer_lists');
+        Schema::dropIfExists('wms_stock_transfer_items');
+        Schema::dropIfExists('wms_stock_transfer_cancelled');
     }
 };
