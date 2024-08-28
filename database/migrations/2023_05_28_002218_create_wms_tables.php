@@ -301,6 +301,7 @@ return new class extends Migration {
             $table->longText('selected_items')->nullable();
             $table->integer('initial_stock');
             $table->integer('transfer_quantity');
+            $table->string('origin_location');
             $table->unsignedBigInteger('zone_id');
             $table->unsignedBigInteger('sub_location_id');
             $table->unsignedBigInteger('layer')->nullable();
@@ -314,6 +315,16 @@ return new class extends Migration {
             $table->unsignedBigInteger('stock_transfer_list_id');
             $table->text('reason');
             $table->text('attachment')->nullable();
+            SchemaHelper::addCommonColumns($table);
+        });
+        #endregion
+
+        #region Warehouse Queued Stock Transfer List
+        Schema::create('wms_stock_transfer_cache', function (Blueprint $table) {
+            $table->id();
+            $table->integer('requested_item_count');
+            $table->text('reason');
+            $table->longText('stock_transfer_items');
             SchemaHelper::addCommonColumns($table);
         });
         #endregion
