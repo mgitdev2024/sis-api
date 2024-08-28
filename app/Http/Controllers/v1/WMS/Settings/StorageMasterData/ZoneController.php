@@ -8,13 +8,14 @@ use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Traits\MOS\MosCrudOperationsTrait;
+use App\Traits\WMS\InventoryMovementTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
 class ZoneController extends Controller
 {
-    use MosCrudOperationsTrait;
+    use MosCrudOperationsTrait, InventoryMovementTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -129,5 +130,25 @@ class ZoneController extends Controller
         $storageType = StorageTypeModel::where('code', $storageTypeId)->first();
 
         return $storageType ? $storageType->id : null;
+    }
+
+    public function onGetZoneItemList($zone_id)
+    {
+        try {
+            $zoneItems = $this->onGetZoneStoredItems($zone_id);
+            return $this->dataResponse('success', 200, 'Zone Items', $zoneItems);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Inventory Movement ' . __('msg.record_not_found'));
+        }
+    }
+
+    public function onOccupiedZoneList()
+    {
+        try {
+            $zoneList = $this->onGetOccupiedZones();
+            return $this->dataResponse('success', 200, 'Zone Items', $zoneList);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Inventory Movement ' . __('msg.record_not_found'));
+        }
     }
 }
