@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\v1\WMS\InventoryKeeping;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\InventoryKeeping\StockTransferCacheModel;
 use App\Models\WMS\InventoryKeeping\StockTransferCancelledModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use App\Traits\Credentials\CredentialsTrait;
 use Illuminate\Http\Request;
@@ -13,16 +15,11 @@ use DB;
 use Exception;
 class StockTransferListController extends Controller
 {
-    use WmsCrudOperationsTrait, CredentialsTrait;
-
+    use WmsCrudOperationsTrait, CredentialsTrait, WarehouseLogTrait;
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'reason' => 'required|string',
-            'items_to_transfer' => 'required_if:is_transfer_all,0|json',
-            'zone_id' => 'required|integer|exists:wms_storage_zones,id',
-            'is_transfer_all' => 'required|boolean',
         ]);
         try {
             DB::beginTransaction();
@@ -30,36 +27,44 @@ class StockTransferListController extends Controller
             $stockTransferListModel = new StockTransferListModel();
             $referenceCode = StockTransferListModel::onGenerateStockRequestReferenceNumber();
             $latestId = StockTransferListModel::latest()->value('id') + 1;
-            $totalRequestedItemCount = 0;
-            $zoneId = $fields['zone_id'];
+            $stockTransferCache = StockTransferCacheModel::where('created_by_id', $createdById)
+                ->orderBy('id', 'DESC')
+                ->first();
+            if ($stockTransferCache) {
+                $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
 
-            $itemsToTransfer = json_decode($fields['items_to_transfer'] ?? null, true);
-            if ($itemsToTransfer == null) {
-                dd('fdssdfdsfa');
-            }
-            foreach ($itemsToTransfer as $subLocationValue) {
-                foreach ($subLocationValue['layers'] as $layers) {
-                    $totalRequestedItemCount += $layers['transfer_quantity'];
+                foreach ($itemsToTransfer as $items) {
                     $stockTransferItemModel = new StockTransferItemModel();
                     $stockTransferItemModel->stock_transfer_list_id = $latestId;
-                    $stockTransferItemModel->zone_id = $zoneId;
-                    $stockTransferItemModel->sub_location_id = $subLocationValue['sub_location_id'];
-                    $stockTransferItemModel->item_code = $layers['item_code'];
-                    $stockTransferItemModel->initial_stock = $layers['initial_stock'];
-                    $stockTransferItemModel->transfer_quantity = $layers['transfer_quantity'];
-                    $stockTransferItemModel->layer = $layers['layer'];
+                    $stockTransferItemModel->zone_id = $items['zone_id'];
+                    $stockTransferItemModel->sub_location_id = $items['sub_location_id'];
+                    $stockTransferItemModel->item_code = $items['item_code'];
+                    $stockTransferItemModel->origin_location = $items['origin_location'];
+                    $stockTransferItemModel->initial_stock = $items['initial_stock'];
+                    $stockTransferItemModel->transfer_quantity = $items['transfer_quantity'];
+                    $stockTransferItemModel->layer = $items['layer'];
                     $stockTransferItemModel->created_by_id = $createdById;
                     $stockTransferItemModel->save();
+                    $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $createdById, 1);
                 }
-            }
 
-            $stockTransferListModel->reference_number = $referenceCode;
-            $stockTransferListModel->requested_item_count = $totalRequestedItemCount;
-            $stockTransferListModel->reason = $fields['reason'];
-            $stockTransferListModel->created_by_id = $createdById;
-            $stockTransferListModel->save();
-            DB::commit();
-            return $this->dataResponse('success', 200, 'Stock Request ' . __('msg.create_success'));
+                $stockTransferListModel->reference_number = $referenceCode;
+                $stockTransferListModel->requested_item_count = $stockTransferCache->requested_item_count;
+                $stockTransferListModel->reason = $stockTransferCache->reason;
+                $stockTransferListModel->created_by_id = $createdById;
+                $stockTransferListModel->save();
+
+                StockTransferCacheModel::where('created_by_id', $createdById)
+                    ->orderBy('id', 'DESC')
+                    ->delete();
+                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $createdById, 1);
+
+                DB::commit();
+                return $this->dataResponse('success', 200, 'Stock Request ' . __('msg.create_success'));
+            } else {
+                return $this->dataResponse('success', 200, 'Stock Request ' . __('msg.create_failed'));
+
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
