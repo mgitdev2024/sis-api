@@ -323,7 +323,7 @@ return new class extends Migration {
         Schema::create('wms_stock_transfer_cache', function (Blueprint $table) {
             $table->id();
             $table->integer('requested_item_count');
-            $table->text('reason');
+            // $table->text('reason');
             $table->longText('stock_transfer_items');
             SchemaHelper::addCommonColumns($table);
         });
