@@ -51,7 +51,6 @@ class QueuedSubLocationController extends Controller
             } else {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
-
             return $this->dataResponse('success', 200, __('msg.create_success'));
 
 

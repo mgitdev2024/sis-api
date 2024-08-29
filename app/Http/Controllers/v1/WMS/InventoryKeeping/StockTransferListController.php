@@ -7,6 +7,7 @@ use App\Models\WMS\InventoryKeeping\StockTransferCacheModel;
 use App\Models\WMS\InventoryKeeping\StockTransferCancelledModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use App\Traits\Credentials\CredentialsTrait;
@@ -95,6 +96,9 @@ class StockTransferListController extends Controller
     {
         try {
             $stockTransferListModel = StockTransferListModel::with('stockTransferItems')->find($id);
+            foreach ($stockTransferListModel->stockTransferItems as $item) {
+                $item->item_description = ItemMasterdataModel::where('item_code', $item['item_code'])->value('description');
+            }
             $stockTransferListModel->formatted_date = date('Y-m-d', strtotime($stockTransferListModel->created_at));
             $fullName = $this->onGetName($stockTransferListModel->created_by_id);
             $stockTransferListModel->requested_by = $fullName;
