@@ -13,7 +13,7 @@ class StockTransferCacheModel extends Model
 
     protected $fillable = [
         'requested_item_count',
-        'reason',
+        // 'reason',
         'stock_transfer_items',
         'created_by_id'
     ];
