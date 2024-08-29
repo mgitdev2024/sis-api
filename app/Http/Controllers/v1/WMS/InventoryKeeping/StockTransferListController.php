@@ -83,6 +83,10 @@ class StockTransferListController extends Controller
                 $stockTransferListModel->where('status', 3);
             }
             $stockTransferListModel = $stockTransferListModel->get();
+
+            foreach ($stockTransferListModel as $item) {
+                $item['formatted_date'] = date('Y-m-d h:i:A', strtotime($item['created_at']));
+            }
             if (count($stockTransferListModel) > 0) {
                 return $this->dataResponse('success', 200, 'Stock Transfer List', $stockTransferListModel);
             }
