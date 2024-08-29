@@ -11,7 +11,7 @@ class StockTransferItemModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'wms_stock_transfer_lists';
+    protected $table = 'wms_stock_transfer_items';
 
     protected $fillable = [
         'stock_transfer_list_id',
@@ -21,7 +21,8 @@ class StockTransferItemModel extends Model
         'transfer_quantity',
         'zone_id',
         'sub_location_id',
-        'layer'
+        'layer',
+        'origin_location'
     ];
 
     public function stockTransfer()
@@ -39,4 +40,13 @@ class StockTransferItemModel extends Model
         return $this->belongsTo(SubLocationModel::class, 'sub_location_id');
     }
 
+    public static function onGenerateOriginLocation($zoneId, $subLocationId, $layerLevel)
+    {
+        $subLocationModel = SubLocationModel::find($subLocationId);
+        $subLocationCode = $subLocationModel->code;
+        $zoneShortName = $subLocationModel->zone->short_name;
+
+        $originLocation = "{$zoneShortName} {$subLocationCode} L{$layerLevel}";
+        return $originLocation;
+    }
 }

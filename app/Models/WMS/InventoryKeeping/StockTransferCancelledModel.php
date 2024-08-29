@@ -15,6 +15,7 @@ class StockTransferCancelledModel extends Model
         'stock_transfer_list_id',
         'reason',
         'attachment',
+        'created_by_id'
     ];
 
     public function stockTransferList()

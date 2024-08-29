@@ -189,6 +189,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/zone/status/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onChangeStatus']);
     Route::delete('v1/storage/zone/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onDeleteById']);
     Route::post('v1/storage/zone/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onBulk']);
+    Route::get('v1/storage/zone/item/get/{zone_id?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onGetZoneItemList']);
+    Route::get('v1/storage/zone/occupied/get', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\ZoneController::class, 'onOccupiedZoneList']);
     #endregion
 
 
@@ -411,5 +413,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Stock Transfer
     Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCreate']);
+    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCancel']);
+    Route::get('v1/stock/transfer/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetAll']);
+    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetById']);
+    #endregion
+
+    #region Stock Transfer Cache
+    Route::post('v1/stock/transfer/cache/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferCacheController::class, 'onCreate']);
+    Route::get('v1/stock/transfer/cache/get/{created_by_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferCacheController::class, 'onGetCache']);
     #endregion
 });
