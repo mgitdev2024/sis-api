@@ -59,12 +59,15 @@ trait QueueSubLocationTrait
                 ->first();
             $layers = json_decode($subLocation->layers, true);
             $currentLayerCapacity = $layers[$layerLevel]['max'];
+            $existingItemStored = [];
             if ($queuedPermanentStorageModel) {
+                $existingItemStored = json_decode($queuedPermanentStorageModel->production_items, true);
                 $currentLayerCapacity = $queuedPermanentStorageModel->storage_remaining_space;
             }
 
             $itemCode = null;
             $currentScannedItems = [];
+
             foreach ($scannedItems as $value) {
                 if ($currentLayerCapacity > 0) {
                     $itemCode = $value['item_code'];
@@ -74,10 +77,11 @@ trait QueueSubLocationTrait
                     $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $layerLevel, $createdById, true);
                 }
             }
+            $existingItemStored = array_merge($existingItemStored, $currentScannedItems);
             $queuePermanentStorage = new QueuedSubLocationModel();
             $queuePermanentStorage->sub_location_id = $subLocationId;
             $queuePermanentStorage->layer_level = $layerLevel;
-            $queuePermanentStorage->production_items = json_encode($currentScannedItems);
+            $queuePermanentStorage->production_items = json_encode($existingItemStored);
             $queuePermanentStorage->quantity = count($currentScannedItems);
             $queuePermanentStorage->storage_remaining_space = $currentLayerCapacity;
             $queuePermanentStorage->created_by_id = $createdById;

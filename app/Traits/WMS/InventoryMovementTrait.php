@@ -68,6 +68,7 @@ trait InventoryMovementTrait
                             if ($queuedPermanentStorage) {
                                 // Different Item Looping per layer
                                 $layerProductionItems = json_decode($queuedPermanentStorage->production_items, true);
+                                dd($layerProductionItems);
                                 foreach ($layerProductionItems as $storedItems) {
                                     if (isset($layerItems[$storedItems['item_code']])) {
                                         $layerItems[$storedItems['item_code']]['initial_stock'] += 1;
