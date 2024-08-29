@@ -18,7 +18,7 @@ class StockTransferCacheController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'reason' => 'required|string',
+            // 'reason' => 'required|string',
             'items_to_transfer' => 'required_if:is_transfer_all,0|json',
             'zone_id' => 'required|integer|exists:wms_storage_zones,id',
             'is_transfer_all' => 'required|boolean',
@@ -53,7 +53,7 @@ class StockTransferCacheController extends Controller
             }
 
             $stockTransferListCache->requested_item_count = $totalRequestedItemCount;
-            $stockTransferListCache->reason = $fields['reason'];
+            // $stockTransferListCache->reason = $fields['reason'];
             $stockTransferListCache->created_by_id = $createdById;
             $stockTransferListCache->stock_transfer_items = json_encode($stockTransferItemCache);
             $stockTransferListCache->save();
@@ -75,7 +75,7 @@ class StockTransferCacheController extends Controller
                 $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
 
                 $data = [
-                    'reason' => $stockTransferCache->reason,
+                    // 'reason' => $stockTransferCache->reason,
                     'stock_transfer_items' => $itemsToTransfer,
                     'requested_item_count' => $stockTransferCache->requested_item_count,
                 ];
