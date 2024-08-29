@@ -20,6 +20,7 @@ class StockTransferListController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'reason' => 'required|string',
         ]);
         try {
             DB::beginTransaction();
@@ -50,7 +51,7 @@ class StockTransferListController extends Controller
 
                 $stockTransferListModel->reference_number = $referenceCode;
                 $stockTransferListModel->requested_item_count = $stockTransferCache->requested_item_count;
-                $stockTransferListModel->reason = $stockTransferCache->reason;
+                $stockTransferListModel->reason = $fields['reason'];
                 $stockTransferListModel->created_by_id = $createdById;
                 $stockTransferListModel->save();
 
@@ -71,7 +72,7 @@ class StockTransferListController extends Controller
         }
     }
 
-    public function onGetAll($status)
+    public function onGetAll($status = null)
     {
         try {
             $stockTransferListModel = StockTransferListModel::orderBy('created_at', 'DESC');
