@@ -103,7 +103,7 @@ class StockTransferListController extends Controller
             foreach ($stockTransferListModel->stockTransferItems as $item) {
                 $item->item_description = ItemMasterdataModel::where('item_code', $item['item_code'])->value('description');
             }
-            $stockTransferListModel->formatted_date = date('Y-m-d', strtotime($stockTransferListModel->created_at));
+            $stockTransferListModel->formatted_date = date('Y-m-d h:i:A', strtotime($stockTransferListModel->created_at));
             $fullName = $this->onGetName($stockTransferListModel->created_by_id);
             $stockTransferListModel->requested_by = $fullName;
             if ($stockTransferListModel) {
