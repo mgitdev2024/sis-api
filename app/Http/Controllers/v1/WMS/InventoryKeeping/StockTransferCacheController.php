@@ -75,7 +75,7 @@ class StockTransferCacheController extends Controller
                 $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
 
                 $data = [
-                    'reason' => $stockTransferCache->reason,
+                    // 'reason' => $stockTransferCache->reason,
                     'stock_transfer_items' => $itemsToTransfer,
                     'requested_item_count' => $stockTransferCache->requested_item_count,
                 ];
