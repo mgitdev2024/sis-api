@@ -383,7 +383,7 @@ class WarehousePutAwayController extends Controller
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
+            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $warehouse_put_away_id)
                 ->where('status', 0)
                 ->firstOrFail();
 
@@ -432,6 +432,7 @@ class WarehousePutAwayController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
 
         }
