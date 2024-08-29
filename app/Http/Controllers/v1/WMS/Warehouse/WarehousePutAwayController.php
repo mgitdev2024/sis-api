@@ -432,9 +432,7 @@ class WarehousePutAwayController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
-
         }
     }
 
@@ -448,7 +446,6 @@ class WarehousePutAwayController extends Controller
             }
             return false;
         } catch (Exception $exception) {
-
             return false;
         }
     }
