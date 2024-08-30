@@ -18,7 +18,7 @@ class SubLocationController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
-            'code' => 'required|string|unique:wms_storage_types,code,' . $itemId,
+            'code' => 'required|string|unique:wms_storage_sub_locations,code,' . $itemId,
             'number' => 'integer',
             'is_permanent' => 'boolean|nullable',
             'has_layer' => 'integer|nullable',

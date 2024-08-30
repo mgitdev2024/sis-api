@@ -388,7 +388,7 @@ class WarehousePutAwayController extends Controller
                 ->firstOrFail();
 
             DB::beginTransaction();
-            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehousePutAway->id)->first();
+            // $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehousePutAway->id)->first();
 
             $warehousePutAwayItem = json_decode($warehousePutAway->production_items, true);
             $subLocationId = null;
