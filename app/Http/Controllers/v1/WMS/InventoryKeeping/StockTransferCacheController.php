@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\InventoryKeeping;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\InventoryKeeping\StockTransferCacheModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Traits\ResponseTrait;
 use App\Traits\WMS\InventoryMovementTrait;
 use Illuminate\Http\Request;
@@ -73,7 +74,9 @@ class StockTransferCacheController extends Controller
                 ->first();
             if ($stockTransferCache) {
                 $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
-
+                foreach ($itemsToTransfer as $key => $item) {
+                    $itemsToTransfer[$key]['item_description'] = ItemMasterdataModel::where('item_code', $item['item_code'])->value('description');
+                }
                 $data = [
                     // 'reason' => $stockTransferCache->reason,
                     'stock_transfer_items' => $itemsToTransfer,
