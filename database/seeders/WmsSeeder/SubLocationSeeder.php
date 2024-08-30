@@ -24,7 +24,7 @@ class SubLocationSeeder extends Seeder
         for ($i = 1; $i <= 50; $i++) {
             $ambientTemporaryStorage[] = [
                 "code" => "RCK" . str_pad($i, 3, '0', STR_PAD_LEFT),
-                "number" => "1",
+                "number" => 1,
                 "has_layer" => 1,
                 "is_permanent" => 0,
                 "layers" => '{"1":{"min":1,"max":500,"layer_no":1}}',

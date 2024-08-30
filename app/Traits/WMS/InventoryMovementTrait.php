@@ -54,6 +54,7 @@ trait InventoryMovementTrait
                 foreach ($subLocationModel as $subLocation) {
                     $hasLayer = $subLocation->has_layer;
                     $layerItems = [];
+                    $hasItems = false;
                     if ($hasLayer == 1) {
                         $subLocationLayers = json_decode($subLocation->layers, true);
                         // Different Layer Looping per sub-location
@@ -67,6 +68,7 @@ trait InventoryMovementTrait
 
                             if ($queuedPermanentStorage) {
                                 // Different Item Looping per layer
+                                $hasItems = true;
                                 $layerProductionItems = json_decode($queuedPermanentStorage->production_items, true);
                                 foreach ($layerProductionItems as $storedItems) {
                                     if (isset($layerItems[$storedItems['item_code']])) {
@@ -90,11 +92,14 @@ trait InventoryMovementTrait
                         }
                     }
 
-                    $zoneItems[] = [
-                        'sub_location_id' => $subLocation->id,
-                        'code' => $subLocation->code,
-                        'layers' => $layerItems
-                    ];
+                    if ($hasItems) {
+                        $zoneItems[] = [
+                            'sub_location_id' => $subLocation->id,
+                            'code' => $subLocation->code,
+                            'layers' => $layerItems
+                        ];
+                    }
+
                 }
             }
 

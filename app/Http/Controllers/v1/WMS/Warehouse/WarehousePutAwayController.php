@@ -383,12 +383,12 @@ class WarehousePutAwayController extends Controller
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
+            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $warehouse_put_away_id)
                 ->where('status', 0)
                 ->firstOrFail();
 
             DB::beginTransaction();
-            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehousePutAway->id)->first();
+            // $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehousePutAway->id)->first();
 
             $warehousePutAwayItem = json_decode($warehousePutAway->production_items, true);
             $subLocationId = null;
@@ -425,10 +425,7 @@ class WarehousePutAwayController extends Controller
                 $warehousePutAway->save();
                 $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $createdById, 0);
 
-                $queuedTemporaryStorage = QueuedTemporaryStorageModel::where('sub_location_id', $temporaryStorageId)->orderBy('id', 'DESC')->first();
-                if ($queuedTemporaryStorage) {
-                    $queuedTemporaryStorage->delete();
-                }
+                QueuedTemporaryStorageModel::where('sub_location_id', $temporaryStorageId)->delete();
             }
             DB::commit();
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_success'));
@@ -436,7 +433,6 @@ class WarehousePutAwayController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
-
         }
     }
 
@@ -450,7 +446,6 @@ class WarehousePutAwayController extends Controller
             }
             return false;
         } catch (Exception $exception) {
-
             return false;
         }
     }
