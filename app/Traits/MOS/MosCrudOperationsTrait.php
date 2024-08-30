@@ -26,7 +26,7 @@ trait MosCrudOperationsTrait
             $this->createProductionLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, $exception /* __('msg.create_failed') */);
+            return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
     public function updateRecordById($model, $request, $rules, $modelName, $id, $path = null)
