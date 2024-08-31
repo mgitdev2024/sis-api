@@ -101,7 +101,10 @@ class StockInventoryController extends Controller
 
     public function onGetAll()
     {
-        return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', null, 'Stock Inventory');
+        $orderFields = [
+            'status' => 'DESC'
+        ];
+        return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', $orderFields, 'Stock Inventory');
     }
 
     public function onGetInStock($item_code)
