@@ -4,14 +4,14 @@ namespace App\Http\Controllers\v1\WMS\InventoryKeeping;
 
 use App\Http\Controllers\Controller;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
+use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WarehouseLogTrait;
 use Illuminate\Http\Request;
-use App\Traits\ResponseTrait;
 
 use Exception, DB;
 class StockTransferItemController extends Controller
 {
-    use ResponseTrait, WarehouseLogTrait;
+    use WarehouseLogTrait, QueueSubLocationTrait;
 
     public function onGetById($id, $is_check_location_only = 0)
     {
@@ -76,18 +76,29 @@ class StockTransferItemController extends Controller
     public function onUpdateSelectedItems(Request $request, $id)
     {
         $fields = $request->validate([
-            'selected_items' => 'required|json',
-            'sub_location_id' => 'required|exists"wms_storage_sub_locations",id',
+            'scanned_item' => 'required|json',
+            'sub_location_id' => 'required|exists:wms_storage_sub_locations,id',
             'updated_by_id' => 'required',
         ]);
         try {
+            DB::commit();
+            $updateById = $fields['updated_by_id'];
+            $subLocationId = $fields['sub_location_id'];
+            if (!$this->onCheckAvailability($subLocationId, false)) {
+                throw new Exception('Sub Location Unavailable');
+            }
+            $scannedItem = json_decode($fields['scanned_item'], true);
+            $this->onQueueStorage($updateById, $scannedItem, $subLocationId, false);
+
             $stockTransferItemModel = StockTransferItemModel::find($id);
-            $stockTransferItemModel->selected_items = json_encode($fields['selected_items']);
+            $stockTransferItemModel->selected_items = json_encode($fields['scanned_item']);
             $stockTransferItemModel->updated_by_id = $fields['updated_by_id'];
             $stockTransferItemModel->save();
             $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['updated_by_id'], 1);
+            DB::commit();
             return $this->dataResponse('success', 200, 'Stock Transfer Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

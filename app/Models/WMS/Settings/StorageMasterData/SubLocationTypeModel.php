@@ -23,12 +23,17 @@ class SubLocationTypeModel extends Model
     {
         return $this->belongsTo(SubLocationModel::class, 'id', 'sub_location_type_id');
     }
+
+    public function subLocations()
+    {
+        return $this->hasMany(SubLocationModel::class, 'sub_location_type_id', 'id');
+    }
     public function toArray()
     {
         $array = parent::toArray();
-        $array['qty'] = $this->subLocation ? $this->subLocation->count() : 0;
-        $array['sub_location'] = $this->subLocation ?? [];
+        $array['qty'] = $this->subLocations ? $this->subLocations->count() : 0;
+        $array['sub_location'] = $this->subLocations ?? [];
         return $array;
     }
-    
+
 }

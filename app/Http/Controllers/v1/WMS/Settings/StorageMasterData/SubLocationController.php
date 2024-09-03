@@ -152,4 +152,62 @@ class SubLocationController extends Controller
 
         }
     }
+
+    public function onGenerateSubLocation(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'is_permanent' => 'required|in:0,1',
+            'has_layer' => 'required|in:0,1',
+            'layers' => 'required_if:has_layer,1',
+            'number' => 'required',
+            'facility_id' => 'nullable|integer|exists:wms_storage_facility_plants,id',
+            'warehouse_id' => 'nullable|integer|exists:wms_storage_warehouses,id',
+            'zone_id' => 'nullable|integer|exists:wms_storage_zones,id',
+            'sub_location_type_id' => 'required|integer|exists:wms_storage_sub_location_type,id',
+            'quantity' => 'required|integer',
+            'base_code' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            // Get the latest sub-location code based on the base code
+            $latestSubLocation = SubLocationModel::where('code', 'LIKE', "%{$fields['base_code']}%")
+                ->orderBy('code', 'DESC')
+                ->first();
+
+            $nextCode = $fields['base_code'] . str_pad('001', 3, '0', STR_PAD_LEFT); // Default start
+            if ($latestSubLocation) {
+                // Extract the number part from the latest sub-location code and increment it
+                $lastNumber = intval(substr($latestSubLocation->code, strlen($fields['base_code'])));
+                $nextNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+                $nextCode = $fields['base_code'] . $nextNumber;
+            }
+
+            for ($i = 0; $i < $fields['quantity']; $i++) {
+
+                DB::table('wms_storage_sub_locations')->insert([
+                    'code' => $nextCode,
+                    'created_by_id' => $fields['created_by_id'],
+                    'is_permanent' => $fields['is_permanent'] ?? 0,
+                    'has_layer' => $fields['has_layer'] ?? 0,
+                    'number' => $fields['number'],
+                    'layers' => $fields['layers'] ?? null,
+                    'facility_id' => $fields['facility_id'] ?? null,
+                    'warehouse_id' => $fields['warehouse_id'] ?? null,
+                    'zone_id' => $fields['zone_id'] ?? null,
+                    'sub_location_type_id' => $fields['sub_location_type_id'],
+                    'status' => 1, // Assuming status is active by default
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $nextCode = $fields['base_code'] . str_pad((intval(substr($nextCode, strlen($fields['base_code'])))) + 1, 3, '0', STR_PAD_LEFT);
+            }
+
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
 }

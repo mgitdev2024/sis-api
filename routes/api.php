@@ -230,6 +230,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/storage/sub_location/bulk', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onBulk']);
     Route::get('v1/storage/sub_location/generate_code/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
     Route::get('v1/storage/sub_location/generate_code/all/get', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCodeAll']);
+    Route::post('v1/storage/sub_location/generate_sub_location', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateSubLocation']);
     #endregion
 
     #region Item Masterdata
@@ -427,5 +428,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Stock Transfer Items
     Route::get('v1/stock/transfer/item/get/{id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
+    Route::post('v1/stock/transfer/item/scan-selected/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onUpdateSelectedItems']);
     #endregion
 });
