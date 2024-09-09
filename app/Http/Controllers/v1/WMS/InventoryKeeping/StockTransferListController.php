@@ -148,7 +148,6 @@ class StockTransferListController extends Controller
     }
 
     // Below are for Stock Transfer Warehouse Stockman
-
     public function onGetStockRequestList($statusId)
     {
         try {

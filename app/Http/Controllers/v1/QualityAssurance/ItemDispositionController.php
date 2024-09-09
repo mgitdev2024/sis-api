@@ -151,7 +151,7 @@ class ItemDispositionController extends Controller
                         ? ProductionOTBModel::class
                         : ProductionOTAModel::class;
 
-                    $productionToBakeAssemble->produced_items_count -= $triggeredReviewedStatusCount;
+                    // $productionToBakeAssemble->produced_items_count -= $triggeredReviewedStatusCount;
                     $productionToBakeAssemble->save();
                     $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
                 }

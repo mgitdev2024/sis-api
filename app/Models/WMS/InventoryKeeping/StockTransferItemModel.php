@@ -48,7 +48,7 @@ class StockTransferItemModel extends Model
         return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 
-    public static function onGenerateOriginLocation($zoneId, $subLocationId, $layerLevel)
+    public static function onGenerateOriginLocation($subLocationId, $layerLevel)
     {
         $subLocationModel = SubLocationModel::find($subLocationId);
         $subLocationCode = $subLocationModel->code;

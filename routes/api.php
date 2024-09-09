@@ -428,6 +428,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     #region Stock Transfer Items
     Route::get('v1/stock/transfer/item/get/{id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
-    Route::post('v1/stock/transfer/item/scan-selected/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onUpdateSelectedItems']);
+    Route::post('v1/stock/transfer/item/scan-selected/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
+    #endregion
+
+    #region Stock Request For Transfer
+    Route::post('v1/stock/request/for-transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onCreate']);
+    Route::post('v1/stock/request/for-transfer/update/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onUpdate']);
+    Route::delete('v1/stock/request/for-transfer/delete/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onDelete']);
+    Route::post('v1/stock/request/for-transfer/transfer/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onTransferItems']);
     #endregion
 });

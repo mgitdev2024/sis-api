@@ -131,6 +131,12 @@ class QueuedSubLocationController extends Controller
                 $warehouseForPutAway->production_items = $encodedPutAwayItems;
                 $warehouseForPutAway->save();
             } else {
+                // Warehouse Receive if already no more item to be received
+                // $warehouseReceivingValue->status = 1;
+                // $warehouseReceivingValue->updated_by_id = $createdById;
+                // $warehouseReceivingValue->discrepancy_data = json_encode($discrepancy);
+                // $warehouseReceivingValue->save();
+                // $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
                 $warehouseForPutAway->delete();
             }
         } catch (Exception $exception) {

@@ -51,7 +51,7 @@ class ProductionItemController extends Controller
         // 1 => 'On Hold',
         // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
-        // 2.1 => 'For Receive - Inbound',
+        // 2.1 => 'For Receive - In Process',
         // 3 => 'Received',
         // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
@@ -65,6 +65,7 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
+        // 14.1 => 'For Transfer - In Process',
         #endregion
 
         $rules = [

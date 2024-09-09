@@ -90,7 +90,6 @@ class AccessManagementController extends Controller
             $employeeList = json_decode($fields['emp_no'], true);
             $action = $fields['action'];
             $permissionTable = $type::where('code', $fields['code'])->first();
-
             if ($permissionTable) {
                 $access = json_decode($permissionTable->$action, true) ?? [];
                 $access = array_values(array_diff($access, $employeeList));
