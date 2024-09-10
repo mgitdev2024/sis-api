@@ -30,6 +30,7 @@ class ProductionOTAController extends Controller
             'requested_quantity' => 'required',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
+            'buffer_quantity' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
