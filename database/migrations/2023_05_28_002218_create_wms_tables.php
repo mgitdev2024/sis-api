@@ -302,6 +302,7 @@ return new class extends Migration {
             $table->integer('initial_stock');
             $table->integer('transfer_quantity');
             $table->string('origin_location');
+
             $table->unsignedBigInteger('zone_id');
             $table->unsignedBigInteger('sub_location_id');
             $table->unsignedBigInteger('layer')->nullable();
@@ -309,7 +310,7 @@ return new class extends Migration {
         });
         #endregion
 
-        #region Warehouse Stock Transfer List
+        #region Warehouse Stock Transfer Cancelled
         Schema::create('wms_stock_transfer_cancelled', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('stock_transfer_list_id');
@@ -319,11 +320,10 @@ return new class extends Migration {
         });
         #endregion
 
-        #region Warehouse Queued Stock Transfer List
+        #region Warehouse Stock Transfer Cache
         Schema::create('wms_stock_transfer_cache', function (Blueprint $table) {
             $table->id();
             $table->integer('requested_item_count');
-            // $table->text('reason');
             $table->longText('stock_transfer_items');
             SchemaHelper::addCommonColumns($table);
         });

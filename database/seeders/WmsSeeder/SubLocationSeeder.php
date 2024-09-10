@@ -21,7 +21,7 @@ class SubLocationSeeder extends Seeder
     {
         #region Ambient Temporary Storage
         $ambientTemporaryStorage = [];
-        for ($i = 1; $i <= 50; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $ambientTemporaryStorage[] = [
                 "code" => "RCK" . str_pad($i, 3, '0', STR_PAD_LEFT),
                 "number" => 1,
@@ -611,9 +611,9 @@ class SubLocationSeeder extends Seeder
         ];
         #endregion
 
-        $subLocations = array_merge($ambientTemporaryStorage);
+        $subLocations = array_merge($ambientTemporaryStorage, $ambientPermanentStorage);
 
-        $createdById = 0000;
+        $createdById = "0000";
 
         foreach ($subLocations as $value) {
             SubLocationModel::create([

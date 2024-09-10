@@ -30,6 +30,7 @@ class ProductionOTAController extends Controller
             'requested_quantity' => 'required',
             'plotted_quantity' => 'required|integer',
             'actual_quantity' => 'nullable|integer',
+            'buffer_quantity' => 'nullable|integer',
         ];
     }
     public function onCreate(Request $request)
@@ -298,6 +299,7 @@ class ProductionOTAController extends Controller
                     'item_code' => $itemCode,
                     'requested_quantity' => 0,
                     'plotted_quantity' => 0,
+                    'buffer_quantity' => 0,
                     // 'actual_quantity' => $quantity,
                 ]);
                 $productionOtaId = $this->onCreate($otaRequest)->getOriginalContent()['success']['data']['id'];

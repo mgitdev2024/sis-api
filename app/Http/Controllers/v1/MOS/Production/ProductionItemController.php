@@ -51,7 +51,7 @@ class ProductionItemController extends Controller
         // 1 => 'On Hold',
         // 1.1 => 'On Hold - Sub Standard
         // 2 => 'For Receive',
-        // 2.1 => 'For Receive - Inbound',
+        // 2.1 => 'For Receive - In Process',
         // 3 => 'Received',
         // 3.1 => 'For Put-away - In Process',
         // 4 => 'For Investigation',
@@ -65,6 +65,7 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
+        // 14.1 => 'For Transfer - In Process',
         #endregion
 
         $rules = [
@@ -302,18 +303,19 @@ class ProductionItemController extends Controller
             $productionBatch = ProductionBatchModel::find($batch_id);
             $productionItemsModel = $productionBatch->productionItems;
             if ($productionItemsModel) {
-                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-                $itemCode = $productionOrderToMake->item_code;
+                // $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $itemCode = $productionBatch->item_code;
                 $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
 
                 $stickerStatus = $item['sticker_status'];
                 $itemStatus = $item['status'];
-                if ($item['status'] == 9) {
+                if ($itemStatus == 9) {
                     if ($item_quantity != $item['q']) {
                         $stickerStatus = 0;
                     }
                 }
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
+
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
 
@@ -327,6 +329,7 @@ class ProductionItemController extends Controller
                     'is_viewable_by_otb' => $itemMasterdata->is_viewable_by_otb,
                     'item_sticker_code' => $productionBatch->batch_code . '-' . str_pad($item_key, 3, '0', STR_PAD_LEFT),
                     'item_details' => $productionBatch,
+                    'has_shortage' => $itemMasterdata->primary_item_packing_size > $item['q'],
                 ];
 
                 if ($warehouseReceivingRefNo) {

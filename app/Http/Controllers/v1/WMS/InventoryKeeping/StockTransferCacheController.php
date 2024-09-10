@@ -47,7 +47,7 @@ class StockTransferCacheController extends Controller
                         'initial_stock' => $layers['initial_stock'],
                         'transfer_quantity' => $layers['transfer_quantity'],
                         'layer' => $layers['layer'],
-                        'origin_location' => StockTransferItemModel::onGenerateOriginLocation($zoneId, $subLocationValue['sub_location_id'], $layers['layer']),
+                        'origin_location' => StockTransferItemModel::onGenerateOriginLocation($subLocationValue['sub_location_id'], $layers['layer']),
                         'created_by_id' => $createdById
                     ];
                 }

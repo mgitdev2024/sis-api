@@ -25,7 +25,7 @@ class ProductionOTBController extends Controller
             'updated_by_id' => 'nullable',
             'production_order_id' => 'required|exists:mos_production_orders,id',
             'item_code' => 'required|string',
-            'production_date' => 'required|date_format:Y-m-d',
+            // 'production_date' => 'required|date_format:Y-m-d',
         ];
     }
 
@@ -215,6 +215,7 @@ class ProductionOTBController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
@@ -240,9 +241,10 @@ class ProductionOTBController extends Controller
                 'production_order_id' => $productionOrder->id,
                 'item_code' => $itemCode,
             ])->first();
-            $productionOtaId = $productionOta->id;
+            $productionOtaId = $productionOta->id ?? null;
 
             if (!$productionOta) {
+                $otaController = new ProductionOTAController();
                 $otaRequest = new Request([
                     'created_by_id' => $fields['created_by_id'],
                     'production_order_id' => $productionOrder->id,
@@ -250,9 +252,10 @@ class ProductionOTBController extends Controller
                     'item_code' => $itemCode,
                     'requested_quantity' => 0,
                     'plotted_quantity' => 0,
+                    'buffer_quantity' => 0,
                     // 'actual_quantity' => $quantity,
-                ]);
-                $productionOtaId = $this->onCreate($otaRequest)->getOriginalContent()['success']['data']['id'];
+                ]);  
+                $productionOtaId = $otaController->onCreate($otaRequest)->getOriginalContent()['success']['data']['id'];
             }
             $itemConversion = ItemMasterdataModel::where('item_code', $itemCode)->first();
             $conversionUnit = [
@@ -272,6 +275,7 @@ class ProductionOTBController extends Controller
             ]);
             return $productionBatch->onCreate($productionBatchRequest);
         } catch (Exception $exception) {
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
