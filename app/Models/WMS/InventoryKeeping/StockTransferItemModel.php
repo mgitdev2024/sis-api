@@ -2,6 +2,7 @@
 
 namespace App\Models\WMS\InventoryKeeping;
 
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,13 +20,15 @@ class StockTransferItemModel extends Model
         'selected_items',
         'initial_stock',
         'transfer_quantity',
+        'transferred_items',
+        'substandard_items',
         'zone_id',
         'sub_location_id',
         'layer',
         'origin_location'
     ];
 
-    public function stockTransfer()
+    public function stockTransferList()
     {
         return $this->belongsTo(StockTransferListModel::class, 'stock_transfer_list_id');
     }
@@ -40,7 +43,12 @@ class StockTransferItemModel extends Model
         return $this->belongsTo(SubLocationModel::class, 'sub_location_id');
     }
 
-    public static function onGenerateOriginLocation($zoneId, $subLocationId, $layerLevel)
+    public function ItemMasterdata()
+    {
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+    }
+
+    public static function onGenerateOriginLocation($subLocationId, $layerLevel)
     {
         $subLocationModel = SubLocationModel::find($subLocationId);
         $subLocationCode = $subLocationModel->code;

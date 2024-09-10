@@ -47,7 +47,7 @@ class StockTransferListController extends Controller
                     $stockTransferItemModel->layer = $items['layer'];
                     $stockTransferItemModel->created_by_id = $createdById;
                     $stockTransferItemModel->save();
-                    $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $createdById, 1);
+                    $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $createdById, 0);
                 }
 
                 $stockTransferListModel->reference_number = $referenceCode;
@@ -59,7 +59,7 @@ class StockTransferListController extends Controller
                 StockTransferCacheModel::where('created_by_id', $createdById)
                     ->orderBy('id', 'DESC')
                     ->delete();
-                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $createdById, 1);
+                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $createdById, 0);
 
                 DB::commit();
                 return $this->dataResponse('success', 200, 'Stock Request ' . __('msg.create_success'));
@@ -126,74 +126,69 @@ class StockTransferListController extends Controller
                 'attachment' => 'nullable',
                 'created_by_id' => 'required',
             ];
-
-            $this->createRecord(StockTransferCancelledModel::class, $request, $rules, 'Stock Transfer List', 0);
-
             $stockTransferListModel = StockTransferListModel::find($id);
-            $stockTransferListModel->status = 0; // Cancelled status
-            $stockTransferListModel->save();
 
-            return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
+            switch ($stockTransferListModel->status) {
+                case 1:
+                    $this->createRecord(StockTransferCancelledModel::class, $request, $rules, 'Stock Transfer List', 0);
+
+                    $stockTransferListModel = StockTransferListModel::find($id);
+                    $stockTransferListModel->status = 0; // Cancelled status
+                    $stockTransferListModel->save();
+                    return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
+
+                default:
+                    return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_failed'));
+            }
+
+
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-}
-/*
-[
+
+    // Below are for Stock Transfer Warehouse Stockman
+    public function onGetStockRequestList($statusId)
     {
-        "sub_location_id": 1,
-        "code": "RCK0001",
-        "layers":[
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 1
-            },
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 2
-            },
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 3
+        try {
+            $stockTransferListModel = StockTransferListModel::where('status', $statusId)->orderBy('created_at', 'DESC')->get();
+            foreach ($stockTransferListModel as $item) {
+                $item['formatted_date'] = date('Y-m-d', strtotime($item['created_at']));
+                $item['zone'] = $item->stockTransferItems[0]->zone->short_name;
             }
-        ]
-    },
-    {
-        "sub_location_id": 2,
-        "code": "RCK0002",
-        "layers":[
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 1
-            },
-            {
-                "item_code": "MM 6",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 1
-            },
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 2
-            },
-            {
-                "item_code": "CR 12",
-                "initial_stock": 10,
-                "transfer_quantity": 5,
-                "layer": 3
+            if (count($stockTransferListModel) > 0) {
+                return $this->dataResponse('success', 200, 'Stock Transfer List', $stockTransferListModel);
             }
-        ]
+            return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Stock Transfer List ' . __('msg.record_not_found'));
+        }
     }
-]
- */
+
+    public function onGetStockRequestById($id)
+    {
+        try {
+            $stockTransferListModel = StockTransferListModel::with('stockTransferItems')->find($id);
+            foreach ($stockTransferListModel->stockTransferItems as $item) {
+                $transferredItems = json_decode($item->transferred_items, true);
+                $transferredQuantity = is_array($transferredItems) ? count($transferredItems) : 0;
+
+                $substandardItems = json_decode($item->substandard_items, true);
+                $substandardQuantity = is_array($substandardItems) ? count($substandardItems) : 0;
+
+                $item->transferred_quantity = $transferredQuantity;
+                $item->substandard_quantity = $substandardQuantity;
+            }
+            $stockTransferListModel->formatted_date = date('Y-m-d h:i:A', strtotime($stockTransferListModel->created_at));
+            $fullName = $this->onGetName($stockTransferListModel->created_by_id);
+            $stockTransferListModel->requested_by = $fullName;
+            if ($stockTransferListModel) {
+                return $this->dataResponse('success', 200, 'Stock Transfer List', $stockTransferListModel);
+            }
+            return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Stock Transfer List ' . __('msg.record_not_found'));
+        }
+    }
+}
+

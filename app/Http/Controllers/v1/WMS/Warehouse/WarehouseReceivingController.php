@@ -216,7 +216,7 @@ class WarehouseReceivingController extends Controller
                 ->where('created_by_id', $createdById)
                 ->orderBy('id', 'DESC')
                 ->first();
-            $receiveItemsArr = json_decode($warehouseForReceiveItems->production_items, true) ?? [];
+            $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
             if (count($receiveItemsArr) <= 0) {
                 throw new Exception('There are no items to be received from this repository');
             }
