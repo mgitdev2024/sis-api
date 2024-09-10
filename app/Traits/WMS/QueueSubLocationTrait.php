@@ -66,7 +66,6 @@ trait QueueSubLocationTrait
 
             $itemCode = null;
             $currentScannedItems = [];
-
             foreach ($scannedItems as $value) {
                 if ($currentLayerCapacity > 0) {
                     $itemCode = $value['item_code'];
@@ -81,12 +80,11 @@ trait QueueSubLocationTrait
             $queuePermanentStorage->sub_location_id = $subLocationId;
             $queuePermanentStorage->layer_level = $layerLevel;
             $queuePermanentStorage->production_items = json_encode($existingItemStored);
-            $queuePermanentStorage->quantity = count($currentScannedItems);
+            $queuePermanentStorage->quantity = count($currentScannedItems) + count($existingItemStored);
             $queuePermanentStorage->storage_remaining_space = $currentLayerCapacity;
             $queuePermanentStorage->created_by_id = $createdById;
             $queuePermanentStorage->save();
             $this->createWarehouseLog($entityDetails['entity_model'], $entityDetails['entity_id'], QueuedSubLocationModel::class, $queuePermanentStorage->id, $queuePermanentStorage->getAttributes(), $createdById, 0);
-
             $this->onCreateStockLogs($itemCode, 1, count($currentScannedItems), $subLocationId, $layerLevel, $currentLayerCapacity, $createdById, $referenceNumber);
             return $queuePermanentStorage->getAttributes();
         } catch (Exception $exception) {
@@ -271,28 +269,31 @@ trait QueueSubLocationTrait
                     ->orderBy('id', 'DESC')
                     ->first();
 
+                $releaseStorageSpace = 0;
                 // UNSETTING OF THE REMOVED ITEM FROM PERMANENT STORAGE
                 if ($queuedSubLocation) {
                     $storedItems = json_decode($queuedSubLocation->production_items, true);
                     foreach ($storedItems as $key => $storedItem) {
                         foreach ($itemDetails['produced_items'] as $scannedItems) {
                             if ($storedItem['bid'] == $scannedItems['bid'] && $storedItem['sticker_no'] == $scannedItems['sticker_no']) {
+                                $releaseStorageSpace++;
                                 unset($storedItems[$key]);
                                 break;
                             }
                         }
                     }
+
                     $newQueuedSubLocation = new QueuedSubLocationModel();
                     $newQueuedSubLocation->sub_location_id = $queuedSubLocation->sub_location_id;
                     $newQueuedSubLocation->layer_level = $queuedSubLocation->layer_level;
                     $newQueuedSubLocation->quantity = count($storedItems);
                     $newQueuedSubLocation->production_items = json_encode(array_values($storedItems));
-                    $newQueuedSubLocation->storage_remaining_space += 1;
+                    $newQueuedSubLocation->storage_remaining_space = $queuedSubLocation->storage_remaining_space + $releaseStorageSpace;
+                    $newQueuedSubLocation->created_by_id = $createdById;
                     $newQueuedSubLocation->save();
                     $this->createWarehouseLog(null, null, QueuedSubLocationModel::class, $newQueuedSubLocation->id, $newQueuedSubLocation->getAttributes(), $createdById, 0);
 
                 }
-
                 // DECREMENT STOCK INVENTORY AND CREATE STOCK LOG
                 $this->onCreateStockLogs($itemDetails['item_code'], 0, count($itemDetails['produced_items']), $itemDetails['stored_sub_location_id'], $itemDetails['stored_layer_level'], $queuedSubLocation->storage_remaining_space, $createdById, $referenceNumber);
             }
