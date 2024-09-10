@@ -13,7 +13,7 @@ trait MosCrudOperationsTrait
     use ResponseTrait, ProductionLogTrait;
     public function createRecord($model, $request, $rules, $modelName, $path = null)
     {
-        $fields = $request->validate($rules); 
+        $fields = $request->validate($rules);
         try {
             $record = new $model();
             $record->fill($fields);
@@ -26,7 +26,6 @@ trait MosCrudOperationsTrait
             $this->createProductionLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
