@@ -19,7 +19,7 @@ return new class extends Migration {
         // Convert the value from '1' to '[1]' in the 'parent_item_id' column
         DB::table('wms_item_masterdata')
             ->whereNotNull('parent_item_id')
-            ->update(['parent_item_id' => DB::raw("JSON_ARRAY(parent_item_id)")]);
+            ->update(['parent_item_id' => DB::raw("JSON_ARRAY(CAST(parent_item_id AS UNSIGNED))")]);
     }
 
     /**
