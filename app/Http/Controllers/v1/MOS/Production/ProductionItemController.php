@@ -41,7 +41,7 @@ class ProductionItemController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item', null, ['key' => 'production_batch_id', 'value' => $id]);
+        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item');
     }
 
     public function onChangeStatus(Request $request)
@@ -258,15 +258,22 @@ class ProductionItemController extends Controller
                 $productionBatch->actual_quantity += 1;
                 $productionBatch->actual_secondary_quantity += intval($value['q']);
                 $productionBatch->save();
+                $this->createProductionLog(ProductionBatchModel::class, $productionBatch->id, $productionBatch->getAttributes(), $createdById, 1);
 
                 $productionActualQuantity = $productionBatch->productionOtb ?? $productionBatch->productionOta;
+                $modelClass = $productionBatch->productionOtb
+                    ? ProductionOTBModel::class
+                    : ProductionOTAModel::class;
                 $productionActualQuantity->actual_quantity += 1;
                 $productionActualQuantity->actual_secondary_quantity += intval($value['q']);
                 $productionActualQuantity->save();
+                $this->createProductionLog($modelClass, $productionActualQuantity->id, $productionActualQuantity->getAttributes(), $createdById, 1);
 
                 $producedItems[$itemKey]['status'] = 2;
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItemModel->getAttributes(), $createdById, 1);
+
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

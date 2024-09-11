@@ -283,5 +283,27 @@ trait MosCrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+    public function readLikeRecord($model, $modelName, $columName, $name, $whereFields)
+    {
+        try {
+            if ($name != null) {
+                $data = $model::where($columName, 'like', $name . '%');
+                if ($whereFields) {
+                    foreach ($whereFields as $field => $value) {
+                        $data->where($field, $value['operator'], $value['value']);
+                    }
+                }
+                $data = $data->get();
+                if ($data->isNotEmpty()) {
+                    return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+                }
+            }
+            return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
 }
 

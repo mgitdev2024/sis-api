@@ -263,19 +263,32 @@ class ProductionOTAController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 400, $exception->getMessage());
+            return $this->dataResponse('error', 200, $exception->getMessage());
         }
     }
 
     public function onSetProductionOrderBatch($itemDisposition, $quantity, $fields, $itemStatus)
     {
         try {
-            $itemCode = $itemDisposition->productionBatch->productionOta->item_code;
+            $itemCode = $itemDisposition->productionBatch->item_code;
 
             if ($itemStatus == 7) {
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
-                $itemVariant = ItemMasterdataModel::where('parent_item_id', $itemMasterdata->id)->where('item_variant_type_id', 3)->first();
-                $itemCode = $itemVariant->item_code;
+                $baseCode = explode(' ', $itemCode)[0];
+                $itemVariant = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                    ->whereNotNull('parent_item_id')
+                    ->where('item_variant_type_id', 3)->first();
+                $itemCode = null;
+                if ($itemVariant) {
+                    $parentIds = json_decode($itemVariant->parent_item_id, true);
+                    if (in_array($itemMasterdata->id, $parentIds)) {
+                        $itemCode = $itemVariant->item_code;
+                    } else {
+                        throw new Exception('Please check the parent item of this item code.');
+                    }
+                } else {
+                    throw new Exception('Please check the parent item of this item code.');
+                }
             }
 
             $productionOrder = $itemDisposition->productionBatch->productionOrder;
