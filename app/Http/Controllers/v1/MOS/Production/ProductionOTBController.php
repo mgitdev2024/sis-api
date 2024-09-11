@@ -215,7 +215,7 @@ class ProductionOTBController extends Controller
             return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 400, $exception->getMessage());
+            return $this->dataResponse('error', 200, $exception->getMessage());
         }
     }
     public function onSetProductionOrderBatch($itemDisposition, $quantity, $fields, $itemStatus)
@@ -287,7 +287,6 @@ class ProductionOTBController extends Controller
             ]);
             return $productionBatch->onCreate($productionBatchRequest);
         } catch (Exception $exception) {
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
