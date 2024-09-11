@@ -284,10 +284,10 @@ class ProductionOTAController extends Controller
                     if (in_array($itemMasterdata->id, $parentIds)) {
                         $itemCode = $itemVariant->item_code;
                     } else {
-                        throw new Exception('Please check the parent item of the item code.');
+                        throw new Exception('Please check the parent item of this item code.');
                     }
                 } else {
-                    throw new Exception('Please check the parent item of the item code.');
+                    throw new Exception('Please check the parent item of this item code.');
                 }
             }
 
