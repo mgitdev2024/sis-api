@@ -299,7 +299,6 @@ class ItemDispositionController extends Controller
                     $this->createProductionLog(ProductionItemModel::class, $productionItems->id, $value, $createdById, 1, $key);
                 }
             }
-
             $productionBatch->status = 0;
             if ($productionBatch->productionOrder->status === 1) {
                 $productionBatch->status = 2;
