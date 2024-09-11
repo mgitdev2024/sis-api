@@ -35,7 +35,7 @@ class ItemMasterdataController extends Controller
             'short_name' => 'required|string',
             'long_name' => 'nullable|string',
             'unit_price' => 'nullable|numeric',
-            'parent_item_id' => 'nullable|integer|exists:wms_item_masterdata,id',
+            'parent_item_id' => 'nullable|string',
             'item_category_id' => 'required|integer|exists:wms_item_categories,id',
             'item_classification_id' => 'required|integer|exists:wms_item_categories,id',
             'item_variant_type_id' => 'required|integer|exists:wms_item_variant_types,id',
@@ -136,6 +136,18 @@ class ItemMasterdataController extends Controller
         return $this->readCurrentRecord(ItemMasterdataModel::class, $id, $whereFields, null, null, 'Item Masterdata');
     }
 
+    public function onGetLikeData($itemCode)
+    {
+        $whereFields = [
+            'item_code' => [
+                'operator' => '!=',
+                'value' => $itemCode
+            ]
+        ];
+        $baseCode = explode(' ', $itemCode)[0];
+        return $this->readLikeRecord(ItemMasterdataModel::class, 'Item Masterdata', 'item_code', $baseCode, $whereFields);
+    }
+
     public function onBulk(Request $request)
     {
         $fields = $request->validate([
@@ -195,15 +207,21 @@ class ItemMasterdataController extends Controller
             return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
 
     public function onGetParentId($value)
     {
-        $item = ItemMasterdataModel::where('item_code', $value)->first();
-        return $item->id ?? null;
+        $parentCodes = explode(',', $value);
+        $parentIds = [];
+        foreach ($parentCodes as $code) {
+            $parent = ItemMasterdataModel::where('item_code', $code)->first();
+            if ($parent) {
+                $parentIds[] = $parent->id;
+            }
+        }
+        return count($parentIds) > 0 ? json_encode($parentIds) : null;
     }
 
     public function onCheckValue($value)

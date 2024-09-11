@@ -150,7 +150,6 @@ class StockRequestForTransferController extends Controller
                 'stock_transfer_item_id' => $stock_transfer_item_id,
                 'status' => 1
             ])->first();
-
             if ($stockRequestForTransferModel && $stockRequestForTransferModel->sub_location_id) {
                 DB::beginTransaction();
 
@@ -160,14 +159,13 @@ class StockRequestForTransferController extends Controller
                 $stockRequestForTransferModelProductionItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true);
                 $scannedItems = json_decode($fields['scanned_items'], true);
 
-                // $this->onUpdateStockRequestTransfer($stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
                 $this->onQueueSubLocation($updatedById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $stockRequestForTransferModel->stockTransferList->reference_number);
+                $this->onUpdateStockRequestTransfer($stockRequestForTransferModel, $stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
                 DB::commit();
+                return $this->dataResponse('success', 200, __('msg.create_success'));
             } else {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
-            return $this->dataResponse('success', 200, __('msg.create_success'));
-
 
         } catch (Exception $exception) {
             DB::rollBack();
@@ -175,27 +173,31 @@ class StockRequestForTransferController extends Controller
         }
     }
 
-    public function onUpdateStockRequestTransfer($stockTransferItemModel, $scannedItems, $updateById)
+    public function onUpdateStockRequestTransfer($stockRequestTransferModel, $stockTransferItemModel, $scannedItems, $updateById)
     {
         try {
-            foreach ($scannedItems as $itemValue) {
-                $productionItemModel = ProductionItemModel::where('production_batch_id', $itemValue['bid'])->first();
-                $productionItems = json_decode($productionItemModel->produced_items, true);
+            $stockRequestTransferModel->delete();
+            $transferQuantityCount = $stockTransferItemModel->transfer_quantity;
+            $existingTransferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
+            $mergedTransferredItems = array_merge($existingTransferredItems, $scannedItems);
 
-                // Check if the item is for transfer
-                if ($productionItems[$itemValue['sticker_no']]['status'] == 14) {
-                    // PRODUCTION ITEM UPDATE
-                    $productionItems[$itemValue['sticker_no']]['status'] = 14.1;
-                    $productionItemModel->produced_items = json_encode($productionItems);
-                    $productionItemModel->save();
-                    $forTransferItems[] = $itemValue;
+            $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
 
+            if ($transferQuantityCount <= $scannedItemsCount) {
+                $stockTransferItemModel->status = 2;
+                $stockTransferItemModel->updated_by_id = $updateById;
 
 
-
-                }
+                $stockTransferListModel = $stockTransferItemModel->stockTransferList;
+                $stockTransferListModel->status = 2;
+                $stockTransferListModel->updated_by_id = $updateById;
+                $stockTransferListModel->save();
+                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
             }
 
+            $stockTransferItemModel->transferred_items = json_encode($mergedTransferredItems);
+            $stockTransferItemModel->save();
+            $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -215,8 +217,6 @@ class StockRequestForTransferController extends Controller
                     $itemsPerBatchArr[$batchId][] = $scannedValue;
                 }
             }
-
-            dd($itemsPerBatchArr);
             if (count($itemsPerBatchArr) > 0) {
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
