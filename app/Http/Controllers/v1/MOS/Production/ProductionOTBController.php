@@ -229,7 +229,17 @@ class ProductionOTBController extends Controller
                 $itemVariant = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
                     ->whereNotNull('parent_item_id')
                     ->where('item_variant_type_id', 3)->first();
-                $itemCode = $itemVariant->item_code;
+                $itemCode = null;
+                if ($itemVariant) {
+                    $parentIds = json_decode($itemVariant->parent_item_id, true);
+                    if (in_array($itemMasterdata->id, $parentIds)) {
+                        $itemCode = $itemVariant->item_code;
+                    } else {
+                        throw new Exception('Please check the parent item of the item code.');
+                    }
+                } else {
+                    throw new Exception('Please check the parent item of the item code.');
+                }
             }
 
             $productionOrder = $itemDisposition->productionBatch->productionOrder;

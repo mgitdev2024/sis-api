@@ -8,6 +8,7 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
@@ -36,12 +37,24 @@ class ItemDispositionController extends Controller
             $otaItems = $itemDisposition->productionBatch->productionOta->itemMasterdata ?? null;
             $itemMasterdata = $otbItems ?? $otaItems;
             $itemVariantType = $itemMasterdata->item_variant_type_id;
+
+            $baseCode = explode(' ', $itemDisposition->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isNotSliceable = true;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($itemMasterdata->id, $parentIds)) {
+                    $isNotSliceable = false;
+                }
+            }
             $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-            } else if ($fields['action_status_id'] == 7 && ($itemVariantType != 1 && $itemVariantType != 10)) {
+            } else if ($fields['action_status_id'] == 7 && ($itemVariantType != 1 && $itemVariantType != 10 && $isNotSliceable)) {
                 return $this->dataResponse('error', 200, 'This item cannot be sliced');
             }
             $producedItemModel->produced_items = json_encode($producedItems);
