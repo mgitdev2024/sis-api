@@ -17,6 +17,7 @@ class ProductionBatchModel extends Model
         'production_ota_id',
         'production_order_id',
         'production_item_id',
+        'item_code',
         'batch_code',
         'batch_number',
         'batch_type',
