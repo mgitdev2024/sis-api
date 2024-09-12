@@ -323,8 +323,10 @@ class ProductionItemController extends Controller
                 }
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $itemCode)->first();
 
+                // ADDITIONAL INFO
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
+                $stockTransferRefNo = $item['stock_transfer']['reference_number'] ?? null;
 
                 $data = [
                     'item_code' => $itemCode,
@@ -345,6 +347,10 @@ class ProductionItemController extends Controller
 
                 if ($subLocationArr) {
                     $data['sub_location'] = $subLocationArr;
+                }
+
+                if ($stockTransferRefNo) {
+                    $data['stock_transfer'] = $item['stock_transfer'];
                 }
 
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);

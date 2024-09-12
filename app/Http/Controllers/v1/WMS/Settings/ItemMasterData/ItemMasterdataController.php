@@ -91,7 +91,16 @@ class ItemMasterdataController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ItemMasterdataModel::class, $id, 'Item Masterdata');
+        try {
+            $itemMasterdata = ItemMasterdataModel::find($id);
+            if ($itemMasterdata) {
+                $itemMasterdata->original_item_code = $itemMasterdata->item_code;
+                return $this->dataResponse('success', 200, 'Item Masterdata', $itemMasterdata);
+            }
+            return $this->dataResponse('error', 200, 'Item Masterdata ' . __('msg.record_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
     }
     public function onDeleteById($id)
     {

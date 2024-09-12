@@ -437,5 +437,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/stock/request/for-transfer/update/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onUpdate']);
     Route::delete('v1/stock/request/for-transfer/delete/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onDelete']);
     Route::post('v1/stock/request/for-transfer/transfer/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onTransferItems']);
+    Route::post('v1/stock/request/for-transfer/transfer/sub-standard/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onSubstandardItems']);
     #endregion
 });

@@ -89,6 +89,8 @@ class StockTransferItemController extends Controller
             if (!$this->onCheckAvailability($subLocationId, false)) {
                 throw new Exception('Sub Location Unavailable');
             }
+            $stockTransferItemModel = StockTransferItemModel::find($id);
+            $stockTransferReferenceNumber = $stockTransferItemModel->stockTransferList->reference_number;
             $scannedItem = json_decode($fields['scanned_item'], true);
             $selectedItemForTransfer = [];
             foreach ($scannedItem as &$value) {
@@ -100,6 +102,9 @@ class StockTransferItemController extends Controller
                     continue;
                 }
 
+                $productionItems[$value['sticker_no']]['stock_transfer'] = [
+                    'reference_number' => $stockTransferReferenceNumber,
+                ];
                 $productionItems[$value['sticker_no']]['status'] = 14; // For Transfer
                 $productionItemModel->produced_items = json_encode($productionItems);
                 $productionItemModel->save();
@@ -108,7 +113,6 @@ class StockTransferItemController extends Controller
                 unset($value);
             }
 
-            $stockTransferItemModel = StockTransferItemModel::find($id);
             $existingSelectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
             if (count($existingSelectedItems) > $stockTransferItemModel->transfer_quantity || count($scannedItem) > $stockTransferItemModel->transfer_quantity) {
                 throw new Exception('Selected Items Exceed Transfer Quantity');
