@@ -75,12 +75,12 @@ trait QueueSubLocationTrait
                     $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $layerLevel, $createdById, true);
                 }
             }
-            $existingItemStored = array_merge($existingItemStored, $currentScannedItems);
+            $mergedItemArray = array_merge($existingItemStored, $currentScannedItems);
             $queuePermanentStorage = new QueuedSubLocationModel();
             $queuePermanentStorage->sub_location_id = $subLocationId;
             $queuePermanentStorage->layer_level = $layerLevel;
-            $queuePermanentStorage->production_items = json_encode($existingItemStored);
-            $queuePermanentStorage->quantity = count($currentScannedItems) + count($existingItemStored);
+            $queuePermanentStorage->production_items = json_encode($mergedItemArray);
+            $queuePermanentStorage->quantity = count($mergedItemArray);
             $queuePermanentStorage->storage_remaining_space = $currentLayerCapacity;
             $queuePermanentStorage->created_by_id = $createdById;
             $queuePermanentStorage->save();

@@ -226,6 +226,9 @@ class StockRequestForTransferController extends Controller
             $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
             $existingSubstandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
             $stockTransferItemModel->substandard_items = json_encode(array_merge($existingSubstandardItems, $substandardItems));
+            $stockTransferItemModel->save();
+            $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
+
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,
@@ -235,7 +238,6 @@ class StockRequestForTransferController extends Controller
                 'location_id' => $locationId,
             ]);
             $substandardController->onCreate($substandardRequest);
-            dd($substandardController);
 
             $stockRequestTransfer = new StockRequestForTransferController();
             $stockRequestTransferRequest = new Request([
@@ -248,7 +250,6 @@ class StockRequestForTransferController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
         }
     }
