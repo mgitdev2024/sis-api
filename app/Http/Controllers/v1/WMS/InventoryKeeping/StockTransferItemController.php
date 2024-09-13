@@ -27,12 +27,16 @@ class StockTransferItemController extends Controller
 
                 switch ($is_check_location_only) {
                     case 0:
+                        $itemMasterdata = $stockTransferItemModel->ItemMasterdata;
+                        $uom = $itemMasterdata->uom_label['short_name'];
+                        $primaryConversion = $itemMasterdata->primary_conversion_label['short_name'];
                         $data['item_details'] = [];
                         $data['transfer_details'] = [];
+                        $data['item_masterdata'] = $itemMasterdata;
                         $data['item_details'] = [
                             'reference_number' => $stockTransferItemModel->stockTransferList->reference_number,
                             'item_code' => $stockTransferItemModel->item_code,
-                            'item_description' => $stockTransferItemModel->ItemMasterdata->description,
+                            'item_description' => $itemMasterdata->description,
                             'transfer_quantity' => $stockTransferItemModel->transfer_quantity,
                         ];
                         $transferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
@@ -43,10 +47,15 @@ class StockTransferItemController extends Controller
                         $substandardQuantity = array_sum(array_column($substandardItems, 'q'));
 
                         $data['transfer_details'] = [
-                            'transferred_quantity' => ["box" => $transferredBox, "quantity" => $transferredQuantity],
-                            'substandard_quantity' => ["box" => $substandardBox, "quantity" => $substandardQuantity],
+                            'transferred_quantity' => [$uom => $transferredBox],
+                            'substandard_quantity' => [$uom => $substandardBox],
                             'remaining_quantity' => $stockTransferItemModel->transfer_quantity - ($transferredBox + $substandardBox),
                         ];
+
+                        if ($primaryConversion) {
+                            $data['transfer_details']['transferred_quantity'][$primaryConversion] = $transferredQuantity;
+                            $data['transfer_details']['substandard_quantity'][$primaryConversion] = $substandardQuantity;
+                        }
 
                         $data['origin_location_details'] = [
                             'zone' => $stockTransferItemModel->zone->short_name,
