@@ -265,12 +265,12 @@ class StockRequestForTransferController extends Controller
             $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
 
             if ($transferQuantityCount <= $scannedItemsCount) {
-                $stockTransferItemModel->status = 2;
+                $stockTransferItemModel->status = 3;
                 $stockTransferItemModel->updated_by_id = $updateById;
 
 
                 $stockTransferListModel = $stockTransferItemModel->stockTransferList;
-                $stockTransferListModel->status = 2;
+                $stockTransferListModel->status = 3;
                 $stockTransferListModel->updated_by_id = $updateById;
                 $stockTransferListModel->save();
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);

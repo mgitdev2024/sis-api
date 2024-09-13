@@ -35,8 +35,8 @@ class StockTransferItemController extends Controller
                             'item_description' => $stockTransferItemModel->ItemMasterdata->description,
                             'transfer_quantity' => $stockTransferItemModel->transfer_quantity,
                         ];
-                        $transferredItems = json_decode($stockTransferItemModel->transferred_items, true);
-                        $substandardItems = json_decode($stockTransferItemModel->substandard_items, true);
+                        $transferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
+                        $substandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
                         $transferredBox = count($transferredItems);
                         $substandardBox = count($substandardItems);
                         $transferredQuantity = array_sum(array_column($transferredItems, 'q'));
@@ -120,12 +120,12 @@ class StockTransferItemController extends Controller
             if ($stockTransferItemModel) {
                 // STOCK TRANSFER LIST UPDATE
                 $stockTransferListModel = $stockTransferItemModel->stockTransferList;
-                $stockTransferListModel->status = 1;
+                $stockTransferListModel->status = 2;
                 $stockTransferListModel->save();
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
 
                 // STOCK TRANSFER ITEM & QUANTITY UPDATE
-                $stockTransferItemModel->status = 1;
+                $stockTransferItemModel->status = 2;
                 $stockTransferItemModel->save();
                 $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
 

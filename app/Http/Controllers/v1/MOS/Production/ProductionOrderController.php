@@ -314,7 +314,6 @@ class ProductionOrderController extends Controller
             }
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.update_failed'));
         }
     }
