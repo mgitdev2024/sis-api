@@ -29,7 +29,7 @@ class StockTransferItemController extends Controller
                     case 0:
                         $itemMasterdata = $stockTransferItemModel->ItemMasterdata;
                         $uom = $itemMasterdata->uom_label['short_name'];
-                        $primaryConversion = $itemMasterdata->primary_conversion_label['short_name'];
+                        $primaryConversion = $itemMasterdata->primary_conversion_label['short_name'] ?? null;
                         $data['item_details'] = [];
                         $data['transfer_details'] = [];
                         $data['item_masterdata'] = $itemMasterdata;
