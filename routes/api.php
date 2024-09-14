@@ -300,7 +300,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     #endregion
@@ -428,8 +428,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Stock Transfer Items
-    Route::get('v1/stock/transfer/item/get/{id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
-    Route::post('v1/stock/transfer/item/scan-selected/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
+    Route::get('v1/stock/transfer/item/get/{stock_transfer_item_id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
+    Route::get('v1/stock/transfer/item/selected-items/get/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetSelectedItems']);
+    Route::post('v1/stock/transfer/item/scan-selected/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
     #endregion
 
     #region Stock Request For Transfer

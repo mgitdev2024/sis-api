@@ -11,6 +11,7 @@ use App\Models\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferMode
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -257,27 +258,27 @@ class StockRequestForTransferController extends Controller
     public function onUpdateStockRequestTransfer($stockRequestTransferModel, $stockTransferItemModel, $scannedItems, $updateById)
     {
         try {
+            QueuedTemporaryStorageModel::where('sub_location_id', $stockRequestTransferModel->sub_location_id)->delete();
             $stockRequestTransferModel->delete();
             $transferQuantityCount = $stockTransferItemModel->transfer_quantity;
             $existingTransferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
             $mergedTransferredItems = array_merge($existingTransferredItems, $scannedItems);
 
-            $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
-
-            if ($transferQuantityCount <= $scannedItemsCount) {
-                $stockTransferItemModel->status = 3;
-                $stockTransferItemModel->updated_by_id = $updateById;
-
-
-                $stockTransferListModel = $stockTransferItemModel->stockTransferList;
-                $stockTransferListModel->status = 3;
-                $stockTransferListModel->updated_by_id = $updateById;
-                $stockTransferListModel->save();
-                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
+            // $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
+            $stockSelectedItems = json_decode($stockTransferItemModel->selected_items, true);
+            foreach ($scannedItems as $items) {
+                foreach ($stockSelectedItems as &$selectedItems) {
+                    if ($items['bid'] == $selectedItems['bid'] && $items['sticker_no'] == $selectedItems['sticker_no']) {
+                        $selectedItems['status'] = 'transferred';
+                    }
+                    unset($selectedItems);
+                }
             }
-
+            $stockTransferItemModel->selected_items = json_encode($stockSelectedItems);
             $stockTransferItemModel->transferred_items = json_encode($mergedTransferredItems);
             $stockTransferItemModel->save();
+
+
             $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

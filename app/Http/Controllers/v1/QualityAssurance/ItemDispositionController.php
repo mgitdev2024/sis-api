@@ -50,6 +50,8 @@ class ItemDispositionController extends Controller
                 }
             }
 
+            $quantityUpdate = $fields['quantity_update'] ?? null;
+
             $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
@@ -57,6 +59,8 @@ class ItemDispositionController extends Controller
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
             } else if ($fields['action_status_id'] == 7 && (($itemVariantType != 1 || $itemVariantType != 10) && $isNotSliceable)) {
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
+            } else if ($fields['action_status_id'] == 6) {
+                $quantityUpdate = 0;
             }
 
             $producedItemModel->produced_items = json_encode($producedItems);
@@ -64,7 +68,7 @@ class ItemDispositionController extends Controller
             $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
 
             $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
-            $itemDisposition->quantity_update = $fields['quantity_update'] ?? null;
+            $itemDisposition->quantity_update = $quantityUpdate;
             $itemDisposition->aging_period = $fields['aging_period'];
             $itemDisposition->updated_by_id = $fields['created_by_id'];
             $itemDisposition->updated_at = now();

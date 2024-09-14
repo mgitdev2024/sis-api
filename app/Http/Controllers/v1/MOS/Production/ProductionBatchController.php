@@ -49,6 +49,7 @@ class ProductionBatchController extends Controller
             if (isset($fields['production_batch_id'])) {
                 $batch = $this->onAddToExistingBatch($fields);
             } else {
+                dd('sad');
                 $batch = $this->onInitialBatch($fields);
             }
             DB::commit();
@@ -255,7 +256,6 @@ class ProductionBatchController extends Controller
             $keys = array_keys($data);
             $primaryValue = 0;
             $secondaryValue = 0;
-
             if (isset($keys[0])) {
                 $primaryValue = intval($quantity[$keys[0]]) ?? 0;
             }

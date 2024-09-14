@@ -15,10 +15,10 @@ class StockTransferItemController extends Controller
 {
     use WarehouseLogTrait, QueueSubLocationTrait;
 
-    public function onGetById($id, $is_check_location_only = 0)
+    public function onGetById($stock_transfer_item_id, $is_check_location_only = 0)
     {
         try {
-            $stockTransferItemModel = StockTransferItemModel::find($id);
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
 
             if ($stockTransferItemModel) {
                 $data = [
@@ -84,7 +84,24 @@ class StockTransferItemController extends Controller
         }
     }
 
-    public function onScanSelectedItems(Request $request, $id)
+    public function onGetSelectedItems($stock_transfer_item_id)
+    {
+        try {
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            if ($stockTransferItemModel) {
+                $selectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
+                $filteredItems = array_filter($selectedItems, function ($item) {
+                    return !isset($item['status']); // Return only items without status
+                });
+                return $this->dataResponse('success', 200, 'Filtered Selected Items', $filteredItems);
+            }
+            return $this->dataResponse('error', 200, 'Selected Items ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Selected Items ' . __('msg.record_not_found'));
+        }
+    }
+
+    public function onScanSelectedItems(Request $request, $stock_transfer_item_id)
     {
         $fields = $request->validate([
             'scanned_item' => 'required|json',
@@ -98,7 +115,7 @@ class StockTransferItemController extends Controller
             if (!$this->onCheckAvailability($subLocationId, false)) {
                 throw new Exception('Sub Location Unavailable');
             }
-            $stockTransferItemModel = StockTransferItemModel::find($id);
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
             $stockTransferReferenceNumber = $stockTransferItemModel->stockTransferList->reference_number;
             $scannedItem = json_decode($fields['scanned_item'], true);
             $selectedItemForTransfer = [];
@@ -140,7 +157,7 @@ class StockTransferItemController extends Controller
 
                 $mergedItemToTransfer = array_merge($existingSelectedItems, $selectedItemForTransfer);
 
-                $stockTransferItemModel->selected_items = json_encode($mergedItemToTransfer);
+                $stockTransferItemModel->selected_items = json_encode($mergedItemToTransfer); //
                 $stockTransferItemModel->updated_by_id = $fields['updated_by_id'];
                 $stockTransferItemModel->temporary_storage_id = $subLocationId;
                 $stockTransferItemModel->save();
@@ -155,6 +172,26 @@ class StockTransferItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCompleteTransaction(Request $request, $stock_transfer_item_id)
+    {
+        try {
+            $fields = $request->validate([
+                'created_by_id' => 'required',
+            ]);
+            // Merge the transferred items and substandard items array
+            // Compare it to the selected items
+            // If the count is not equal, get the difference and add it to the discrepancy items
+            // DONT FORGET ADD THE ADDITIONAL COLUMN FIELD IN THE STOCK TRANSFER ITEM
+            $stockTransferListModel = StockTransferItemModel::find($stock_transfer_item_id);
+            $stockTransferListModel->status = 3;
+            $stockTransferListModel->save();
+            $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
+            return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
+        } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
