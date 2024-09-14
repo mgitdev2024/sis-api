@@ -49,7 +49,6 @@ class ProductionBatchController extends Controller
             if (isset($fields['production_batch_id'])) {
                 $batch = $this->onAddToExistingBatch($fields);
             } else {
-                dd('sad');
                 $batch = $this->onInitialBatch($fields);
             }
             DB::commit();

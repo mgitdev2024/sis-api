@@ -182,16 +182,25 @@ class StockTransferItemController extends Controller
             $fields = $request->validate([
                 'created_by_id' => 'required',
             ]);
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            $selectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
+            $transferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
+            $substandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
+
+            $mergedItems = array_merge($transferredItems, $substandardItems);
+            dd($mergedItems, $selectedItems);
+
+            $difference = array_diff($mergedItems, $selectedItems);
             // Merge the transferred items and substandard items array
             // Compare it to the selected items
             // If the count is not equal, get the difference and add it to the discrepancy items
             // DONT FORGET ADD THE ADDITIONAL COLUMN FIELD IN THE STOCK TRANSFER ITEM
-            $stockTransferListModel = StockTransferItemModel::find($stock_transfer_item_id);
-            $stockTransferListModel->status = 3;
-            $stockTransferListModel->save();
-            $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
+            $stockTransferItemModel->status = 3;
+            $stockTransferItemModel->save();
+            $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
             return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
         } catch (Exception $exception) {
+            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

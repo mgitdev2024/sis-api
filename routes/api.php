@@ -431,6 +431,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/stock/transfer/item/get/{stock_transfer_item_id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
     Route::get('v1/stock/transfer/item/selected-items/get/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetSelectedItems']);
     Route::post('v1/stock/transfer/item/scan-selected/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
+    Route::post('v1/stock/transfer/item/complete-transaction/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Stock Request For Transfer
