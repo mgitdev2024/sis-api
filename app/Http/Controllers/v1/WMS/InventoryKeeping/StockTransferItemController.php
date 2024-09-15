@@ -188,19 +188,45 @@ class StockTransferItemController extends Controller
             $substandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
 
             $mergedItems = array_merge($transferredItems, $substandardItems);
-            dd($mergedItems, $selectedItems);
+            $discrepancyItems = [];
 
-            $difference = array_diff($mergedItems, $selectedItems);
-            // Merge the transferred items and substandard items array
-            // Compare it to the selected items
-            // If the count is not equal, get the difference and add it to the discrepancy items
-            // DONT FORGET ADD THE ADDITIONAL COLUMN FIELD IN THE STOCK TRANSFER ITEM
+            foreach ($selectedItems as $key => $selectedItem) {
+                $isFound = false;
+                foreach ($mergedItems as $mergedItem) {
+                    if (($selectedItem['bid'] == $mergedItem['bid'] && $selectedItem['sticker_no'] == $mergedItem['sticker_no']) && isset($selectedItem['status'])) {
+                        $isFound = true;
+                        break;
+                    }
+                }
+                if (!$isFound) {
+                    $discrepancyItems[] = $selectedItem;
+                }
+            }
+            DB::beginTransaction();
             $stockTransferItemModel->status = 3;
+            $stockTransferItemModel->discrepancy_items = json_encode($discrepancyItems);
             $stockTransferItemModel->save();
             $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
+
+            $stockTransferListItems = StockTransferItemModel::where('stock_transfer_list_id', $stockTransferItemModel->stock_transfer_list_id)->get();
+            $completionCounter = 0;
+            foreach ($stockTransferListItems as $items) {
+                if ($items->status == 3) {
+                    $completionCounter++;
+                }
+            }
+
+            if ($completionCounter == count($stockTransferListItems)) {
+                $stockTransferListModel = $stockTransferItemModel->stockTransferList;
+                $stockTransferListModel->status = 3;
+                $stockTransferListModel->save();
+                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
+            }
+
+            DB::commit();
             return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
         } catch (Exception $exception) {
-            dd($exception);
+            DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

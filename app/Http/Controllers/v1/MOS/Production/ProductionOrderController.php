@@ -125,8 +125,6 @@ class ProductionOrderController extends Controller
             $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $createdById, 0);
             $itemMasterDataCounter = 0;
             foreach ($bulkUploadData as $value) {
-                $productionOTA = new ProductionOTAModel();
-                $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
@@ -141,6 +139,8 @@ class ProductionOrderController extends Controller
                 $bufferLevel = $value['buffer_quantity'] ? round((intval($value['buffer_quantity']) / $requestedQuantity) * 100, 2) : 0;
                 $bufferQuantity = intval($value['buffer_quantity']);
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
+                    $productionOTB = new ProductionOTBModel();
+
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->where('delivery_type', $value['delivery_type'])
@@ -172,6 +172,8 @@ class ProductionOrderController extends Controller
 
                     $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
+                    $productionOTA = new ProductionOTAModel();
+
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->exists();
@@ -315,6 +317,15 @@ class ProductionOrderController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.update_failed'));
+        }
+    }
+
+    public function onAdditionalOtaOtb(Request $request, $production_order_id)
+    {
+        try {
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 }
