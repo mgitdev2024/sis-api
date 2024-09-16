@@ -361,7 +361,7 @@ class ProductionOrderController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $itemMasterData);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, $exception->getMessage());
+            return $this->dataResponse('error', 400, statusMessage: $exception->getMessage());
         }
     }
 }
