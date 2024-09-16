@@ -63,7 +63,7 @@ class ProductionOTBController extends Controller
     {
         return $this->changeStatusRecordById(ProductionOTBModel::class, $id, 'Production OTB', $request);
     }
-    public function onGetCurrent($id = null, )
+    public function onGetCurrent($id = null)
     {
 
         $whereFields = [];
