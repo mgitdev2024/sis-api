@@ -125,8 +125,6 @@ class ProductionOrderController extends Controller
             $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $createdById, 0);
             $itemMasterDataCounter = 0;
             foreach ($bulkUploadData as $value) {
-                $productionOTA = new ProductionOTAModel();
-                $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
@@ -141,6 +139,8 @@ class ProductionOrderController extends Controller
                 $bufferLevel = $value['buffer_quantity'] ? round((intval($value['buffer_quantity']) / $requestedQuantity) * 100, 2) : 0;
                 $bufferQuantity = intval($value['buffer_quantity']);
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
+                    $productionOTB = new ProductionOTBModel();
+
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->where('delivery_type', $value['delivery_type'])
@@ -172,6 +172,8 @@ class ProductionOrderController extends Controller
 
                     $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
+                    $productionOTA = new ProductionOTAModel();
+
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->exists();
@@ -314,8 +316,52 @@ class ProductionOrderController extends Controller
             }
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.update_failed'));
+        }
+    }
+
+    public function onAdditionalOtaOtb(Request $request, $production_order_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'item_code' => 'required',
+            'quantity' => 'required',
+            'buffer_quantity' => 'required',
+            'delivery_type' => 'required',
+        ]);
+        try {
+            $requestedQuantity = intval($fields['quantity']);
+            $bufferQuantity = intval($fields['buffer_quantity']);
+            $bufferLevel = $bufferQuantity ? round((intval($bufferQuantity) / $requestedQuantity) * 100, 2) : 0;
+            $productionOrder = ProductionOrderModel::find($production_order_id);
+            $itemMasterdata = ItemMasterdataModel::where('item_code', $fields['item_code'])
+                ->first();
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+    public function onGetUnselectedItemCodes($production_order_id, $delivery_type = null)
+    {
+        try {
+            $selectedItemCodes = [];
+            if ($delivery_type) {
+                $selectedItemCodes = ProductionOTBModel::where('production_order_id', $production_order_id)
+                    ->where('delivery_type', $delivery_type)
+                    ->pluck('item_code')
+                    ->toArray() ?? [];
+
+            } else {
+                $selectedItemCodes = ProductionOTAModel::where('production_order_id', $production_order_id)
+                    ->pluck('item_code')
+                    ->toArray() ?? [];
+            }
+
+            $itemMasterData = ItemMasterdataModel::whereNotIn('item_code', $selectedItemCodes)
+                ->get();
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $itemMasterData);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, statusMessage: $exception->getMessage());
         }
     }
 }

@@ -41,7 +41,7 @@ class ProductionItemController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item');
+        return $this->readRecordById(ProductionItemModel::class, $id, 'Produced Item', null, ['key' => 'production_batch_id', 'value' => $id]);
     }
 
     public function onChangeStatus(Request $request)
@@ -129,11 +129,13 @@ class ProductionItemController extends Controller
             $producedItemArray = json_decode($productionItems, true);
 
             foreach ($scannedItem as $value) {
+                if ($producedItemArray[$value['sticker_no']]['status'] != 0) {
+                    continue;
+                }
                 $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
                 $producedItemArray[$value['sticker_no']]['status'] = null;
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $value, $fields['created_by_id'], 1, $value['sticker_no']);
             }
-
             $producedItemModel->produced_items = json_encode($producedItemArray);
             $producedItemModel->save();
 
@@ -304,7 +306,7 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($batch_id, $item_key, $item_quantity)
+    public function onCheckItemStatus($batch_id, $item_key, $item_quantity, $add_info = false)
     {
         try {
             $productionBatch = ProductionBatchModel::find($batch_id);
@@ -312,7 +314,8 @@ class ProductionItemController extends Controller
             if ($productionItemsModel) {
                 // $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionBatch->item_code;
-                $item = json_decode($productionItemsModel->produced_items, true)[$item_key];
+                $producedItems = $productionItemsModel->produced_items;
+                $item = json_decode($producedItems, true)[$item_key];
 
                 $stickerStatus = $item['sticker_status'];
                 $itemStatus = $item['status'];
@@ -353,12 +356,41 @@ class ProductionItemController extends Controller
                     $data['stock_transfer'] = $item['stock_transfer'];
                 }
 
+                if ($add_info) {
+                    $data['additional_info'] = $this->onAddInfo($producedItems);
+                }
+
                 return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_found'), $data);
             }
             return $this->dataResponse('success', 200, 'Produced Item ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Produced Item ' . __('msg.record_not_found'));
         }
+    }
+
+    public function onAddInfo($producedItems)
+    {
+        $data = [];
+        $itemProduction = json_decode($producedItems, true);
+        foreach ($itemProduction as $value) {
+            $productionBatch = ProductionBatchModel::find($value['bid']);
+            $productionOrder = $productionBatch->productionOrder;
+            $productionOrderToMake = $productionBatch->productionOta ?? $productionBatch->productionOtb;
+
+            $itemDetails = [];
+            $itemDetails['item'] = $value;
+            // $itemDetails['item']['item_code'] = $productionBatch->item_code;
+            $itemDetails['item_details'] = [
+                'batch_number' => $productionBatch->batch_number,
+                'item_description' => $productionOrderToMake->itemMasterdata->description,
+            ];
+            $itemDetails['is_viewable_by_otb'] = $productionOrderToMake->itemMasterdata->is_viewable_by_otb;
+            $itemDetails['production_order_status'] = $productionOrder->status;
+            $itemDetails['production_type'] = $productionBatch->production_ota_id ? 1 : 0;
+            $data[] = $itemDetails;
+
+        }
+        return $data;
     }
 
     public function onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId)
