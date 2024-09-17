@@ -93,7 +93,10 @@ class StockTransferItemController extends Controller
                 $filteredItems = array_filter($selectedItems, function ($item) {
                     return !isset($item['status']); // Return only items without status
                 });
-                return $this->dataResponse('success', 200, 'Filtered Selected Items', $filteredItems);
+                $data = [];
+                $data['selected_items'] = $filteredItems;
+                $data['temporary_storage_id'] = $stockTransferItemModel->temporary_storage_id;
+                return $this->dataResponse('success', 200, 'Filtered Selected Items', $data);
             }
             return $this->dataResponse('error', 200, 'Selected Items ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
