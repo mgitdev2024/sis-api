@@ -78,7 +78,47 @@ class ItemMasterdataController extends Controller
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ItemMasterdataModel::class, $request, $this->getRules($id), 'Item Masterdata', $id, 'public/attachments/item-masterdata');
+        $fields = $request->validate($this->getRules($id));
+        try {
+            $record = new ItemMasterdataModel();
+            $record = ItemMasterdataModel::find($id);
+            if ($record) {
+                $this->onTablesUpdate($fields['item_code'], $record->item_code);
+
+                $record->update($fields);
+                if ($request->hasFile('attachment')) {
+                    $attachmentPath = $request->file('attachment')->store('public/attachments/item-masterdata');
+                    $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
+                    $record->attachment = $filepath;
+                    $record->save();
+                }
+                $this->createProductionLog(ItemMasterdataModel::class, $record->id, $fields, $fields['updated_by_id'], 1);
+                return $this->dataResponse('success', 201, 'Item Masterdata ' . __('msg.update_success'), $record);
+            }
+            return $this->dataResponse('error', 200, 'Item Masterdata ' . __('msg.update_failed'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onTablesUpdate($newItemCode, $oldItemCode)
+    {
+        $tables = [
+            'mos_production_otas',
+            'mos_production_otbs',
+            'mos_production_batches',
+            'wms_warehouse_receiving',
+            'wms_warehouse_put_away',
+            'wms_warehouse_for_put_away',
+            'wms_stock_inventories',
+            'wms_stock_logs',
+            'wms_stock_transfer_items',
+            'qa_sub_standard_items',
+            'qa_item_dispositions',
+        ];
+        foreach ($tables as $tableName) {
+            DB::table($tableName)->where('item_code', $oldItemCode)->update(['item_code' => $newItemCode]);
+        }
     }
     public function onGetPaginatedList(Request $request)
     {
