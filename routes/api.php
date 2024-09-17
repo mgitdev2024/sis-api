@@ -252,12 +252,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/production/order/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetPaginatedList']);
     Route::get('v1/production/order/all', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetAll']);
     Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetById']);
-    Route::get('v1/production/order/selected-items/get/{production_order_id}/{delivery_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetUnselectedItemCodes']);
+    // Route::get('v1/production/order/selected-items/get/{production_order_id}/{delivery_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetUnselectedItemCodes']);
     Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onChangeStatus']);
     Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
     Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
     Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
     Route::post('v1/production/order/align/{production_order_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAlignProductionCount']);
+    Route::post('v1/production/order/add/{production_order_id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAdditionalOtaOtb']);
     #endregion
 
     #region Production OTA

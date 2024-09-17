@@ -151,7 +151,15 @@ class StockTransferListController extends Controller
     public function onGetStockRequestList($statusId)
     {
         try {
-            $stockTransferListModel = StockTransferListModel::where('status', $statusId)->orderBy('created_at', 'DESC')->get();
+
+            $stockTransferListModel = StockTransferListModel::query();
+
+            if ($statusId == 'pending') {
+                $stockTransferListModel->whereIn('status', [1, 2])->orderBy('created_at', 'DESC');
+            } else {
+                $stockTransferListModel->where('status', $statusId)->orderBy('created_at', 'DESC');
+            }
+            $stockTransferListModel = $stockTransferListModel->get();
             foreach ($stockTransferListModel as $item) {
                 $item['formatted_date'] = date('Y-m-d', strtotime($item['created_at']));
                 $item['zone'] = $item->stockTransferItems[0]->zone->short_name;

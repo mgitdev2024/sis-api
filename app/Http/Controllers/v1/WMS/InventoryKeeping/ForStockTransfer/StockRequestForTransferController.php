@@ -364,4 +364,31 @@ class StockRequestForTransferController extends Controller
         }
     }
 
+    public function onGetCurrent($sub_location_id, $layer_level)
+    {
+        try {
+            $stockRequestForTransferModel = StockRequestForTransferModel::where([
+                'sub_location_id' => $sub_location_id,
+                'layer_level' => $layer_level,
+            ])->first();
+            $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
+            if ($stockRequestForTransferModel) {
+                $productionItems = json_decode($stockRequestForTransferModel->scanned_items, true);
+                $restructuredArray = [];
+                foreach ($productionItems as $item) {
+                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
+                    $restructuredArray[$batchCode] = $item;
+                }
+                $subLocationDetails['scanned_items'] = $restructuredArray;
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+
+        }
+    }
 }
