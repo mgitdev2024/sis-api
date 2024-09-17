@@ -154,7 +154,7 @@ class StockTransferListController extends Controller
 
             $stockTransferListModel = StockTransferListModel::query();
 
-            if ($statusId != 'pending') {
+            if ($statusId == 'pending') {
                 $stockTransferListModel->whereIn('status', [1, 2])->orderBy('created_at', 'DESC');
             } else {
                 $stockTransferListModel->where('status', $statusId)->orderBy('created_at', 'DESC');
