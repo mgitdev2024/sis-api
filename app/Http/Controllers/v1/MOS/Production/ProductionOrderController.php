@@ -326,42 +326,87 @@ class ProductionOrderController extends Controller
             'created_by_id' => 'required',
             'item_code' => 'required',
             'quantity' => 'required',
-            'buffer_quantity' => 'required',
-            'delivery_type' => 'required',
+            'buffer_quantity' => 'nullable|default:0',
+            'delivery_type' => 'nullable|in:1D,2D,3D,0',
         ]);
         try {
+            $createdById = $fields['created_by_id'];
             $requestedQuantity = intval($fields['quantity']);
-            $bufferQuantity = intval($fields['buffer_quantity']);
+            $bufferQuantity = intval($fields['buffer_quantity']) ?? 0;
             $bufferLevel = $bufferQuantity ? round((intval($bufferQuantity) / $requestedQuantity) * 100, 2) : 0;
             $productionOrder = ProductionOrderModel::find($production_order_id);
-            $itemMasterdata = ItemMasterdataModel::where('item_code', $fields['item_code'])
+            $itemCode = $fields['item_code'];
+            $deliveryType = $fields['delivery_type'] ?? null;
+            $itemMasterData = ItemMasterdataModel::where('item_code', $itemCode)
                 ->first();
+            if (!$itemMasterData) {
+                throw new Exception("Item Masterdata not found");
+            }
+            $productionDate = $productionOrder->production_date;
+            if (strcasecmp($itemMasterData->itemCategory->name, 'Breads') === 0) {
+                $productionOTB = new ProductionOTBModel();
+                $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
+                    ->where('item_code', $itemCode)
+                    ->where('delivery_type', $deliveryType) // 1D, 2D, 3D, 0
+                    ->exists();
+                if ($existingOTB) {
+                    throw new Exception("This entry already exists: $itemCode $deliveryType");
+                }
+
+                $productionOTB->production_order_id = $productionOrder->id;
+                $productionOTB->delivery_type = $deliveryType;
+                $productionOTB->item_code = $itemCode;
+                $productionOTB->requested_quantity = $requestedQuantity;
+                $productionOTB->buffer_level = $bufferLevel;
+                $productionOTB->buffer_quantity = $bufferQuantity;
+                $productionOTB->plotted_quantity = $requestedQuantity + $bufferQuantity;
+
+                if ($itemMasterData->chilled_shelf_life) {
+                    $productionOTB->expected_chilled_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->chilled_shelf_life} days"));
+                }
+                if ($itemMasterData->frozen_shelf_life) {
+                    $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime("{$productionDate}  + {$itemMasterData->frozen_shelf_life} days"));
+                }
+                if ($itemMasterData->ambient_shelf_life) {
+                    $productionOTB->expected_ambient_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->ambient_shelf_life} days"));
+                }
+                $productionOTB->created_by_id = $createdById;
+                $productionOTB->save();
+
+                $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
+            } else {
+                $productionOTA = new ProductionOTAModel();
+
+                $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
+                    ->where('item_code', $itemCode)
+                    ->exists();
+
+                if ($existingOTA) {
+                    throw new Exception("This entry already exists: $itemCode $deliveryType");
+                }
+                $productionOTA->production_order_id = $productionOrder->id;
+                $productionOTA->item_code = $itemCode;
+                $productionOTA->requested_quantity = $requestedQuantity;
+                $productionOTA->buffer_level = $bufferLevel;
+                $productionOTA->buffer_quantity = $bufferQuantity;
+                $productionOTA->plotted_quantity = $requestedQuantity + $bufferQuantity;
+                if ($itemMasterData->chilled_shelf_life) {
+                    $productionOTA->expected_chilled_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->chilled_shelf_life} days"));
+                }
+                if ($itemMasterData->frozen_shelf_life) {
+                    $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime("{$productionDate}  + {$itemMasterData->frozen_shelf_life} days"));
+                }
+                if ($itemMasterData->ambient_shelf_life) {
+                    $productionOTA->expected_ambient_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->ambient_shelf_life} days"));
+                }
+
+                $productionOTA->created_by_id = $createdById;
+                $productionOTA->save();
+                $this->createProductionLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA->getAttributes(), $createdById, 0);
+            }
+            return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
-        }
-    }
-    public function onGetUnselectedItemCodes($production_order_id, $delivery_type = null)
-    {
-        try {
-            $selectedItemCodes = [];
-            if ($delivery_type) {
-                $selectedItemCodes = ProductionOTBModel::where('production_order_id', $production_order_id)
-                    ->where('delivery_type', $delivery_type)
-                    ->pluck('item_code')
-                    ->toArray() ?? [];
-
-            } else {
-                $selectedItemCodes = ProductionOTAModel::where('production_order_id', $production_order_id)
-                    ->pluck('item_code')
-                    ->toArray() ?? [];
-            }
-
-            $itemMasterData = ItemMasterdataModel::whereNotIn('item_code', $selectedItemCodes)
-                ->get();
-
-            return $this->dataResponse('success', 200, __('msg.record_found'), $itemMasterData);
-        } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, statusMessage: $exception->getMessage());
         }
     }
 }
