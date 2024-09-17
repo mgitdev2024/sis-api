@@ -95,7 +95,12 @@ class StockTransferItemController extends Controller
                 });
                 $data = [];
                 $data['selected_items'] = $filteredItems;
-                $data['temporary_storage_id'] = $stockTransferItemModel->temporary_storage_id;
+
+                $subLocationModel = $stockTransferItemModel->subLocation;
+                $data['temporary_storage_id'] = [
+                    'sub_location_id' => $subLocationModel->id,
+                    'sub_location_code' => $subLocationModel->code,
+                ];
                 return $this->dataResponse('success', 200, 'Filtered Selected Items', $data);
             }
             return $this->dataResponse('error', 200, 'Selected Items ' . __('msg.record_not_found'));
