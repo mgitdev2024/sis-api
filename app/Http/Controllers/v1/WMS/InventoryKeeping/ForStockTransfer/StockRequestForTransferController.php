@@ -384,6 +384,7 @@ class StockRequestForTransferController extends Controller
                     $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }
+                $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->item_code;
                 $subLocationDetails['scanned_items'] = $restructuredArray;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
