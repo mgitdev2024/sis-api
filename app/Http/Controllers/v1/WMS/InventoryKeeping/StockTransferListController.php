@@ -10,7 +10,7 @@ use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
-use App\Traits\Credentials\CredentialsTrait;
+use App\Traits\Admin\CredentialsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
