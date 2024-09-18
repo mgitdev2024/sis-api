@@ -378,7 +378,7 @@ class StockRequestForTransferController extends Controller
                 foreach ($stockRequestItems as $item) {
                     $productionBatch = ProductionBatchModel::find($item['bid']);
                     $productionItemDetails = $productionBatch->productionItems;
-                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true) ?? [];
 
                     $item['item_code'] = $productionBatch->item_code;
                     $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
