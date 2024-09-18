@@ -147,7 +147,6 @@ class StockRequestForTransferController extends Controller
     {
         $fields = $request->validate([
             'updated_by_id' => 'required',
-            'scanned_items' => 'required|json',
         ]);
 
         try {
@@ -162,7 +161,7 @@ class StockRequestForTransferController extends Controller
                 $subLocationId = $stockRequestForTransferModel->sub_location_id;
                 $layerLevel = $stockRequestForTransferModel->layer_level;
                 $stockRequestForTransferModelProductionItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true);
-                $scannedItems = json_decode($fields['scanned_items'], true);
+                $scannedItems = json_decode($stockRequestForTransferModel->scanned_items, true);
 
                 $this->onQueueSubLocation($updatedById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $stockRequestForTransferModel->stockTransferList->reference_number);
                 $this->onUpdateStockRequestTransfer($stockRequestForTransferModel, $stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
@@ -370,18 +369,21 @@ class StockRequestForTransferController extends Controller
             $stockRequestForTransferModel = StockRequestForTransferModel::where([
                 'sub_location_id' => $sub_location_id,
                 'layer_level' => $layer_level,
-            ])->first();
+            ])->orderBy('id', 'DESC')->first();
             $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
             if ($stockRequestForTransferModel) {
-                $productionItems = json_decode($stockRequestForTransferModel->scanned_items, true);
+                $stockRequestItems = json_decode($stockRequestForTransferModel->scanned_items, true) ?? [];
                 $restructuredArray = [];
-                foreach ($productionItems as $item) {
-                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                foreach ($stockRequestItems as $item) {
+                    $productionBatch = ProductionBatchModel::find($item['bid']);
+                    $productionItemDetails = $productionBatch->productionItems;
                     $itemDetails = json_decode($productionItemDetails->produced_items, true);
 
+                    $item['item_code'] = $productionBatch->item_code;
                     $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }
+                $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->item_code;
                 $subLocationDetails['scanned_items'] = $restructuredArray;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);

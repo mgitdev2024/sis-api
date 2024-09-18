@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('code');
             $table->string('description')->nullable();
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(1); // 1 Running, 2 Down, 3 Maintenance
             $table->string('created_by_id');
             $table->string('updated_by_id')->nullable();
             $table->timestamps();

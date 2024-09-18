@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WarehouseLogTrait;
 use Illuminate\Http\Request;
@@ -96,10 +97,10 @@ class StockTransferItemController extends Controller
                 $data = [];
                 $data['selected_items'] = $filteredItems;
 
-                $subLocationModel = $stockTransferItemModel->subLocation;
+                $temporaryStorage = SubLocationModel::find($stockTransferItemModel->temporary_storage_id);
                 $data['temporary_storage_id'] = [
-                    'sub_location_id' => $subLocationModel->id,
-                    'sub_location_code' => $subLocationModel->code,
+                    'sub_location_id' => $temporaryStorage->id,
+                    'sub_location_code' => $temporaryStorage->code,
                 ];
                 return $this->dataResponse('success', 200, 'Filtered Selected Items', $data);
             }
