@@ -373,12 +373,14 @@ class StockRequestForTransferController extends Controller
             ])->first();
             $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
             if ($stockRequestForTransferModel) {
-                $productionItems = json_decode($stockRequestForTransferModel->scanned_items, true);
+                $stockRequestItems = json_decode($stockRequestForTransferModel->scanned_items, true);
                 $restructuredArray = [];
-                foreach ($productionItems as $item) {
-                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                foreach ($stockRequestItems as $item) {
+                    $productionBatch = ProductionBatchModel::find($item['bid']);
+                    $productionItemDetails = $productionBatch->productionItems;
                     $itemDetails = json_decode($productionItemDetails->produced_items, true);
 
+                    $item['item_code'] = $productionBatch->item_code;
                     $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
                     $restructuredArray[$batchCode] = $item;
                 }
