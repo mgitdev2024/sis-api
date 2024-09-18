@@ -138,7 +138,7 @@ class StockTransferListController extends Controller
                     return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
 
                 default:
-                    return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_failed'));
+                    return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.update_failed'));
             }
 
 

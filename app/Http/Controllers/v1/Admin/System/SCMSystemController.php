@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\v1\Access;
+namespace App\Http\Controllers\v1\Admin\System;
 
 use App\Http\Controllers\Controller;
-use App\Models\Access\ScmSystemModel;
+use App\Models\Admin\System\ScmSystemModel;
+use App\Traits\Admin\AdminTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
 
 class SCMSystemController extends Controller
 {
-    use ResponseTrait;
+    use ResponseTrait, AdminTrait;
     public function onChangeStatus(Request $request, $system_id)
     {
         $fields = $request->validate([
@@ -25,6 +26,7 @@ class SCMSystemController extends Controller
             $system->status = $fields['status'];
             $system->updated_by_id = $fields['created_by_id'];
             $system->save();
+            $this->onCreateAdminLogs($system_id, ScmSystemModel::class, $system->getAttributes(), 1, $fields['created_by_id']);
             return $this->dataResponse('success', 200, __('msg.update_success'), $system);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.update_failed'));

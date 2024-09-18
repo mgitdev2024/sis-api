@@ -51,8 +51,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region System Status
-    Route::post('v1/system/admin/status/change/{system_id}', [App\Http\Controllers\v1\Access\SCMSystemController::class, 'onChangeStatus']);
-    Route::get('v1/system/admin/get/{system_id?}', [App\Http\Controllers\v1\Access\SCMSystemController::class, 'onGet']);
+    Route::post('v1/system/admin/status/change/{system_id}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onChangeStatus']);
+    Route::get('v1/system/admin/get/{system_id?}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onGet']);
 
     #endregion
 });

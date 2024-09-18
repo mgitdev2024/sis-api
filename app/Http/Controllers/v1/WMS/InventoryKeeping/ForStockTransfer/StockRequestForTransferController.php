@@ -370,7 +370,7 @@ class StockRequestForTransferController extends Controller
             $stockRequestForTransferModel = StockRequestForTransferModel::where([
                 'sub_location_id' => $sub_location_id,
                 'layer_level' => $layer_level,
-            ])->first();
+            ])->orderBy('id', 'DESC')->first();
             $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
             if ($stockRequestForTransferModel) {
                 $stockRequestItems = json_decode($stockRequestForTransferModel->scanned_items, true) ?? [];
