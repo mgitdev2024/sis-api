@@ -5,7 +5,7 @@ namespace App\Http\Controllers\v1\History;
 use App\Http\Controllers\Controller;
 use App\Models\History\PrintHistoryModel;
 use App\Models\MOS\Production\ProductionOrderModel;
-use App\Traits\Credentials\CredentialsTrait;
+use App\Traits\Admin\CredentialsTrait;
 use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use Exception;

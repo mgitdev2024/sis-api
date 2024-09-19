@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WarehouseLogTrait;
 use Illuminate\Http\Request;
@@ -15,10 +16,10 @@ class StockTransferItemController extends Controller
 {
     use WarehouseLogTrait, QueueSubLocationTrait;
 
-    public function onGetById($id, $is_check_location_only = 0)
+    public function onGetById($stock_transfer_item_id, $is_check_location_only = 0)
     {
         try {
-            $stockTransferItemModel = StockTransferItemModel::find($id);
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
 
             if ($stockTransferItemModel) {
                 $data = [
@@ -27,26 +28,35 @@ class StockTransferItemController extends Controller
 
                 switch ($is_check_location_only) {
                     case 0:
+                        $itemMasterdata = $stockTransferItemModel->ItemMasterdata;
+                        $uom = $itemMasterdata->uom_label['short_name'];
+                        $primaryConversion = $itemMasterdata->primary_conversion_label['short_name'] ?? null;
                         $data['item_details'] = [];
                         $data['transfer_details'] = [];
+                        $data['item_masterdata'] = $itemMasterdata;
                         $data['item_details'] = [
                             'reference_number' => $stockTransferItemModel->stockTransferList->reference_number,
                             'item_code' => $stockTransferItemModel->item_code,
-                            'item_description' => $stockTransferItemModel->ItemMasterdata->description,
+                            'item_description' => $itemMasterdata->description,
                             'transfer_quantity' => $stockTransferItemModel->transfer_quantity,
                         ];
-                        $transferredItems = json_decode($stockTransferItemModel->transferred_items, true);
-                        $substandardItems = json_decode($stockTransferItemModel->substandard_items, true);
+                        $transferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
+                        $substandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
                         $transferredBox = count($transferredItems);
                         $substandardBox = count($substandardItems);
                         $transferredQuantity = array_sum(array_column($transferredItems, 'q'));
                         $substandardQuantity = array_sum(array_column($substandardItems, 'q'));
 
                         $data['transfer_details'] = [
-                            'transferred_quantity' => ["box" => $transferredBox, "quantity" => $transferredQuantity],
-                            'substandard_quantity' => ["box" => $substandardBox, "quantity" => $substandardQuantity],
+                            'transferred_quantity' => [$uom => $transferredBox],
+                            'substandard_quantity' => [$uom => $substandardBox],
                             'remaining_quantity' => $stockTransferItemModel->transfer_quantity - ($transferredBox + $substandardBox),
                         ];
+
+                        if ($primaryConversion) {
+                            $data['transfer_details']['transferred_quantity'][$primaryConversion] = $transferredQuantity;
+                            $data['transfer_details']['substandard_quantity'][$primaryConversion] = $substandardQuantity;
+                        }
 
                         $data['origin_location_details'] = [
                             'zone' => $stockTransferItemModel->zone->short_name,
@@ -75,7 +85,32 @@ class StockTransferItemController extends Controller
         }
     }
 
-    public function onScanSelectedItems(Request $request, $id)
+    public function onGetSelectedItems($stock_transfer_item_id)
+    {
+        try {
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            if ($stockTransferItemModel) {
+                $selectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
+                $filteredItems = array_filter($selectedItems, function ($item) {
+                    return !isset($item['status']); // Return only items without status
+                });
+                $data = [];
+                $data['selected_items'] = $filteredItems;
+
+                $temporaryStorage = SubLocationModel::find($stockTransferItemModel->temporary_storage_id);
+                $data['temporary_storage_id'] = [
+                    'sub_location_id' => $temporaryStorage->id,
+                    'sub_location_code' => $temporaryStorage->code,
+                ];
+                return $this->dataResponse('success', 200, 'Filtered Selected Items', $data);
+            }
+            return $this->dataResponse('error', 200, 'Selected Items ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Selected Items ' . __('msg.record_not_found'));
+        }
+    }
+
+    public function onScanSelectedItems(Request $request, $stock_transfer_item_id)
     {
         $fields = $request->validate([
             'scanned_item' => 'required|json',
@@ -89,6 +124,8 @@ class StockTransferItemController extends Controller
             if (!$this->onCheckAvailability($subLocationId, false)) {
                 throw new Exception('Sub Location Unavailable');
             }
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            $stockTransferReferenceNumber = $stockTransferItemModel->stockTransferList->reference_number;
             $scannedItem = json_decode($fields['scanned_item'], true);
             $selectedItemForTransfer = [];
             foreach ($scannedItem as &$value) {
@@ -100,6 +137,9 @@ class StockTransferItemController extends Controller
                     continue;
                 }
 
+                $productionItems[$value['sticker_no']]['stock_transfer'] = [
+                    'reference_number' => $stockTransferReferenceNumber,
+                ];
                 $productionItems[$value['sticker_no']]['status'] = 14; // For Transfer
                 $productionItemModel->produced_items = json_encode($productionItems);
                 $productionItemModel->save();
@@ -108,7 +148,6 @@ class StockTransferItemController extends Controller
                 unset($value);
             }
 
-            $stockTransferItemModel = StockTransferItemModel::find($id);
             $existingSelectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
             if (count($existingSelectedItems) > $stockTransferItemModel->transfer_quantity || count($scannedItem) > $stockTransferItemModel->transfer_quantity) {
                 throw new Exception('Selected Items Exceed Transfer Quantity');
@@ -116,18 +155,18 @@ class StockTransferItemController extends Controller
             if ($stockTransferItemModel) {
                 // STOCK TRANSFER LIST UPDATE
                 $stockTransferListModel = $stockTransferItemModel->stockTransferList;
-                $stockTransferListModel->status = 1;
+                $stockTransferListModel->status = 2;
                 $stockTransferListModel->save();
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
 
                 // STOCK TRANSFER ITEM & QUANTITY UPDATE
-                $stockTransferItemModel->status = 1;
+                $stockTransferItemModel->status = 2;
                 $stockTransferItemModel->save();
                 $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
 
                 $mergedItemToTransfer = array_merge($existingSelectedItems, $selectedItemForTransfer);
 
-                $stockTransferItemModel->selected_items = json_encode($mergedItemToTransfer);
+                $stockTransferItemModel->selected_items = json_encode($mergedItemToTransfer); //
                 $stockTransferItemModel->updated_by_id = $fields['updated_by_id'];
                 $stockTransferItemModel->temporary_storage_id = $subLocationId;
                 $stockTransferItemModel->save();
@@ -140,6 +179,61 @@ class StockTransferItemController extends Controller
             }
             return $this->dataResponse('error', 200, 'Stock Transfer Item ' . __('msg.record_not_found'));
 
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onCompleteTransaction(Request $request, $stock_transfer_item_id)
+    {
+        try {
+            $fields = $request->validate([
+                'created_by_id' => 'required',
+            ]);
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            $selectedItems = json_decode($stockTransferItemModel->selected_items, true) ?? [];
+            $transferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
+            $substandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
+
+            $mergedItems = array_merge($transferredItems, $substandardItems);
+            $discrepancyItems = [];
+
+            foreach ($selectedItems as $key => $selectedItem) {
+                $isFound = false;
+                foreach ($mergedItems as $mergedItem) {
+                    if (($selectedItem['bid'] == $mergedItem['bid'] && $selectedItem['sticker_no'] == $mergedItem['sticker_no']) && isset($selectedItem['status'])) {
+                        $isFound = true;
+                        break;
+                    }
+                }
+                if (!$isFound) {
+                    $discrepancyItems[] = $selectedItem;
+                }
+            }
+            DB::beginTransaction();
+            $stockTransferItemModel->status = 3;
+            $stockTransferItemModel->discrepancy_items = json_encode($discrepancyItems);
+            $stockTransferItemModel->save();
+            $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
+
+            $stockTransferListItems = StockTransferItemModel::where('stock_transfer_list_id', $stockTransferItemModel->stock_transfer_list_id)->get();
+            $completionCounter = 0;
+            foreach ($stockTransferListItems as $items) {
+                if ($items->status == 3) {
+                    $completionCounter++;
+                }
+            }
+
+            if ($completionCounter == count($stockTransferListItems)) {
+                $stockTransferListModel = $stockTransferItemModel->stockTransferList;
+                $stockTransferListModel->status = 3;
+                $stockTransferListModel->save();
+                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
+            }
+
+            DB::commit();
+            return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());

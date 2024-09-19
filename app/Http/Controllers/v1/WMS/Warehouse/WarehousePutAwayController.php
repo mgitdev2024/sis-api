@@ -311,7 +311,7 @@ class WarehousePutAwayController extends Controller
                 $primaryUom = $itemMasterdata->uom->long_name ?? null;
                 $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
-                if (true) {
+                if ($flag) {
                     $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
                         ->where('item_code', $itemCode)
                         ->first();

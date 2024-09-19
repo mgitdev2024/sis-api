@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Access\ScmSystemModel;
+use App\Models\Admin\System\ScmSystemModel;
 use App\Models\Access\SubModulePermissionModel;
 use Illuminate\Database\Seeder;
 use App\Models\CredentialModel;

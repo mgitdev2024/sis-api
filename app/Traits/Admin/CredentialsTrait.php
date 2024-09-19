@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits\Credentials;
+namespace App\Traits\Admin;
 
 use App\Models\User;
 use Exception;

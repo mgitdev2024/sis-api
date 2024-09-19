@@ -21,18 +21,20 @@ Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::clas
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
+});
 
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('v1/run-migrations', function () {
+        // Artisan::call('migrate', ["--force" => true]);
+        Artisan::call('migrate', ["--force" => true]);
+        return 'Migrations completed successfully!';
+    });
     Route::get('v1/run-migrations-and-seed', function () {
         // Artisan::call('migrate', ["--force" => true]);
         Artisan::call('migrate:fresh', ["--force" => true]);
         Artisan::call('db:seed', ["--force" => true]);
         return 'Migrations and Seed completed successfully!';
-    });
-
-    Route::get('v1/run-migrations', function () {
-        // Artisan::call('migrate', ["--force" => true]);
-        Artisan::call('migrate', ["--force" => true]);
-        return 'Migrations completed successfully!';
     });
 
     #region Admin Access
@@ -47,8 +49,93 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/user/access/remove', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onRemoveAccess']);
     Route::post('v1/user/access/bulk', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onBulkUpload']);
     #endregion
-    Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
+    #region System Status
+    Route::post('v1/system/admin/status/change/{system_id}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onChangeStatus']);
+    Route::get('v1/system/admin/get/{system_id?}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onGet']);
+
+    #endregion
+});
+
+Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], function () {
+    #region Production Orders
+    Route::post('v1/production/order/create', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onCreate']);
+    Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onUpdateById']);
+    Route::post('v1/production/order/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetPaginatedList']);
+    Route::get('v1/production/order/all', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetAll']);
+    Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetById']);
+    // Route::get('v1/production/order/selected-items/get/{production_order_id}/{delivery_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetUnselectedItemCodes']);
+    Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onChangeStatus']);
+    Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
+    Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
+    Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
+    Route::post('v1/production/order/align/{production_order_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAlignProductionCount']);
+    Route::post('v1/production/order/add/{production_order_id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAdditionalOtaOtb']);
+    #endregion
+
+    #region Production OTA
+    Route::post('v1/production/ota/create', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onCreate']);
+    Route::post('v1/production/ota/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onUpdateById']);
+    Route::post('v1/production/ota/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetPaginatedList']);
+    Route::get('v1/production/ota/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetAll']);
+    Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetById']);
+    Route::post('v1/production/ota/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onChangeStatus']);
+    Route::get('v1/production/ota/for/otb/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrentForOtb']);
+    Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrent']);
+    Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetEndorsedByQa']);
+    Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onFulfillEndorsement']);
+    #endregion
+
+    #region Production OTB
+    Route::post('v1/production/otb/create', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onCreate']);
+    Route::post('v1/production/otb/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onUpdateById']);
+    Route::post('v1/production/otb/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetPaginatedList']);
+    Route::get('v1/production/otb/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetAll']);
+    Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetById']);
+    Route::post('v1/production/otb/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onChangeStatus']);
+    Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetCurrent']);
+    Route::get('v1/production/otb/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetEndorsedByQa']);
+    Route::post('v1/production/otb/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onFulfillEndorsement']);
+    #endregion
+    #region Production Batch
+    Route::post('v1/production/batch/create', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onCreate']);
+    Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onUpdateById']);
+    Route::post('v1/production/batch/get', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetPaginatedList']);
+    Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetById']);
+    Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetCurrent']);
+    Route::get('v1/production/batch/metal/{order_type?}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetProductionBatchMetalLine']);
+    Route::post('v1/production/batch/print/initial/{id}/{item_disposition_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onSetInitialPrint']);
+    Route::post('v1/production/batch/align', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onAlignItemCode']);
+    // Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onChangeStatus']);
+    #endregion
+
+    #region Production Items
+    Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onUpdateById']);
+    Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
+    Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
+    Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
+    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
+    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
+    #endregion
+
+    #region Cache For Receive Items
+    Route::post('v1/produced/items/cache/for-receive/create', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
+    Route::get('v1/produced/items/cache/for-receive/current/get/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
+    Route::delete('v1/produced/items/cache/for-receive/delete/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
+    #endregion
+
+    #region Production Archived Batches
+    Route::post('v1/production/batch/archives/data/{id}', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onArchiveBatch']);
+    Route::get('v1/production/batch/archives/current', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onGetCurrent']);
+    Route::get('v1/production/batch/archives/get/{id?}', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onGetById']);
+    #endregion
+
+});
+
+
+
+Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], function () {
     #region Item Category
     Route::post('v1/item/category/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onCreate']);
     Route::post('v1/item/category/update/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onUpdateById']);
@@ -246,76 +333,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/item/masterdata/current/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetCurrent']);
     #endregion
 
-    #region Production Orders
-    Route::post('v1/production/order/create', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onCreate']);
-    Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onUpdateById']);
-    Route::post('v1/production/order/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetPaginatedList']);
-    Route::get('v1/production/order/all', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetAll']);
-    Route::get('v1/production/order/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetById']);
-    Route::post('v1/production/order/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onChangeStatus']);
-    Route::post('v1/production/order/bulk', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onBulk']);
-    Route::get('v1/production/order/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetCurrent']);
-    Route::get('v1/production/order/get/batches/{production_order_id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onGetBatches']);
-    Route::post('v1/production/order/align/{production_order_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onAlignProductionCount']);
-    #endregion
-
-    #region Production OTA
-    Route::post('v1/production/ota/create', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onCreate']);
-    Route::post('v1/production/ota/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onUpdateById']);
-    Route::post('v1/production/ota/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetPaginatedList']);
-    Route::get('v1/production/ota/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetAll']);
-    Route::get('v1/production/ota/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetById']);
-    Route::post('v1/production/ota/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onChangeStatus']);
-    Route::get('v1/production/ota/for/otb/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrentForOtb']);
-    Route::get('v1/production/ota/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetCurrent']);
-    Route::get('v1/production/ota/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onGetEndorsedByQa']);
-    Route::post('v1/production/ota/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTAController::class, 'onFulfillEndorsement']);
-    #endregion
-
-    #region Production OTB
-    Route::post('v1/production/otb/create', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onCreate']);
-    Route::post('v1/production/otb/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onUpdateById']);
-    Route::post('v1/production/otb/paginated', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetPaginatedList']);
-    Route::get('v1/production/otb/all', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetAll']);
-    Route::get('v1/production/otb/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetById']);
-    Route::post('v1/production/otb/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onChangeStatus']);
-    Route::get('v1/production/otb/current/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetCurrent']);
-    Route::get('v1/production/otb/endorsement/{id?}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onGetEndorsedByQa']);
-    Route::post('v1/production/otb/fulfill/endorsement/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOTBController::class, 'onFulfillEndorsement']);
-    #endregion
-    #region Production Batch
-    Route::post('v1/production/batch/create', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onCreate']);
-    Route::post('v1/production/batch/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onUpdateById']);
-    Route::post('v1/production/batch/get', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetPaginatedList']);
-    Route::get('v1/production/batch/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetById']);
-    Route::get('v1/production/batch/current/{id?}/{order_type?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetCurrent']);
-    Route::get('v1/production/batch/metal/{order_type?}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onGetProductionBatchMetalLine']);
-    Route::post('v1/production/batch/print/initial/{id}/{item_disposition_id?}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onSetInitialPrint']);
-    Route::post('v1/production/batch/align', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onAlignItemCode']);
-    // Route::post('v1/production/batch/status/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionBatchController::class, 'onChangeStatus']);
-    #endregion
-
-    #region Production Items
-    Route::post('v1/produced/items/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onUpdateById']);
-    Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
-    Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
-    Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
-    // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
-    #endregion
-
-    #region Cache For Receive Items
-    Route::post('v1/produced/items/cache/for-receive/create', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onCacheForReceive']);
-    Route::get('v1/produced/items/cache/for-receive/current/get/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onGetCurrent']);
-    Route::delete('v1/produced/items/cache/for-receive/delete/{production_type}/{created_by_id}', [App\Http\Controllers\v1\MOS\Cache\ProductionForReceiveController::class, 'onDelete']);
-    #endregion
-
-    #region Production Archived Batches
-    Route::post('v1/production/batch/archives/data/{id}', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onArchiveBatch']);
-    Route::get('v1/production/batch/archives/current', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onGetCurrent']);
-    Route::get('v1/production/batch/archives/get/{id?}', [App\Http\Controllers\v1\MOS\Production\ArchivedBatchesController::class, 'onGetById']);
-    #endregion
 
     #region Production History Log
     Route::post('v1/history/log/production/current/{id?}', [App\Http\Controllers\v1\History\ProductionLogController::class, 'onGetCurrent']);
@@ -428,14 +445,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region Stock Transfer Items
-    Route::get('v1/stock/transfer/item/get/{id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
-    Route::post('v1/stock/transfer/item/scan-selected/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
+    Route::get('v1/stock/transfer/item/get/{stock_transfer_item_id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
+    Route::get('v1/stock/transfer/item/selected-items/get/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetSelectedItems']);
+    Route::post('v1/stock/transfer/item/scan-selected/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
+    Route::post('v1/stock/transfer/item/complete-transaction/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Stock Request For Transfer
+    Route::get('v1/stock/request/for-transfer/current/get/{sub_location_id}/{layer_level}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onGetCurrent']);
     Route::post('v1/stock/request/for-transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onCreate']);
     Route::post('v1/stock/request/for-transfer/update/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onUpdate']);
     Route::delete('v1/stock/request/for-transfer/delete/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onDelete']);
     Route::post('v1/stock/request/for-transfer/transfer/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onTransferItems']);
+    Route::post('v1/stock/request/for-transfer/transfer/sub-standard/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onSubstandardItems']);
     #endregion
 });

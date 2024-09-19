@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
+use App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController;
+use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -122,6 +126,7 @@ class StockRequestForTransferController extends Controller
                         $forTransferItems[] = $itemValue;
                     }
                 }
+
                 if (count($forTransferItems) > 0) {
                     // STOCK REQUEST FOR TRANSFER UPDATE
                     $stockRequestForTransferModel->scanned_items = json_encode($forTransferItems);
@@ -142,14 +147,13 @@ class StockRequestForTransferController extends Controller
     {
         $fields = $request->validate([
             'updated_by_id' => 'required',
-            'scanned_items' => 'required|json',
         ]);
 
         try {
             $stockRequestForTransferModel = StockRequestForTransferModel::where([
                 'stock_transfer_item_id' => $stock_transfer_item_id,
                 'status' => 1
-            ])->first();
+            ])->orderBy('id', 'DESC')->first();
             if ($stockRequestForTransferModel && $stockRequestForTransferModel->sub_location_id) {
                 DB::beginTransaction();
 
@@ -157,7 +161,7 @@ class StockRequestForTransferController extends Controller
                 $subLocationId = $stockRequestForTransferModel->sub_location_id;
                 $layerLevel = $stockRequestForTransferModel->layer_level;
                 $stockRequestForTransferModelProductionItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true);
-                $scannedItems = json_decode($fields['scanned_items'], true);
+                $scannedItems = json_decode($stockRequestForTransferModel->scanned_items, true);
 
                 $this->onQueueSubLocation($updatedById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $stockRequestForTransferModel->stockTransferList->reference_number);
                 $this->onUpdateStockRequestTransfer($stockRequestForTransferModel, $stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
@@ -173,34 +177,119 @@ class StockRequestForTransferController extends Controller
         }
     }
 
+    public function onSubstandardItems(Request $request, $stock_transfer_item_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'scanned_items' => 'required',
+            'reason' => 'required',
+            'attachment' => 'nullable',
+        ]);
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $scannedItems = json_decode($fields['scanned_items'], true);
+            $reason = $fields['reason'];
+            $attachment = $fields['attachment'] ?? null;
+            $locationId = 4; // Warehouse Transfer
+
+            // Checking of Scanned For Transfer items, will be removed when it is also scanned for substandard
+            $matchedScannedItemSubstandard = [];
+            $stockRequestTransferModel = StockRequestForTransferModel::where('stock_transfer_item_id', $stock_transfer_item_id)->orderBy('id', 'DESC')->first();
+            if ($stockRequestTransferModel) {
+
+                $transferItems = json_decode($stockRequestTransferModel->scanned_items, true);
+                $filteredArr = array_filter($transferItems, function ($item1) use ($scannedItems, &$matchedScannedItemSubstandard) {
+                    foreach ($scannedItems as $item2) {
+                        if ($item1['bid'] == $item2['bid'] && $item1['sticker_no'] == $item2['sticker_no']) {
+                            $matchedScannedItemSubstandard[] = $item1;
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                $transferItems = $filteredArr;
+                $stockRequestTransferModel->scanned_items = json_encode(array_values($transferItems));
+                $stockRequestTransferModel->save();
+            }
+
+            $substandardItems = [];
+            foreach ($scannedItems as $itemDetails) {
+                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
+                $productionItem = $productionBatch->productionItems;
+                $inclusionArray = ['14']; // Stock Transfer
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
+                if ($flag) {
+                    $substandardItems[] = $itemDetails;
+                }
+            }
+            $stockTransferItemModel = StockTransferItemModel::find($stock_transfer_item_id);
+            $existingSubstandardItems = json_decode($stockTransferItemModel->substandard_items, true) ?? [];
+            $stockTransferItemModel->substandard_items = json_encode(array_merge($existingSubstandardItems, $substandardItems));
+            $stockTransferItemModel->save();
+            $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
+
+            $substandardController = new SubStandardItemController();
+            $substandardRequest = new Request([
+                'created_by_id' => $createdById,
+                'scanned_items' => $fields['scanned_items'],
+                'reason' => $reason,
+                'attachment' => $attachment,
+                'location_id' => $locationId,
+            ]);
+            $substandardController->onCreate($substandardRequest);
+
+            $stockRequestTransfer = new StockRequestForTransferController();
+            $stockRequestTransferRequest = new Request([
+                'updated_by_id' => $createdById,
+                'scanned_items' => $stockRequestTransferModel->scanned_items,
+            ]);
+            $stockRequestTransfer->onTransferItems($stockRequestTransferRequest, $stock_transfer_item_id);
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
+
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
+        }
+    }
+
     public function onUpdateStockRequestTransfer($stockRequestTransferModel, $stockTransferItemModel, $scannedItems, $updateById)
     {
         try {
+            QueuedTemporaryStorageModel::where('sub_location_id', $stockRequestTransferModel->sub_location_id)->delete();
             $stockRequestTransferModel->delete();
             $transferQuantityCount = $stockTransferItemModel->transfer_quantity;
             $existingTransferredItems = json_decode($stockTransferItemModel->transferred_items, true) ?? [];
             $mergedTransferredItems = array_merge($existingTransferredItems, $scannedItems);
 
-            $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
-
-            if ($transferQuantityCount <= $scannedItemsCount) {
-                $stockTransferItemModel->status = 2;
-                $stockTransferItemModel->updated_by_id = $updateById;
-
-
-                $stockTransferListModel = $stockTransferItemModel->stockTransferList;
-                $stockTransferListModel->status = 2;
-                $stockTransferListModel->updated_by_id = $updateById;
-                $stockTransferListModel->save();
-                $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
+            // $scannedItemsCount = count($scannedItems) + count($existingTransferredItems);
+            $stockSelectedItems = json_decode($stockTransferItemModel->selected_items, true);
+            foreach ($scannedItems as $items) {
+                foreach ($stockSelectedItems as &$selectedItems) {
+                    if ($items['bid'] == $selectedItems['bid'] && $items['sticker_no'] == $selectedItems['sticker_no']) {
+                        $selectedItems['status'] = 'transferred';
+                    }
+                    unset($selectedItems);
+                }
             }
-
+            $stockTransferItemModel->selected_items = json_encode($stockSelectedItems);
             $stockTransferItemModel->transferred_items = json_encode($mergedTransferredItems);
             $stockTransferItemModel->save();
+
+
             $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
+    }
+
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
+    {
+        $inArrayFlag = count($inclusionArray) > 0 ?
+            in_array($producedItems[$itemKey]['status'], $inclusionArray) :
+            !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
     public function onQueueSubLocation($createdById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $referenceNumber)
@@ -274,4 +363,35 @@ class StockRequestForTransferController extends Controller
         }
     }
 
+    public function onGetCurrent($sub_location_id, $layer_level)
+    {
+        try {
+            $stockRequestForTransferModel = StockRequestForTransferModel::where([
+                'sub_location_id' => $sub_location_id,
+                'layer_level' => $layer_level,
+            ])->orderBy('id', 'DESC')->first();
+            $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
+            if ($stockRequestForTransferModel) {
+                $stockRequestItems = json_decode($stockRequestForTransferModel->scanned_items, true) ?? [];
+                $restructuredArray = [];
+                foreach ($stockRequestItems as $item) {
+                    $productionBatch = ProductionBatchModel::find($item['bid']);
+                    $productionItemDetails = $productionBatch->productionItems;
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+
+                    $item['item_code'] = $productionBatch->item_code;
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
+                    $restructuredArray[$batchCode] = $item;
+                }
+                $subLocationDetails['reference_number'] = $stockRequestForTransferModel->stockTransferItem->stockTransferList->reference_number;
+                $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->item_code;
+                $subLocationDetails['scanned_items'] = $restructuredArray;
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+
+        }
+    }
 }

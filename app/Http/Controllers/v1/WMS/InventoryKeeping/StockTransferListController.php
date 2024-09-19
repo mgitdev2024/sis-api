@@ -10,7 +10,7 @@ use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
-use App\Traits\Credentials\CredentialsTrait;
+use App\Traits\Admin\CredentialsTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
@@ -138,7 +138,7 @@ class StockTransferListController extends Controller
                     return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_success'));
 
                 default:
-                    return $this->dataResponse('success', 200, 'Stock Transfer List ' . __('msg.update_failed'));
+                    return $this->dataResponse('error', 200, 'Stock Transfer List ' . __('msg.update_failed'));
             }
 
 
@@ -151,7 +151,15 @@ class StockTransferListController extends Controller
     public function onGetStockRequestList($statusId)
     {
         try {
-            $stockTransferListModel = StockTransferListModel::where('status', $statusId)->orderBy('created_at', 'DESC')->get();
+
+            $stockTransferListModel = StockTransferListModel::query();
+
+            if ($statusId == 'pending') {
+                $stockTransferListModel->whereIn('status', [1, 2])->orderBy('created_at', 'DESC');
+            } else {
+                $stockTransferListModel->where('status', $statusId)->orderBy('created_at', 'DESC');
+            }
+            $stockTransferListModel = $stockTransferListModel->get();
             foreach ($stockTransferListModel as $item) {
                 $item['formatted_date'] = date('Y-m-d', strtotime($item['created_at']));
                 $item['zone'] = $item->stockTransferItems[0]->zone->short_name;

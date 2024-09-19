@@ -302,7 +302,7 @@ class ProductionOTAController extends Controller
                 'production_order_id' => $productionOrder->id,
                 'item_code' => $itemCode,
             ])->first();
-            $productionOtaId = $productionOta->id;
+            $productionOtaId = $productionOta->id ?? null;
 
             if (!$productionOta) {
                 $otaRequest = new Request([

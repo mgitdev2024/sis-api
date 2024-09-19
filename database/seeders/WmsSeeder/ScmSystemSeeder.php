@@ -2,9 +2,8 @@
 
 namespace Database\Seeders\WmsSeeder;
 
-use App\Models\Access\ScmSystemModel;
+use App\Models\Admin\System\ScmSystemModel;
 use Illuminate\Database\Seeder;
-use App\Models\CredentialModel;
 
 class ScmSystemSeeder extends Seeder
 {

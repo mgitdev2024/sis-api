@@ -25,7 +25,8 @@ class StockTransferItemModel extends Model
         'zone_id',
         'sub_location_id',
         'layer',
-        'origin_location'
+        'origin_location',
+        'temporary_storage_id'
     ];
 
     public function stockTransferList()

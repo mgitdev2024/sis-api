@@ -125,8 +125,6 @@ class ProductionOrderController extends Controller
             $this->createProductionLog(ProductionOrderModel::class, $productionOrder->id, $productionOrder->getAttributes(), $createdById, 0);
             $itemMasterDataCounter = 0;
             foreach ($bulkUploadData as $value) {
-                $productionOTA = new ProductionOTAModel();
-                $productionOTB = new ProductionOTBModel();
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
@@ -141,6 +139,8 @@ class ProductionOrderController extends Controller
                 $bufferLevel = $value['buffer_quantity'] ? round((intval($value['buffer_quantity']) / $requestedQuantity) * 100, 2) : 0;
                 $bufferQuantity = intval($value['buffer_quantity']);
                 if (strcasecmp($itemCategory, 'Breads') === 0) {
+                    $productionOTB = new ProductionOTBModel();
+
                     $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->where('delivery_type', $value['delivery_type'])
@@ -172,6 +172,8 @@ class ProductionOrderController extends Controller
 
                     $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
                 } else {
+                    $productionOTA = new ProductionOTAModel();
+
                     $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
                         ->where('item_code', $value['item_code'])
                         ->exists();
@@ -314,8 +316,97 @@ class ProductionOrderController extends Controller
             }
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 200, ProductionOrderModel::class . ' ' . __('msg.update_failed'));
+        }
+    }
+
+    public function onAdditionalOtaOtb(Request $request, $production_order_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'item_code' => 'required',
+            'quantity' => 'required',
+            'buffer_quantity' => 'nullable|default:0',
+            'delivery_type' => 'nullable|in:1D,2D,3D,0',
+        ]);
+        try {
+            $createdById = $fields['created_by_id'];
+            $requestedQuantity = intval($fields['quantity']);
+            $bufferQuantity = intval($fields['buffer_quantity']) ?? 0;
+            $bufferLevel = $bufferQuantity ? round((intval($bufferQuantity) / $requestedQuantity) * 100, 2) : 0;
+            $productionOrder = ProductionOrderModel::find($production_order_id);
+            $itemCode = $fields['item_code'];
+            $deliveryType = $fields['delivery_type'] ?? null;
+            $itemMasterData = ItemMasterdataModel::where('item_code', $itemCode)
+                ->first();
+            if (!$itemMasterData) {
+                throw new Exception("Item Masterdata not found");
+            }
+            $productionDate = $productionOrder->production_date;
+            if (strcasecmp($itemMasterData->itemCategory->name, 'Breads') === 0) {
+                $productionOTB = new ProductionOTBModel();
+                $existingOTB = ProductionOTBModel::where('production_order_id', $productionOrder->id)
+                    ->where('item_code', $itemCode)
+                    ->where('delivery_type', $deliveryType) // 1D, 2D, 3D, 0
+                    ->exists();
+                if ($existingOTB) {
+                    throw new Exception("This entry already exists: $itemCode $deliveryType");
+                }
+
+                $productionOTB->production_order_id = $productionOrder->id;
+                $productionOTB->delivery_type = $deliveryType;
+                $productionOTB->item_code = $itemCode;
+                $productionOTB->requested_quantity = $requestedQuantity;
+                $productionOTB->buffer_level = $bufferLevel;
+                $productionOTB->buffer_quantity = $bufferQuantity;
+                $productionOTB->plotted_quantity = $requestedQuantity + $bufferQuantity;
+
+                if ($itemMasterData->chilled_shelf_life) {
+                    $productionOTB->expected_chilled_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->chilled_shelf_life} days"));
+                }
+                if ($itemMasterData->frozen_shelf_life) {
+                    $productionOTB->expected_frozen_exp_date = date('Y-m-d', strtotime("{$productionDate}  + {$itemMasterData->frozen_shelf_life} days"));
+                }
+                if ($itemMasterData->ambient_shelf_life) {
+                    $productionOTB->expected_ambient_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->ambient_shelf_life} days"));
+                }
+                $productionOTB->created_by_id = $createdById;
+                $productionOTB->save();
+
+                $this->createProductionLog(ProductionOTBModel::class, $productionOTB->id, $productionOTB->getAttributes(), $createdById, 0);
+            } else {
+                $productionOTA = new ProductionOTAModel();
+
+                $existingOTA = ProductionOTAModel::where('production_order_id', $productionOrder->id)
+                    ->where('item_code', $itemCode)
+                    ->exists();
+
+                if ($existingOTA) {
+                    throw new Exception("This entry already exists: $itemCode $deliveryType");
+                }
+                $productionOTA->production_order_id = $productionOrder->id;
+                $productionOTA->item_code = $itemCode;
+                $productionOTA->requested_quantity = $requestedQuantity;
+                $productionOTA->buffer_level = $bufferLevel;
+                $productionOTA->buffer_quantity = $bufferQuantity;
+                $productionOTA->plotted_quantity = $requestedQuantity + $bufferQuantity;
+                if ($itemMasterData->chilled_shelf_life) {
+                    $productionOTA->expected_chilled_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->chilled_shelf_life} days"));
+                }
+                if ($itemMasterData->frozen_shelf_life) {
+                    $productionOTA->expected_frozen_exp_date = date('Y-m-d', strtotime("{$productionDate}  + {$itemMasterData->frozen_shelf_life} days"));
+                }
+                if ($itemMasterData->ambient_shelf_life) {
+                    $productionOTA->expected_ambient_exp_date = date("Y-m-d", strtotime("{$productionDate} + {$itemMasterData->ambient_shelf_life} days"));
+                }
+
+                $productionOTA->created_by_id = $createdById;
+                $productionOTA->save();
+                $this->createProductionLog(ProductionOTAModel::class, $productionOTA->id, $productionOTA->getAttributes(), $createdById, 0);
+            }
+            return $this->dataResponse('success', 200, __('msg.create_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 }
