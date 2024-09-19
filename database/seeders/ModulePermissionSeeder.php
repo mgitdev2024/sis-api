@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Access\ModulePermissionModel;
-use App\Models\Access\ScmSystemModel;
+use App\Models\Admin\System\ScmSystemModel;
 use Illuminate\Database\Seeder;
 use App\Models\CredentialModel;
 
