@@ -153,7 +153,7 @@ class StockRequestForTransferController extends Controller
             $stockRequestForTransferModel = StockRequestForTransferModel::where([
                 'stock_transfer_item_id' => $stock_transfer_item_id,
                 'status' => 1
-            ])->first();
+            ])->orderBy('id', 'DESC')->first();
             if ($stockRequestForTransferModel && $stockRequestForTransferModel->sub_location_id) {
                 DB::beginTransaction();
 
@@ -195,7 +195,7 @@ class StockRequestForTransferController extends Controller
 
             // Checking of Scanned For Transfer items, will be removed when it is also scanned for substandard
             $matchedScannedItemSubstandard = [];
-            $stockRequestTransferModel = StockRequestForTransferModel::where('stock_transfer_item_id', $stock_transfer_item_id)->first();
+            $stockRequestTransferModel = StockRequestForTransferModel::where('stock_transfer_item_id', $stock_transfer_item_id)->orderBy('id', 'DESC')->first();
             if ($stockRequestTransferModel) {
 
                 $transferItems = json_decode($stockRequestTransferModel->scanned_items, true);
