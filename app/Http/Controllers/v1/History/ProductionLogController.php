@@ -59,7 +59,7 @@ class ProductionLogController extends Controller
                 }
             })->get();
 
-        $archivedLogsQuery = DB::connection(env('LOG_DB_CONNECTION'))->table(env('LOG_DB_DATABASE') . 'archived_production_logs')
+        $archivedLogsQuery = DB::connection(env('LOG_DB_CONNECTION'))->table(env('LOG_DB_DATABASE') . '.archived_production_logs')
             ->select('id', 'entity_id', 'entity_model', 'item_key', 'data', 'action', 'created_at')
             ->when(isset($fields['entity_id']), function ($query) use ($fields) {
                 return $query->where('entity_id', $fields['entity_id'])
