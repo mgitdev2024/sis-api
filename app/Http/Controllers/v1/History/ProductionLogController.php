@@ -42,7 +42,6 @@ class ProductionLogController extends Controller
             'item_key' => 'nullable',
         ]);
 
-        // Query for mos_production_logs
         $productionLogsQuery = DB::table('mos_production_logs')
             ->select('id', 'entity_id', 'entity_model', 'item_key', 'data', 'action', 'created_at')
             ->when(isset($fields['entity_id']), function ($query) use ($fields) {
@@ -58,10 +57,9 @@ class ProductionLogController extends Controller
                 } else {
                     return $query->whereNotNull('item_key');
                 }
-            });
+            })->get();
 
-        // Query for archived_production_logs (assuming same structure as mos_production_logs)
-        $archivedLogsQuery = DB::connection('log_mysql')->table('log_database.archived_production_logs')
+        $archivedLogsQuery = DB::connection(env('LOG_DB_CONNECTION'))->table(env('LOG_DB_DATABASE') . 'archived_production_logs')
             ->select('id', 'entity_id', 'entity_model', 'item_key', 'data', 'action', 'created_at')
             ->when(isset($fields['entity_id']), function ($query) use ($fields) {
                 return $query->where('entity_id', $fields['entity_id'])
@@ -76,12 +74,9 @@ class ProductionLogController extends Controller
                 } else {
                     return $query->whereNotNull('item_key');
                 }
-            });
+            })->get();
 
-        // Use UNION to combine both queries
-        $combinedLogs = $productionLogsQuery
-            ->union($archivedLogsQuery)
-            ->get();
+        $combinedLogs = $productionLogsQuery->merge($archivedLogsQuery);
 
         return $this->dataResponse('success', 201, 'Combined Logs', $combinedLogs);
     }
