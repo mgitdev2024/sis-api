@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\History\ProductionLogModel;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
-
+use DB;
 class ProductionLogController extends Controller
 {
     use MosCrudOperationsTrait;
@@ -42,22 +42,49 @@ class ProductionLogController extends Controller
             'item_key' => 'nullable',
         ]);
 
-        $query = \DB::table('mos_production_logs');
+        // Query for mos_production_logs
+        $productionLogsQuery = DB::table('mos_production_logs')
+            ->select('id', 'entity_id', 'entity_model', 'item_key', 'data', 'action', 'created_at')
+            ->when(isset($fields['entity_id']), function ($query) use ($fields) {
+                return $query->where('entity_id', $fields['entity_id'])
+                    ->where('entity_model', $fields['entity_model']);
+            })
+            ->when(isset($fields['item_key']), function ($query) use ($fields) {
+                return $query->where('item_key', $fields['item_key']);
+            })
+            ->when(isset($fields['is_item_key']), function ($query) use ($fields) {
+                if (!$fields['is_item_key']) {
+                    return $query->whereNull('item_key');
+                } else {
+                    return $query->whereNotNull('item_key');
+                }
+            });
 
-        if (isset($fields['entity_id'])) {
-            $query->where('entity_id', $fields['entity_id'])
-                ->where('entity_model', $fields['entity_model']);
-        }
-        if (isset($fields['item_key'])) {
-            $query->where('item_key', $fields['item_key']);
-        }
-        if (isset($fields['is_item_key']) && !$fields['is_item_key']) {
-            $query->whereNull('item_key');
-        } else if (isset($fields['is_item_key']) && $fields['is_item_key']) {
-            $query->whereNotNull('item_key');
-        }
+        // Query for archived_production_logs (assuming same structure as mos_production_logs)
+        $archivedLogsQuery = DB::connection('log_mysql')->table('log_database.archived_production_logs')
+            ->select('id', 'entity_id', 'entity_model', 'item_key', 'data', 'action', 'created_at')
+            ->when(isset($fields['entity_id']), function ($query) use ($fields) {
+                return $query->where('entity_id', $fields['entity_id'])
+                    ->where('entity_model', $fields['entity_model']);
+            })
+            ->when(isset($fields['item_key']), function ($query) use ($fields) {
+                return $query->where('item_key', $fields['item_key']);
+            })
+            ->when(isset($fields['is_item_key']), function ($query) use ($fields) {
+                if (!$fields['is_item_key']) {
+                    return $query->whereNull('item_key');
+                } else {
+                    return $query->whereNotNull('item_key');
+                }
+            });
 
-        $results = $query->get();
-        return $this->dataResponse('success', 201, 'Production Historical Log ' . __('msg.create_success'), $results);
+        // Use UNION to combine both queries
+        $combinedLogs = $productionLogsQuery
+            ->union($archivedLogsQuery)
+            ->get();
+
+        return $this->dataResponse('success', 201, 'Combined Logs', $combinedLogs);
     }
+
+
 }

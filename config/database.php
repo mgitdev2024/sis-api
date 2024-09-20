@@ -63,6 +63,21 @@ return [
             ]) : [],
         ],
 
+        // New database connection for logs
+        'log_mysql' => [
+            'driver' => 'mysql',
+            'host' => env('LOG_DB_HOST', '127.0.0.1'),
+            'port' => env('LOG_DB_PORT', '3306'),
+            'database' => env('LOG_DB_DATABASE', 'log_database'),
+            'username' => env('LOG_DB_USERNAME', 'log_user'),
+            'password' => env('LOG_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),
@@ -125,7 +140,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [
