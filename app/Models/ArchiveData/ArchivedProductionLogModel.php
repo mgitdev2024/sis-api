@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Models\History;
+namespace App\Models\ArchiveData;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductionLogModel extends Model
+class ArchivedProductionLogModel extends Model
 {
     use HasFactory;
-    protected $table = 'mos_production_logs';
+    protected $connection = 'log_mysql';
+
+    protected $table = 'archived_production_logs';
+
     protected $fillable = [
         'entity_model',
         'entity_id',

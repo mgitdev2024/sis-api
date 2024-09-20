@@ -133,8 +133,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], 
 
 });
 
-
-
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], function () {
     #region Item Category
     Route::post('v1/item/category/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onCreate']);
