@@ -62,11 +62,11 @@ class ArchiveProductionLogCommand extends Command
                 })->toArray();
                 ArchivedProductionLogModel::insert($logsToArchive);
                 ProductionLogModel::whereIn('id', $productionLogs->pluck('id'))->delete();
-                Log::info('Production Logs archived successfully');
+                Log::info('CRON Archive: Production Logs archived successfully');
 
                 DB::commit();
             } else {
-                Log::info('No Production Logs found');
+                Log::info('CRON Archive: No Production Logs found');
                 DB::rollback();
 
             }
