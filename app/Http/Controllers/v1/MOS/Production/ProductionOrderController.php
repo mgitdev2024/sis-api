@@ -128,7 +128,7 @@ class ProductionOrderController extends Controller
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
-                    continue;
+                    return $this->dataResponse('error', 200, "No Item Masterdata found. Please check the item code: " . $value['item_code'] . ".");
                 }
 
                 $itemMasterDataCounter++;

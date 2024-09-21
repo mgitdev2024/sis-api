@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->longText('data');
             $table->tinyInteger('action'); // 0 = Create, 1 = Update, 2 = Delete
             SchemaHelper::addCommonColumns($table);
+            $table->dateTime('archived_at')->useCurrent();
         });
     }
 
