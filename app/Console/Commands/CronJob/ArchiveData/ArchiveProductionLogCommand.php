@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use DB;
+use Carbon\Carbon;
 class ArchiveProductionLogCommand extends Command
 {
     /**
@@ -43,8 +44,7 @@ class ArchiveProductionLogCommand extends Command
     {
         DB::beginTransaction();
         try {
-            $productionLogs = ProductionLogModel::all();
-
+            $productionLogs = ProductionLogModel::whereDate('created_at', '<', Carbon::now())->get();
             if (count($productionLogs) > 0) {
                 $logsToArchive = $productionLogs->map(function ($log) {
                     return [
@@ -68,7 +68,6 @@ class ArchiveProductionLogCommand extends Command
             } else {
                 Log::info('CRON Archive: No Production Logs found');
                 DB::rollback();
-
             }
         } catch (Exception $exception) {
             DB::rollback();
