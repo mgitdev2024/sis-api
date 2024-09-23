@@ -223,7 +223,7 @@ class ProductionOrderController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, $exception->getMessage());
+            return $this->dataResponse('error', 400, 'Bulk upload failed: Check the file and try again.');
         }
 
     }
