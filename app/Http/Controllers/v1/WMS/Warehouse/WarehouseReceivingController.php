@@ -307,6 +307,8 @@ class WarehouseReceivingController extends Controller
                         $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
                         $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
                         $warehouseReceiving->save();
+                        $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
+
                     }
                 }
             }
@@ -337,12 +339,12 @@ class WarehouseReceivingController extends Controller
             $subLocationId = null;
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
-                $itemCode = $productionBatch->productionOta->itemMasterdata->item_code ?? $productionBatch->productionOtb->itemMasterdata->item_code;
+                $itemCode = $productionBatch->item_code;
                 if (!in_array($itemCode, $itemCodeArr)) {
                     $itemCodeArr[] = $itemCode;
                 }
                 $productionItem = json_decode($productionBatch->productionItems->produced_items, true);
-                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'];
+                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'] ?? null;
             }
             $warehouseReceivingArr = [];
             foreach ($itemCodeArr as $itemCode) {
@@ -383,13 +385,14 @@ class WarehouseReceivingController extends Controller
                     'warehouse_receiving_reference_number' => $warehouseReceiving['reference_number'],
                     'received_quantity' => $warehouseReceiving['received_quantity'],
                     'production_items' => json_encode($mergedProducedItemsContainer),
-                    'item_code' => $warehouseReceiving['item_code'],
+                    'item_id' => ItemMasterdataModel::where('item_code', $warehouseReceiving['item_code'])->first()->id,
                     'scanned_items' => json_encode($scannedItems),
                     'temporary_storage_id' => $subLocationId
                 ]);
                 $warehousePutAwayController->onCreate($warehousePutAwayRequest);
             }
         } catch (Exception $exception) {
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
 

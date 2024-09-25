@@ -332,6 +332,7 @@ class ProductionItemController extends Controller
                 $stockTransferRefNo = $item['stock_transfer']['reference_number'] ?? null;
 
                 $data = [
+                    'item_id' => $itemMasterdata->id,
                     'item_code' => $itemCode,
                     'item_status' => $itemStatus,
                     'sticker_status' => $stickerStatus,

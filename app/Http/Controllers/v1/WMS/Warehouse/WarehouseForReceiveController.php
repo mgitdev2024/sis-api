@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -36,7 +37,15 @@ class WarehouseForReceiveController extends Controller
             ->first();
 
         if ($warehouseForReceive) {
-            return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseForReceive);
+            $data = $warehouseForReceive;
+            $productionItems = json_decode($data->production_items, true);
+            foreach ($productionItems as &$items) {
+                $items['item_code'] = ItemMasterdataModel::where('id', $items['item_id'])->first()->item_code;
+                unset($items);
+            }
+            $data->production_items = json_encode($productionItems);
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         }
         return $this->dataResponse('success', 200, __('msg.record_not_found'), $warehouseForReceive);
     }

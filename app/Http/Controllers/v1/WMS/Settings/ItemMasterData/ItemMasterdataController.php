@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\v1\WMS\Settings\ItemMasterData;
 
 use App\Http\Controllers\Controller;
+use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOTAModel;
+use App\Models\MOS\Production\ProductionOTBModel;
+use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\QualityAssurance\SubStandardItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
@@ -15,6 +21,10 @@ use App\Models\WMS\Settings\StorageMasterData\FacilityPlantModel;
 use App\Models\WMS\Settings\StorageMasterData\StorageTypeModel;
 use App\Models\WMS\Settings\StorageMasterData\WarehouseModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
+use App\Models\WMS\Storage\StockInventoryModel;
+use App\Models\WMS\Storage\StockLogModel;
+use App\Models\WMS\Warehouse\WarehousePutAwayModel;
+use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use Illuminate\Http\Request;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use DB;
@@ -83,7 +93,7 @@ class ItemMasterdataController extends Controller
             $record = new ItemMasterdataModel();
             $record = ItemMasterdataModel::find($id);
             if ($record) {
-                $this->onTablesUpdate($fields['item_code'], $record->item_code);
+                $this->onTablesUpdate($fields['item_code'], $record->item_code, $fields['updated_by_id']);
 
                 $record->update($fields);
                 if ($request->hasFile('attachment')) {
@@ -101,23 +111,34 @@ class ItemMasterdataController extends Controller
         }
     }
 
-    public function onTablesUpdate($newItemCode, $oldItemCode)
+    public function onTablesUpdate($newItemCode, $oldItemCode, $updatedById)
     {
         $tables = [
-            'mos_production_otas',
-            'mos_production_otbs',
-            'mos_production_batches',
-            'wms_warehouse_receiving',
-            'wms_warehouse_put_away',
-            'wms_warehouse_for_put_away',
-            'wms_stock_inventories',
-            'wms_stock_logs',
-            'wms_stock_transfer_items',
-            'qa_sub_standard_items',
-            'qa_item_dispositions',
+            'mos_production_otas' => ProductionOTAModel::class,
+            'mos_production_otbs' => ProductionOTBModel::class,
+            'mos_production_batches' => ProductionBatchModel::class,
+            // 'wms_warehouse_receiving' =>WarehouseReceivingModel::class,
+            // 'wms_warehouse_put_away' =>WarehousePutAwayModel::class,
+            // 'wms_warehouse_for_put_away' => null,
+            // 'wms_stock_inventories' =>StockInventoryModel::class,
+            // 'wms_stock_logs' =>StockLogModel::class,
+            // 'wms_stock_transfer_items' =>StockTransferItemModel::class,
+            'qa_sub_standard_items' => SubStandardItemModel::class,
+            'qa_item_dispositions' => ItemDispositionModel::class,
         ];
-        foreach ($tables as $tableName) {
-            DB::table($tableName)->where('item_code', $oldItemCode)->update(['item_code' => $newItemCode]);
+        foreach ($tables as $tableName => $modelClass) {
+            $record = DB::table($tableName)->where('item_code', $oldItemCode)->get();
+
+            if (count($record) > 0) {
+                foreach ($record as $data) {
+                    $affectedData = $modelClass::find($data->id);
+                    $affectedData->item_code = $newItemCode;
+                    $affectedData->updated_by_id = $updatedById;
+                    $affectedData->save();
+
+                    $this->createProductionLog($modelClass, $affectedData->id, $affectedData->getAttributes(), $updatedById, 1);
+                }
+            }
         }
     }
     public function onGetPaginatedList(Request $request)
