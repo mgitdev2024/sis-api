@@ -381,6 +381,7 @@ class ProductionItemController extends Controller
             $itemDetails = [];
             $itemDetails['item'] = $value;
             $itemDetails['item']['item_code'] = $productionBatch->item_code;
+            $itemDetails['item']['item_id'] = $productionOrderToMake->itemMasterdata->id;
             $itemDetails['item_details'] = [
                 'batch_number' => $productionBatch->batch_number,
                 'item_description' => $productionOrderToMake->itemMasterdata->description,
