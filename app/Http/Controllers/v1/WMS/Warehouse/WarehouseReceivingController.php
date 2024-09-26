@@ -109,13 +109,15 @@ class WarehouseReceivingController extends Controller
                         $producedItemsQuantity += $producedItemValue['q'];
                     }
                 }
+                $itemMasterdataModel = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
                     'item_code' => $itemCode,
-                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label,
+                    'item_id' => $itemMasterdataModel->id,
+                    'sku_type' => $itemMasterdataModel->item_category_label,
                     'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
