@@ -17,11 +17,11 @@ use Exception;
 class StockInventoryController extends Controller
 {
     use WmsCrudOperationsTrait;
-    public function onGetByItemCode($item_code)
+    public function onGetByItemId($item_id)
     {
         try {
             $stockInventoryModel = StockInventoryModel::where([
-                'item_code' => $item_code
+                'item_id' => $item_id
             ])->first();
 
             $itemMasterdata = $stockInventoryModel->itemMasterdata;
@@ -55,15 +55,16 @@ class StockInventoryController extends Controller
 
             $dataToBeOverwritten = [];
             foreach ($bulkUploadData as $data) {
-                $itemCodeExist = StockInventoryModel::where('item_code', $data['item_code'])->exists();
+                $itemMasterdataModel = ItemMasterdataModel::where('item_code', $data['item_code'])->first();
+                $itemCodeExist = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->exists();
                 if ($itemCodeExist) {
                     if ($fields['is_overwrite']) {
                         if ($fields['is_add_quantity']) {
-                            $stockInventory = StockInventoryModel::where('item_code', $data['item_code'])->first();
+                            $stockInventory = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->first();
                             $stockInventory->stock_count = ($stockInventory->stock_count + $data['stock_count']);
                             $stockInventory->save();
                         } else {
-                            $stockInventory = StockInventoryModel::where('item_code', $data['item_code'])->first();
+                            $stockInventory = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->first();
                             $stockInventory->stock_count = $data['stock_count'];
                             $stockInventory->save();
                         }
@@ -296,6 +297,7 @@ class StockInventoryController extends Controller
                     foreach ($productionItems as $productionItem) {
                         if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
                             $itemCode = $productionBatch->item_code;
+                            $itemId = $productionBatch->productionOta->itemMasterdata->id ?? $productionBatch->productionOtb->itemMasterdata->id;
                             $subLocationId = $productionItem['sub_location']['sub_location_id'];
                             $layerLevel = $productionItem['sub_location']['layer_level'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
@@ -312,6 +314,7 @@ class StockInventoryController extends Controller
                                     $zoneItemList[$zoneItemKey] = [
                                         'zone_item_key' => $zoneItemKey,
                                         'item_code' => $itemCode,
+                                        'item_id' => $itemId,
                                         'batch_no' => $productionBatch->batch_number,
                                         'sub_location' => $subLocationModel->code,
                                         'layer_level' => "L${layerLevel}",

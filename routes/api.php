@@ -413,7 +413,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Item Stocks Inventory
-    Route::get('v1/item/stock/inventory/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemCode']);
+    Route::get('v1/item/stock/inventory/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemId']);
     Route::post('v1/item/stock/inventory/bulk', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onBulk']);
     Route::post('v1/item/stock/inventory/update/{id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onUpdate']);
     Route::get('v1/item/stock/inventory/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAll']);
