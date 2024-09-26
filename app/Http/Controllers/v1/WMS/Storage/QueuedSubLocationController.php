@@ -21,14 +21,14 @@ class QueuedSubLocationController extends Controller
     {
         $fields = $request->validate([
             'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
-            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'item_id' => 'required|exists:wms_item_masterdata,id',
             'created_by_id' => 'required',
             'storage_full_scanned_items' => 'nullable|json'
         ]);
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
                 'warehouse_put_away_id' => $fields['warehouse_put_away_id'],
-                'item_code' => $fields['item_code'],
+                'item_id' => $fields['item_id'],
                 'status' => 1
             ])->first();
 

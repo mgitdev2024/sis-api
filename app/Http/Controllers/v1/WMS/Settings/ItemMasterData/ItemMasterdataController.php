@@ -117,7 +117,7 @@ class ItemMasterdataController extends Controller
             'mos_production_otas' => ProductionOTAModel::class,
             'mos_production_otbs' => ProductionOTBModel::class,
             'mos_production_batches' => ProductionBatchModel::class,
-            // 'wms_warehouse_receiving' =>WarehouseReceivingModel::class,
+            'wms_warehouse_receiving' => WarehouseReceivingModel::class,
             // 'wms_warehouse_put_away' =>WarehousePutAwayModel::class,
             // 'wms_warehouse_for_put_away' => null,
             // 'wms_stock_inventories' =>StockInventoryModel::class,

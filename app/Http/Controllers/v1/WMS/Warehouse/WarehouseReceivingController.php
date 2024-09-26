@@ -154,6 +154,7 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
@@ -198,6 +199,7 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }

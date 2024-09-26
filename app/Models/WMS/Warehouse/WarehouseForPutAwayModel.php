@@ -16,7 +16,7 @@ class WarehouseForPutAwayModel extends Model
     protected $fillable = [
         'warehouse_receiving_reference_number',
         'warehouse_put_away_id',
-        'item_code',
+        'item_id',
         'production_items',
         'transfer_items',
         'sub_location_id',
@@ -42,6 +42,6 @@ class WarehouseForPutAwayModel extends Model
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id', 'id');
     }
 }

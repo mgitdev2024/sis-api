@@ -15,6 +15,11 @@ return new class extends Migration {
             $table->unsignedBigInteger('item_id');
         });
 
+        Schema::table('wms_warehouse_for_put_away', function (Blueprint $table) {
+            $table->dropColumn('item_code');
+            $table->unsignedBigInteger('item_id');
+        });
+
         Schema::table('wms_stock_inventories', function (Blueprint $table) {
             $table->dropColumn('item_code');
             $table->unsignedBigInteger('item_id');

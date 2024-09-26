@@ -16,7 +16,7 @@ class StockTransferItemModel extends Model
 
     protected $fillable = [
         'stock_transfer_list_id',
-        'item_code',
+        'item_id',
         'selected_items',
         'initial_stock',
         'transfer_quantity',
@@ -46,7 +46,7 @@ class StockTransferItemModel extends Model
 
     public function ItemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id', 'id');
     }
 
     public static function onGenerateOriginLocation($subLocationId, $layerLevel)
