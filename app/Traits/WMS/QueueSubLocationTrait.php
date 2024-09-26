@@ -95,7 +95,7 @@ trait QueueSubLocationTrait
     public function onCreateStockLogs($itemId, $action, $quantity, $subLocationId, $layerLevel, $storageRemainingSpace, $createdById, $referenceNumber)
     {
         try {
-            $stockInventory = StockInventoryModel::where('item_code', $itemId)->first();
+            $stockInventory = StockInventoryModel::where('item_id', $itemId)->first();
             $currentStock = 0;
             if ($stockInventory) {
                 $currentStock = $stockInventory->stock_count;
