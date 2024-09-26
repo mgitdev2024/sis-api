@@ -144,11 +144,11 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onGetCurrent($sub_location_id, $item_code)
+    public function onGetCurrent($sub_location_id, $item_id)
     {
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
-                'item_code' => $item_code,
+                'item_id' => $item_id,
                 'sub_location_id' => $sub_location_id,
                 'status' => 1
             ])->first();
@@ -189,6 +189,7 @@ class QueuedSubLocationController extends Controller
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
+                $itemId = $productionOrderToMake->itemMasterdata->id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
                 $warehouse = $producedItem['warehouse'];
@@ -199,6 +200,7 @@ class QueuedSubLocationController extends Controller
                     $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
+                        'item_id' => $itemId,
                         'sticker_no' => $stickerNumber,
                         'q' => $producedItem['q']
                     ];
