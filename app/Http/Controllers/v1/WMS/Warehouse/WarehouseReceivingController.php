@@ -30,7 +30,9 @@ class WarehouseReceivingController extends Controller
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
-                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count')
+                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count')
+
             )
                 ->where('status', $status)
                 ->groupBy([
@@ -51,6 +53,8 @@ class WarehouseReceivingController extends Controller
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
+                    'discrepancy_quantity' => $value->discrepancy_data_count,
+
                 ];
                 ++$counter;
             }
@@ -156,7 +160,6 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
@@ -227,13 +230,14 @@ class WarehouseReceivingController extends Controller
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
                 $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
+                $referenceItemId = ItemMasterdataModel::where('item_code', $warehouseReceivingCurrentItemCode)->first()->id;
                 $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
                 // $producedItems = json_decode($productionItemModel->produced_items, true);
 
                 $discrepancy = [];
                 foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
-                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
+                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $referenceItemId);
                     if (!$flag) {
                         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
                         $discrepancy[] = $innerWarehouseReceivingValue;
@@ -243,7 +247,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
-                $warehouseReceivingValue->discrepancy_data = json_encode($discrepancy);
+                $warehouseReceivingValue->discrepancy_data = count($discrepancy) > 0 ? json_encode($discrepancy) : null;
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
@@ -254,11 +258,11 @@ class WarehouseReceivingController extends Controller
         }
     }
 
-    public function onCheckItemReceive($receiveItemsArr, $key, $value, $ReferenceItemCode)
+    public function onCheckItemReceive($receiveItemsArr, $key, $value, $referenceItemId)
     {
         try {
             foreach ($receiveItemsArr as $receiveValue) {
-                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_code'] == $ReferenceItemCode)) {
+                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_id'] == $referenceItemId)) {
                     return true;
                 }
             }

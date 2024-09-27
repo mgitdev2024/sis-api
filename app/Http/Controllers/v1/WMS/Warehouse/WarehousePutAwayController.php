@@ -44,7 +44,7 @@ class WarehousePutAwayController extends Controller
             'production_items' => 'required|json',
             'received_quantity' => 'required|integer',
             'scanned_items' => 'required|json',
-            'temporary_storage_id' => 'required'
+            'temporary_storage_id' => 'nullable'
         ]);
         try {
             DB::beginTransaction();
@@ -195,7 +195,7 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->production_items = json_encode($productionItems);
             $warehousePutAway->received_quantity = json_encode($remainingQuantity);
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
-            $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'];
+            $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'] ?? null;
             $warehousePutAway->save();
             $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $fields['created_by_id'], 0);
 
@@ -307,6 +307,7 @@ class WarehousePutAwayController extends Controller
                 $productionItem = $productionBatch->productionItems;
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
+                $itemId = $productionOrderToMake->itemMasterdata->id;
                 $inclusionArray = ['2'];
                 $itemMasterdata = $productionOrderToMake->itemMasterdata;
                 $primaryUom = $itemMasterdata->uom->long_name ?? null;
@@ -314,7 +315,7 @@ class WarehousePutAwayController extends Controller
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
                     $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
-                        ->where('item_code', $itemCode)
+                        ->where('item_id', $itemId)
                         ->first();
                     if ($warehousePutAway) {
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
@@ -365,7 +366,7 @@ class WarehousePutAwayController extends Controller
             $queueSubLocationRequest = new Request([
                 'created_by_id' => $createdById,
                 'warehouse_put_away_id' => $warehousePutAwayId,
-                'item_code' => $itemCode,
+                'item_id' => $itemId,
             ]);
             $queueSubLocationController->onCreate($queueSubLocationRequest);
             DB::commit();

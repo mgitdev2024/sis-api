@@ -108,10 +108,11 @@ class StockInventoryController extends Controller
         return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', $orderFields, 'Stock Inventory');
     }
 
-    public function onGetInStock($item_code)
+    public function onGetInStock($item_id)
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+            $productionBatchModel = ProductionBatchModel::where('item_code', $itemCode)
                 ->where('status', '!=', 3)
                 ->get();
 
@@ -139,10 +140,11 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetStockAllLocation($item_code)
+    public function onGetStockAllLocation($item_id)
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+            $productionBatchModel = ProductionBatchModel::where('item_code', $itemCode)
                 ->where('status', '!=', 3)
                 ->get();
 
@@ -224,7 +226,7 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetZoneDetails($zone_id, $item_code = null)
+    public function onGetZoneDetails($zone_id, $item_id = null)
     {
         try {
             $zoneModel = ZoneModel::find($zone_id);
@@ -248,6 +250,7 @@ class StockInventoryController extends Controller
                     'api' => "item/stock/inventory/zone/item/get/{$zone_id}",
                 ]
             ];
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code ?? null;
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -257,12 +260,12 @@ class StockInventoryController extends Controller
                             $subLocationId = $productionItem['sub_location']['sub_location_id'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
-                            $isItemCodeFilter = $item_code ? $productionBatch->item_code == $item_code : true;
+                            $isItemCodeFilter = $itemCode ? $productionBatch->item_code == $itemCode : false;
                             if ($zoneId == $zone_id) {
                                 if (!array_key_exists($productionBatch->item_code, $skuList)) {
                                     $skuList[$productionBatch->item_code] = [
                                         'title' => $productionBatch->item_code,
-                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$productionBatch->item_code}",
+                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$item_id}",
                                     ];
                                 }
                                 if ($isItemCodeFilter) {
@@ -280,12 +283,13 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetZoneItemList($zone_id, $item_code = null)
+    public function onGetZoneItemList($zone_id, $item_id = null)
     {
         try {
             $productionBatchModel = ProductionBatchModel::where('status', '!=', 3);
-            if ($item_code) {
-                $productionBatchModel->where('item_code', $item_code);
+            if ($item_id) {
+                $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+                $productionBatchModel->where('item_code', $itemCode);
             }
             $productionBatchModel = $productionBatchModel->get();
 
