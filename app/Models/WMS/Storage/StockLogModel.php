@@ -26,7 +26,7 @@ class StockLogModel extends Model
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_id', 'id');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 
     public function subLocation()

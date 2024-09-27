@@ -129,6 +129,7 @@ class QueuedSubLocationController extends Controller
             $warehousePutAwayModel->save();
             if ($encodedPutAwayItems != null) {
                 $warehouseForPutAway->production_items = $encodedPutAwayItems;
+                $warehouseForPutAway->transfer_items = null;
                 $warehouseForPutAway->save();
             } else {
                 // Warehouse Receive if already no more item to be received

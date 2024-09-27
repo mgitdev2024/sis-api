@@ -46,7 +46,7 @@ class StockTransferItemModel extends Model
 
     public function ItemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_id', 'id');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 
     public static function onGenerateOriginLocation($subLocationId, $layerLevel)

@@ -121,7 +121,7 @@ class ItemMasterdataModel extends Model
     }
     public function stockInventories()
     {
-        return $this->belongsTo(StockInventoryModel::class, 'item_id', 'id');
+        return $this->belongsTo(StockInventoryModel::class, 'id', 'item_id');
     }
     public function stockLogs()
     {
