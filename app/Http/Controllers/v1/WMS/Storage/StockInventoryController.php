@@ -269,6 +269,7 @@ class StockInventoryController extends Controller
                     'api' => "item/stock/inventory/zone/item/get/{$zone_id}",
                 ]
             ];
+
             $itemCode = ItemMasterdataModel::find($item_id)->item_code ?? null;
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
@@ -280,11 +281,13 @@ class StockInventoryController extends Controller
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
                             $isItemCodeFilter = $itemCode ? $productionBatch->item_code == $itemCode : false;
+                            $itemId = ItemMasterdataModel::where('item_code', $productionBatch->item_code)->first()->id;
+
                             if ($zoneId == $zone_id) {
                                 if (!array_key_exists($productionBatch->item_code, $skuList)) {
                                     $skuList[$productionBatch->item_code] = [
                                         'title' => $productionBatch->item_code,
-                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$item_id}",
+                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$itemId}",
                                     ];
                                 }
                                 if ($isItemCodeFilter) {
