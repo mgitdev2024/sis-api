@@ -224,9 +224,9 @@ class WarehouseReceivingController extends Controller
                 ->orderBy('id', 'DESC')
                 ->first();
             $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
-            if (count($receiveItemsArr) <= 0) {
-                throw new Exception('There are no items to be received from this repository');
-            }
+            // if (count($receiveItemsArr) <= 0) {
+            //     throw new Exception('There are no items to be received from this repository');
+            // }
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
                 $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
@@ -400,7 +400,6 @@ class WarehouseReceivingController extends Controller
                 $warehousePutAwayController->onCreate($warehousePutAwayRequest);
             }
         } catch (Exception $exception) {
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
 

@@ -102,10 +102,26 @@ class StockInventoryController extends Controller
 
     public function onGetAll()
     {
-        $orderFields = [
-            'status' => 'DESC'
-        ];
-        return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', $orderFields, 'Stock Inventory');
+        try {
+            $stockInventories = ItemMasterdataModel::select(
+                'im.item_code as item_code',
+                'im.description as description',
+                'im.id as id',
+                'ic.name as category',
+                DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
+                DB::raw('COALESCE(si.status, 0) as stock_status')
+            )
+                ->from('wms_item_masterdata as im')
+                ->leftJoin('wms_item_categories as ic', 'im.item_category_id', '=', 'ic.id')
+                ->leftJoin('wms_stock_inventories as si', 'im.id', '=', 'si.item_id')
+                ->orderByRaw('CASE WHEN si.status IS NULL THEN 1 ELSE 0 END, si.status DESC')
+                ->get();
+            $stockInventories->each->setAppends([]);
+            return $this->dataResponse('success', 200, 'Stock Inventories ' . __('msg.record_found'), $stockInventories);
+        } catch (Exception $exception) {
+            return $this->dataResponse('success', 200, 'Stock Inventories ' . __('msg.record_not_found'));
+        }
+
     }
 
     public function onGetInStock($item_id)
