@@ -341,9 +341,9 @@ class StockInventoryController extends Controller
                             if ($zoneId == $zone_id) {
                                 if (isset($zoneItemList['sku'][$zoneItemKey])) {
                                     $zoneItemList['sku'][$zoneItemKey]['quantity'] += 1;
-                                    if (!in_array($productionItem['bid'], $zoneItemList['sku'][$zoneItemKey]['batch_array'])) {
-                                        $zoneItemList['sku'][$zoneItemKey]['batch_array'][] = $productionItem['bid'];
-                                    }
+                                    // if (!in_array($productionItem['bid'], $zoneItemList['sku'][$zoneItemKey]['batch_array'])) {
+                                    //     $zoneItemList['sku'][$zoneItemKey]['batch_array'][] = $productionItem['bid'];
+                                    // }
                                 } else {
                                     $zoneItemList['sku'][$zoneItemKey] = [
                                         'zone_item_key' => $zoneItemKey,
@@ -352,7 +352,7 @@ class StockInventoryController extends Controller
                                         'batch_no' => $productionBatch->batch_number,
                                         'sub_location' => $subLocationModel->code,
                                         'layer_level' => "L${layerLevel}",
-                                        'batch_array' => [$productionItem['bid']],
+                                        // 'batch_array' => [$productionItem['bid']],
                                         'quantity' => 1
                                     ];
                                 }
