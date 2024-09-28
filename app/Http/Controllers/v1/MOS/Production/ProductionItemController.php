@@ -65,7 +65,6 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
-        // 14.1 => 'For Transfer - In Process',
         #endregion
 
         $rules = [

@@ -295,6 +295,7 @@ class StockInventoryController extends Controller
                     }
                 }
                 $zoneDetails['sku'] = array_values($skuList);
+                $zoneDetails['no_of_sku'] = count($skuList) - 1; // -1 for 'all'
             }
             return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneDetails);
         } catch (Exception $exception) {
