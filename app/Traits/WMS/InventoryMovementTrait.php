@@ -71,17 +71,20 @@ trait InventoryMovementTrait
                                 $hasItems = true;
                                 $layerProductionItems = json_decode($queuedPermanentStorage->production_items, true);
                                 foreach ($layerProductionItems as $storedItems) {
-                                    if (isset($layerItems[$storedItems['item_code']])) {
-                                        $layerItems[$storedItems['item_code']]['initial_stock'] += 1;
+                                    $itemMasterdataModel = ItemMasterdataModel::find($storedItems['item_id']);
+                                    $itemCode = $itemMasterdataModel->item_code;
+                                    if (isset($layerItems[$storedItems['item_id']])) {
+                                        $layerItems[$storedItems['item_id']]['initial_stock'] += 1;
                                         if ($isTransferAll) {
-                                            $layerItems[$storedItems['item_code']]['transfer_quantity'] += 1;
+                                            $layerItems[$storedItems['item_id']]['transfer_quantity'] += 1;
                                         }
                                     } else {
                                         $transferQuantity = $isTransferAll ? 1 : 0;
 
-                                        $layerItems[$storedItems['item_code']] = [
-                                            'item_code' => $storedItems['item_code'],
-                                            'item_description' => ItemMasterdataModel::where('item_code', $storedItems['item_code'])->value('description'),
+                                        $layerItems[$storedItems['item_id']] = [
+                                            'item_id' => $storedItems['item_id'],
+                                            'item_code' => $itemCode,
+                                            'item_description' => $itemMasterdataModel->description,
                                             'layer' => $layers['layer_no'],
                                             'initial_stock' => 1,
                                             'transfer_quantity' => $transferQuantity
