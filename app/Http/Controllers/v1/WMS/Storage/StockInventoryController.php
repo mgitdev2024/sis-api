@@ -357,7 +357,9 @@ class StockInventoryController extends Controller
                                     ];
                                 }
                             }
-                            $zoneItemList['quantity_on_hand'] += 1;
+                            if ($item_id == $itemId) {
+                                $zoneItemList['quantity_on_hand'] += 1;
+                            }
                         }
                     }
                 }
