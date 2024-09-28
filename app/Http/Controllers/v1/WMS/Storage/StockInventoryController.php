@@ -289,6 +289,10 @@ class StockInventoryController extends Controller
                                 }
                                 if ($isItemCodeFilter) {
                                     $zoneDetails['quantity_on_hand'] += 1;
+                                    continue;
+                                }
+                                if ($item_id == null) {
+                                    $zoneDetails['quantity_on_hand'] += 1;
                                 }
                             }
                         }
