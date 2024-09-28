@@ -320,7 +320,10 @@ class StockInventoryController extends Controller
             }
             $productionBatchModel = $productionBatchModel->get();
 
-            $zoneItemList = [];
+            $zoneItemList = [
+                'quantity_on_hand' => 0,
+                'sku' => []
+            ];
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -336,13 +339,13 @@ class StockInventoryController extends Controller
                             $zoneItemKey = "${itemCode}-SL${subLocationId}-L${layerLevel}";
 
                             if ($zoneId == $zone_id) {
-                                if (isset($zoneItemList[$zoneItemKey])) {
-                                    $zoneItemList[$zoneItemKey]['quantity'] += 1;
-                                    if (!in_array($productionItem['bid'], $zoneItemList[$zoneItemKey]['batch_array'])) {
-                                        $zoneItemList[$zoneItemKey]['batch_array'][] = $productionItem['bid'];
+                                if (isset($zoneItemList['sku'][$zoneItemKey])) {
+                                    $zoneItemList['sku'][$zoneItemKey]['quantity'] += 1;
+                                    if (!in_array($productionItem['bid'], $zoneItemList['sku'][$zoneItemKey]['batch_array'])) {
+                                        $zoneItemList['sku'][$zoneItemKey]['batch_array'][] = $productionItem['bid'];
                                     }
                                 } else {
-                                    $zoneItemList[$zoneItemKey] = [
+                                    $zoneItemList['sku'][$zoneItemKey] = [
                                         'zone_item_key' => $zoneItemKey,
                                         'item_code' => $itemCode,
                                         'item_id' => $itemId,
@@ -354,11 +357,13 @@ class StockInventoryController extends Controller
                                     ];
                                 }
                             }
+                            $zoneItemList['quantity_on_hand'] += 1;
                         }
                     }
                 }
             }
-            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($zoneItemList));
+            $zoneItemList['sku'] = array_values($zoneItemList['sku']);
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneItemList);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
