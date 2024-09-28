@@ -53,7 +53,7 @@ class WarehouseReceivingController extends Controller
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
-                    'discrepancy_quantity' => $value->discrepancy_data_count,
+                    'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
 
                 ];
                 ++$counter;
