@@ -109,7 +109,10 @@ class StockInventoryController extends Controller
                 'im.id as id',
                 'ic.name as category',
                 DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
-                DB::raw('COALESCE(si.status, 0) as stock_status')
+                DB::raw('CASE
+                            WHEN si.status = 0 OR si.status IS NULL THEN "Inactive"
+                            WHEN si.status = 1 THEN "Active"
+                        END as stock_status')
             )
                 ->from('wms_item_masterdata as im')
                 ->leftJoin('wms_item_categories as ic', 'im.item_category_id', '=', 'ic.id')
