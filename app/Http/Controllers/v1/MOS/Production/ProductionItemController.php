@@ -65,7 +65,6 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
-        // 14.1 => 'For Transfer - In Process',
         #endregion
 
         $rules = [
@@ -316,7 +315,6 @@ class ProductionItemController extends Controller
                 $itemCode = $productionBatch->item_code;
                 $producedItems = $productionItemsModel->produced_items;
                 $item = json_decode($producedItems, true)[$item_key];
-
                 $stickerStatus = $item['sticker_status'];
                 $itemStatus = $item['status'];
                 if ($itemStatus == 9) {
@@ -332,6 +330,7 @@ class ProductionItemController extends Controller
                 $stockTransferRefNo = $item['stock_transfer']['reference_number'] ?? null;
 
                 $data = [
+                    'item_id' => $itemMasterdata->id,
                     'item_code' => $itemCode,
                     'item_status' => $itemStatus,
                     'sticker_status' => $stickerStatus,
@@ -380,6 +379,7 @@ class ProductionItemController extends Controller
             $itemDetails = [];
             $itemDetails['item'] = $value;
             $itemDetails['item']['item_code'] = $productionBatch->item_code;
+            $itemDetails['item']['item_id'] = $productionOrderToMake->itemMasterdata->id;
             $itemDetails['item_details'] = [
                 'batch_number' => $productionBatch->batch_number,
                 'item_description' => $productionOrderToMake->itemMasterdata->description,

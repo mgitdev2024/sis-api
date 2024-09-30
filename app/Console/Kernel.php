@@ -9,8 +9,7 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:archive-production-log-command')->dailyAt('00:00');
-
+        $schedule->command('app:archive-production-log-command')->everyMinute()->withoutOverlapping();
         // ->cron('0 0 1,15 * *'); // Runs every 1st and 15th of the month
         /*
         $schedule->command('app:your-command')->everyMinute(); // Runs every minute

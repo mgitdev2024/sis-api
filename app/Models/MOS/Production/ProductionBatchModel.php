@@ -4,6 +4,7 @@ namespace App\Models\MOS\Production;
 
 use App\Models\CredentialModel;
 use App\Models\History\PrintHistoryModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,7 +33,6 @@ class ProductionBatchModel extends Model
         'updated_by_id',
         'status', // 0 = In Progress, 1 = On Hold, 2 = Complete, 3 = Cleared
     ];
-
     public function productionOtb()
     {
         return $this->belongsTo(ProductionOTBModel::class, 'production_otb_id');

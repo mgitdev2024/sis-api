@@ -43,7 +43,7 @@ class StockTransferCacheController extends Controller
                     $stockTransferItemCache[] = [
                         'zone_id' => $zoneId,
                         'sub_location_id' => $subLocationValue['sub_location_id'],
-                        'item_code' => $layers['item_code'],
+                        'item_id' => $layers['item_id'],
                         'initial_stock' => $layers['initial_stock'],
                         'transfer_quantity' => $layers['transfer_quantity'],
                         'layer' => $layers['layer'],
@@ -75,7 +75,9 @@ class StockTransferCacheController extends Controller
             if ($stockTransferCache) {
                 $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
                 foreach ($itemsToTransfer as $key => $item) {
-                    $itemsToTransfer[$key]['item_description'] = ItemMasterdataModel::where('item_code', $item['item_code'])->value('description');
+                    $itemMasterData = ItemMasterdataModel::find($item['item_id']);
+                    $itemsToTransfer[$key]['item_description'] = $itemMasterData->description;
+                    $itemsToTransfer[$key]['item_code'] = $itemMasterData->item_code;
                 }
                 $data = [
                     // 'reason' => $stockTransferCache->reason,

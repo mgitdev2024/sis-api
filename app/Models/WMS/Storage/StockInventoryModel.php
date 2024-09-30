@@ -12,12 +12,12 @@ class StockInventoryModel extends Model
     protected $table = 'wms_stock_inventories';
 
     protected $fillable = [
-        'item_code',
+        'item_id',
         'stock_count',
     ];
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 }

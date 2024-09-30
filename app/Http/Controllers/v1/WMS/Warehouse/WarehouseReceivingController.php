@@ -30,7 +30,9 @@ class WarehouseReceivingController extends Controller
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
-                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count')
+                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count')
+
             )
                 ->where('status', $status)
                 ->groupBy([
@@ -51,6 +53,8 @@ class WarehouseReceivingController extends Controller
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
+                    'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
+
                 ];
                 ++$counter;
             }
@@ -109,13 +113,15 @@ class WarehouseReceivingController extends Controller
                         $producedItemsQuantity += $producedItemValue['q'];
                     }
                 }
+                $itemMasterdataModel = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
                     'item_code' => $itemCode,
-                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label,
+                    'item_id' => $itemMasterdataModel->id,
+                    'sku_type' => $itemMasterdataModel->item_category_label,
                     'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
@@ -198,6 +204,7 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
@@ -217,19 +224,20 @@ class WarehouseReceivingController extends Controller
                 ->orderBy('id', 'DESC')
                 ->first();
             $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
-            if (count($receiveItemsArr) <= 0) {
-                throw new Exception('There are no items to be received from this repository');
-            }
+            // if (count($receiveItemsArr) <= 0) {
+            //     throw new Exception('There are no items to be received from this repository');
+            // }
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
                 $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
+                $referenceItemId = ItemMasterdataModel::where('item_code', $warehouseReceivingCurrentItemCode)->first()->id;
                 $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
                 // $producedItems = json_decode($productionItemModel->produced_items, true);
 
                 $discrepancy = [];
                 foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
-                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
+                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $referenceItemId);
                     if (!$flag) {
                         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
                         $discrepancy[] = $innerWarehouseReceivingValue;
@@ -239,7 +247,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
-                $warehouseReceivingValue->discrepancy_data = json_encode($discrepancy);
+                $warehouseReceivingValue->discrepancy_data = count($discrepancy) > 0 ? json_encode($discrepancy) : null;
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
@@ -250,11 +258,11 @@ class WarehouseReceivingController extends Controller
         }
     }
 
-    public function onCheckItemReceive($receiveItemsArr, $key, $value, $ReferenceItemCode)
+    public function onCheckItemReceive($receiveItemsArr, $key, $value, $referenceItemId)
     {
         try {
             foreach ($receiveItemsArr as $receiveValue) {
-                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_code'] == $ReferenceItemCode)) {
+                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_id'] == $referenceItemId)) {
                     return true;
                 }
             }
@@ -307,6 +315,8 @@ class WarehouseReceivingController extends Controller
                         $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
                         $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
                         $warehouseReceiving->save();
+                        $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
+
                     }
                 }
             }
@@ -337,12 +347,12 @@ class WarehouseReceivingController extends Controller
             $subLocationId = null;
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
-                $itemCode = $productionBatch->productionOta->itemMasterdata->item_code ?? $productionBatch->productionOtb->itemMasterdata->item_code;
+                $itemCode = $productionBatch->item_code;
                 if (!in_array($itemCode, $itemCodeArr)) {
                     $itemCodeArr[] = $itemCode;
                 }
                 $productionItem = json_decode($productionBatch->productionItems->produced_items, true);
-                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'];
+                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'] ?? null;
             }
             $warehouseReceivingArr = [];
             foreach ($itemCodeArr as $itemCode) {
@@ -383,7 +393,7 @@ class WarehouseReceivingController extends Controller
                     'warehouse_receiving_reference_number' => $warehouseReceiving['reference_number'],
                     'received_quantity' => $warehouseReceiving['received_quantity'],
                     'production_items' => json_encode($mergedProducedItemsContainer),
-                    'item_code' => $warehouseReceiving['item_code'],
+                    'item_id' => ItemMasterdataModel::where('item_code', $warehouseReceiving['item_code'])->first()->id,
                     'scanned_items' => json_encode($scannedItems),
                     'temporary_storage_id' => $subLocationId
                 ]);

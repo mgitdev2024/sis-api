@@ -42,36 +42,38 @@ class ArchiveProductionLogCommand extends Command
 
     protected function onArchiveProductionLogs()
     {
-        DB::beginTransaction();
         try {
-            $productionLogs = ProductionLogModel::whereDate('created_at', '<', Carbon::now())->get();
-            if (count($productionLogs) > 0) {
-                $logsToArchive = $productionLogs->map(function ($log) {
-                    return [
-                        'entity_model' => $log->entity_model,
-                        'entity_id' => $log->entity_id,
-                        'item_key' => $log->item_key,
-                        'data' => $log->data,
-                        'action' => $log->action,
-                        'created_by_id' => $log->created_by_id,
-                        'updated_by_id' => $log->updated_by_id,
-                        'status' => $log->status,
-                        'created_at' => $log->created_at,
-                        'updated_at' => $log->updated_at,
-                    ];
-                })->toArray();
-                ArchivedProductionLogModel::insert($logsToArchive);
-                ProductionLogModel::whereIn('id', $productionLogs->pluck('id'))->delete();
-                Log::info('CRON Archive: Production Logs archived successfully');
+            DB::beginTransaction();
+            ProductionLogModel::whereDate('created_at', '<', Carbon::now())
+                ->chunk(1000, function ($productionLogs) {
+                    if ($productionLogs->count() > 0) {
+                        $logsToArchive = $productionLogs->map(function ($log) {
+                            return [
+                                'entity_model' => $log->entity_model,
+                                'entity_id' => $log->entity_id,
+                                'item_key' => $log->item_key,
+                                'data' => $log->data,
+                                'action' => $log->action,
+                                'created_by_id' => $log->created_by_id,
+                                'updated_by_id' => $log->updated_by_id,
+                                'status' => $log->status,
+                                'created_at' => $log->created_at,
+                                'updated_at' => $log->updated_at,
+                            ];
+                        })->toArray();
+                        ArchivedProductionLogModel::insert($logsToArchive);
+                        ProductionLogModel::whereIn('id', $productionLogs->pluck('id'))->delete();
 
-                DB::commit();
-            } else {
-                Log::info('CRON Archive: No Production Logs found');
-                DB::rollback();
-            }
-        } catch (Exception $exception) {
+                        Log::info('CRON Archive: Production Logs archived successfully.');
+                    } else {
+                        Log::info('CRON Archive: No Production Logs found in this chunk.');
+                    }
+                });
+
+            DB::commit();
+        } catch (Exception $e) {
             DB::rollback();
-            throw $exception;
+            Log::error('CRON Archive: Failed to archive Production Logs. Error: ' . $e->getMessage());
         }
     }
 }

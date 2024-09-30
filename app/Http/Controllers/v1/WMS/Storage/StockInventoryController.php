@@ -17,11 +17,11 @@ use Exception;
 class StockInventoryController extends Controller
 {
     use WmsCrudOperationsTrait;
-    public function onGetByItemCode($item_code)
+    public function onGetByItemId($item_id)
     {
         try {
             $stockInventoryModel = StockInventoryModel::where([
-                'item_code' => $item_code
+                'item_id' => $item_id
             ])->first();
 
             $itemMasterdata = $stockInventoryModel->itemMasterdata;
@@ -55,15 +55,16 @@ class StockInventoryController extends Controller
 
             $dataToBeOverwritten = [];
             foreach ($bulkUploadData as $data) {
-                $itemCodeExist = StockInventoryModel::where('item_code', $data['item_code'])->exists();
+                $itemMasterdataModel = ItemMasterdataModel::where('item_code', $data['item_code'])->first();
+                $itemCodeExist = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->exists();
                 if ($itemCodeExist) {
                     if ($fields['is_overwrite']) {
                         if ($fields['is_add_quantity']) {
-                            $stockInventory = StockInventoryModel::where('item_code', $data['item_code'])->first();
+                            $stockInventory = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->first();
                             $stockInventory->stock_count = ($stockInventory->stock_count + $data['stock_count']);
                             $stockInventory->save();
                         } else {
-                            $stockInventory = StockInventoryModel::where('item_code', $data['item_code'])->first();
+                            $stockInventory = StockInventoryModel::where('item_id', $itemMasterdataModel->id)->first();
                             $stockInventory->stock_count = $data['stock_count'];
                             $stockInventory->save();
                         }
@@ -101,16 +102,36 @@ class StockInventoryController extends Controller
 
     public function onGetAll()
     {
-        $orderFields = [
-            'status' => 'DESC'
-        ];
-        return $this->readCurrentRecord(ItemMasterdataModel::class, null, null, 'stockInventories', $orderFields, 'Stock Inventory');
+        try {
+            $stockInventories = ItemMasterdataModel::select(
+                'im.item_code as item_code',
+                'im.description as description',
+                'im.id as id',
+                'ic.name as category',
+                DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
+                DB::raw('CASE
+                            WHEN si.status = 0 OR si.status IS NULL THEN "Inactive"
+                            WHEN si.status = 1 THEN "Active"
+                        END as stock_status')
+            )
+                ->from('wms_item_masterdata as im')
+                ->leftJoin('wms_item_categories as ic', 'im.item_category_id', '=', 'ic.id')
+                ->leftJoin('wms_stock_inventories as si', 'im.id', '=', 'si.item_id')
+                ->orderByRaw('CASE WHEN si.status IS NULL THEN 1 ELSE 0 END, si.status DESC')
+                ->get();
+            $stockInventories->each->setAppends([]);
+            return $this->dataResponse('success', 200, 'Stock Inventories ' . __('msg.record_found'), $stockInventories);
+        } catch (Exception $exception) {
+            return $this->dataResponse('success', 200, 'Stock Inventories ' . __('msg.record_not_found'));
+        }
+
     }
 
-    public function onGetInStock($item_code)
+    public function onGetInStock($item_id)
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+            $productionBatchModel = ProductionBatchModel::where('item_code', $itemCode)
                 ->where('status', '!=', 3)
                 ->get();
 
@@ -138,10 +159,11 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetStockAllLocation($item_code)
+    public function onGetStockAllLocation($item_id)
     {
         try {
-            $productionBatchModel = ProductionBatchModel::where('item_code', $item_code)
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+            $productionBatchModel = ProductionBatchModel::where('item_code', $itemCode)
                 ->where('status', '!=', 3)
                 ->get();
 
@@ -223,7 +245,7 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetZoneDetails($zone_id, $item_code = null)
+    public function onGetZoneDetails($zone_id, $item_id = null)
     {
         try {
             $zoneModel = ZoneModel::find($zone_id);
@@ -247,6 +269,8 @@ class StockInventoryController extends Controller
                     'api' => "item/stock/inventory/zone/item/get/{$zone_id}",
                 ]
             ];
+
+            $itemCode = ItemMasterdataModel::find($item_id)->item_code ?? null;
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -256,15 +280,21 @@ class StockInventoryController extends Controller
                             $subLocationId = $productionItem['sub_location']['sub_location_id'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
-                            $isItemCodeFilter = $item_code ? $productionBatch->item_code == $item_code : true;
+                            $isItemCodeFilter = $itemCode ? $productionBatch->item_code == $itemCode : false;
+                            $itemId = ItemMasterdataModel::where('item_code', $productionBatch->item_code)->first()->id;
+
                             if ($zoneId == $zone_id) {
                                 if (!array_key_exists($productionBatch->item_code, $skuList)) {
                                     $skuList[$productionBatch->item_code] = [
                                         'title' => $productionBatch->item_code,
-                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$productionBatch->item_code}",
+                                        'api' => "item/stock/inventory/zone/item/get/{$zone_id}/{$itemId}",
                                     ];
                                 }
                                 if ($isItemCodeFilter) {
+                                    $zoneDetails['quantity_on_hand'] += 1;
+                                    continue;
+                                }
+                                if ($item_id == null) {
                                     $zoneDetails['quantity_on_hand'] += 1;
                                 }
                             }
@@ -272,6 +302,7 @@ class StockInventoryController extends Controller
                     }
                 }
                 $zoneDetails['sku'] = array_values($skuList);
+                $zoneDetails['no_of_sku'] = count($skuList) - 1; // -1 for 'all'
             }
             return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneDetails);
         } catch (Exception $exception) {
@@ -279,16 +310,20 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetZoneItemList($zone_id, $item_code = null)
+    public function onGetZoneItemList($zone_id, $item_id = null)
     {
         try {
             $productionBatchModel = ProductionBatchModel::where('status', '!=', 3);
-            if ($item_code) {
-                $productionBatchModel->where('item_code', $item_code);
+            if ($item_id) {
+                $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+                $productionBatchModel->where('item_code', $itemCode);
             }
             $productionBatchModel = $productionBatchModel->get();
 
-            $zoneItemList = [];
+            $zoneItemList = [
+                'quantity_on_hand' => 0,
+                'sku' => []
+            ];
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -296,6 +331,7 @@ class StockInventoryController extends Controller
                     foreach ($productionItems as $productionItem) {
                         if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
                             $itemCode = $productionBatch->item_code;
+                            $itemId = $productionBatch->productionOta->itemMasterdata->id ?? $productionBatch->productionOtb->itemMasterdata->id;
                             $subLocationId = $productionItem['sub_location']['sub_location_id'];
                             $layerLevel = $productionItem['sub_location']['layer_level'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
@@ -303,28 +339,33 @@ class StockInventoryController extends Controller
                             $zoneItemKey = "${itemCode}-SL${subLocationId}-L${layerLevel}";
 
                             if ($zoneId == $zone_id) {
-                                if (isset($zoneItemList[$zoneItemKey])) {
-                                    $zoneItemList[$zoneItemKey]['quantity'] += 1;
-                                    if (!in_array($productionItem['bid'], $zoneItemList[$zoneItemKey]['batch_array'])) {
-                                        $zoneItemList[$zoneItemKey]['batch_array'][] = $productionItem['bid'];
-                                    }
+                                if (isset($zoneItemList['sku'][$zoneItemKey])) {
+                                    $zoneItemList['sku'][$zoneItemKey]['quantity'] += 1;
+                                    // if (!in_array($productionItem['bid'], $zoneItemList['sku'][$zoneItemKey]['batch_array'])) {
+                                    //     $zoneItemList['sku'][$zoneItemKey]['batch_array'][] = $productionItem['bid'];
+                                    // }
                                 } else {
-                                    $zoneItemList[$zoneItemKey] = [
+                                    $zoneItemList['sku'][$zoneItemKey] = [
                                         'zone_item_key' => $zoneItemKey,
                                         'item_code' => $itemCode,
+                                        'item_id' => $itemId,
                                         'batch_no' => $productionBatch->batch_number,
                                         'sub_location' => $subLocationModel->code,
                                         'layer_level' => "L${layerLevel}",
-                                        'batch_array' => [$productionItem['bid']],
+                                        // 'batch_array' => [$productionItem['bid']],
                                         'quantity' => 1
                                     ];
                                 }
+                            }
+                            if ($item_id == $itemId) {
+                                $zoneItemList['quantity_on_hand'] += 1;
                             }
                         }
                     }
                 }
             }
-            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($zoneItemList));
+            $zoneItemList['sku'] = array_values($zoneItemList['sku']);
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $zoneItemList);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }

@@ -43,7 +43,8 @@ class ProductionItemModel extends Model
             10 => 'Reviewed',
             11 => 'Retouched',
             12 => 'Sliced',
-            13 => 'Stored'
+            13 => 'Stored',
+            14 => 'For Transfer',
         ];
 
         return [
