@@ -315,7 +315,6 @@ class ProductionItemController extends Controller
                 $itemCode = $productionBatch->item_code;
                 $producedItems = $productionItemsModel->produced_items;
                 $item = json_decode($producedItems, true)[$item_key];
-
                 $stickerStatus = $item['sticker_status'];
                 $itemStatus = $item['status'];
                 if ($itemStatus == 9) {
