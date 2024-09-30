@@ -67,7 +67,12 @@ trait InventoryMovementTrait
                                 ->orderBy('id', 'DESC')
                                 ->first();
 
-                            $hasStoredItems = count(json_decode($queuedPermanentStorage->production_items, true)) > 0;
+                            $hasStoredItems = false;
+
+                            if ($queuedPermanentStorage !== null) {
+                                $productionItems = json_decode($queuedPermanentStorage->production_items, true);
+                                $hasStoredItems = is_array($productionItems) && count($productionItems) > 0;
+                            }
                             if ($hasStoredItems) {
                                 // Different Item Looping per layer
                                 $hasItems = true;
