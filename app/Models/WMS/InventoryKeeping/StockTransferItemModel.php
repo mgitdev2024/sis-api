@@ -14,6 +14,8 @@ class StockTransferItemModel extends Model
 
     protected $table = 'wms_stock_transfer_items';
 
+    protected $appends = ['item_code_label'];
+
     protected $fillable = [
         'stock_transfer_list_id',
         'item_id',
@@ -57,5 +59,11 @@ class StockTransferItemModel extends Model
 
         $originLocation = "{$zoneShortName} {$subLocationCode} L{$layerLevel}";
         return $originLocation;
+    }
+
+    public function getItemCodeLabelAttribute()
+    {
+        $itemCode = ItemMasterdataModel::where('id', $this->item_id)->value('item_code');
+        return $itemCode;
     }
 }

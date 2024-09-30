@@ -55,6 +55,7 @@ trait InventoryMovementTrait
                     $hasLayer = $subLocation->has_layer;
                     $layerItems = [];
                     $hasItems = false;
+
                     if ($hasLayer == 1) {
                         $subLocationLayers = json_decode($subLocation->layers, true);
                         // Different Layer Looping per sub-location
@@ -66,22 +67,24 @@ trait InventoryMovementTrait
                                 ->orderBy('id', 'DESC')
                                 ->first();
 
-                            if ($queuedPermanentStorage) {
+                            $hasStoredItems = count(json_decode($queuedPermanentStorage->production_items, true)) > 0;
+                            if ($hasStoredItems) {
                                 // Different Item Looping per layer
                                 $hasItems = true;
                                 $layerProductionItems = json_decode($queuedPermanentStorage->production_items, true);
                                 foreach ($layerProductionItems as $storedItems) {
                                     $itemMasterdataModel = ItemMasterdataModel::find($storedItems['item_id']);
                                     $itemCode = $itemMasterdataModel->item_code;
-                                    if (isset($layerItems[$storedItems['item_id']])) {
-                                        $layerItems[$storedItems['item_id']]['initial_stock'] += 1;
+                                    $currentLayerItems = $storedItems['item_id'] . '-' . $layers['layer_no'];
+                                    if (isset($layerItems[$currentLayerItems])) {
+                                        $layerItems[$currentLayerItems]['initial_stock'] += 1;
                                         if ($isTransferAll) {
                                             $layerItems[$storedItems['item_id']]['transfer_quantity'] += 1;
                                         }
                                     } else {
                                         $transferQuantity = $isTransferAll ? 1 : 0;
 
-                                        $layerItems[$storedItems['item_id']] = [
+                                        $layerItems[$currentLayerItems] = [
                                             'item_id' => $storedItems['item_id'],
                                             'item_code' => $itemCode,
                                             'item_description' => $itemMasterdataModel->description,
@@ -105,7 +108,6 @@ trait InventoryMovementTrait
 
                 }
             }
-
             return $zoneItems;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

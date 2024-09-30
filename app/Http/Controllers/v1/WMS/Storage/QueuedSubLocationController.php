@@ -227,7 +227,6 @@ class QueuedSubLocationController extends Controller
                     $itemsPerBatchArr[$batchId][] = $scannedValue;
                 }
             }
-
             if (count($itemsPerBatchArr) > 0) {
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();

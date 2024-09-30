@@ -75,7 +75,9 @@ class StockTransferCacheController extends Controller
             if ($stockTransferCache) {
                 $itemsToTransfer = json_decode($stockTransferCache->stock_transfer_items, true);
                 foreach ($itemsToTransfer as $key => $item) {
-                    $itemsToTransfer[$key]['item_description'] = ItemMasterdataModel::find($item['item_id'])->value('description');
+                    $itemMasterData = ItemMasterdataModel::find($item['item_id']);
+                    $itemsToTransfer[$key]['item_description'] = $itemMasterData->description;
+                    $itemsToTransfer[$key]['item_code'] = $itemMasterData->item_code;
                 }
                 $data = [
                     // 'reason' => $stockTransferCache->reason,
