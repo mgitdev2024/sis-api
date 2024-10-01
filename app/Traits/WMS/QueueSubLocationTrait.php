@@ -244,6 +244,7 @@ trait QueueSubLocationTrait
                 'sub_location_id' => $subLocationId,
                 'layer_level' => $currentLayerIndex
             ];
+            $items[$stickerNumber]['stored_sub_location'] = $subLocation;
             $items[$stickerNumber]['sub_location'] = $subLocation;
             if ($isPermanent) {
                 $items[$stickerNumber]['status'] = 13; // stored
