@@ -212,7 +212,7 @@ class StockTransferItemController extends Controller
                 }
             }
             DB::beginTransaction();
-            $stockTransferItemModel->status = 3;
+            $stockTransferItemModel->status = 2;
             $stockTransferItemModel->discrepancy_items = json_encode($discrepancyItems);
             $stockTransferItemModel->save();
             $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
@@ -220,7 +220,7 @@ class StockTransferItemController extends Controller
             $stockTransferListItems = StockTransferItemModel::where('stock_transfer_list_id', $stockTransferItemModel->stock_transfer_list_id)->get();
             $completionCounter = 0;
             foreach ($stockTransferListItems as $items) {
-                if ($items->status == 3) {
+                if ($items->status == 2) {
                     $completionCounter++;
                 }
             }
