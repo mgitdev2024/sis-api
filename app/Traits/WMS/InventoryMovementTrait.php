@@ -84,11 +84,10 @@ trait InventoryMovementTrait
                                     if (isset($layerItems[$currentLayerItems])) {
                                         $layerItems[$currentLayerItems]['initial_stock'] += 1;
                                         if ($isTransferAll) {
-                                            $layerItems[$storedItems['item_id']]['transfer_quantity'] += 1;
+                                            $layerItems[$currentLayerItems]['transfer_quantity'] += 1;
                                         }
                                     } else {
                                         $transferQuantity = $isTransferAll ? 1 : 0;
-
                                         $layerItems[$currentLayerItems] = [
                                             'item_id' => $storedItems['item_id'],
                                             'item_code' => $itemCode,
@@ -102,7 +101,6 @@ trait InventoryMovementTrait
                             }
                         }
                     }
-
                     if ($hasItems) {
                         $zoneItems[] = [
                             'sub_location_id' => $subLocation->id,
@@ -110,7 +108,6 @@ trait InventoryMovementTrait
                             'layers' => $layerItems
                         ];
                     }
-
                 }
             }
             return $zoneItems;

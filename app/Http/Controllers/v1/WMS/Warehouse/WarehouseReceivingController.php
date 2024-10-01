@@ -31,8 +31,7 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count'),
-                DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count')
-
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count') // discrepancy_data_count
             )
                 ->where('status', $status)
                 ->groupBy([
