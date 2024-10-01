@@ -327,6 +327,7 @@ class ProductionItemController extends Controller
                 // ADDITIONAL INFO
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
+                $storedSubLocationArr = $item['stored_sub_location'] ?? null;
                 $stockTransferRefNo = $item['stock_transfer']['reference_number'] ?? null;
 
                 $data = [
@@ -349,6 +350,10 @@ class ProductionItemController extends Controller
 
                 if ($subLocationArr) {
                     $data['sub_location'] = $subLocationArr;
+                }
+
+                if ($storedSubLocationArr) {
+                    $data['stored_sub_location'] = $storedSubLocationArr;
                 }
 
                 if ($stockTransferRefNo) {
