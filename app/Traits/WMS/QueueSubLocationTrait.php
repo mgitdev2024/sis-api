@@ -407,7 +407,7 @@ trait QueueSubLocationTrait
                 $queuedSubLocation = QueuedSubLocationModel::where([
                     'sub_location_id' => $subLocationId,
                     'layer_level' => $layer
-                ])->first();
+                ])->orderBy('id', 'DESC')->first();
                 if ($queuedSubLocation) {
                     $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
                 }
