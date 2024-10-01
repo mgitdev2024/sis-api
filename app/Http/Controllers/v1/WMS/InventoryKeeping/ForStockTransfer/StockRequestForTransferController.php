@@ -162,7 +162,9 @@ class StockRequestForTransferController extends Controller
                 $subLocationId = $stockRequestForTransferModel->sub_location_id;
                 $layerLevel = $stockRequestForTransferModel->layer_level;
                 $stockRequestForTransferModelProductionItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true);
-                $scannedItems = json_decode($fields['scanned_items'] ?? $stockRequestForTransferModel->scanned_items, true);
+                $scannedItems = isset($fields['scanned_items']) && count(json_decode($fields['scanned_items'], true)) > 0
+                    ? json_decode($fields['scanned_items'], true)
+                    : json_decode($stockRequestForTransferModel->scanned_items, true);
 
                 $this->onQueueSubLocation($updatedById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $stockRequestForTransferModel->stockTransferList->reference_number);
                 $this->onUpdateStockRequestTransfer($stockRequestForTransferModel, $stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
