@@ -161,7 +161,7 @@ class StockTransferItemController extends Controller
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
 
                 // STOCK TRANSFER ITEM & QUANTITY UPDATE
-                $stockTransferItemModel->status = 2;
+                $stockTransferItemModel->status = 1;
                 $stockTransferItemModel->save();
                 $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
 
