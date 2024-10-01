@@ -51,7 +51,7 @@ class StockTransferItemController extends Controller
                             'transferred_quantity' => [$uom => $transferredBox],
                             'substandard_quantity' => [$uom => $substandardBox],
                             'remaining_quantity' => $stockTransferItemModel->transfer_quantity - ($transferredBox + $substandardBox),
-                            'transfer_stats' => $stockTransferItemModel->status,
+                            'transfer_status' => $stockTransferItemModel->status,
                         ];
 
                         if ($primaryConversion) {
