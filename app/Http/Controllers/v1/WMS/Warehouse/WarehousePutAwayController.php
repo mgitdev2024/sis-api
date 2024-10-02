@@ -319,7 +319,9 @@ class WarehousePutAwayController extends Controller
                         ->first();
                     if ($warehousePutAway) {
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
-                        $warehousePutAwayProducedItems[$itemDetails['sticker_no']]['status'] = 1.1;
+                        $stickerNumber = array_column($warehousePutAwayProducedItems, 'sticker_no');
+                        $stickerIndex = array_search(2, $stickerNumber);
+                        $warehousePutAwayProducedItems[$stickerIndex]['status'] = 1.1;
                         $warehousePutAway->production_items = json_encode($warehousePutAwayProducedItems);
                         $substandardQuantity = json_decode($warehousePutAway->substandard_quantity, true);
                         $remainingQuantity = json_decode($warehousePutAway->remaining_quantity, true);
@@ -397,6 +399,7 @@ class WarehousePutAwayController extends Controller
             $subLocationLayer = null;
             $discrepancyArr = [];
             foreach ($warehousePutAwayItem as $value) {
+                dd($warehousePutAwayItem);
                 $productionItemModel = ProductionItemModel::where('production_batch_id', $value['bid'])->first();
                 $productionItem = json_decode($productionItemModel->produced_items, true)[$value['sticker_no']];
                 $subLocationId = $productionItem['sub_location']['sub_location_id'] ?? null;
@@ -433,6 +436,7 @@ class WarehousePutAwayController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
         }
     }
