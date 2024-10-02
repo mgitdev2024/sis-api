@@ -224,8 +224,8 @@ class StockInventoryController extends Controller
                                     'long_name' => $subLocationModel->zone->long_name,
                                     'code' => $subLocationModel->zone->code,
                                     'storage_type' => $subLocationModel->zone->storageType->short_name,
-                                    'sub_location_count' => $subLocationModel->zone->subLocations->count()
-
+                                    'sub_location_count' => $subLocationModel->zone->subLocations->count(),
+                                    'attachment' => $subLocationModel->zone->attachment,
                                 ];
                                 $zoneLocationList[$zoneId]['sku'] = [];
                             }
@@ -258,6 +258,7 @@ class StockInventoryController extends Controller
                     'storage_type' => $zoneModel->storageType->short_name,
                     'sub_location_count' => $zoneModel->subLocations->count(),
                     'warehouse_location' => $zoneModel->warehouse->long_name,
+                    'attachment' => $zoneModel->attachment,
                 ],
                 'quantity_on_hand' => 0,
             ];
