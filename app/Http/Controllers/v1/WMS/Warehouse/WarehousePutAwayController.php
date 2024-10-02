@@ -378,14 +378,14 @@ class WarehousePutAwayController extends Controller
         }
     }
 
-    public function onCompleteTransaction(Request $request, $warehouse_put_away_id)
+    public function onCompleteTransaction(Request $request, $put_away_reference_number)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $warehouse_put_away_id)
+            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $put_away_reference_number)
                 ->where('status', 0)
                 ->firstOrFail();
 
@@ -399,9 +399,8 @@ class WarehousePutAwayController extends Controller
             foreach ($warehousePutAwayItem as $value) {
                 $productionItemModel = ProductionItemModel::where('production_batch_id', $value['bid'])->first();
                 $productionItem = json_decode($productionItemModel->produced_items, true)[$value['sticker_no']];
-                $subLocationId = $productionItem['sub_location']['sub_location_id'];
-                $subLocationLayer = $productionItem['sub_location']['layer_level'];
-
+                $subLocationId = $productionItem['sub_location']['sub_location_id'] ?? null;
+                $subLocationLayer = $productionItem['sub_location']['layer_level'] ?? null;
                 if ($productionItem['status'] != 13) {
                     $discrepancyArr[] = $value;
                 }

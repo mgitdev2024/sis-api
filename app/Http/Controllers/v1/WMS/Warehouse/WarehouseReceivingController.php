@@ -203,7 +203,6 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
