@@ -7,6 +7,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WarehouseLogTrait;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class StockTransferItemController extends Controller
                             'transferred_quantity' => [$uom => $transferredBox],
                             'substandard_quantity' => [$uom => $substandardBox],
                             'remaining_quantity' => $stockTransferItemModel->transfer_quantity - ($transferredBox + $substandardBox),
+                            'transfer_status' => $stockTransferItemModel->status,
                         ];
 
                         if ($primaryConversion) {
@@ -160,7 +162,7 @@ class StockTransferItemController extends Controller
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $updateById, 1);
 
                 // STOCK TRANSFER ITEM & QUANTITY UPDATE
-                $stockTransferItemModel->status = 2;
+                $stockTransferItemModel->status = 1;
                 $stockTransferItemModel->save();
                 $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $updateById, 1);
 
@@ -218,6 +220,7 @@ class StockTransferItemController extends Controller
             $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['created_by_id'], 0);
 
             $stockTransferListItems = StockTransferItemModel::where('stock_transfer_list_id', $stockTransferItemModel->stock_transfer_list_id)->get();
+            $temporaryStorageModel = QueuedTemporaryStorageModel::where('sub_location_id', $stockTransferItemModel->temporary_storage_id)->delete();
             $completionCounter = 0;
             foreach ($stockTransferListItems as $items) {
                 if ($items->status == 2) {
