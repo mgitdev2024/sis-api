@@ -21,6 +21,7 @@ class ZoneController extends Controller
         return [
             'created_by_id' => 'required',
             'updated_by_id' => 'nullable',
+            'attachment' => 'nullable',
             'code' => 'required|string|unique:wms_storage_zones,code,' . $itemId,
             'short_name' => 'required|string|unique:wms_storage_zones,short_name,' . $itemId,
             'long_name' => 'required|string|unique:wms_storage_zones,long_name,' . $itemId,
@@ -32,11 +33,11 @@ class ZoneController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(ZoneModel::class, $request, $this->getRules(), 'Zone');
+        return $this->createRecord(ZoneModel::class, $request, $this->getRules(), 'Zone', 'public/attachments/zone');
     }
     public function onUpdateById(Request $request, $id)
     {
-        return $this->updateRecordById(ZoneModel::class, $request, $this->getRules($id), 'Zone', $id);
+        return $this->updateRecordById(ZoneModel::class, $request, $this->getRules($id), 'Zone', $id, 'public/attachments/zone');
     }
     public function onGetPaginatedList(Request $request)
     {
