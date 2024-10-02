@@ -47,6 +47,8 @@ class ArchiveProductionLogCommand extends Command
             ProductionLogModel::whereDate('created_at', '<', Carbon::now())
                 ->chunk(1000, function ($productionLogs) {
                     if ($productionLogs->count() > 0) {
+                        Log::info("Cron job started at: " . now());
+
                         $logsToArchive = $productionLogs->map(function ($log) {
                             return [
                                 'entity_model' => $log->entity_model,
@@ -72,8 +74,13 @@ class ArchiveProductionLogCommand extends Command
 
             DB::commit();
         } catch (Exception $e) {
+            Log::info("Database connection issue: " . $e->getMessage());
+            Log::info("Current environment: " . app()->environment());
+            Log::info("Current user: " . get_current_user());
+            Log::info("Cron running at: " . now());
+            Log::info('CRON Archive: Failed to archive Production Logs. Error: ' . $e->getMessage());
+
             DB::rollback();
-            Log::error('CRON Archive: Failed to archive Production Logs. Error: ' . $e->getMessage());
         }
     }
 }
