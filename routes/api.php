@@ -419,6 +419,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/item/stock/inventory/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAll']);
     Route::get('v1/item/stock/inventory/in-stock/get/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
     Route::get('v1/item/stock/inventory/all-location/get/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
+    Route::get('v1/item/stock/inventory/all-location/items/get/{item_id}/{sub_location_id}/{layer_level}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetItemsPerSubLocation']);
     Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
     Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
     Route::get('v1/item/stock/inventory/zone/item/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneItemList']);

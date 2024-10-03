@@ -57,6 +57,11 @@ class ProductionBatchModel extends Model
         return $this->hasMany(PrintHistoryModel::class, 'production_batch_id');
     }
 
+    public function itemMasterdata()
+    {
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', ownerKey: 'item_code');
+    }
+
     public function getBatchTypeLabelAttribute()
     {
         $batchType = ['Fresh', 'Reprocessed'];
