@@ -190,7 +190,7 @@ class StockInventoryController extends Controller
                                     'sub_location' => $subLocationModel->code,
                                     'layer_level' => $layerLevel,
                                     'quantity' => 1,
-                                    'api' => "item/stock/inventory/all-location/items/get/${item_id}/${subLocationId}/${layerLevel}",
+                                    'api' => "item/stock/inventory/all-location/items/get/${subLocationId}/${layerLevel}",
                                 ];
                             }
                         }
@@ -203,7 +203,7 @@ class StockInventoryController extends Controller
         }
     }
 
-    public function onGetItemsPerSubLocation($item_id, $sub_location_id, $layer_level)
+    public function onGetItemsPerSubLocation($sub_location_id, $layer_level, $item_id)
     {
         try {
             $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $sub_location_id)
