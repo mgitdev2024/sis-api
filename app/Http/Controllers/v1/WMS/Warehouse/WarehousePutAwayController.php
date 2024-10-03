@@ -399,7 +399,6 @@ class WarehousePutAwayController extends Controller
             $subLocationLayer = null;
             $discrepancyArr = [];
             foreach ($warehousePutAwayItem as $value) {
-                dd($warehousePutAwayItem);
                 $productionItemModel = ProductionItemModel::where('production_batch_id', $value['bid'])->first();
                 $productionItem = json_decode($productionItemModel->produced_items, true)[$value['sticker_no']];
                 $subLocationId = $productionItem['sub_location']['sub_location_id'] ?? null;
@@ -436,7 +435,6 @@ class WarehousePutAwayController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
         }
     }
