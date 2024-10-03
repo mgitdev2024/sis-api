@@ -21,7 +21,7 @@ class StockLogController extends Controller
             if ($date) {
                 $stockLogModel->whereDate('created_at', $date);
             }
-            $stockLogModel->selectRaw("*, DATE_FORMAT(created_at, '%Y-%m-%d') as formatted_date")
+            $stockLogModel->selectRaw("*, DATE_FORMAT(created_at, '%Y-%m-%d %h:%i %p') as formatted_date")
                 ->selectRaw("CASE WHEN action = 1 THEN 'Inbound' ELSE 'Outbound' END as action_label");
             $stockLogModel = $stockLogModel->get();
             return $this->dataResponse('success', 200, 'Stock Log ' . __('msg.record_found'), $stockLogModel);
