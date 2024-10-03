@@ -214,13 +214,15 @@ class StockInventoryController extends Controller
 
             if ($queuedSubLocation) {
                 $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+
                 $storedItems = json_decode($queuedSubLocation->production_items, true) ?? [];
                 $itemList = [];
                 if (count($storedItems) > 0) {
                     foreach ($storedItems as $items) {
-                        $productionBatchModel = ProductionBatchModel::find($items['bid'])->first();
+                        $productionBatchModel = ProductionBatchModel::find($items['bid']);
                         $currentItemCode = $productionBatchModel->item_code;
                         if ($itemCode == $currentItemCode) {
+
                             $productionItemModel = ProductionItemModel::where('production_batch_id', $items['bid'])->first();
                             $productionItems = json_decode($productionItemModel->produced_items, true)[$items['sticker_no']];
                             $itemList[] = [

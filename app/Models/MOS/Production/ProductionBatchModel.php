@@ -59,7 +59,7 @@ class ProductionBatchModel extends Model
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', ownerKey: 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
     }
 
     public function getBatchTypeLabelAttribute()
