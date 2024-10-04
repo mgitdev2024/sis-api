@@ -95,10 +95,10 @@ class ItemMasterdataController extends Controller
             if ($record) {
                 $this->onTablesUpdate($fields['item_code'], $record->item_code, $fields['updated_by_id']);
 
-                $parentItemId = $fields['parent_item_id'] ?? null;
+                $hasParentItemId = $fields['parent_item_id'] ?? null;
 
-                if ($parentItemId != null) {
-                    $fields['parent_item_id'] = $parentItemId;
+                if ($hasParentItemId == null) {
+                    $fields['parent_item_id'] = null;
                 }
                 $record->update($fields);
                 if ($request->hasFile('attachment')) {
