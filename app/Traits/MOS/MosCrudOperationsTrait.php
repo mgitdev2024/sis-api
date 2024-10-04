@@ -103,7 +103,7 @@ trait MosCrudOperationsTrait
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function readRecord($model, $modelName, $withField = null)
+    public function readRecord($model, $modelName, $withField = null, $orderFields = null)
     {
         try {
             $dataList = $model::query();
@@ -111,7 +111,10 @@ trait MosCrudOperationsTrait
             if ($withField != null) {
                 $dataList = $dataList->with($withField);
             }
+            if ($orderFields != null) {
+                $dataList->orderBy($orderFields['key'], $orderFields['value']);
 
+            }
             $dataList = $dataList->get();
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
@@ -20,34 +21,44 @@ use App\Traits\MOS\MosCrudOperationsTrait;
 class WarehouseReceivingController extends Controller
 {
     use MosCrudOperationsTrait, QueueSubLocationTrait;
-    public function onGetAllCategory($status)
+    public function onGetAllCategory($status, $filter = null)
     {
         try {
+            $isDate = \DateTime::createFromFormat('Y-m-d', $filter);
+
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
-                'created_at',
+                DB::raw('MAX(created_at) as latest_created_at'),
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count'),
                 DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count') // discrepancy_data_count
             )
-                ->where('status', $status)
-                ->groupBy([
-                    'reference_number',
-                    'temporary_storage_id',
-                    'created_at'
-                ])
-                ->orderBy('created_at', 'DESC')
+                ->where('status', $status);
+            if ($filter != null) {
+                $warehouseReceivingModel->where('production_order_id', $filter);
+            } else {
+                $today = new \DateTime('today');
+                $tomorrow = new \DateTime('tomorrow');
+                $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')])->pluck('id');
+                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+            }
+            $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
+                'reference_number',
+                'temporary_storage_id'
+            ])
+                ->orderBy('latest_created_at', 'DESC')
                 ->get();
+
             $warehouseReceiving = [];
             $counter = 0;
             foreach ($warehouseReceivingModel as $value) {
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
-                    'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->created_at)) ?? null,
+                    'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_created_at)) ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
