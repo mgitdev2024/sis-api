@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
@@ -20,9 +21,11 @@ use App\Traits\MOS\MosCrudOperationsTrait;
 class WarehouseReceivingController extends Controller
 {
     use MosCrudOperationsTrait, QueueSubLocationTrait;
-    public function onGetAllCategory($status, $production_order_id = null)
+    public function onGetAllCategory($status, $filter = null)
     {
         try {
+            $isDate = \DateTime::createFromFormat('Y-m-d', $filter);
+
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
@@ -34,8 +37,13 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count') // discrepancy_data_count
             )
                 ->where('status', $status);
-            if ($production_order_id != null) {
-                $warehouseReceivingModel->where('production_order_id', $production_order_id);
+            if ($filter != null) {
+                $warehouseReceivingModel->where('production_order_id', $filter);
+            } else {
+                $today = new \DateTime('today');
+                $tomorrow = new \DateTime('tomorrow');
+                $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')])->pluck('id');
+                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
             }
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
                 'reference_number',
