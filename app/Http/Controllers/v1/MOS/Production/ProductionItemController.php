@@ -239,8 +239,17 @@ class ProductionItemController extends Controller
                     $warehouseReceivingModel->save();
                 }
                 break;
-            // case 3:
-            // Add your code here for status 3
+            case 3:
+                $productionBatchModel->actual_quantity -= 1;
+                $productionBatchModel->actual_secondary_quantity -= $value['q'];
+                $productionBatchModel->save();
+                $productionActualQuantity = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionActualQuantity->actual_quantity -= 1;
+                $productionActualQuantity->actual_secondary_quantity -= $value['q'];
+                $productionActualQuantity->received_items_count -= 1;
+                $productionActualQuantity->save();
+                break;
+            // Add your code here for status 4
             // break;
 
         }
