@@ -8,6 +8,7 @@ use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
+use App\Models\WMS\Storage\QueuedSubLocationModel;
 use App\Models\WMS\Storage\StockInventoryModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -188,7 +189,8 @@ class StockInventoryController extends Controller
                                     'zone' => $subLocationModel->zone->short_name,
                                     'sub_location' => $subLocationModel->code,
                                     'layer_level' => $layerLevel,
-                                    'quantity' => 1
+                                    'quantity' => 1,
+                                    'api' => "item/stock/inventory/all-location/items/get/${subLocationId}/${layerLevel}",
                                 ];
                             }
                         }
@@ -196,6 +198,52 @@ class StockInventoryController extends Controller
                 }
             }
             return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), array_values($warehouseLocations));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onGetItemsPerSubLocation($sub_location_id, $layer_level, $item_id)
+    {
+        try {
+            $queuedSubLocation = QueuedSubLocationModel::where('sub_location_id', $sub_location_id)
+                ->where('layer_level', $layer_level)
+                ->where('status', 1)
+                ->orderBy('id', 'DESC')
+                ->first();
+
+            if ($queuedSubLocation) {
+                $itemCode = ItemMasterdataModel::find($item_id)->item_code;
+
+                $storedItems = json_decode($queuedSubLocation->production_items, true) ?? [];
+                $itemList = [];
+                if (count($storedItems) > 0) {
+                    foreach ($storedItems as $items) {
+                        $productionBatchModel = ProductionBatchModel::find($items['bid']);
+                        $currentItemCode = $productionBatchModel->item_code;
+                        if ($itemCode == $currentItemCode) {
+
+                            $productionItemModel = ProductionItemModel::where('production_batch_id', $items['bid'])->first();
+                            $productionItems = json_decode($productionItemModel->produced_items, true)[$items['sticker_no']];
+                            $itemList[] = [
+                                'sub_location_code' => $queuedSubLocation->subLocation->code,
+                                'layer_level' => $queuedSubLocation->layer_level,
+                                'batch_number' => $productionBatchModel->batch_number,
+                                'sticker_no' => $productionItems['batch_code'],
+                                'sticker_status' => $productionItems['sticker_status'],
+                                'item_status' => $productionItems['status'],
+                                'item_quantity' => $productionItems['q'],
+                                'production_date' => $productionBatchModel->productionOrder->production_date,
+                                'item_code' => $currentItemCode,
+                                'description' => $productionBatchModel->itemMasterdata->description,
+                            ];
+                        }
+                    }
+                    return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $itemList);
+
+                }
+            }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }

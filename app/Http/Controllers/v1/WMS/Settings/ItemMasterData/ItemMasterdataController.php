@@ -95,6 +95,11 @@ class ItemMasterdataController extends Controller
             if ($record) {
                 $this->onTablesUpdate($fields['item_code'], $record->item_code, $fields['updated_by_id']);
 
+                $parentItemId = $fields['parent_item_id'] ?? null;
+
+                if ($parentItemId != null) {
+                    $fields['parent_item_id'] = $parentItemId;
+                }
                 $record->update($fields);
                 if ($request->hasFile('attachment')) {
                     $attachmentPath = $request->file('attachment')->store('public/attachments/item-masterdata');
