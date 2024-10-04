@@ -371,7 +371,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Warehouse Receiving
-    Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
+    Route::get('v1/warehouse/receive/category/{status}/{production_order_id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
     Route::get('v1/warehouse/receive/current/{reference_number}/{status}/{received_status?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
