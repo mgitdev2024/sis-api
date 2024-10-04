@@ -410,15 +410,15 @@ class WarehousePutAwayController extends Controller
             if (count($discrepancyArr) > 0) {
                 $warehousePutAway->discrepancy_data = json_encode($discrepancyArr);
             }
-            $queuedPermanentStorage = QueuedSubLocationModel::where([
-                'sub_location_id' => $subLocationId,
-                'layer_level' => $subLocationLayer,
-                'status' => 1
-            ])->first();
-            if ($queuedPermanentStorage) {
-                $queuedPermanentStorage->status = 0;
-                $queuedPermanentStorage->save();
-            }
+            // $queuedPermanentStorage = QueuedSubLocationModel::where([
+            //     'sub_location_id' => $subLocationId,
+            //     'layer_level' => $subLocationLayer,
+            //     'status' => 1
+            // ])->first();
+            // if ($queuedPermanentStorage) {
+            //     $queuedPermanentStorage->status = 0;
+            //     $queuedPermanentStorage->save();
+            // }
 
             if ($warehousePutAway) {
                 $temporaryStorageId = $warehousePutAway->temporary_storage_id;
