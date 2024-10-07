@@ -41,9 +41,10 @@ class WarehouseReceivingController extends Controller
                 if ($filter != null) {
                     $warehouseReceivingModel->where('production_order_id', $filter);
                 } else {
+                    $yesterday = new \DateTime('yesterday');
                     $today = new \DateTime('today');
                     $tomorrow = new \DateTime('tomorrow');
-                    $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')])->pluck('id');
+                    $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d'), $yesterday->format('Y-m-d')])->pluck('id');
                     $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
                 }
             }
