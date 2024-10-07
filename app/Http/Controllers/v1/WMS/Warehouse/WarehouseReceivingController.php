@@ -43,7 +43,7 @@ class WarehouseReceivingController extends Controller
                 $today = new \DateTime('today');
                 $tomorrow = new \DateTime('tomorrow');
                 $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')])->pluck('id');
-                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+                $warehouseReceivingModel->orWhereIn('production_order_id', $productionOrderModel);
             }
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
                 'reference_number',
