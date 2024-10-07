@@ -24,8 +24,6 @@ class WarehouseReceivingController extends Controller
     public function onGetAllCategory($status, $filter = null)
     {
         try {
-            $isDate = \DateTime::createFromFormat('Y-m-d', $filter);
-
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
@@ -37,14 +35,18 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count') // discrepancy_data_count
             )
                 ->where('status', $status);
-            if ($filter != null) {
-                $warehouseReceivingModel->where('production_order_id', $filter);
-            } else {
-                $today = new \DateTime('today');
-                $tomorrow = new \DateTime('tomorrow');
-                $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d')])->pluck('id');
-                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+            if ($status != 0) {
+                if ($filter != null) {
+                    $warehouseReceivingModel->where('production_order_id', $filter);
+                } else {
+                    $yesterday = new \DateTime('yesterday');
+                    $today = new \DateTime('today');
+                    $tomorrow = new \DateTime('tomorrow');
+                    $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d'), $yesterday->format('Y-m-d')])->pluck('id');
+                    $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+                }
             }
+
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
                 'reference_number',
                 'temporary_storage_id'
