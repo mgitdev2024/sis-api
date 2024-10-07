@@ -24,8 +24,6 @@ class WarehouseReceivingController extends Controller
     public function onGetAllCategory($status, $filter = null)
     {
         try {
-            $isDate = \DateTime::createFromFormat('Y-m-d', $filter);
-
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
