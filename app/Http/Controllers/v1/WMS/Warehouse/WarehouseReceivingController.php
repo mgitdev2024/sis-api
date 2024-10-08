@@ -44,7 +44,6 @@ class WarehouseReceivingController extends Controller
                     $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
                     $warehouseReceivingModel->whereBetween('created_at', [$yesterday, $today]);
                 }
-
             }
 
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
