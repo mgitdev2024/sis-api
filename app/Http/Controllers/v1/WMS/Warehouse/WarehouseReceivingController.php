@@ -36,14 +36,13 @@ class WarehouseReceivingController extends Controller
             )
                 ->where('status', $status);
             if ($status != 0) {
-                if ($filter != null) {
-                    $warehouseReceivingModel->where('production_order_id', $filter);
+                $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+                if ($whereObject) {
+                    $warehouseReceivingModel->whereDate('created_at', $filter);
                 } else {
-                    $yesterday = new \DateTime('yesterday');
-                    $today = new \DateTime('today');
-                    $tomorrow = new \DateTime('tomorrow');
-                    $productionOrderModel = ProductionOrderModel::whereBetween('production_date', [$today->format('Y-m-d'), $tomorrow->format('Y-m-d'), $yesterday->format('Y-m-d')])->pluck('id');
-                    $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+                    $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
+                    $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
+                    $warehouseReceivingModel->whereBetween('created_at', [$yesterday, $today]);
                 }
             }
 
@@ -66,7 +65,6 @@ class WarehouseReceivingController extends Controller
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
                     'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
-
                 ];
                 ++$counter;
             }
