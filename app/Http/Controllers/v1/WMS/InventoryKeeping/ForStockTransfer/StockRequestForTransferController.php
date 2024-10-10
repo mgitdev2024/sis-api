@@ -12,6 +12,7 @@ use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
+use App\Models\WMS\Storage\StockLogModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -310,9 +311,21 @@ class StockRequestForTransferController extends Controller
                 }
             }
             if (count($itemsPerBatchArr) > 0) {
+                $latestStockTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
+                    $this->onQueueStorage(
+                        $createdById,
+                        $itemValue,
+                        $subLocationId,
+                        true,
+                        $layerLevel,
+                        ProductionItemModel::class,
+                        $productionId,
+                        $referenceNumber,
+                        1,
+                        $latestStockTransactionNumber
+                    );
                 }
             }
 

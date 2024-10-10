@@ -31,8 +31,8 @@ class WarehouseReceivingController extends Controller
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
-                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count'),
-                DB::raw('SUM(JSON_LENGTH(discrepancy_data))  as discrepancy_data_count') // discrepancy_data_count
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count') // discrepancy_data_count
             )
                 ->where('status', $status);
             if ($status != 0) {
@@ -85,7 +85,8 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
-                DB::raw('JSON_ARRAYAGG(produced_items) as aggregated_produced_items')
+                DB::raw('JSON_ARRAYAGG(produced_items) as aggregated_produced_items'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count')
             )
                 ->where('status', $status)
                 ->where('reference_number', $referenceNumber)
@@ -129,10 +130,11 @@ class WarehouseReceivingController extends Controller
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
+                    'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
                     'item_code' => $itemCode,
                     'item_id' => $itemMasterdataModel->id,
                     'sku_type' => $itemMasterdataModel->item_category_label,
-                    'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
+                    'produced_items_quantity' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
             if (count($warehouseReceivingArr) > 0) {
