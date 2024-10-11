@@ -204,7 +204,8 @@ class ItemDispositionController extends Controller
                     'quantity' => $value->count,
                     'is_release' => $value->is_release,
                     'production_batch_number' => ProductionBatchModel::find($value->production_batch_id)->batch_number,
-                    'production_orders_to_make' => $value->productionBatch->productionOtb ?? $value->productionBatch->productionOta
+                    'item_code' => $value->item_code,
+                    'production_order_number' => $value->productionBatch->productionOrder->reference_number
                 ];
                 ++$counter;
             }
@@ -220,7 +221,22 @@ class ItemDispositionController extends Controller
     public function onGetCurrent($id, $type = null)
     {
         try {
-            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id);
+            $itemDisposition = ItemDispositionModel::select(
+                'id',
+                'quantity',
+                'produced_items',
+                'production_batch_id',
+                'item_key',
+                'item_code',
+                'type',
+                'production_type',
+                'aging_period',
+                'action',
+                'status',
+                'is_release',
+                'created_at',
+            )
+                ->where('production_batch_id', $id);
             if ($type != null) {
                 $itemDisposition->where('type', $type);
             }
@@ -229,10 +245,9 @@ class ItemDispositionController extends Controller
                 foreach ($data as $value) {
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
-
+                    $value['batch_code'] = json_decode($value['produced_items'], true)[$value['item_key']]['batch_code'];
                     $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
                     $value['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
-
                 }
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
