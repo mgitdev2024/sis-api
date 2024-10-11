@@ -233,7 +233,8 @@ trait QueueSubLocationTrait
             }
 
             if (count($itemsToBeAdjusted) > 0) {
-                $this->onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber);
+                $stockLogTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
+                $this->onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockLogTransactionNumber);
             }
 
             return $queueTemporaryStorageArr;
@@ -266,7 +267,7 @@ trait QueueSubLocationTrait
         }
     }
 
-    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber)
+    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockTransferReferenceNumber)
     {
         try {
 
@@ -306,7 +307,7 @@ trait QueueSubLocationTrait
 
                 }
                 // DECREMENT STOCK INVENTORY AND CREATE STOCK LOG
-                $this->onCreateStockLogs($itemDetails['item_id'], 0, count($itemDetails['produced_items']), $itemDetails['stored_sub_location_id'], $itemDetails['stored_layer_level'], $storageRemainingSpace, $createdById, $referenceNumber);
+                $this->onCreateStockLogs($itemDetails['item_id'], 0, count($itemDetails['produced_items']), $itemDetails['stored_sub_location_id'], $itemDetails['stored_layer_level'], $storageRemainingSpace, $createdById, $referenceNumber, $stockLogTransactionNumber);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
