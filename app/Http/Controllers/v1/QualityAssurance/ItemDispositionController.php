@@ -223,7 +223,7 @@ class ItemDispositionController extends Controller
         try {
             $itemDisposition = ItemDispositionModel::select(
                 'id',
-                'quantity',
+                'quantity_update',
                 'produced_items',
                 'production_batch_id',
                 'item_key',
@@ -241,15 +241,30 @@ class ItemDispositionController extends Controller
                 $itemDisposition->where('type', $type);
             }
             $data = $itemDisposition->get();
+
             if (count($data) > 0) {
+                $collections = [];
                 foreach ($data as $value) {
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
-                    $value['batch_code'] = json_decode($value['produced_items'], true)[$value['item_key']]['batch_code'];
-                    $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
-                    $value['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
+                    $collections['id'] = $value['id'];
+                    $collections['quantity_update'] = $value['quantity_update'];
+                    $collections['produced_items'] = $value['produced_items'];
+                    $collections['production_batch_id'] = $value['production_batch_id'];
+                    $collections['item_key'] = $value['item_key'];
+                    $collections['item_code'] = $value['item_code'];
+                    $collections['type'] = $value['type'];
+                    $collections['production_type'] = $value['production_type'];
+                    $collections['aging_period'] = $value['aging_period'];
+                    $collections['action'] = $value['action'];
+                    $collections['status'] = $value['status'];
+                    $collections['is_release'] = $value['is_release'];
+                    $collections['created_at'] = $value['created_at'];
+                    $collections['batch_code'] = json_decode($value['produced_items'], true)[$value['item_key']]['batch_code'];
+                    $collections['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
+                    $collections['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
                 }
-                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+                return $this->dataResponse('success', 200, __('msg.record_found'), $collections);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
