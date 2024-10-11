@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
@@ -205,7 +206,7 @@ class ItemDispositionController extends Controller
                     'quantity' => $value->count,
                     'is_release' => $value->is_release,
                     'production_batch_number' => $productionBatchModel->batch_number,
-                    'production_batch_status' => $productionBatchModel->status,
+                    'production_batch_status' => ProductionOrderModel::find($productionBatchModel->production_order_id)->status,
                     'item_code' => $productionBatchModel->item_code,
                     'production_order_number' => $value->productionBatch->productionOrder->reference_number
                 ];
