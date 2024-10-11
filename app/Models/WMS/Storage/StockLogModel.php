@@ -33,4 +33,11 @@ class StockLogModel extends Model
     {
         return $this->belongsTo(SubLocationModel::class, 'sub_location_id', 'id');
     }
+
+    public static function onGetCurrentTransactionNumber()
+    {
+        $latestTransactionNumber = static::latest()->value('transaction_number');
+
+        return $latestTransactionNumber ?? 0;
+    }
 }

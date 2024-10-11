@@ -63,7 +63,6 @@ class WarehousePutAwayController extends Controller
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
 
@@ -236,7 +235,7 @@ class WarehousePutAwayController extends Controller
     public function onGetById($id)
     {
         try {
-            return $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', 'itemMasterdata');
+            return $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -250,7 +249,7 @@ class WarehousePutAwayController extends Controller
         $orderFields = [
             'id' => 'ASC'
         ];
-        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, 'itemMasterdata', $orderFields, 'Warehouse Put Away');
+        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, ['itemMasterdata', 'subLocation'], $orderFields, 'Warehouse Put Away');
     }
     #endregion
 
@@ -349,10 +348,10 @@ class WarehousePutAwayController extends Controller
                         $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
                         $warehousePutAway->substandard_quantity = json_encode($substandardQuantity);
                         $warehousePutAway->save();
+
                     }
                 }
             }
-
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,

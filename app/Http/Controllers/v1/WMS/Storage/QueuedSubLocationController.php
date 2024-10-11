@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
 use App\Traits\ResponseTrait;
@@ -228,9 +229,21 @@ class QueuedSubLocationController extends Controller
                 }
             }
             if (count($itemsPerBatchArr) > 0) {
+                $latestStockTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
+                    $this->onQueueStorage(
+                        $createdById,
+                        $itemValue,
+                        $subLocationId,
+                        true,
+                        $layerLevel,
+                        ProductionItemModel::class,
+                        $productionId,
+                        $referenceNumber,
+                        1,
+                        $latestStockTransactionNumber
+                    );
                 }
             }
 
