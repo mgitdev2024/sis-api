@@ -63,7 +63,6 @@ class WarehousePutAwayController extends Controller
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
 
