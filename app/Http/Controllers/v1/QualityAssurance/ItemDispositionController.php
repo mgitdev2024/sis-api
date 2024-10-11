@@ -199,12 +199,14 @@ class ItemDispositionController extends Controller
             $batchDisposition = [];
             $counter = 0;
             foreach ($itemDisposition as $value) {
+                $productionBatchModel = ProductionBatchModel::find($value->production_batch_id);
                 $batchDisposition[$counter] = [
                     'production_batch_id' => $value->production_batch_id,
                     'quantity' => $value->count,
                     'is_release' => $value->is_release,
-                    'production_batch_number' => ProductionBatchModel::find($value->production_batch_id)->batch_number,
-                    'item_code' => $value->item_code,
+                    'production_batch_number' => $productionBatchModel->batch_number,
+                    'production_batch_status' => $productionBatchModel->status,
+                    'item_code' => $productionBatchModel->item_code,
                     'production_order_number' => $value->productionBatch->productionOrder->reference_number
                 ];
                 ++$counter;

@@ -267,7 +267,7 @@ trait QueueSubLocationTrait
         }
     }
 
-    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockTransferReferenceNumber)
+    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockLogTransactionNumber)
     {
         try {
 
