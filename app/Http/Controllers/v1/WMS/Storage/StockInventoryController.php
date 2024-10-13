@@ -107,14 +107,13 @@ class StockInventoryController extends Controller
             $stockInventories = ItemMasterdataModel::select(
                 'im.item_code as item_code',
                 'im.description as description',
-                DB::raw('COALESCE(im.status, 0) as item_status'),
                 'im.id as id',
                 'ic.name as category',
                 DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
-                // DB::raw('CASE
-                //             WHEN si.status = 0 OR si.status IS NULL THEN "Inactive"
-                //             WHEN si.status = 1 THEN "Active"
-                //         END as stock_status')
+                DB::raw('CASE
+                            WHEN im.status = 0 OR im.status IS NULL THEN "Inactive"
+                            WHEN im.status = 1 THEN "Active"
+                        END as stock_status')
             )
                 ->from('wms_item_masterdata as im')
                 ->leftJoin('wms_item_categories as ic', 'im.item_category_id', '=', 'ic.id')
