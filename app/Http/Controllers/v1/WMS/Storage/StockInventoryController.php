@@ -107,7 +107,7 @@ class StockInventoryController extends Controller
             $stockInventories = ItemMasterdataModel::select(
                 'im.item_code as item_code',
                 'im.description as description',
-                'im.status as item_status',
+                DB::raw('COALESCE(im.status, 0) as item_status'),
                 'im.id as id',
                 'ic.name as category',
                 DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
