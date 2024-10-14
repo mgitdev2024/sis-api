@@ -303,35 +303,73 @@ class WarehouseReceivingController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $scannedItems = json_decode($fields['scanned_items'], true);
+            $substandardScannedItems = json_decode($fields['scanned_items'], true);
             $reason = $fields['reason'];
             $attachment = $fields['attachment'] ?? null;
             $locationId = 3; // Warehouse Receiving
-            foreach ($scannedItems as $itemDetails) {
-                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
-                $productionItem = $productionBatch->productionItems;
-                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-                $itemCode = $productionOrderToMake->item_code;
-                $inclusionArray = [2];
-                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
-                if ($flag) {
-                    $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
-                        ->where('production_order_id', $productionBatch->production_order_id)
-                        ->where('batch_number', $productionBatch->batch_number)
-                        ->where('item_code', $itemCode)
-                        ->first();
-                    if ($warehouseReceiving) {
-                        $warehouseReceivingProducedItems = json_decode($warehouseReceiving->produced_items, true);
-                        $warehouseReceivingProducedItems[$itemDetails['sticker_no']]['status'] = 1.1;
-                        $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
-                        $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
-                        $warehouseReceiving->save();
-                        $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
 
+            $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
+                ->where('created_by_id', $createdById)
+                ->orderBy('id', 'DESC')
+                ->first();
+
+            $forReceiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
+            $toBeLogged = [];
+            foreach ($forReceiveItemsArr as $key => &$forRecieveItem) {
+                $isItemSubstandard = false;
+                //Check for substandard items in the selection
+                foreach ($substandardScannedItems as $substandardItem) {
+                    if ($substandardItem['bid'] == $forRecieveItem['bid'] && $substandardItem['sticker_no'] == $forRecieveItem['sticker_no']) {
+                        $isItemSubstandard = true;
+                        break;
+                    }
+                }
+                $productionBatchModel = ProductionBatchModel::find($forRecieveItem['bid']);
+                $batchNumber = $productionBatchModel->batch_number;
+                $productionOrderId = $productionBatchModel->production_order_id;
+                $itemCode = $productionBatchModel->item_code;
+                $productionItemModel = $productionBatchModel->productionItems;
+                $inclusionArray = [2];
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItemModel->produced_items, true), $forRecieveItem['sticker_no'], $inclusionArray, []);
+
+                if ($flag) {
+                    $warehouseReceivingModel = WarehouseReceivingModel::where([
+                        'item_code' => $itemCode,
+                        'batch_number' => $batchNumber,
+                        'production_order_id' => $productionOrderId,
+                        'reference_number' => $referenceNumber
+                    ])->first();
+
+                    if ($warehouseReceivingModel) {
+                        $warehouseReceivingProductionItems = json_decode($warehouseReceivingModel->produced_items, true);
+                        if ($isItemSubstandard) {
+                            $warehouseReceivingProductionItems[$forRecieveItem['sticker_no']]['status'] = 1.1;
+                            $warehouseReceivingModel->substandard_quantity += 1;
+                            $warehouseReceivingSubstandardData = json_decode($warehouseReceivingModel->substandard_data, true) ?? [];
+                            $mergedItems = array_merge($warehouseReceivingSubstandardData, $forRecieveItem);
+                            $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
+
+                        } else {
+                            $warehouseReceivingProductionItems[$forRecieveItem['sticker_no']]['status'] = 2.1;
+                            $warehouseReceivingModel->received_quantity += 1;
+                        }
+                        $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
+                        $warehouseReceivingModel->save();
+
+                        $warehouseReceivingLogKey = "$warehouseReceivingModel->item_code-$warehouseReceivingModel->batch_number-$warehouseReceivingModel->production_order_id-$warehouseReceivingModel->reference_number";
+
+                        $toBeLogged[$warehouseReceivingLogKey] = $warehouseReceivingModel;
                     }
                 }
             }
 
+            if (count($toBeLogged) > 0) {
+                foreach ($toBeLogged as $logs) {
+                    $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $logs->id, $logs->getAttributes(), $createdById, 1);
+                }
+            }
+            $warehouseForReceiveItems->status = 0;
+            $warehouseForReceiveItems->save();
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,
