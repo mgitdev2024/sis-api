@@ -111,14 +111,15 @@ class StockInventoryController extends Controller
                 'ic.name as category',
                 DB::raw('COALESCE(si.stock_count, 0) as stock_count'),
                 DB::raw('CASE
-                            WHEN si.status = 0 OR si.status IS NULL THEN "Inactive"
-                            WHEN si.status = 1 THEN "Active"
+                            WHEN im.status = 0 OR im.status IS NULL THEN "Inactive"
+                            WHEN im.status = 1 THEN "Active"
                         END as stock_status')
             )
                 ->from('wms_item_masterdata as im')
                 ->leftJoin('wms_item_categories as ic', 'im.item_category_id', '=', 'ic.id')
                 ->leftJoin('wms_stock_inventories as si', 'im.id', '=', 'si.item_id')
-                ->orderByRaw('CASE WHEN si.status IS NULL THEN 1 ELSE 0 END, si.status DESC')
+                // ->orderByRaw('CASE WHEN si.status IS NULL THEN 1 ELSE 0 END, si.status DESC')
+                ->orderBy('stock_count', 'DESC')
                 ->get();
             $stockInventories->each->setAppends([]);
             return $this->dataResponse('success', 200, 'Stock Inventories ' . __('msg.record_found'), $stockInventories);

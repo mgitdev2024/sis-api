@@ -235,7 +235,21 @@ class WarehousePutAwayController extends Controller
     public function onGetById($id)
     {
         try {
-            return $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
+            $data = $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
+            $decodedData = json_decode($data->getContent(), true);
+            if (!isset($decodedData['success'])) {
+                throw new Exception('Record not found');
+            }
+
+            $productionItems = json_decode($decodedData['success']['data']['production_items'], true);
+
+            foreach ($productionItems as $key => &$item) {
+                if ($item['status'] != '3') {
+                    unset($productionItems[$key]);
+                }
+            }
+            $decodedData['success']['data']['production_items'] = json_encode(array_values($productionItems));
+            return $decodedData;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
