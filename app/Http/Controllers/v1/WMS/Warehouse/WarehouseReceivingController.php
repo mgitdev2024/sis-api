@@ -153,13 +153,19 @@ class WarehouseReceivingController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'scanned_items' => 'nullable|string', // {slid:1}
             'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
         ]);
         try {
             DB::beginTransaction();
             if ($fields['action'] == 0) {
-                $scannedItems = json_decode($fields['scanned_items'], true);
+                $warehouseForReceiveModel = WarehouseForReceiveModel::where([
+                    'reference_number' => $referenceNumber,
+                    'created_by_id' => $fields['created_by_id']
+                ])
+                    ->orderBy('id', 'DESC')
+                    ->first();
+
+                $scannedItems = json_decode($warehouseForReceiveModel->production_items, true);
                 $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
                 $this->onCreatePutAway($scannedItems, $referenceNumber, $fields['created_by_id']);
 
@@ -349,9 +355,6 @@ class WarehouseReceivingController extends Controller
                             $mergedItems = array_merge($warehouseReceivingSubstandardData, $forRecieveItem);
                             $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
 
-                        } else {
-                            $warehouseReceivingProductionItems[$forRecieveItem['sticker_no']]['status'] = 2.1;
-                            $warehouseReceivingModel->received_quantity += 1;
                         }
                         $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
                         $warehouseReceivingModel->save();
@@ -380,6 +383,14 @@ class WarehouseReceivingController extends Controller
             ]);
 
             $substandardController->onCreate($substandardRequest);
+
+            $warehouseReceivingController = new WarehouseReceivingController();
+            $createPutAwayRequest = new Request([
+                'created_by_id' => $createdById,
+                'action' => '0'
+            ]);
+
+            $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
