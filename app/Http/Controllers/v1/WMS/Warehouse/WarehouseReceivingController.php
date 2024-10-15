@@ -207,13 +207,16 @@ class WarehouseReceivingController extends Controller
                         ->first();
 
                     if ($warehouseReceiving) {
-                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->update(['status' => 0]);
+                        $discrepancyData = json_decode($warehouseReceiving->discrepancy_data, true);
+                        unset($discrepancyData[$itemDetails['sticker_no']]);
                         $warehouseProducedItems = json_decode($warehouseReceiving->produced_items, true);
                         $warehouseProducedItems[$itemDetails['sticker_no']]['status'] = '2.1';
                         $warehouseReceiving->produced_items = json_encode($warehouseProducedItems);
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
+                        $warehouseReceiving->discrepancy_data = json_encode($discrepancyData);
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
+                        WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                         $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
                     }
                 }
@@ -236,35 +239,28 @@ class WarehouseReceivingController extends Controller
             if (count($warehouseReceiving) <= 0) {
                 throw new Exception('Reference number already received');
             }
-            $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
-                ->where('created_by_id', $createdById)
-                ->orderBy('id', 'DESC')
-                ->first();
-            $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
-            // if (count($receiveItemsArr) <= 0) {
-            //     throw new Exception('There are no items to be received from this repository');
-            // }
+            // $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
+            //     ->where('created_by_id', $createdById)
+            //     ->orderBy('id', 'DESC')
+            //     ->first();
+            // $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
-                $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
-                $referenceItemId = ItemMasterdataModel::where('item_code', $warehouseReceivingCurrentItemCode)->first()->id;
-                $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
+                // $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
+                // $referenceItemId = ItemMasterdataModel::where('item_code', $warehouseReceivingCurrentItemCode)->first()->id;
+                // $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
-                // $producedItems = json_decode($productionItemModel->produced_items, true);
 
-                $discrepancy = [];
-                foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
-                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $referenceItemId);
-                    if (!$flag) {
-                        $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
-                        $discrepancy[] = $innerWarehouseReceivingValue;
-                    }
-                    unset($innerWarehouseReceivingValue);
-                }
-                $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+                // foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
+                //     $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $referenceItemId);
+                //     if (!$flag) {
+                //         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
+                //     }
+                //     unset($innerWarehouseReceivingValue);
+                // }
+                // $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
-                $warehouseReceivingValue->discrepancy_data = count($discrepancy) > 0 ? json_encode($discrepancy) : null;
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
