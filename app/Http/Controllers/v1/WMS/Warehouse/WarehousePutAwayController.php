@@ -40,16 +40,16 @@ class WarehousePutAwayController extends Controller
         $fields = $request->validate([
             'created_by_id' => 'required',
             'warehouse_receiving_reference_number' => 'required|exists:wms_warehouse_receiving,reference_number',
-            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'item_id' => 'required|exists:wms_item_masterdata,id',
             'production_items' => 'required|json',
             'received_quantity' => 'required|integer',
             'scanned_items' => 'required|json',
-            'temporary_storage_id' => 'required'
+            'temporary_storage_id' => 'nullable'
         ]);
         try {
             DB::beginTransaction();
             $warehousePutAwayModel = WarehousePutAwayModel::where('warehouse_receiving_reference_number', $fields['warehouse_receiving_reference_number'])
-                ->where('item_code', $fields['item_code'])
+                ->where('item_id', $fields['item_id'])
                 ->where('status', 0)
                 ->first();
 
@@ -102,8 +102,10 @@ class WarehousePutAwayController extends Controller
                         $remainingQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                         $receivedQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                     }
-                    $productionItemMerged = json_decode($warehousePutAwayModel->production_items, true);
-                    $warehousePutAwayModel->production_items = json_encode($productionItemMerged);
+                    $currentWarehouseItems = json_decode($warehousePutAwayModel->production_items, true);
+                    $value['status'] = 3;
+                    $currentWarehouseItems[] = $value;
+                    $warehousePutAwayModel->production_items = json_encode($currentWarehouseItems);
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
@@ -117,7 +119,7 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $warehousePutAwayModel->warehouse_receiving_reference_number)
                         ->where('production_order_id', $productionBatch->production_order_id)
                         ->where('batch_number', $productionBatch->batch_number)
-                        ->where('item_code', $fields['item_code'])
+                        ->where('item_code', $itemMasterdata->item_code)
                         ->first();
                     $warehouseReceivingProductionItems = json_decode($warehouseReceiving->produced_items, true);
                     $warehouseReceivingProductionItems[$value['sticker_no']]['status'] = 3; // Received
@@ -171,7 +173,7 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $warehouseReceivingReferenceNumber)
                         ->where('production_order_id', $productionBatch->production_order_id)
                         ->where('batch_number', $productionBatch->batch_number)
-                        ->where('item_code', $fields['item_code'])
+                        ->where('item_code', $itemMasterdata->item_code)
                         ->first();
                     $warehouseReceivingProductionItems = json_decode($warehouseReceiving->produced_items, true);
                     $warehouseReceivingProductionItems[$value['sticker_no']]['status'] = 3; // Received
@@ -190,11 +192,11 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->created_by_id = $fields['created_by_id'];
             $warehousePutAway->reference_number = $referenceNumber;
             $warehousePutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
-            $warehousePutAway->item_code = $fields['item_code'];
+            $warehousePutAway->item_id = $fields['item_id'];
             $warehousePutAway->production_items = json_encode($productionItems);
             $warehousePutAway->received_quantity = json_encode($remainingQuantity);
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
-            $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'];
+            $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'] ?? null;
             $warehousePutAway->save();
             $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $fields['created_by_id'], 0);
 
@@ -235,7 +237,21 @@ class WarehousePutAwayController extends Controller
     public function onGetById($id)
     {
         try {
-            return $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', 'itemMasterdata');
+            $data = $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
+            $decodedData = json_decode($data->getContent(), true);
+            if (!isset($decodedData['success'])) {
+                throw new Exception('Record not found');
+            }
+
+            $productionItems = json_decode($decodedData['success']['data']['production_items'], true);
+
+            foreach ($productionItems as $key => &$item) {
+                if ($item['status'] != '3') {
+                    unset($productionItems[$key]);
+                }
+            }
+            $decodedData['success']['data']['production_items'] = json_encode(array_values($productionItems));
+            return $decodedData;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -249,7 +265,7 @@ class WarehousePutAwayController extends Controller
         $orderFields = [
             'id' => 'ASC'
         ];
-        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, 'itemMasterdata', $orderFields, 'Warehouse Put Away');
+        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, ['itemMasterdata', 'subLocation'], $orderFields, 'Warehouse Put Away');
     }
     #endregion
 
@@ -306,18 +322,21 @@ class WarehousePutAwayController extends Controller
                 $productionItem = $productionBatch->productionItems;
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
-                $inclusionArray = ['2'];
+                $itemId = $productionOrderToMake->itemMasterdata->id;
+                $inclusionArray = ['3.1'];
                 $itemMasterdata = $productionOrderToMake->itemMasterdata;
                 $primaryUom = $itemMasterdata->uom->long_name ?? null;
                 $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
                 $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
                 if ($flag) {
                     $warehousePutAway = WarehousePutAwayModel::where('id', $warehouse_put_away_id)
-                        ->where('item_code', $itemCode)
+                        ->where('item_id', $itemId)
                         ->first();
                     if ($warehousePutAway) {
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
-                        $warehousePutAwayProducedItems[$itemDetails['sticker_no']]['status'] = 1.1;
+                        $stickerNumber = array_column($warehousePutAwayProducedItems, 'sticker_no');
+                        $stickerIndex = array_search(2, $stickerNumber);
+                        $warehousePutAwayProducedItems[$stickerIndex]['status'] = 1.1;
                         $warehousePutAway->production_items = json_encode($warehousePutAwayProducedItems);
                         $substandardQuantity = json_decode($warehousePutAway->substandard_quantity, true);
                         $remainingQuantity = json_decode($warehousePutAway->remaining_quantity, true);
@@ -345,10 +364,10 @@ class WarehousePutAwayController extends Controller
                         $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
                         $warehousePutAway->substandard_quantity = json_encode($substandardQuantity);
                         $warehousePutAway->save();
+
                     }
                 }
             }
-
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,
@@ -364,7 +383,7 @@ class WarehousePutAwayController extends Controller
             $queueSubLocationRequest = new Request([
                 'created_by_id' => $createdById,
                 'warehouse_put_away_id' => $warehousePutAwayId,
-                'item_code' => $itemCode,
+                'item_id' => $itemId,
             ]);
             $queueSubLocationController->onCreate($queueSubLocationRequest);
             DB::commit();
@@ -376,14 +395,14 @@ class WarehousePutAwayController extends Controller
         }
     }
 
-    public function onCompleteTransaction(Request $request, $warehouse_put_away_id)
+    public function onCompleteTransaction(Request $request, $put_away_reference_number)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $warehouse_put_away_id)
+            $warehousePutAway = WarehousePutAwayModel::where('reference_number', $put_away_reference_number)
                 ->where('status', 0)
                 ->firstOrFail();
 
@@ -397,9 +416,8 @@ class WarehousePutAwayController extends Controller
             foreach ($warehousePutAwayItem as $value) {
                 $productionItemModel = ProductionItemModel::where('production_batch_id', $value['bid'])->first();
                 $productionItem = json_decode($productionItemModel->produced_items, true)[$value['sticker_no']];
-                $subLocationId = $productionItem['sub_location']['sub_location_id'];
-                $subLocationLayer = $productionItem['sub_location']['layer_level'];
-
+                $subLocationId = $productionItem['sub_location']['sub_location_id'] ?? null;
+                $subLocationLayer = $productionItem['sub_location']['layer_level'] ?? null;
                 if ($productionItem['status'] != 13) {
                     $discrepancyArr[] = $value;
                 }
@@ -407,15 +425,15 @@ class WarehousePutAwayController extends Controller
             if (count($discrepancyArr) > 0) {
                 $warehousePutAway->discrepancy_data = json_encode($discrepancyArr);
             }
-            $queuedPermanentStorage = QueuedSubLocationModel::where([
-                'sub_location_id' => $subLocationId,
-                'layer_level' => $subLocationLayer,
-                'status' => 1
-            ])->first();
-            if ($queuedPermanentStorage) {
-                $queuedPermanentStorage->status = 0;
-                $queuedPermanentStorage->save();
-            }
+            // $queuedPermanentStorage = QueuedSubLocationModel::where([
+            //     'sub_location_id' => $subLocationId,
+            //     'layer_level' => $subLocationLayer,
+            //     'status' => 1
+            // ])->first();
+            // if ($queuedPermanentStorage) {
+            //     $queuedPermanentStorage->status = 0;
+            //     $queuedPermanentStorage->save();
+            // }
 
             if ($warehousePutAway) {
                 $temporaryStorageId = $warehousePutAway->temporary_storage_id;

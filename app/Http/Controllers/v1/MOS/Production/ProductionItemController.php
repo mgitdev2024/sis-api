@@ -65,7 +65,6 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
-        // 14.1 => 'For Transfer - In Process',
         #endregion
 
         $rules = [
@@ -240,8 +239,17 @@ class ProductionItemController extends Controller
                     $warehouseReceivingModel->save();
                 }
                 break;
-            // case 3:
-            // Add your code here for status 3
+            case 3:
+                $productionBatchModel->actual_quantity -= 1;
+                $productionBatchModel->actual_secondary_quantity -= $value['q'];
+                $productionBatchModel->save();
+                $productionActualQuantity = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionActualQuantity->actual_quantity -= 1;
+                $productionActualQuantity->actual_secondary_quantity -= $value['q'];
+                $productionActualQuantity->received_items_count -= 1;
+                $productionActualQuantity->save();
+                break;
+            // Add your code here for status 4
             // break;
 
         }
@@ -316,7 +324,6 @@ class ProductionItemController extends Controller
                 $itemCode = $productionBatch->item_code;
                 $producedItems = $productionItemsModel->produced_items;
                 $item = json_decode($producedItems, true)[$item_key];
-
                 $stickerStatus = $item['sticker_status'];
                 $itemStatus = $item['status'];
                 if ($itemStatus == 9) {
@@ -329,9 +336,11 @@ class ProductionItemController extends Controller
                 // ADDITIONAL INFO
                 $warehouseReceivingRefNo = $item['warehouse']['warehouse_receiving']['reference_number'] ?? null;
                 $subLocationArr = $item['sub_location'] ?? null;
+                $storedSubLocationArr = $item['stored_sub_location'] ?? null;
                 $stockTransferRefNo = $item['stock_transfer']['reference_number'] ?? null;
 
                 $data = [
+                    'item_id' => $itemMasterdata->id,
                     'item_code' => $itemCode,
                     'item_status' => $itemStatus,
                     'sticker_status' => $stickerStatus,
@@ -350,6 +359,10 @@ class ProductionItemController extends Controller
 
                 if ($subLocationArr) {
                     $data['sub_location'] = $subLocationArr;
+                }
+
+                if ($storedSubLocationArr) {
+                    $data['stored_sub_location'] = $storedSubLocationArr;
                 }
 
                 if ($stockTransferRefNo) {
@@ -380,6 +393,7 @@ class ProductionItemController extends Controller
             $itemDetails = [];
             $itemDetails['item'] = $value;
             $itemDetails['item']['item_code'] = $productionBatch->item_code;
+            $itemDetails['item']['item_id'] = $productionOrderToMake->itemMasterdata->id;
             $itemDetails['item_details'] = [
                 'batch_number' => $productionBatch->batch_number,
                 'item_description' => $productionOrderToMake->itemMasterdata->description,
@@ -458,6 +472,7 @@ class ProductionItemController extends Controller
                     $warehouseReceive->production_batch_id = $value['batch_id'];
                     $warehouseReceive->batch_number = $value['batch_number'];
                     $warehouseReceive->produced_items = json_encode($value['item']);
+                    $warehouseReceive->discrepancy_data = json_encode($value['item']);
                     $warehouseReceive->item_code = $value['item_code'];
                     $warehouseReceive->sku_type = $value['sku_type'];
                     $warehouseReceive->quantity = $value['qty'];

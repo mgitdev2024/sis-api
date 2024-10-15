@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
@@ -20,37 +21,50 @@ use App\Traits\MOS\MosCrudOperationsTrait;
 class WarehouseReceivingController extends Controller
 {
     use MosCrudOperationsTrait, QueueSubLocationTrait;
-    public function onGetAllCategory($status)
+    public function onGetAllCategory($status, $filter = null)
     {
         try {
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
-                'created_at',
+                DB::raw('MAX(created_at) as latest_created_at'),
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
-                DB::raw('SUM(JSON_LENGTH(produced_items))  as produced_items_count')
+                DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count') // discrepancy_data_count
             )
-                ->where('status', $status)
-                ->groupBy([
-                    'reference_number',
-                    'temporary_storage_id',
-                    'created_at'
-                ])
-                ->orderBy('created_at', 'DESC')
+                ->where('status', $status);
+            if ($status != 0) {
+                $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+                if ($whereObject) {
+                    $warehouseReceivingModel->whereDate('created_at', $filter);
+                } else {
+                    $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
+                    $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
+                    $warehouseReceivingModel->whereBetween('created_at', [$yesterday, $today]);
+                }
+            }
+
+            $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
+                'reference_number',
+                'temporary_storage_id'
+            ])
+                ->orderBy('latest_created_at', 'DESC')
                 ->get();
+
             $warehouseReceiving = [];
             $counter = 0;
             foreach ($warehouseReceivingModel as $value) {
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
-                    'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->created_at)) ?? null,
+                    'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_created_at)) ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
+                    'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
                 ];
                 ++$counter;
             }
@@ -71,7 +85,8 @@ class WarehouseReceivingController extends Controller
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
-                DB::raw('JSON_ARRAYAGG(produced_items) as aggregated_produced_items')
+                DB::raw('JSON_ARRAYAGG(produced_items) as aggregated_produced_items'),
+                DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count')
             )
                 ->where('status', $status)
                 ->where('reference_number', $referenceNumber)
@@ -109,14 +124,17 @@ class WarehouseReceivingController extends Controller
                         $producedItemsQuantity += $producedItemValue['q'];
                     }
                 }
+                $itemMasterdataModel = ItemMasterdataModel::where('item_code', $itemCode)->first();
                 $warehouseReceivingArr['warehouse_receiving_items'][] = [
                     'reference_number' => $value->reference_number,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
                     'substandard_quantity' => $value->substandard_quantity,
+                    'discrepancy_quantity' => $value->discrepancy_data_count ?? 0,
                     'item_code' => $itemCode,
-                    'sku_type' => ItemMasterdataModel::where('item_code', $itemCode)->first()->item_category_label,
-                    'produced_items' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
+                    'item_id' => $itemMasterdataModel->id,
+                    'sku_type' => $itemMasterdataModel->item_category_label,
+                    'produced_items_quantity' => $producedItemsQuantity <= 0 ? 1 : $producedItemsQuantity,
                 ];
             }
             if (count($warehouseReceivingArr) > 0) {
@@ -135,13 +153,19 @@ class WarehouseReceivingController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'scanned_items' => 'nullable|string', // {slid:1}
             'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
         ]);
         try {
             DB::beginTransaction();
             if ($fields['action'] == 0) {
-                $scannedItems = json_decode($fields['scanned_items'], true);
+                $warehouseForReceiveModel = WarehouseForReceiveModel::where([
+                    'reference_number' => $referenceNumber,
+                    'created_by_id' => $fields['created_by_id']
+                ])
+                    ->orderBy('id', 'DESC')
+                    ->first();
+
+                $scannedItems = json_decode($warehouseForReceiveModel->production_items, true);
                 $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
                 $this->onCreatePutAway($scannedItems, $referenceNumber, $fields['created_by_id']);
 
@@ -183,13 +207,19 @@ class WarehouseReceivingController extends Controller
                         ->first();
 
                     if ($warehouseReceiving) {
-                        $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->update(['status' => 0]);
+                        $discrepancyData = json_decode($warehouseReceiving->discrepancy_data, true) ?? [];
+                        if (isset($discrepancyData[$itemDetails['sticker_no']])) {
+                            unset($discrepancyData[$itemDetails['sticker_no']]);
+                        }
+
                         $warehouseProducedItems = json_decode($warehouseReceiving->produced_items, true);
                         $warehouseProducedItems[$itemDetails['sticker_no']]['status'] = '2.1';
                         $warehouseReceiving->produced_items = json_encode($warehouseProducedItems);
                         $warehouseReceiving->received_quantity = ++$warehouseReceiving->received_quantity;
+                        $warehouseReceiving->discrepancy_data = json_encode($discrepancyData);
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
+                        WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                         $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
                     }
                 }
@@ -212,34 +242,12 @@ class WarehouseReceivingController extends Controller
             if (count($warehouseReceiving) <= 0) {
                 throw new Exception('Reference number already received');
             }
-            $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
-                ->where('created_by_id', $createdById)
-                ->orderBy('id', 'DESC')
-                ->first();
-            $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
-            if (count($receiveItemsArr) <= 0) {
-                throw new Exception('There are no items to be received from this repository');
-            }
+
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
-                $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
-                $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
-                // $producedItems = json_decode($productionItemModel->produced_items, true);
-
-                $discrepancy = [];
-                foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
-                    $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $warehouseReceivingCurrentItemCode);
-                    if (!$flag) {
-                        $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
-                        $discrepancy[] = $innerWarehouseReceivingValue;
-                    }
-                    unset($innerWarehouseReceivingValue);
-                }
-                $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
-                $warehouseReceivingValue->discrepancy_data = json_encode($discrepancy);
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
@@ -250,11 +258,11 @@ class WarehouseReceivingController extends Controller
         }
     }
 
-    public function onCheckItemReceive($receiveItemsArr, $key, $value, $ReferenceItemCode)
+    public function onCheckItemReceive($receiveItemsArr, $key, $value, $referenceItemId)
     {
         try {
             foreach ($receiveItemsArr as $receiveValue) {
-                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_code'] == $ReferenceItemCode)) {
+                if (($receiveValue['bid'] == $value['bid']) && ($receiveValue['sticker_no'] == $key) && ($receiveValue['item_id'] == $referenceItemId)) {
                     return true;
                 }
             }
@@ -284,33 +292,70 @@ class WarehouseReceivingController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $scannedItems = json_decode($fields['scanned_items'], true);
+            $substandardScannedItems = json_decode($fields['scanned_items'], true);
             $reason = $fields['reason'];
             $attachment = $fields['attachment'] ?? null;
             $locationId = 3; // Warehouse Receiving
-            foreach ($scannedItems as $itemDetails) {
-                $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
-                $productionItem = $productionBatch->productionItems;
-                $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
-                $itemCode = $productionOrderToMake->item_code;
+
+            $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
+                ->where('created_by_id', $createdById)
+                ->orderBy('id', 'DESC')
+                ->first();
+
+            $forReceiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
+            $toBeLogged = [];
+            foreach ($forReceiveItemsArr as $key => &$forRecieveItem) {
+                $isItemSubstandard = false;
+                //Check for substandard items in the selection
+                foreach ($substandardScannedItems as $substandardItem) {
+                    if ($substandardItem['bid'] == $forRecieveItem['bid'] && $substandardItem['sticker_no'] == $forRecieveItem['sticker_no']) {
+                        $isItemSubstandard = true;
+                        break;
+                    }
+                }
+                $productionBatchModel = ProductionBatchModel::find($forRecieveItem['bid']);
+                $batchNumber = $productionBatchModel->batch_number;
+                $productionOrderId = $productionBatchModel->production_order_id;
+                $itemCode = $productionBatchModel->item_code;
+                $productionItemModel = $productionBatchModel->productionItems;
                 $inclusionArray = [2];
-                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItem->produced_items, true), $itemDetails['sticker_no'], $inclusionArray, []);
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItemModel->produced_items, true), $forRecieveItem['sticker_no'], $inclusionArray, []);
+
                 if ($flag) {
-                    $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
-                        ->where('production_order_id', $productionBatch->production_order_id)
-                        ->where('batch_number', $productionBatch->batch_number)
-                        ->where('item_code', $itemCode)
-                        ->first();
-                    if ($warehouseReceiving) {
-                        $warehouseReceivingProducedItems = json_decode($warehouseReceiving->produced_items, true);
-                        $warehouseReceivingProducedItems[$itemDetails['sticker_no']]['status'] = 1.1;
-                        $warehouseReceiving->produced_items = json_encode($warehouseReceivingProducedItems);
-                        $warehouseReceiving->substandard_quantity = ++$warehouseReceiving->substandard_quantity;
-                        $warehouseReceiving->save();
+                    $warehouseReceivingModel = WarehouseReceivingModel::where([
+                        'item_code' => $itemCode,
+                        'batch_number' => $batchNumber,
+                        'production_order_id' => $productionOrderId,
+                        'reference_number' => $referenceNumber
+                    ])->first();
+
+                    if ($warehouseReceivingModel) {
+                        $warehouseReceivingProductionItems = json_decode($warehouseReceivingModel->produced_items, true);
+                        if ($isItemSubstandard) {
+                            $warehouseReceivingProductionItems[$forRecieveItem['sticker_no']]['status'] = 1.1;
+                            $warehouseReceivingModel->substandard_quantity += 1;
+                            $warehouseReceivingSubstandardData = json_decode($warehouseReceivingModel->substandard_data, true) ?? [];
+                            $mergedItems = array_merge($warehouseReceivingSubstandardData, $forRecieveItem);
+                            $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
+
+                        }
+                        $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
+                        $warehouseReceivingModel->save();
+
+                        $warehouseReceivingLogKey = "$warehouseReceivingModel->item_code-$warehouseReceivingModel->batch_number-$warehouseReceivingModel->production_order_id-$warehouseReceivingModel->reference_number";
+
+                        $toBeLogged[$warehouseReceivingLogKey] = $warehouseReceivingModel;
                     }
                 }
             }
 
+            if (count($toBeLogged) > 0) {
+                foreach ($toBeLogged as $logs) {
+                    $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $logs->id, $logs->getAttributes(), $createdById, 1);
+                }
+            }
+            $warehouseForReceiveItems->status = 0;
+            $warehouseForReceiveItems->save();
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,
@@ -321,6 +366,14 @@ class WarehouseReceivingController extends Controller
             ]);
 
             $substandardController->onCreate($substandardRequest);
+
+            $warehouseReceivingController = new WarehouseReceivingController();
+            $createPutAwayRequest = new Request([
+                'created_by_id' => $createdById,
+                'action' => '0'
+            ]);
+
+            $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub-Standard ' . __('msg.create_success'));
 
@@ -337,12 +390,12 @@ class WarehouseReceivingController extends Controller
             $subLocationId = null;
             foreach ($scannedItems as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
-                $itemCode = $productionBatch->productionOta->itemMasterdata->item_code ?? $productionBatch->productionOtb->itemMasterdata->item_code;
+                $itemCode = $productionBatch->item_code;
                 if (!in_array($itemCode, $itemCodeArr)) {
                     $itemCodeArr[] = $itemCode;
                 }
                 $productionItem = json_decode($productionBatch->productionItems->produced_items, true);
-                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'];
+                $subLocationId = $productionItem[$value['sticker_no']]['sub_location']['sub_location_id'] ?? null;
             }
             $warehouseReceivingArr = [];
             foreach ($itemCodeArr as $itemCode) {
@@ -383,7 +436,7 @@ class WarehouseReceivingController extends Controller
                     'warehouse_receiving_reference_number' => $warehouseReceiving['reference_number'],
                     'received_quantity' => $warehouseReceiving['received_quantity'],
                     'production_items' => json_encode($mergedProducedItemsContainer),
-                    'item_code' => $warehouseReceiving['item_code'],
+                    'item_id' => ItemMasterdataModel::where('item_code', $warehouseReceiving['item_code'])->first()->id,
                     'scanned_items' => json_encode($scannedItems),
                     'temporary_storage_id' => $subLocationId
                 ]);

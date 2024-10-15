@@ -40,6 +40,7 @@ class QueuedTemporaryStorageController extends Controller
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
+                $itemId = $productionOrderToMake->itemMasterdata->id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
                 $warehouse = $producedItem['warehouse'];
@@ -50,8 +51,11 @@ class QueuedTemporaryStorageController extends Controller
                     $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
+                        'item_id' => $itemId,
                         'sticker_no' => $stickerNumber,
-                        'q' => $producedItem['q']
+                        'q' => $producedItem['q'],
+                        'batch_code' => $producedItem['batch_code'],
+                        'parent_batch_code' => $producedItem['parent_batch_code']
                     ];
                 }
             }

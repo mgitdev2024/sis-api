@@ -14,9 +14,11 @@ class StockTransferItemModel extends Model
 
     protected $table = 'wms_stock_transfer_items';
 
+    protected $appends = ['item_code_label'];
+
     protected $fillable = [
         'stock_transfer_list_id',
-        'item_code',
+        'item_id',
         'selected_items',
         'initial_stock',
         'transfer_quantity',
@@ -46,7 +48,7 @@ class StockTransferItemModel extends Model
 
     public function ItemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 
     public static function onGenerateOriginLocation($subLocationId, $layerLevel)
@@ -57,5 +59,11 @@ class StockTransferItemModel extends Model
 
         $originLocation = "{$zoneShortName} {$subLocationCode} L{$layerLevel}";
         return $originLocation;
+    }
+
+    public function getItemCodeLabelAttribute()
+    {
+        $itemCode = ItemMasterdataModel::where('id', $this->item_id)->value('item_code');
+        return $itemCode;
     }
 }

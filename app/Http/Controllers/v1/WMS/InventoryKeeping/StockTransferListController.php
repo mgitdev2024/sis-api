@@ -40,7 +40,7 @@ class StockTransferListController extends Controller
                     $stockTransferItemModel->stock_transfer_list_id = $latestId;
                     $stockTransferItemModel->zone_id = $items['zone_id'];
                     $stockTransferItemModel->sub_location_id = $items['sub_location_id'];
-                    $stockTransferItemModel->item_code = $items['item_code'];
+                    $stockTransferItemModel->item_id = $items['item_id'];
                     $stockTransferItemModel->origin_location = $items['origin_location'];
                     $stockTransferItemModel->initial_stock = $items['initial_stock'];
                     $stockTransferItemModel->transfer_quantity = $items['transfer_quantity'];
@@ -101,7 +101,7 @@ class StockTransferListController extends Controller
         try {
             $stockTransferListModel = StockTransferListModel::with('stockTransferItems')->find($id);
             foreach ($stockTransferListModel->stockTransferItems as $item) {
-                $item->item_description = ItemMasterdataModel::where('item_code', $item['item_code'])->value('description');
+                $item->item_description = ItemMasterdataModel::find($item['item_id'])->value('description');
             }
             $stockTransferListModel->formatted_date = date('Y-m-d h:i:A', strtotime($stockTransferListModel->created_at));
             $fullName = $this->onGetName($stockTransferListModel->created_by_id);

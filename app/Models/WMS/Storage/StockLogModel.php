@@ -14,7 +14,7 @@ class StockLogModel extends Model
 
     protected $fillable = [
         'reference_number',
-        'item_code',
+        'item_id',
         'action', // 1 = In, 0 = Out;
         'quantity',
         'sub_location_id',
@@ -26,11 +26,18 @@ class StockLogModel extends Model
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 
     public function subLocation()
     {
         return $this->belongsTo(SubLocationModel::class, 'sub_location_id', 'id');
+    }
+
+    public static function onGetCurrentTransactionNumber()
+    {
+        $latestTransactionNumber = static::latest()->value('transaction_number');
+
+        return $latestTransactionNumber ?? 0;
     }
 }

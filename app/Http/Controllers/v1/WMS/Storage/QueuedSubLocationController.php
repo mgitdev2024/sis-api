@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
 use App\Traits\ResponseTrait;
@@ -21,14 +22,14 @@ class QueuedSubLocationController extends Controller
     {
         $fields = $request->validate([
             'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
-            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'item_id' => 'required|exists:wms_item_masterdata,id',
             'created_by_id' => 'required',
             'storage_full_scanned_items' => 'nullable|json'
         ]);
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
                 'warehouse_put_away_id' => $fields['warehouse_put_away_id'],
-                'item_code' => $fields['item_code'],
+                'item_id' => $fields['item_id'],
                 'status' => 1
             ])->first();
 
@@ -129,6 +130,7 @@ class QueuedSubLocationController extends Controller
             $warehousePutAwayModel->save();
             if ($encodedPutAwayItems != null) {
                 $warehouseForPutAway->production_items = $encodedPutAwayItems;
+                $warehouseForPutAway->transfer_items = null;
                 $warehouseForPutAway->save();
             } else {
                 // Warehouse Receive if already no more item to be received
@@ -144,11 +146,11 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onGetCurrent($sub_location_id, $item_code)
+    public function onGetCurrent($sub_location_id, $item_id)
     {
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
-                'item_code' => $item_code,
+                'item_id' => $item_id,
                 'sub_location_id' => $sub_location_id,
                 'status' => 1
             ])->first();
@@ -189,6 +191,7 @@ class QueuedSubLocationController extends Controller
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
+                $itemId = $productionOrderToMake->itemMasterdata->id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
                 $warehouse = $producedItem['warehouse'];
@@ -199,6 +202,7 @@ class QueuedSubLocationController extends Controller
                     $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
+                        'item_id' => $itemId,
                         'sticker_no' => $stickerNumber,
                         'q' => $producedItem['q']
                     ];
@@ -224,11 +228,22 @@ class QueuedSubLocationController extends Controller
                     $itemsPerBatchArr[$batchId][] = $scannedValue;
                 }
             }
-
             if (count($itemsPerBatchArr) > 0) {
+                $latestStockTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
+                    $this->onQueueStorage(
+                        $createdById,
+                        $itemValue,
+                        $subLocationId,
+                        true,
+                        $layerLevel,
+                        ProductionItemModel::class,
+                        $productionId,
+                        $referenceNumber,
+                        1,
+                        $latestStockTransactionNumber
+                    );
                 }
             }
 

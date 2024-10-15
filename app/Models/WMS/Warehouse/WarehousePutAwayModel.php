@@ -3,6 +3,7 @@
 namespace App\Models\WMS\Warehouse;
 
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ class WarehousePutAwayModel extends Model
     protected $fillable = [
         'warehouse_receiving_reference_number',
         'reference_number',
-        'item_code',
+        'item_id',
         'production_items',
         'transfer_items',
         'received_quantity',
@@ -33,12 +34,16 @@ class WarehousePutAwayModel extends Model
 
     public function itemMasterdata()
     {
-        return $this->belongsTo(ItemMasterdataModel::class, 'item_code', 'item_code');
+        return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
     }
 
     public function queuedTemporaryStorage()
     {
         return $this->belongsTo(QueuedTemporaryStorageModel::class, 'temporary_storage_id');
+    }
 
+    public function subLocation()
+    {
+        return $this->belongsTo(SubLocationModel::class, 'temporary_storage_id');
     }
 }

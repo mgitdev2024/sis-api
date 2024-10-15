@@ -42,7 +42,7 @@ class ProductionOrderController extends Controller
     }
     public function onGetAll()
     {
-        return $this->readRecord(ProductionOrderModel::class, 'Production Order');
+        return $this->readRecord(ProductionOrderModel::class, 'Production Order', null, ['key' => 'id', 'value' => 'DESC']);
     }
     public function onGetById($id)
     {
@@ -128,7 +128,7 @@ class ProductionOrderController extends Controller
                 $itemMasterdata = ItemMasterdataModel::where('item_code', $value['item_code'])
                     ->first();
                 if (!$itemMasterdata) {
-                    continue;
+                    return $this->dataResponse('error', 200, "No Item Masterdata found. Please check the item code: " . $value['item_code'] . ".");
                 }
 
                 $itemMasterDataCounter++;
@@ -223,7 +223,7 @@ class ProductionOrderController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, $exception->getMessage());
+            return $this->dataResponse('error', 400, 'Bulk upload failed: Check the file and try again.');
         }
 
     }

@@ -12,6 +12,7 @@ use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
+use App\Models\WMS\Storage\StockLogModel;
 use App\Traits\WMS\QueueSubLocationTrait;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
@@ -147,6 +148,7 @@ class StockRequestForTransferController extends Controller
     {
         $fields = $request->validate([
             'updated_by_id' => 'required',
+            'scanned_items' => 'nullable|json',
         ]);
 
         try {
@@ -161,7 +163,9 @@ class StockRequestForTransferController extends Controller
                 $subLocationId = $stockRequestForTransferModel->sub_location_id;
                 $layerLevel = $stockRequestForTransferModel->layer_level;
                 $stockRequestForTransferModelProductionItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true);
-                $scannedItems = json_decode($stockRequestForTransferModel->scanned_items, true);
+                $scannedItems = isset($fields['scanned_items']) && count(json_decode($fields['scanned_items'], true)) > 0
+                    ? json_decode($fields['scanned_items'], true)
+                    : json_decode($stockRequestForTransferModel->scanned_items, true);
 
                 $this->onQueueSubLocation($updatedById, $scannedItems, $stockRequestForTransferModelProductionItems, $subLocationId, $layerLevel, $stockRequestForTransferModel->stockTransferList->reference_number);
                 $this->onUpdateStockRequestTransfer($stockRequestForTransferModel, $stockRequestForTransferModel->stockTransferItem, $scannedItems, $updatedById);
@@ -307,9 +311,21 @@ class StockRequestForTransferController extends Controller
                 }
             }
             if (count($itemsPerBatchArr) > 0) {
+                $latestStockTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
                 foreach ($itemsPerBatchArr as $key => $itemValue) {
                     $productionId = ProductionItemModel::where('production_batch_id', $key)->pluck('id')->first();
-                    $this->onQueueStorage($createdById, $itemValue, $subLocationId, true, $layerLevel, ProductionItemModel::class, $productionId, $referenceNumber);
+                    $this->onQueueStorage(
+                        $createdById,
+                        $itemValue,
+                        $subLocationId,
+                        true,
+                        $layerLevel,
+                        ProductionItemModel::class,
+                        $productionId,
+                        $referenceNumber,
+                        1,
+                        $latestStockTransactionNumber
+                    );
                 }
             }
 
@@ -384,7 +400,8 @@ class StockRequestForTransferController extends Controller
                     $restructuredArray[$batchCode] = $item;
                 }
                 $subLocationDetails['reference_number'] = $stockRequestForTransferModel->stockTransferItem->stockTransferList->reference_number;
-                $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->item_code;
+                $subLocationDetails['item_id'] = $stockRequestForTransferModel->stockTransferItem->item_id;
+                $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->itemMasterdata->item_code;
                 $subLocationDetails['scanned_items'] = $restructuredArray;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);

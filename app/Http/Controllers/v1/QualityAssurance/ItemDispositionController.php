@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\QualityAssurance;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
@@ -199,12 +200,15 @@ class ItemDispositionController extends Controller
             $batchDisposition = [];
             $counter = 0;
             foreach ($itemDisposition as $value) {
+                $productionBatchModel = ProductionBatchModel::find($value->production_batch_id);
                 $batchDisposition[$counter] = [
                     'production_batch_id' => $value->production_batch_id,
                     'quantity' => $value->count,
                     'is_release' => $value->is_release,
-                    'production_batch_number' => ProductionBatchModel::find($value->production_batch_id)->batch_number,
-                    'production_orders_to_make' => $value->productionBatch->productionOtb ?? $value->productionBatch->productionOta
+                    'production_batch_number' => $productionBatchModel->batch_number,
+                    'production_batch_status' => ProductionOrderModel::find($productionBatchModel->production_order_id)->status,
+                    'item_code' => $productionBatchModel->item_code,
+                    'production_order_number' => $value->productionBatch->productionOrder->reference_number
                 ];
                 ++$counter;
             }
@@ -220,21 +224,52 @@ class ItemDispositionController extends Controller
     public function onGetCurrent($id, $type = null)
     {
         try {
-            $itemDisposition = ItemDispositionModel::where('production_batch_id', $id);
+            $itemDisposition = ItemDispositionModel::select(
+                'id',
+                'quantity_update',
+                'produced_items',
+                'production_batch_id',
+                'item_key',
+                'item_code',
+                'type',
+                'production_type',
+                'aging_period',
+                'action',
+                'status',
+                'is_release',
+                'created_at',
+            )
+                ->where('production_batch_id', $id);
             if ($type != null) {
                 $itemDisposition->where('type', $type);
             }
             $data = $itemDisposition->get();
+
             if (count($data) > 0) {
+                $collections = [];
                 foreach ($data as $value) {
+                    $dataset = [];
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
-
-                    $value['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
-                    $value['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
-
+                    $dataset['id'] = $value['id'];
+                    $dataset['quantity_update'] = $value['quantity_update'];
+                    $dataset['produced_items'] = $value['produced_items'];
+                    $dataset['production_batch_id'] = $value['production_batch_id'];
+                    $dataset['item_key'] = $value['item_key'];
+                    $dataset['item_code'] = $value['item_code'];
+                    $dataset['type'] = $value['type'];
+                    $dataset['production_type'] = $value['production_type'];
+                    $dataset['aging_period'] = $value['aging_period'];
+                    $dataset['action'] = $value['action'];
+                    $dataset['status'] = $value['status'];
+                    $dataset['is_release'] = $value['is_release'];
+                    $dataset['created_at'] = $value['created_at'];
+                    $dataset['batch_code'] = json_decode($value['produced_items'], true)[$value['item_key']]['batch_code'];
+                    $dataset['can_sticker_update'] = strcasecmp($primaryConversionUnit, 'Pieces') == 0;
+                    $dataset['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
+                    $collections[] = $dataset;
                 }
-                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+                return $this->dataResponse('success', 200, __('msg.record_found'), $collections);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {

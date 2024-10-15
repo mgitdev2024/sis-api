@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
@@ -25,7 +26,7 @@ class WarehouseForPutAwayController extends Controller
             'production_items' => 'required|json',
             'warehouse_receiving_reference_number' => 'required|exists:wms_warehouse_receiving,reference_number',
             'warehouse_put_away_id' => 'required|exists:wms_warehouse_put_away,id',
-            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'item_id' => 'required|exists:wms_item_masterdata,id',
             'sub_location_id' => 'nullable|exists:wms_storage_sub_locations,id',
         ];
     }
@@ -35,7 +36,7 @@ class WarehouseForPutAwayController extends Controller
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
                 'warehouse_put_away_id' => $fields['warehouse_put_away_id'],
-                'item_code' => $fields['item_code'],
+                'item_id' => $fields['item_id'],
             ])->first();
             $data = null;
             if (!$warehouseForPutAway) {
@@ -59,7 +60,7 @@ class WarehouseForPutAwayController extends Controller
     {
         $fields = $request->validate([
             'warehouse_receiving_reference_number' => 'required|exists:wms_warehouse_receiving,reference_number',
-            'item_code' => 'required|exists:wms_item_masterdata,item_code',
+            'item_id' => 'required|exists:wms_item_masterdata,id',
             'sub_location_id' => 'required|exists:wms_storage_sub_locations,id',
             'layer_level' => 'required|integer',
             'updated_by_id' => 'required'
@@ -67,7 +68,7 @@ class WarehouseForPutAwayController extends Controller
         try {
             $warehouseForPutAwayModel = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)
                 ->where('warehouse_receiving_reference_number', $fields['warehouse_receiving_reference_number'])
-                ->where('item_code', $fields['item_code'])
+                ->where('item_id', $fields['item_id'])
                 ->orderBy('id', 'DESC')
                 ->first();
             if ($warehouseForPutAwayModel) {
@@ -87,7 +88,6 @@ class WarehouseForPutAwayController extends Controller
                 $isStorageTypeMismatch = !($permanentSubLocation->zone->storage_type_id === $itemMasterdata->storage_type_id);
 
                 $data = [];
-
 
                 if ($isStorageTypeMismatch) {
                     $message = [
@@ -130,7 +130,6 @@ class WarehouseForPutAwayController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
-
         }
     }
 
@@ -205,11 +204,23 @@ class WarehouseForPutAwayController extends Controller
             ->where('status', 1)
             ->orderBy('id', 'DESC')
             ->first();
-
         if ($warehouseForReceive) {
-            return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseForReceive);
+            $data = $warehouseForReceive;
+            $warehouseProductionItems = json_decode($data->production_items, true) ?? [];
+            $warehouseTransferItems = json_decode($data->transfer_items, true) ?? [];
+            foreach ($warehouseProductionItems as &$items) {
+                $items['item_code'] = ItemMasterdataModel::where('id', $items['item_id'])->first()->item_code;
+                unset($items);
+            }
+            foreach ($warehouseTransferItems as &$items) {
+                $items['item_code'] = ItemMasterdataModel::where('id', $items['item_id'])->first()->item_code;
+                unset($items);
+            }
+            $data->production_items = json_encode($warehouseProductionItems);
+            $data->transfer_items = json_encode($warehouseTransferItems);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         }
-        return $this->dataResponse('success', 200, __('msg.record_not_found'), $warehouseForReceive);
+        return $this->dataResponse('success', 200, __('msg.record_not_found'));
     }
     public function onDelete($warehouse_put_away_id)
     {

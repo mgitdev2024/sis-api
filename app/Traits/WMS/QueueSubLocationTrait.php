@@ -19,7 +19,7 @@ trait QueueSubLocationTrait
 {
     use ResponseTrait, WarehouseLogTrait, ProductionLogTrait;
 
-    public function onQueueStorage($createdById, $scannedItems, $subLocationId, $isPermanent, $layerLevel = null, $entityModel = null, $entityId = null, $referenceNumber = null, $action = 1)
+    public function onQueueStorage($createdById, $scannedItems, $subLocationId, $isPermanent, $layerLevel = null, $entityModel = null, $entityId = null, $referenceNumber = null, $action = 1, $stockLogTransactionNumber = null)
     {
         try {
             $entityDetails = [
@@ -29,7 +29,7 @@ trait QueueSubLocationTrait
             $data = null;
             DB::beginTransaction();
             if ($isPermanent) {
-                $data = $this->onQueuePermanentStorage($createdById, $scannedItems, $subLocationId, $layerLevel, $entityDetails, $referenceNumber, $action);
+                $data = $this->onQueuePermanentStorage($createdById, $scannedItems, $subLocationId, $layerLevel, $entityDetails, $referenceNumber, $action, $stockLogTransactionNumber);
             } else {
                 $data = $this->onQueueTemporaryStorage($createdById, $scannedItems, $subLocationId, $referenceNumber);
             }
@@ -44,7 +44,7 @@ trait QueueSubLocationTrait
             return $this->dataResponse('error', 400, $exception);
         }
     }
-    public function onQueuePermanentStorage($createdById, $scannedItems, $subLocationId, $layerLevel, $entityDetails, $referenceNumber, $action)
+    public function onQueuePermanentStorage($createdById, $scannedItems, $subLocationId, $layerLevel, $entityDetails, $referenceNumber, $action, $stockLogTransactionNumber)
     {
         try {
             $subLocation = SubLocationModel::where('id', $subLocationId)
@@ -64,11 +64,11 @@ trait QueueSubLocationTrait
                 $currentLayerCapacity = $queuedPermanentStorageModel->storage_remaining_space;
             }
 
-            $itemCode = null;
+            $itemId = null;
             $currentScannedItems = [];
             foreach ($scannedItems as $value) {
                 if ($currentLayerCapacity > 0) {
-                    $itemCode = $value['item_code'];
+                    $itemId = $value['item_id'];
                     $currentScannedItems[] = $value;
                     --$currentLayerCapacity;
 
@@ -85,44 +85,53 @@ trait QueueSubLocationTrait
             $queuePermanentStorage->created_by_id = $createdById;
             $queuePermanentStorage->save();
             $this->createWarehouseLog($entityDetails['entity_model'], $entityDetails['entity_id'], QueuedSubLocationModel::class, $queuePermanentStorage->id, $queuePermanentStorage->getAttributes(), $createdById, 0);
-            $this->onCreateStockLogs($itemCode, 1, count($currentScannedItems), $subLocationId, $layerLevel, $currentLayerCapacity, $createdById, $referenceNumber);
+            $this->onCreateStockLogs($itemId, $action, count($currentScannedItems), $subLocationId, $layerLevel, $currentLayerCapacity, $createdById, $referenceNumber, $stockLogTransactionNumber);
             return $queuePermanentStorage->getAttributes();
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
 
-    public function onCreateStockLogs($itemCode, $action, $quantity, $subLocationId, $layerLevel, $storageRemainingSpace, $createdById, $referenceNumber)
+    public function onCreateStockLogs($itemId, $action, $quantity, $subLocationId, $layerLevel, $storageRemainingSpace, $createdById, $referenceNumber, $stockLogTransactionNumber)
     {
         try {
-            $stockInventory = StockInventoryModel::where('item_code', $itemCode)->first();
+            $stockInventory = StockInventoryModel::where('item_id', $itemId)->first();
             $currentStock = 0;
             if ($stockInventory) {
                 $currentStock = $stockInventory->stock_count;
             }
             $totalCurrentStock = $action == 1 ? $currentStock + $quantity : $currentStock - $quantity;
-            $stockLogs = new StockLogModel();
-            $stockLogs->item_code = $itemCode;
-            $stockLogs->action = $action;
-            $stockLogs->quantity = $quantity;
-            $stockLogs->initial_stock = $currentStock;
-            $stockLogs->final_stock = $totalCurrentStock;
-            $stockLogs->sub_location_id = $subLocationId;
-            $stockLogs->layer_level = $layerLevel;
-            $stockLogs->reference_number = $referenceNumber;
-            $stockLogs->storage_remaining_space = $storageRemainingSpace;
-            $stockLogs->created_by_id = $createdById;
-            $stockLogs->save();
-            $this->onCreateUpdateStockInventories($itemCode, $action, $quantity, $createdById);
+            $existingStockLogs = StockLogModel::where('transaction_number', $stockLogTransactionNumber)->first();
+            if ($existingStockLogs) {
+                $existingStockLogs->quantity += $quantity;
+                $existingStockLogs->final_stock = $totalCurrentStock;
+                $existingStockLogs->save();
+            } else {
+                $stockLogs = new StockLogModel();
+                $stockLogs->item_id = $itemId;
+                $stockLogs->action = $action;
+                $stockLogs->quantity = $quantity;
+                $stockLogs->initial_stock = $currentStock;
+                $stockLogs->final_stock = $totalCurrentStock;
+                $stockLogs->sub_location_id = $subLocationId;
+                $stockLogs->layer_level = $layerLevel;
+                $stockLogs->reference_number = $referenceNumber;
+                $stockLogs->storage_remaining_space = $storageRemainingSpace;
+                $stockLogs->created_by_id = $createdById;
+                $stockLogs->transaction_number = $stockLogTransactionNumber;
+                $stockLogs->save();
+            }
+
+            $this->onCreateUpdateStockInventories($itemId, $action, $quantity, $createdById);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
 
-    public function onCreateUpdateStockInventories($itemCode, $action, $quantity, $createdById)
+    public function onCreateUpdateStockInventories($itemId, $action, $quantity, $createdById)
     {
         try {
-            $stockInventoryModel = StockInventoryModel::where('item_code', $itemCode)->first();
+            $stockInventoryModel = StockInventoryModel::where('item_id', $itemId)->first();
             if ($stockInventoryModel) {
                 if ($action == 1) {
                     $stockInventoryModel->stock_count += $quantity;
@@ -132,7 +141,7 @@ trait QueueSubLocationTrait
                 $stockInventoryModel->updated_by_id = $createdById;
             } else {
                 $stockInventoryModel = new StockInventoryModel();
-                $stockInventoryModel->item_code = $itemCode;
+                $stockInventoryModel->item_id = $itemId;
                 $stockInventoryModel->stock_count = $quantity;
             }
             $stockInventoryModel->created_by_id = $createdById;
@@ -192,14 +201,14 @@ trait QueueSubLocationTrait
                     if ($producedItems[$value['sticker_no']]['status'] == 14) {
                         $storedSubLocationId = $producedItems[$value['sticker_no']]['sub_location']['sub_location_id'];
                         $storedLayerIndex = $producedItems[$value['sticker_no']]['sub_location']['layer_level'];
-                        $itemCode = $productionBatchModel->item_code;
+                        $itemId = $productionBatchModel->productionOta->itemMasterdata->id ?? $productionBatchModel->productionOtb->itemMasterdata->id;
 
-                        $storedItemArrayKey = "{$storedSubLocationId}-{$storedLayerIndex}-{$itemCode}";
+                        $storedItemArrayKey = "{$storedSubLocationId}-{$storedLayerIndex}-{$itemId}";
                         if (!isset($itemsToBeAdjusted[$storedItemArrayKey])) {
                             $itemsToBeAdjusted[$storedItemArrayKey] = [
                                 'stored_sub_location_id' => $storedSubLocationId,
                                 'stored_layer_level' => $storedLayerIndex,
-                                'item_code' => $itemCode,
+                                'item_id' => $itemId,
                                 'produced_items' => []
                             ];
                         }
@@ -224,7 +233,8 @@ trait QueueSubLocationTrait
             }
 
             if (count($itemsToBeAdjusted) > 0) {
-                $this->onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber);
+                $stockLogTransactionNumber = StockLogModel::onGetCurrentTransactionNumber() + 1;
+                $this->onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockLogTransactionNumber);
             }
 
             return $queueTemporaryStorageArr;
@@ -246,6 +256,7 @@ trait QueueSubLocationTrait
             ];
             $items[$stickerNumber]['sub_location'] = $subLocation;
             if ($isPermanent) {
+                $items[$stickerNumber]['stored_sub_location'] = $subLocation;
                 $items[$stickerNumber]['status'] = 13; // stored
             }
             $productionItem->produced_items = json_encode($items);
@@ -256,7 +267,7 @@ trait QueueSubLocationTrait
         }
     }
 
-    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber)
+    public function onDecrementStorageAndStock($itemsToBeAdjusted, $createdById, $referenceNumber, $stockLogTransactionNumber)
     {
         try {
 
@@ -296,7 +307,7 @@ trait QueueSubLocationTrait
 
                 }
                 // DECREMENT STOCK INVENTORY AND CREATE STOCK LOG
-                $this->onCreateStockLogs($itemDetails['item_code'], 0, count($itemDetails['produced_items']), $itemDetails['stored_sub_location_id'], $itemDetails['stored_layer_level'], $storageRemainingSpace, $createdById, $referenceNumber);
+                $this->onCreateStockLogs($itemDetails['item_id'], 0, count($itemDetails['produced_items']), $itemDetails['stored_sub_location_id'], $itemDetails['stored_layer_level'], $storageRemainingSpace, $createdById, $referenceNumber, $stockLogTransactionNumber);
             }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -374,7 +385,7 @@ trait QueueSubLocationTrait
             $subLocationStorageSpace = $queuedModel::where([
                 'sub_location_id' => $subLocationId,
                 'layer_level' => $layer
-            ])->first();
+            ])->orderBy('id', 'DESC')->first();
 
             if ($subLocationStorageSpace) {
                 $remainingCapacity = $subLocationStorageSpace->storage_remaining_space;
@@ -406,7 +417,7 @@ trait QueueSubLocationTrait
                 $queuedSubLocation = QueuedSubLocationModel::where([
                     'sub_location_id' => $subLocationId,
                     'layer_level' => $layer
-                ])->first();
+                ])->orderBy('id', 'DESC')->first();
                 if ($queuedSubLocation) {
                     $subLocationDefaultCapacity = $queuedSubLocation->storage_remaining_space;
                 }

@@ -7,20 +7,21 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('app:archive-production-log-command')->everyMinute();
+        // ->cron('0 0 1,15 * *'); // Runs every 1st and 15th of the month
+        /*
+        $schedule->command('app:your-command')->everyMinute(); // Runs every minute
+        $schedule->command('app:your-command')->hourly(); // Runs every hour
+        $schedule->command('app:your-command')->dailyAt('13:00'); // Runs daily at 1 PM
+        $schedule->command('app:your-command')->cron('* /15 * * * *'); // Custom cron expression (every 15 minutes)
+         */
     }
 
-    /**
-     * Register the commands for the application.
-     */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

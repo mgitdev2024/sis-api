@@ -133,8 +133,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], 
 
 });
 
-
-
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], function () {
     #region Item Category
     Route::post('v1/item/category/create', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemCategoryController::class, 'onCreate']);
@@ -373,7 +371,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Warehouse Receiving
-    Route::get('v1/warehouse/receive/category/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
+    Route::get('v1/warehouse/receive/category/{status}/{production_order_id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetAllCategory']);
     Route::get('v1/warehouse/receive/current/{reference_number}/{status}/{received_status?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/receive/get/{id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetById']);
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
@@ -386,7 +384,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/put-away/sub-standard/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
     Route::get('v1/warehouse/put-away/current/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
-    Route::post('v1/warehouse/put-away/complete-transaction/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
+    Route::post('v1/warehouse/put-away/complete-transaction/{put_away_reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Warehouse For Put Away
@@ -405,25 +403,26 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
 
     #region Queued Permanent Storage
     Route::post('v1/queue/storage/permanent/create', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onCreate']);
-    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_code}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
+    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
     Route::get('v1/queue/storage/permanent/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetStatus']);
     #endregion
 
     #region Item Stocks Logs
-    Route::get('v1/item/stock/logs/get/{item_code}/{date?}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
+    Route::get('v1/item/stock/logs/get/{item_id}/{date?}', [App\Http\Controllers\v1\WMS\Storage\StockLogController::class, 'onGetByItemCode']);
     #endregion
 
     #region Item Stocks Inventory
-    Route::get('v1/item/stock/inventory/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemCode']);
+    Route::get('v1/item/stock/inventory/get/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetByItemId']);
     Route::post('v1/item/stock/inventory/bulk', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onBulk']);
     Route::post('v1/item/stock/inventory/update/{id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onUpdate']);
     Route::get('v1/item/stock/inventory/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAll']);
-    Route::get('v1/item/stock/inventory/in-stock/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
-    Route::get('v1/item/stock/inventory/all-location/get/{item_code}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
+    Route::get('v1/item/stock/inventory/in-stock/get/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetInStock']);
+    Route::get('v1/item/stock/inventory/all-location/get/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockAllLocation']);
+    Route::get('v1/item/stock/inventory/all-location/items/get/{sub_location_id}/{layer_level}/{item_id}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetItemsPerSubLocation']);
     Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
-    Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_code?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
-    Route::get('v1/item/stock/inventory/zone/item/get/{zone_id}/{item_code?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneItemList']);
+    Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
+    Route::get('v1/item/stock/inventory/zone/item/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneItemList']);
     #endregion
 
     #region Inventory Movement
