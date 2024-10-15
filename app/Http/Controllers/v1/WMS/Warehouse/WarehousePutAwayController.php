@@ -103,6 +103,7 @@ class WarehousePutAwayController extends Controller
                         $receivedQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                     }
                     $currentWarehouseItems = json_decode($warehousePutAwayModel->production_items, true);
+                    $value['status'] = 3;
                     $currentWarehouseItems[] = $value;
                     $warehousePutAwayModel->production_items = json_encode($currentWarehouseItems);
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
