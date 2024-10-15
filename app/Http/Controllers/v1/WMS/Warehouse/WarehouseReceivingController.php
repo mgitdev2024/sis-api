@@ -207,8 +207,11 @@ class WarehouseReceivingController extends Controller
                         ->first();
 
                     if ($warehouseReceiving) {
-                        $discrepancyData = json_decode($warehouseReceiving->discrepancy_data, true);
-                        unset($discrepancyData[$itemDetails['sticker_no']]);
+                        $discrepancyData = json_decode($warehouseReceiving->discrepancy_data, true) ?? [];
+                        if (isset($discrepancyData[$itemDetails['sticker_no']])) {
+                            unset($discrepancyData[$itemDetails['sticker_no']]);
+                        }
+
                         $warehouseProducedItems = json_decode($warehouseReceiving->produced_items, true);
                         $warehouseProducedItems[$itemDetails['sticker_no']]['status'] = '2.1';
                         $warehouseReceiving->produced_items = json_encode($warehouseProducedItems);
