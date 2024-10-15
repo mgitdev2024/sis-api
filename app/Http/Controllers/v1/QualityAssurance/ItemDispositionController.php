@@ -252,6 +252,7 @@ class ItemDispositionController extends Controller
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
                     $dataset['id'] = $value['id'];
+                    $dataset['item_variant_label'] = $productionToBakeAssemble->itemMasterdata->itemVariantType->name;
                     $dataset['quantity_update'] = $value['quantity_update'];
                     $dataset['produced_items'] = $value['produced_items'];
                     $dataset['production_batch_id'] = $value['production_batch_id'];
