@@ -242,26 +242,10 @@ class WarehouseReceivingController extends Controller
             if (count($warehouseReceiving) <= 0) {
                 throw new Exception('Reference number already received');
             }
-            // $warehouseForReceiveItems = WarehouseForReceiveModel::where('reference_number', $referenceNumber)
-            //     ->where('created_by_id', $createdById)
-            //     ->orderBy('id', 'DESC')
-            //     ->first();
-            // $receiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
+
             DB::beginTransaction();
             foreach ($warehouseReceiving as &$warehouseReceivingValue) {
-                // $warehouseReceivingCurrentItemCode = $warehouseReceivingValue['item_code'];
-                // $referenceItemId = ItemMasterdataModel::where('item_code', $warehouseReceivingCurrentItemCode)->first()->id;
-                // $warehouseProducedItems = json_decode($warehouseReceivingValue['produced_items'], true);
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
-
-                // foreach ($warehouseProducedItems as $innerWarehouseReceivingKey => &$innerWarehouseReceivingValue) {
-                //     $flag = $this->onCheckItemReceive($receiveItemsArr, $innerWarehouseReceivingKey, $innerWarehouseReceivingValue, $referenceItemId);
-                //     if (!$flag) {
-                //         $innerWarehouseReceivingValue['sticker_no'] = $innerWarehouseReceivingKey;
-                //     }
-                //     unset($innerWarehouseReceivingValue);
-                // }
-                // $warehouseForReceive = WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
                 $warehouseReceivingValue->save();
