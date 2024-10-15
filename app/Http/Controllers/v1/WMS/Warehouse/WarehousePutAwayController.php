@@ -102,8 +102,10 @@ class WarehousePutAwayController extends Controller
                         $remainingQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                         $receivedQuantity[$primaryConversion] += intval($producedItems[$value['sticker_no']]['q']);
                     }
-                    $productionItemMerged = json_decode($warehousePutAwayModel->production_items, true);
-                    $warehousePutAwayModel->production_items = json_encode($productionItemMerged);
+                    $currentWarehouseItems = json_decode($warehousePutAwayModel->production_items, true);
+                    $toBeMergedItems = json_decode($fields['production_items'], true);
+                    $mergedItems = array_merge($toBeMergedItems, $currentWarehouseItems);
+                    $warehousePutAwayModel->production_items = json_encode($mergedItems);
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
