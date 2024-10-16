@@ -341,7 +341,7 @@ class WarehousePutAwayController extends Controller
                     if ($warehousePutAway) {
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
                         $stickerNumber = array_column($warehousePutAwayProducedItems, 'sticker_no');
-                        $stickerIndex = array_search(2, $stickerNumber);
+                        $stickerIndex = array_search($itemDetails['sticker_no'], $stickerNumber);
                         $warehousePutAwayProducedItems[$stickerIndex]['status'] = 1.1;
                         $warehousePutAway->production_items = json_encode($warehousePutAwayProducedItems);
                         $substandardQuantity = json_decode($warehousePutAway->substandard_quantity, true);
