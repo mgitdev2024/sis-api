@@ -331,6 +331,7 @@ class WarehouseReceivingController extends Controller
                         // Saving to db
                         $warehouseReceivingModel->substandard_quantity += 1;
                         $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
+                        $warehouseReceivingModel->discrepancy_data = json_encode($discrepancyData);
                         $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
                         $warehouseReceivingModel->save();
 
