@@ -225,10 +225,10 @@ class WarehouseForPutAwayController extends Controller
     public function onDelete($warehouse_put_away_id)
     {
         try {
-            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->firstOrFail();
+            $warehouseForPutAway = WarehouseForPutAwayModel::where('warehouse_put_away_id', $warehouse_put_away_id)->first();
             $warehousePutAway = $warehouseForPutAway->warehousePutAway;
             $warehousePutAwayItems = json_decode($warehousePutAway->production_items, true);
-            if ($warehouseForPutAway->count() > 0) {
+            if ($warehouseForPutAway) {
                 $productionItemsWarehouse = json_decode($warehouseForPutAway->production_items, true);
                 foreach ($productionItemsWarehouse as &$items) {
                     $productionItemOrder = ProductionItemModel::where('production_batch_id', $items['bid'])->first();
@@ -254,11 +254,11 @@ class WarehouseForPutAwayController extends Controller
 
         } catch (QueryException $exception) {
             if ($exception->getCode() == 23000) {
-                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Warehouse For Put Away']));
+                return $this->dataResponse('error', 400, $exception, ['modelName' => 'Warehouse For Put Away']);
             }
-            return $this->dataResponse('error', 400, __('msg.delete_failed'));
+            return $this->dataResponse('error', 400, $exception);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, __('msg.delete_failed'));
+            return $this->dataResponse('error', 400, $exception);
         }
     }
 }
