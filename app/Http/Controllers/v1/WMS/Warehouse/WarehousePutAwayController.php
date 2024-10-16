@@ -339,6 +339,7 @@ class WarehousePutAwayController extends Controller
                         ->where('item_id', $itemId)
                         ->first();
                     if ($warehousePutAway) {
+                        $discrepancyDataPutAway = json_decode($warehousePutAway->discrepancy_data, true);
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
                         $stickerNumber = array_column($warehousePutAwayProducedItems, 'sticker_no');
                         $stickerIndex = array_search($itemDetails['sticker_no'], $stickerNumber);
@@ -367,8 +368,17 @@ class WarehousePutAwayController extends Controller
                             $remainingQuantity[$primaryConversion] -= intval($itemDetails['q']);
                             $substandardQuantity[$primaryConversion] += intval($itemDetails['q']);
                         }
+
+                        foreach ($discrepancyDataPutAway as $key => &$item) {
+                            if ($item['bid'] == $itemDetails['bid'] && $item['sticker_no'] == $itemDetails['sticker_no']) {
+                                unset($discrepancyDataPutAway[$key]);
+                                break;
+                            }
+                        }
+
                         $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
                         $warehousePutAway->substandard_quantity = json_encode($substandardQuantity);
+                        $warehousePutAway->discrepancy_data = json_encode(array_values($discrepancyDataPutAway));
                         $warehousePutAway->save();
 
                     }
