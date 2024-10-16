@@ -105,7 +105,12 @@ class WarehousePutAwayController extends Controller
                     $currentWarehouseItems = json_decode($warehousePutAwayModel->production_items, true);
                     $value['status'] = 3;
                     $currentWarehouseItems[] = $value;
+
+                    $currentDiscrepancyData = json_decode($warehousePutAwayModel->discrepancy_data, true);
+                    $currentDiscrepancyData[] = $value;
                     $warehousePutAwayModel->production_items = json_encode($currentWarehouseItems);
+                    $warehousePutAwayModel->discrepancy_data = json_encode($currentDiscrepancyData);
+
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
@@ -194,6 +199,7 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
             $warehousePutAway->item_id = $fields['item_id'];
             $warehousePutAway->production_items = json_encode($productionItems);
+            $warehousePutAway->discrepancy_data = json_encode($productionItems);
             $warehousePutAway->received_quantity = json_encode($remainingQuantity);
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'] ?? null;
