@@ -254,7 +254,7 @@ class StockRequestForTransferController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 400, 'Sub-Standard ' . __('msg.create_failed'));
+            return $this->dataResponse('error', 400, $exception);
         }
     }
 

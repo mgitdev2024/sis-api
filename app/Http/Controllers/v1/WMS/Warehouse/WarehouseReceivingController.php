@@ -301,26 +301,15 @@ class WarehouseReceivingController extends Controller
                 ->where('created_by_id', $createdById)
                 ->orderBy('id', 'DESC')
                 ->first();
-
-            $forReceiveItemsArr = $warehouseForReceiveItems ? (json_decode($warehouseForReceiveItems->production_items, true) ?? []) : [];
             $toBeLogged = [];
-            foreach ($forReceiveItemsArr as $key => &$forRecieveItem) {
-                $isItemSubstandard = false;
-                //Check for substandard items in the selection
-                foreach ($substandardScannedItems as $substandardItem) {
-                    if ($substandardItem['bid'] == $forRecieveItem['bid'] && $substandardItem['sticker_no'] == $forRecieveItem['sticker_no']) {
-                        $isItemSubstandard = true;
-                        break;
-                    }
-                }
-                $productionBatchModel = ProductionBatchModel::find($forRecieveItem['bid']);
+            foreach ($substandardScannedItems as $substandardItem) {
+                $productionBatchModel = ProductionBatchModel::find($substandardItem['bid']);
                 $batchNumber = $productionBatchModel->batch_number;
                 $productionOrderId = $productionBatchModel->production_order_id;
                 $itemCode = $productionBatchModel->item_code;
                 $productionItemModel = $productionBatchModel->productionItems;
                 $inclusionArray = [2];
-                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItemModel->produced_items, true), $forRecieveItem['sticker_no'], $inclusionArray, []);
-
+                $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItemModel->produced_items, true), $substandardItem['sticker_no'], $inclusionArray, []);
                 if ($flag) {
                     $warehouseReceivingModel = WarehouseReceivingModel::where([
                         'item_code' => $itemCode,
@@ -331,20 +320,24 @@ class WarehouseReceivingController extends Controller
 
                     if ($warehouseReceivingModel) {
                         $warehouseReceivingProductionItems = json_decode($warehouseReceivingModel->produced_items, true);
-                        if ($isItemSubstandard) {
-                            $warehouseReceivingProductionItems[$forRecieveItem['sticker_no']]['status'] = 1.1;
-                            $warehouseReceivingModel->substandard_quantity += 1;
-                            $warehouseReceivingSubstandardData = json_decode($warehouseReceivingModel->substandard_data, true) ?? [];
-                            $mergedItems = array_merge($warehouseReceivingSubstandardData, $forRecieveItem);
-                            $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
-
+                        $discrepancyData = json_decode($warehouseReceivingModel->discrepancy_data, true) ?? [];
+                        if (isset($discrepancyData[$substandardItem['sticker_no']])) {
+                            unset($discrepancyData[$substandardItem['sticker_no']]);
                         }
+                        $warehouseReceivingSubstandardData = json_decode($warehouseReceivingModel->substandard_data, true) ?? [];
+                        $mergedItems = array_merge($warehouseReceivingSubstandardData, $substandardItem);
+                        $warehouseReceivingProductionItems[$substandardItem['sticker_no']]['status'] = 1.1;
+
+                        // Saving to db
+                        $warehouseReceivingModel->substandard_quantity += 1;
+                        $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
                         $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
                         $warehouseReceivingModel->save();
 
                         $warehouseReceivingLogKey = "$warehouseReceivingModel->item_code-$warehouseReceivingModel->batch_number-$warehouseReceivingModel->production_order_id-$warehouseReceivingModel->reference_number";
 
                         $toBeLogged[$warehouseReceivingLogKey] = $warehouseReceivingModel;
+
                     }
                 }
             }
