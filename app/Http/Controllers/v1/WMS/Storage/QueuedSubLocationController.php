@@ -40,12 +40,12 @@ class QueuedSubLocationController extends Controller
                 $layerLevel = $warehouseForPutAway->layer_level;
                 $warehouseForPutAwayProductionItems = json_decode($warehouseForPutAway->production_items, true);
                 $scannedItems = null;
-                if (isset($fields['storage_full_scanned_items'])) {
+                if (isset($fields['storage_full_scanned_items'])) { 
                     $scannedItems = json_decode($fields['storage_full_scanned_items'], true);
-                    $this->onUpdateItemStatus($fields['storage_full_scanned_items'], $createdById);
+                    $this->onUpdateItemStatus($warehouseForPutAway, $fields['storage_full_scanned_items'], $createdById);  
                 } else {
                     $scannedItems = json_decode($warehouseForPutAway->transfer_items, true);
-                }
+                } 
                 $this->onUpdatePutAway($warehouseForPutAway, $scannedItems);
                 $this->onQueueSubLocation($createdById, $scannedItems, $warehouseForPutAwayProductionItems, $subLocationId, $layerLevel, $warehouseForPutAway->warehouse_receiving_reference_number);
                 DB::commit();
@@ -61,9 +61,23 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onUpdateItemStatus($scannedItems, $createdById)
+    public function onUpdateItemStatus($warehouseForPutAway, $scannedItems, $createdById)
     {
-        try {
+        try { 
+            $warehousePutAwayModel = $warehouseForPutAway->warehousePutAway;
+            $warehouseProductionItem = json_decode($warehousePutAwayModel->production_items, true);
+            $toBeDecoded =json_decode($scannedItems, true);
+            foreach($toBeDecoded as $items){ 
+               foreach($warehouseProductionItem as &$warehouseItems){
+                    if($warehouseItems['sticker_no'] == $items['sticker_no'] && $warehouseItems['bid'] == $items['bid']){
+                        $warehouseItems['status'] = 3.1; 
+                    }
+                    unset($warehouseItems); 
+               }
+            }
+
+            $warehousePutAwayModel->production_items = json_encode($warehouseProductionItem);
+            $warehousePutAwayModel->save();  
             $productionItemController = new ProductionItemController();
             $productionItemRequest = new Request([
                 'created_by_id' => $createdById,
