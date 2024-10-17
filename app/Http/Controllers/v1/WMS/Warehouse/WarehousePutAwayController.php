@@ -336,7 +336,7 @@ class WarehousePutAwayController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $itemId = $productionOrderToMake->itemMasterdata->id;
-                $inclusionArray = ['3.1'];
+                $inclusionArray = ['3.1', '3'];
                 $itemMasterdata = $productionOrderToMake->itemMasterdata;
                 $primaryUom = $itemMasterdata->uom->long_name ?? null;
                 $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
