@@ -99,10 +99,9 @@ class QueuedSubLocationController extends Controller
             $discrepancyDataPutAway = json_decode($warehousePutAwayModel->discrepancy_data, true);
             $remainingQuantity = json_decode($warehousePutAwayModel->remaining_quantity, true);
             $transferredQuantity = json_decode($warehousePutAwayModel->transferred_quantity, true);
-            foreach ($scannedItems as $scannedValue) {
+            foreach ($scannedItems as &$scannedValue) {
                 foreach ($warehouseForPutAwayItems as $key => $warehouseForPutAwayItem) {
                     if ($scannedValue['sticker_no'] == $warehouseForPutAwayItem['sticker_no']) {
-
                         $productionBatch = ProductionBatchModel::find($warehouseForPutAwayItem['bid']);
 
                         $productionItemStatus = json_decode($productionBatch->productionItems->produced_items, true)[$scannedValue['sticker_no']]['status'];
@@ -110,9 +109,9 @@ class QueuedSubLocationController extends Controller
                             continue;
                         }
 
-                        foreach ($discrepancyDataPutAway as $key => &$item) {
+                        foreach ($discrepancyDataPutAway as $keyDiscrepancy => $item) {
                             if ($item['bid'] == $warehouseForPutAwayItem['bid'] && $item['sticker_no'] == $warehouseForPutAwayItem['sticker_no']) {
-                                unset($discrepancyDataPutAway[$key]);
+                                unset($discrepancyDataPutAway[$keyDiscrepancy]);
                                 break;
                             }
                         }
@@ -143,12 +142,11 @@ class QueuedSubLocationController extends Controller
                             $transferredQuantity[$primaryConversion] += intval($warehouseForPutAwayItem['q']);
                         }
 
-
-                        unset($warehouseForPutAwayItems[$key]);
+                        unset($warehouseForPutAwayItems[$key]); // Keep this as is
                     }
                 }
-            }
 
+            }
 
             $encodedPutAwayItems = count($warehouseForPutAwayItems) > 0 ? json_encode(array_values($warehouseForPutAwayItems)) : null;
 
