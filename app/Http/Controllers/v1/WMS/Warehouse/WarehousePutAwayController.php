@@ -243,21 +243,26 @@ class WarehousePutAwayController extends Controller
     public function onGetById($id)
     {
         try {
-            $data = $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
-            $decodedData = json_decode($data->getContent(), true);
-            if (!isset($decodedData['success'])) {
+            $warehousePutAwayModel = WarehousePutAwayModel::select(
+                '*',
+                DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity') // discrepancy_data_count
+            )
+                ->with(['itemMasterdata', 'subLocation'])
+                ->where('id', $id)
+                ->first();
+            if (!$warehousePutAwayModel) {
                 throw new Exception('Record not found');
             }
 
-            $productionItems = json_decode($decodedData['success']['data']['production_items'], true);
+            $productionItems = json_decode($warehousePutAwayModel->production_items, true);
 
             foreach ($productionItems as $key => &$item) {
                 if ($item['status'] != '3') {
                     unset($productionItems[$key]);
                 }
             }
-            $decodedData['success']['data']['production_items'] = json_encode(array_values($productionItems));
-            return $decodedData;
+            $warehousePutAwayModel->production_items = json_encode(array_values($productionItems));
+            return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.create_success'), $warehousePutAwayModel);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -265,13 +270,15 @@ class WarehousePutAwayController extends Controller
 
     public function onGetCurrent($status)
     {
-        $whereFields = [
-            'status' => $status
-        ];
-        $orderFields = [
-            'id' => 'ASC'
-        ];
-        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, ['itemMasterdata', 'subLocation'], $orderFields, 'Warehouse Put Away');
+        $warehousePutAwayModel = WarehousePutAwayModel::select(
+            '*',
+            DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity') // discrepancy_data_count
+        )
+            ->with(['itemMasterdata', 'subLocation'])
+            ->where('status', $status)
+            ->orderBy('id', 'ASC')
+            ->get();
+        return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.create_success'), $warehousePutAwayModel);
     }
     #endregion
 
