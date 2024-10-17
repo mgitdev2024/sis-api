@@ -215,14 +215,14 @@ class ItemDispositionController extends Controller
                 $today = Carbon::today();
 
                 // Calculate the difference for each expiration date
-                $ambientExpirationDate = Carbon::parse($productionBatchModel->ambient_exp_date);
-                $chilledExpirationDate = Carbon::parse($productionBatchModel->chilled_exp_date);
-                $frozenExpirationDate = Carbon::parse($productionBatchModel->frozen_exp_date);
+                $ambientExpirationDate = $productionBatchModel->ambient_exp_date;
+                $chilledExpirationDate = $productionBatchModel->chilled_exp_date;
+                $frozenExpirationDate = $productionBatchModel->frozen_exp_date;
 
                 // Subtract the expiration dates from today's date
-                $ambientDiff = $today->diffInDays($ambientExpirationDate, false);
-                $chilledDiff = $today->diffInDays($chilledExpirationDate, false);
-                $frozenDiff = $today->diffInDays($frozenExpirationDate, false);
+                $ambientDiff = $today->diffInDays(Carbon::parse($ambientExpirationDate), false);
+                $chilledDiff = $today->diffInDays(Carbon::parse($chilledExpirationDate), false);
+                $frozenDiff = $today->diffInDays(Carbon::parse($frozenExpirationDate), false);
 
                 if ($ambientExpirationDate) {
                     $batchDisposition[$counter]['days_left']['ambient_days_left'] = $ambientDiff;
@@ -276,14 +276,14 @@ class ItemDispositionController extends Controller
                     $today = Carbon::today();
 
                     // Calculate the difference for each expiration date
-                    $ambientExpirationDate = Carbon::parse($productionBatchModel->ambient_exp_date);
-                    $chilledExpirationDate = Carbon::parse($productionBatchModel->chilled_exp_date);
-                    $frozenExpirationDate = Carbon::parse($productionBatchModel->frozen_exp_date);
+                    $ambientExpirationDate = $productionBatchModel->ambient_exp_date;
+                    $chilledExpirationDate = $productionBatchModel->chilled_exp_date;
+                    $frozenExpirationDate = $productionBatchModel->frozen_exp_date;
 
                     // Subtract the expiration dates from today's date
-                    $ambientDiff = $today->diffInDays($ambientExpirationDate, false);
-                    $chilledDiff = $today->diffInDays($chilledExpirationDate, false);
-                    $frozenDiff = $today->diffInDays($frozenExpirationDate, false);
+                    $ambientDiff = $today->diffInDays(Carbon::parse($ambientExpirationDate), false);
+                    $chilledDiff = $today->diffInDays(Carbon::parse($chilledExpirationDate), false);
+                    $frozenDiff = $today->diffInDays(Carbon::parse($frozenExpirationDate), false);
 
                     if ($ambientExpirationDate) {
                         $dataset['days_left']['ambient_days_left'] = $ambientDiff;
