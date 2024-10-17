@@ -235,6 +235,11 @@ class ItemDispositionController extends Controller
                 }
                 ++$counter;
             }
+            usort($batchDisposition, function ($a, $b) {
+                $aDays = min($a['days_left'] ?? [0]);
+                $bDays = min($b['days_left'] ?? [0]);
+                return $aDays <=> $bDays;
+            });
             if (count($batchDisposition) > 0) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $batchDisposition);
             }
@@ -315,6 +320,11 @@ class ItemDispositionController extends Controller
                     $dataset['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
                     $collections[] = $dataset;
                 }
+                usort($collections, function ($a, $b) {
+                    $aDays = min($a['days_left'] ?? [0]);
+                    $bDays = min($b['days_left'] ?? [0]);
+                    return $aDays <=> $bDays;
+                });
                 return $this->dataResponse('success', 200, __('msg.record_found'), $collections);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
