@@ -154,7 +154,7 @@ class QueuedSubLocationController extends Controller
 
             $warehousePutAwayModel->transferred_quantity = json_encode($transferredQuantity);
             $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
-            $warehousePutAwayModel->discrepancy_data = json_encode($discrepancyDataPutAway);
+            $warehousePutAwayModel->discrepancy_data = json_encode(array_values($discrepancyDataPutAway));
             $warehousePutAwayModel->save();
             if ($encodedPutAwayItems != null) {
                 $warehouseForPutAway->production_items = $encodedPutAwayItems;
