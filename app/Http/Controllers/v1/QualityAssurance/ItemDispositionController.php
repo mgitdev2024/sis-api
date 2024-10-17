@@ -201,17 +201,45 @@ class ItemDispositionController extends Controller
             $counter = 0;
             foreach ($itemDisposition as $value) {
                 $productionBatchModel = ProductionBatchModel::find($value->production_batch_id);
+
                 $batchDisposition[$counter] = [
                     'production_batch_id' => $value->production_batch_id,
                     'quantity' => $value->count,
+                    'days_left' => [],
                     'is_release' => $value->is_release,
                     'production_batch_number' => $productionBatchModel->batch_number,
                     'production_batch_status' => ProductionOrderModel::find($productionBatchModel->production_order_id)->status,
                     'item_code' => $productionBatchModel->item_code,
                     'production_order_number' => $value->productionBatch->productionOrder->reference_number
                 ];
+                $today = Carbon::today();
+
+                // Calculate the difference for each expiration date
+                $ambientExpirationDate = $productionBatchModel->ambient_exp_date;
+                $chilledExpirationDate = $productionBatchModel->chilled_exp_date;
+                $frozenExpirationDate = $productionBatchModel->frozen_exp_date;
+
+                // Subtract the expiration dates from today's date
+                $ambientDiff = $today->diffInDays(Carbon::parse($ambientExpirationDate), false);
+                $chilledDiff = $today->diffInDays(Carbon::parse($chilledExpirationDate), false);
+                $frozenDiff = $today->diffInDays(Carbon::parse($frozenExpirationDate), false);
+
+                if ($ambientExpirationDate) {
+                    $batchDisposition[$counter]['days_left']['ambient_days_left'] = $ambientDiff;
+                }
+                if ($chilledExpirationDate) {
+                    $batchDisposition[$counter]['days_left']['chilled_days_left'] = $chilledDiff;
+                }
+                if ($frozenExpirationDate) {
+                    $batchDisposition[$counter]['days_left']['frozen_days_left'] = $frozenDiff;
+                }
                 ++$counter;
             }
+            usort($batchDisposition, function ($a, $b) {
+                $aDays = min($a['days_left'] ?? [0]);
+                $bDays = min($b['days_left'] ?? [0]);
+                return $aDays <=> $bDays;
+            });
             if (count($batchDisposition) > 0) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $batchDisposition);
             }
@@ -249,6 +277,28 @@ class ItemDispositionController extends Controller
                 $collections = [];
                 foreach ($data as $value) {
                     $dataset = [];
+                    $productionBatchModel = ProductionBatchModel::find($value['production_batch_id']);
+                    $today = Carbon::today();
+
+                    // Calculate the difference for each expiration date
+                    $ambientExpirationDate = $productionBatchModel->ambient_exp_date;
+                    $chilledExpirationDate = $productionBatchModel->chilled_exp_date;
+                    $frozenExpirationDate = $productionBatchModel->frozen_exp_date;
+
+                    // Subtract the expiration dates from today's date
+                    $ambientDiff = $today->diffInDays(Carbon::parse($ambientExpirationDate), false);
+                    $chilledDiff = $today->diffInDays(Carbon::parse($chilledExpirationDate), false);
+                    $frozenDiff = $today->diffInDays(Carbon::parse($frozenExpirationDate), false);
+
+                    if ($ambientExpirationDate) {
+                        $dataset['days_left']['ambient_days_left'] = $ambientDiff;
+                    }
+                    if ($chilledExpirationDate) {
+                        $dataset['days_left']['chilled_days_left'] = $chilledDiff;
+                    }
+                    if ($frozenExpirationDate) {
+                        $dataset['days_left']['frozen_days_left'] = $frozenDiff;
+                    }
                     $productionToBakeAssemble = $value->productionBatch->productionOta ?? $value->productionBatch->productionOtb;
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
                     $dataset['id'] = $value['id'];
@@ -270,6 +320,11 @@ class ItemDispositionController extends Controller
                     $dataset['scanned_date'] = date('Y-m-d (h:i:A)', strtotime($value->created_at));
                     $collections[] = $dataset;
                 }
+                usort($collections, function ($a, $b) {
+                    $aDays = min($a['days_left'] ?? [0]);
+                    $bDays = min($b['days_left'] ?? [0]);
+                    return $aDays <=> $bDays;
+                });
                 return $this->dataResponse('success', 200, __('msg.record_found'), $collections);
             }
             return $this->dataResponse('error', 200, 'Item Disposition Model' . ' ' . __('msg.record_not_found'));
