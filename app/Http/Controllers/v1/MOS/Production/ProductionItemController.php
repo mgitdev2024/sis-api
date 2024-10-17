@@ -86,13 +86,14 @@ class ProductionItemController extends Controller
         try {
             DB::beginTransaction();
             $forQaDisposition = [4, 5];
-            $scannedItem = json_decode($fields['scanned_item_qr'], true);
+            $scannedItem = json_decode($fields['scanned_item_qr'], true); 
             $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
             // For Warehouse Receiving
             if ($statusId == 2) {
                 $this->onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId);
-            }
-            foreach ($scannedItem as $value) {
+            } 
+
+            foreach ($scannedItem as $value) { 
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);

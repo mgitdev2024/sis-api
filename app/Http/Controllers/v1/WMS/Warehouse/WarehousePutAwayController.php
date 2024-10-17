@@ -105,7 +105,12 @@ class WarehousePutAwayController extends Controller
                     $currentWarehouseItems = json_decode($warehousePutAwayModel->production_items, true);
                     $value['status'] = 3;
                     $currentWarehouseItems[] = $value;
+
+                    $currentDiscrepancyData = json_decode($warehousePutAwayModel->discrepancy_data, true);
+                    $currentDiscrepancyData[] = $value;
                     $warehousePutAwayModel->production_items = json_encode($currentWarehouseItems);
+                    $warehousePutAwayModel->discrepancy_data = json_encode($currentDiscrepancyData);
+
                     $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
                     $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
                     $warehousePutAwayModel->save();
@@ -194,6 +199,7 @@ class WarehousePutAwayController extends Controller
             $warehousePutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
             $warehousePutAway->item_id = $fields['item_id'];
             $warehousePutAway->production_items = json_encode($productionItems);
+            $warehousePutAway->discrepancy_data = json_encode($productionItems);
             $warehousePutAway->received_quantity = json_encode($remainingQuantity);
             $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAway->temporary_storage_id = $fields['temporary_storage_id'] ?? null;
@@ -237,21 +243,26 @@ class WarehousePutAwayController extends Controller
     public function onGetById($id)
     {
         try {
-            $data = $this->readRecordById(WarehousePutAwayModel::class, $id, 'Warehouse Put Away', ['itemMasterdata', 'subLocation']);
-            $decodedData = json_decode($data->getContent(), true);
-            if (!isset($decodedData['success'])) {
+            $warehousePutAwayModel = WarehousePutAwayModel::select(
+                '*',
+                DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity') // discrepancy_data_count
+            )
+                ->with(['itemMasterdata', 'subLocation'])
+                ->where('id', $id)
+                ->first();
+            if (!$warehousePutAwayModel) {
                 throw new Exception('Record not found');
             }
 
-            $productionItems = json_decode($decodedData['success']['data']['production_items'], true);
+            $productionItems = json_decode($warehousePutAwayModel->production_items, true);
 
             foreach ($productionItems as $key => &$item) {
                 if ($item['status'] != '3') {
                     unset($productionItems[$key]);
                 }
             }
-            $decodedData['success']['data']['production_items'] = json_encode(array_values($productionItems));
-            return $decodedData;
+            $warehousePutAwayModel->production_items = json_encode(array_values($productionItems));
+            return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.create_success'), $warehousePutAwayModel);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -259,13 +270,15 @@ class WarehousePutAwayController extends Controller
 
     public function onGetCurrent($status)
     {
-        $whereFields = [
-            'status' => $status
-        ];
-        $orderFields = [
-            'id' => 'ASC'
-        ];
-        return $this->readCurrentRecord(WarehousePutAwayModel::class, null, $whereFields, ['itemMasterdata', 'subLocation'], $orderFields, 'Warehouse Put Away');
+        $warehousePutAwayModel = WarehousePutAwayModel::select(
+            '*',
+            DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity') // discrepancy_data_count
+        )
+            ->with(['itemMasterdata', 'subLocation'])
+            ->where('status', $status)
+            ->orderBy('id', 'ASC')
+            ->get();
+        return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.create_success'), $warehousePutAwayModel);
     }
     #endregion
 
@@ -323,7 +336,7 @@ class WarehousePutAwayController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $itemId = $productionOrderToMake->itemMasterdata->id;
-                $inclusionArray = ['3.1'];
+                $inclusionArray = ['3.1', '3'];
                 $itemMasterdata = $productionOrderToMake->itemMasterdata;
                 $primaryUom = $itemMasterdata->uom->long_name ?? null;
                 $primaryConversion = $itemMasterdata->primaryConversion->long_name ?? null;
@@ -333,9 +346,10 @@ class WarehousePutAwayController extends Controller
                         ->where('item_id', $itemId)
                         ->first();
                     if ($warehousePutAway) {
+                        $discrepancyDataPutAway = json_decode($warehousePutAway->discrepancy_data, true);
                         $warehousePutAwayProducedItems = json_decode($warehousePutAway->production_items, true);
                         $stickerNumber = array_column($warehousePutAwayProducedItems, 'sticker_no');
-                        $stickerIndex = array_search(2, $stickerNumber);
+                        $stickerIndex = array_search($itemDetails['sticker_no'], $stickerNumber);
                         $warehousePutAwayProducedItems[$stickerIndex]['status'] = 1.1;
                         $warehousePutAway->production_items = json_encode($warehousePutAwayProducedItems);
                         $substandardQuantity = json_decode($warehousePutAway->substandard_quantity, true);
@@ -361,8 +375,17 @@ class WarehousePutAwayController extends Controller
                             $remainingQuantity[$primaryConversion] -= intval($itemDetails['q']);
                             $substandardQuantity[$primaryConversion] += intval($itemDetails['q']);
                         }
+
+                        foreach ($discrepancyDataPutAway as $key => &$item) {
+                            if ($item['bid'] == $itemDetails['bid'] && $item['sticker_no'] == $itemDetails['sticker_no']) {
+                                unset($discrepancyDataPutAway[$key]);
+                                break;
+                            }
+                        }
+
                         $warehousePutAway->remaining_quantity = json_encode($remainingQuantity);
                         $warehousePutAway->substandard_quantity = json_encode($substandardQuantity);
+                        $warehousePutAway->discrepancy_data = json_encode(array_values($discrepancyDataPutAway));
                         $warehousePutAway->save();
 
                     }
