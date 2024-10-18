@@ -389,7 +389,7 @@ class StockRequestForTransferController extends Controller
             $subLocationDetails = $this->onGetSubLocationDetails($sub_location_id, $stockRequestForTransferModel->layer_level, true);
             if ($stockRequestForTransferModel) {
                 $stockRequestItems = json_decode($stockRequestForTransferModel->scanned_items, true) ?? [];
-                $restructuredArray = [];
+                $restructuredArrayScannedItems = [];
                 foreach ($stockRequestItems as $item) {
                     $productionBatch = ProductionBatchModel::find($item['bid']);
                     $productionItemDetails = $productionBatch->productionItems;
@@ -397,13 +397,25 @@ class StockRequestForTransferController extends Controller
 
                     $item['item_code'] = $productionBatch->item_code;
                     $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
-                    $restructuredArray[$batchCode] = $item;
+                    $restructuredArrayScannedItems[$batchCode] = $item;
+                }
+
+                $scanSelectedItems = json_decode($stockRequestForTransferModel->stockTransferItem->selected_items, true) ?? [];
+                $restructuredArrayScannedItems = [];
+                foreach ($scanSelectedItems as $item) {
+                    $productionBatch = ProductionBatchModel::find($item['bid']);
+                    $productionItemDetails = $productionBatch->productionItems;
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+
+                    $item['item_code'] = $productionBatch->item_code;
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
+                    $restructuredArrayScannedItems[$batchCode] = $item;
                 }
                 $subLocationDetails['reference_number'] = $stockRequestForTransferModel->stockTransferItem->stockTransferList->reference_number;
                 $subLocationDetails['item_id'] = $stockRequestForTransferModel->stockTransferItem->item_id;
                 $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->itemMasterdata->item_code;
-                $subLocationDetails['scanned_items'] = $restructuredArray;
-                $subLocationDetails['production_items'] = $stockRequestForTransferModel->stockTransferItem->selected_items;
+                $subLocationDetails['scanned_items'] = $restructuredArrayScannedItems;
+                $subLocationDetails['production_items'] = $restructuredArrayScannedItems;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
 
