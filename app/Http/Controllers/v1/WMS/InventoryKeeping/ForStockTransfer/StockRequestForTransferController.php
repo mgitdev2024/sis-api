@@ -403,6 +403,7 @@ class StockRequestForTransferController extends Controller
                 $subLocationDetails['item_id'] = $stockRequestForTransferModel->stockTransferItem->item_id;
                 $subLocationDetails['item_code'] = $stockRequestForTransferModel->stockTransferItem->itemMasterdata->item_code;
                 $subLocationDetails['scanned_items'] = $restructuredArray;
+                $subLocationDetails['production_items'] = $stockRequestForTransferModel->stockTransferItem->selected_items;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
 
