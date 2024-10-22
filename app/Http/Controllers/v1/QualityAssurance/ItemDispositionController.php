@@ -146,7 +146,8 @@ class ItemDispositionController extends Controller
                     $itemDisposition = ItemDispositionModel::where([
                         'production_batch_id' => $items['bid'],
                         'item_key' => $itemKey,
-                        'type' => intval($fields['item_disposition_type'])
+                        'type' => intval($fields['item_disposition_type']),
+                        'status' => 1
                     ])
                         ->first();
 
