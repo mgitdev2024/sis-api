@@ -14,7 +14,7 @@ class WarehouseBulkReceivingController extends Controller
     use QueueSubLocationTrait;
     public function onCreate(Request $request)
     {
-        // 8000001&1&1: [{"bid"}]
+        // 8000001&1&1: [{"bid":212 q"}]
     }
 
     public function onGetTemporaryStorageItems($sub_location_id, $status)
