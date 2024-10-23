@@ -10,6 +10,7 @@ use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
+use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -86,14 +87,14 @@ class ProductionItemController extends Controller
         try {
             DB::beginTransaction();
             $forQaDisposition = [4, 5];
-            $scannedItem = json_decode($fields['scanned_item_qr'], true); 
+            $scannedItem = json_decode($fields['scanned_item_qr'], true);
             $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
             // For Warehouse Receiving
             if ($statusId == 2) {
                 $this->onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId);
-            } 
+            }
 
-            foreach ($scannedItem as $value) { 
+            foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
                 $producedItems = json_decode($productionBatch->productionItems->produced_items, true);
@@ -315,7 +316,7 @@ class ProductionItemController extends Controller
         return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 
-    public function onCheckItemStatus($batch_id, $item_key, $item_quantity, $add_info = false)
+    public function onCheckItemStatus($batch_id, $item_key, $item_quantity, $add_info = false, $is_specify = false)
     {
         try {
             $productionBatch = ProductionBatchModel::find($batch_id);
@@ -356,10 +357,26 @@ class ProductionItemController extends Controller
 
                 if ($warehouseReceivingRefNo) {
                     $data['warehouse'] = $item['warehouse'];
+                    if ($is_specify) {
+                        $warehouseReceivingModel = WarehouseReceivingModel::where([
+                            'reference_number' => $warehouseReceivingRefNo,
+                            'production_batch_id' => $productionBatch->id,
+                        ])->first();
+                        $warehouseReceivingArray = [
+                            'warehouse_receiving_id' => $warehouseReceivingModel->id,
+                            'to_receive_quantity' => count(json_decode($productionBatch->discrepancy_data) ?? []),
+                            'received_quantity' => $productionBatch->received_quantity,
+                        ];
+                        $data['warehouse']['warehouse_receiving']['details'] = $warehouseReceivingArray;
+                    }
                 }
 
                 if ($subLocationArr) {
                     $data['sub_location'] = $subLocationArr;
+                    if ($is_specify) {
+                        $subLocationCode = SubLocationModel::select('code')->find($subLocationArr['sub_location_id']);
+                        $data['sub_location']['code'] = $subLocationCode->code;
+                    }
                 }
 
                 if ($storedSubLocationArr) {

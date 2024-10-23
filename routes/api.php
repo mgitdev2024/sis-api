@@ -114,7 +114,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], 
     Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}/{is_specify?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     #endregion
@@ -377,6 +377,11 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
     Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
+    #endregion
+
+    #region Warehouse Bulk Receiving
+    Route::get('v1/warehouse/bulk/temporary-storage/get/{slid}/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onGetTemporaryStorageItems']);
+    Route::post('v1/warehouse/bulk/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onCreate']);
     #endregion
 
     #region Warehouse Put Away
