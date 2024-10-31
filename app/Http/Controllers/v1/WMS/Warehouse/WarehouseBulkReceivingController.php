@@ -46,8 +46,14 @@ class WarehouseBulkReceivingController extends Controller
                         'parent_batch_code' => $producedItem['parent_batch_code'],
                         'slid' => $subLocationId,
                         'rack_code' => SubLocationModel::find($subLocationId)->code,
-                        'warehouse_receiving_id' => $warehouseReceivingModel->id,
-                        'warehouse_reference_number' => $warehouseReceivingModel->reference_number
+                        'warehouse' => [
+                            'warehouse_receiving' => [
+                                'id' => $warehouseReceivingModel->id,
+                                'reference_number' => $warehouseReceivingModel->reference_number,
+                                'received_quantity' => $warehouseReceivingModel->received_quantity,
+                                'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data, true) ?? [])
+                            ]
+                        ]
                     ];
                 }
             }

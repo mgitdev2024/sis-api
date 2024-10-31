@@ -364,8 +364,8 @@ class ProductionItemController extends Controller
                         ])->first();
                         $warehouseReceivingArray = [
                             'warehouse_receiving_id' => $warehouseReceivingModel->id,
-                            'to_receive_quantity' => count(json_decode($productionBatch->discrepancy_data) ?? []),
-                            'received_quantity' => $productionBatch->received_quantity,
+                            'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data) ?? []),
+                            'received_quantity' => $warehouseReceivingModel->received_quantity,
                         ];
                         $data['warehouse']['warehouse_receiving']['details'] = $warehouseReceivingArray;
                     }
@@ -429,8 +429,8 @@ class ProductionItemController extends Controller
                     ])->first();
                     $warehouseReceivingArray = [
                         'warehouse_receiving_id' => $warehouseReceivingModel->id,
-                        'to_receive_quantity' => count(json_decode($productionBatch->discrepancy_data) ?? []),
-                        'received_quantity' => $productionBatch->received_quantity,
+                        'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data, true) ?? []),
+                        'received_quantity' => $warehouseReceivingModel->received_quantity,
                     ];
                     $itemDetails['warehouse']['warehouse_receiving'] = $warehouseReceivingArray;
                 }
