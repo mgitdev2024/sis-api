@@ -383,7 +383,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/warehouse/bulk/temporary-storage/get/{slid}/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onGetTemporaryStorageItems']);
     Route::post('v1/warehouse/bulk/receive/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onCreate']);
     Route::get('v1/warehouse/bulk/receive/all/get/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onGetAll']);
-
+    Route::post('v1/warehouse/bulk/receive/sub-standard/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onSubstandard']);
+    Route::delete('v1/warehouse/bulk/receive/delete/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onDelete']);
     #endregion
 
     #region Warehouse Put Away

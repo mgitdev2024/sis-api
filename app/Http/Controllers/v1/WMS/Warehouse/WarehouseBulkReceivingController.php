@@ -12,6 +12,8 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Traits\WMS\QueueSubLocationTrait;
 use DB;
+use Illuminate\Database\QueryException;
+
 class WarehouseBulkReceivingController extends Controller
 {
     use QueueSubLocationTrait;
@@ -99,6 +101,9 @@ class WarehouseBulkReceivingController extends Controller
             $warehouseProductionItems = json_decode($fields['warehouse_production_items'], true);
             $createdById = $fields['created_by_id'];
             DB::beginTransaction();
+
+            // delete existing selection
+            $this->onRemoveExisting($createdById);
             foreach ($warehouseProductionItems as $warehouseKey => $warehouseItems) {
                 $keyExplode = explode('-', $warehouseKey);
                 $referenceNumber = $keyExplode[0];
@@ -124,7 +129,6 @@ class WarehouseBulkReceivingController extends Controller
     public function onGetAll($created_by_id)
     {
         try {
-            '{"8000001-1-1":{"additional_info":{"warehouse_reference_number":"8000001","sub_location_code":"RCK001","item_code":"CTI WH","for_receive":10,"received":0},"items":[{"bid":1,"q":1,"sticker_no":10},{"bid":1,"q":1,"sticker_no":9},{"bid":1,"q":1,"sticker_no":8},{"bid":1,"q":1,"sticker_no":7},{"bid":1,"q":1,"sticker_no":6},{"bid":1,"q":1,"sticker_no":5},{"bid":1,"q":1,"sticker_no":4},{"bid":1,"q":1,"sticker_no":3},{"bid":1,"q":1,"sticker_no":2},{"bid":1,"q":1,"sticker_no":1}]},"8000002-2-3":{"additional_info":{"warehouse_reference_number":"8000002","sub_location_code":"RCK003","item_code":"CH MN","for_receive":10,"received":0},"items":[{"bid":2,"q":1,"sticker_no":6},{"bid":2,"q":1,"sticker_no":3},{"bid":2,"q":1,"sticker_no":5},{"bid":2,"q":1,"sticker_no":4}]}}';
             $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where('created_by_id', $created_by_id)->get();
             $data = [];
 
@@ -153,47 +157,74 @@ class WarehouseBulkReceivingController extends Controller
             return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception->getMessage());
         }
     }
-}
 
-/*
-{
-    "8000002-2-3": [
-        {
-            "additional_info": [
-                {
-                    "warehouse_reference_number": "8000002",
-                    "sub_location_code": "RCK003",
-                    "item_code": "CH MN",
-                    "for_receive": 0
-                }
-            ],
-            "items": [
-                {
-                    "bid": 2,
-                    "q": 1,
-                    "sticker_no": 3
-                }
-            ]
+    public function onRemoveExisting($createdById)
+    {
+        $existingWarehouseBulkReceiving = WarehouseBulkReceivingModel::where('created_by_id', $createdById);
+        if ($existingWarehouseBulkReceiving->count() > 0) {
+            $existingWarehouseBulkReceiving->delete();
         }
-    ],
-    "8000002-2-4": [
-        {
-            "additional_info": [
-                {
-                    "warehouse_reference_number": "8000002",
-                    "sub_location_code": "RCK003",
-                    "item_code": "CH MN",
-                    "for_receive": 0
-                }
-            ],
-            "items": [
-                {
-                    "bid": 2,
-                    "q": 1,
-                    "sticker_no": 3
-                }
-            ]
+    }
+
+    public function onDelete($created_by_id)
+    {
+        try {
+            $existingWarehouseBulkReceiving = WarehouseBulkReceivingModel::where('created_by_id', $created_by_id);
+            if ($existingWarehouseBulkReceiving->count() > 0) {
+                $existingWarehouseBulkReceiving->delete();
+                return $this->dataResponse('success', 200, __('msg.delete_success'));
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+
+        } catch (QueryException $exception) {
+            if ($exception->getCode() == 23000) {
+                return $this->dataResponse('error', 400, __('msg.delete_failed_fk_constraint', ['modelName' => 'Warehouse Bulk Receiving Model']));
+            }
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.delete_failed'));
         }
-    ]
+    }
+
+    public function onSubstandard(Request $request, $created_by_id)
+    {
+        $fields = $request->validate([
+            'scanned_items' => 'required|json',
+        ]);
+
+        try {
+            $scannedItems = json_decode($fields['scanned_items'], true);
+            DB::beginTransaction();
+            foreach ($scannedItems as $items) {
+                $productionBatchId = $items['bid'];
+                $productionItemModel = ProductionBatchModel::find($productionBatchId)->productionItems;
+                $producedItems = json_decode($productionItemModel->produced_items, true)[$items['sticker_no']];
+                $warehouseReferenceNumber = $producedItems['warehouse']['warehouse_receiving']['reference_number'];
+
+                $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where([
+                    'reference_number' => $warehouseReferenceNumber,
+                    'production_batch_id' => $productionBatchId,
+                    'created_by_id' => $created_by_id
+                ])->first();
+
+                if ($warehouseBulkReceivingModel) {
+                    $warehouseBulkProductionItems = json_decode($warehouseBulkReceivingModel->production_items, true);
+                    foreach ($warehouseBulkProductionItems as $key => &$warehouseBulkItems) {
+                        if ($warehouseBulkItems['bid'] == $items['bid'] && $warehouseBulkItems['sticker_no'] == $items['sticker_no']) {
+                            unset($warehouseBulkProductionItems[$key]);
+                            break;
+                        }
+                    }
+                    $warehouseBulkReceivingModel->production_items = json_encode(array_values($warehouseBulkProductionItems));
+                    $warehouseBulkReceivingModel->save();
+                }
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            dd($exception);
+            return $this->dataResponse('error', 400, __('msg.update_failed'));
+        }
+    }
 }
-*/
