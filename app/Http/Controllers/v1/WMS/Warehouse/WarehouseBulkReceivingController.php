@@ -140,8 +140,9 @@ class WarehouseBulkReceivingController extends Controller
                     "additional_info" => [
                         "warehouse_reference_number" => $referenceNumber,
                         "sub_location_code" => SubLocationModel::find($subLocationId)->code,
-                        "item_code" => $warehouseBulkData->item_code,
+                        "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
                         "for_receive" => count(json_decode($warehouseReceivingModel->discrepancy_data ?? null, true) ?? []),
+                        "received" => $warehouseReceivingModel->received_quantity ?? 0
                     ],
                     "items" => json_decode($warehouseBulkData->production_items, true) ?? []
                 ];
