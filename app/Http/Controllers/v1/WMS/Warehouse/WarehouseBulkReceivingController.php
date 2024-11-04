@@ -124,6 +124,7 @@ class WarehouseBulkReceivingController extends Controller
     public function onGetAll($created_by_id)
     {
         try {
+            '{"8000001-1-1":{"additional_info":{"warehouse_reference_number":"8000001","sub_location_code":"RCK001","item_code":"CTI WH","for_receive":10,"received":0},"items":[{"bid":1,"q":1,"sticker_no":10},{"bid":1,"q":1,"sticker_no":9},{"bid":1,"q":1,"sticker_no":8},{"bid":1,"q":1,"sticker_no":7},{"bid":1,"q":1,"sticker_no":6},{"bid":1,"q":1,"sticker_no":5},{"bid":1,"q":1,"sticker_no":4},{"bid":1,"q":1,"sticker_no":3},{"bid":1,"q":1,"sticker_no":2},{"bid":1,"q":1,"sticker_no":1}]},"8000002-2-3":{"additional_info":{"warehouse_reference_number":"8000002","sub_location_code":"RCK003","item_code":"CH MN","for_receive":10,"received":0},"items":[{"bid":2,"q":1,"sticker_no":6},{"bid":2,"q":1,"sticker_no":3},{"bid":2,"q":1,"sticker_no":5},{"bid":2,"q":1,"sticker_no":4}]}}';
             $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where('created_by_id', $created_by_id)->get();
             $data = [];
 
@@ -136,7 +137,7 @@ class WarehouseBulkReceivingController extends Controller
                     'reference_number' => $referenceNumber,
                     'production_batch_id' => $productionBatchId,
                 ])->first();
-                $data[$bulkUniqueId][] = [
+                $data[$bulkUniqueId] = [
                     "additional_info" => [
                         "warehouse_reference_number" => $referenceNumber,
                         "sub_location_code" => SubLocationModel::find($subLocationId)->code,
