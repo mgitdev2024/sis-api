@@ -18,12 +18,12 @@ class WarehouseBulkReceivingModel extends Model
         'created_by_id',
     ];
 
-    public static function getNextTransactionNumber()
-    {
-        $last = self::orderBy('bulk_transaction_number', 'DESC')->first();
-        if ($last) {
-            return $last->bulk_transaction_number + 1;
-        }
-        return 1;
-    }
+    // public static function getNextTransactionNumber()
+    // {
+    //     $last = self::orderBy('bulk_transaction_number', 'DESC')->first();
+    //     if ($last) {
+    //         return $last->bulk_transaction_number + 1;
+    //     }
+    //     return 1;
+    // }
 }
