@@ -164,15 +164,17 @@ class WarehouseBulkReceivingController extends Controller
         }
     }
 
-    public function onSubstandard(Request $request, $created_by_id)
+    public function onSubstandard(Request $request)
     {
         $fields = $request->validate([
+            'created_by_id' => 'required',
             'scanned_items' => 'required|json',
             'reason' => 'required',
             'attachment' => 'nullable',
         ]);
 
         try {
+            $createdById = $fields['created_by_id'];
             $scannedItems = json_decode($fields['scanned_items'], true);
             $warehouseOrganizedBulkItems = [];
             DB::beginTransaction();
@@ -185,7 +187,7 @@ class WarehouseBulkReceivingController extends Controller
                 $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where([
                     'reference_number' => $warehouseReferenceNumber,
                     'production_batch_id' => $productionBatchId,
-                    'created_by_id' => $created_by_id
+                    'created_by_id' => $createdById
                 ])->first();
 
                 if ($warehouseBulkReceivingModel) {
@@ -209,7 +211,7 @@ class WarehouseBulkReceivingController extends Controller
                 }
 
             }
-            $this->onUpdateSubstandardItems($warehouseOrganizedBulkItems, $created_by_id, $fields['reason'], $fields['attachment'] ?? null);
+            $this->onUpdateSubstandardItems($warehouseOrganizedBulkItems, $createdById, $fields['reason'], $fields['attachment'] ?? null);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
 
