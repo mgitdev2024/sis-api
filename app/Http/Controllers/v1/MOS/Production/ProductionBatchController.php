@@ -66,7 +66,6 @@ class ProductionBatchController extends Controller
             $modelClass = isset($fields['production_otb_id'])
                 ? ProductionOTBModel::class
                 : ProductionOTAModel::class;
-
             $productionToBakeAssemble = $modelClass::find(
                 $fields['production_otb_id'] ?? $fields['production_ota_id']
             );
@@ -135,10 +134,11 @@ class ProductionBatchController extends Controller
                 $fields,
             );
             $productionBatchCurrent = json_decode($productionBatch->quantity, true);
-            $toBeAddedQuantity = json_decode($fields['quantity'], true);
-
+            $toBeAddedQuantity = json_decode($fields['quantity'], true); 
             foreach ($toBeAddedQuantity as $key => $value) {
-                $productionBatchCurrent[$key] += $value;
+                if(isset($productionBatchCurrent[$key])){
+                    $productionBatchCurrent[$key] += $value;
+                }
             }
             $productionBatch->has_endorsement_from_qa = $endorsedQA;
             $productionBatch->quantity = json_encode($productionBatchCurrent);
@@ -154,7 +154,7 @@ class ProductionBatchController extends Controller
                 'production_item' => $addedProducedItem,
             ];
             return $data;
-        } catch (Exception $exception) {
+        } catch (Exception $exception) { 
             throw new Exception($exception->getMessage());
         }
     }

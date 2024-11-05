@@ -141,19 +141,24 @@ class StockInventoryController extends Controller
             if (count($productionBatchModel) > 0) {
                 foreach ($productionBatchModel as $productionBatch) {
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
+                    $contentItemQuantity = 0;
                     foreach ($productionItems as $productionItem) {
                         if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
-                            $inStockData = [
-                                'batch_no' => $productionBatch->batch_number,
-                                'sticker_no' => $productionItem['batch_code'],
-                                'production_date' => $productionBatch->productionOrder->production_date,
-                                'content_quantity' => $productionItem['q'],
-                                'ambient_exp_date' => $productionBatch->ambient_exp_date,
-                                'chilled_exp_date' => $productionBatch->chilled_exp_date,
-                                'frozen_exp_date' => $productionBatch->frozen_exp_date
-                            ];
-                            $inStockArray[] = $inStockData;
+                            $contentItemQuantity++;
+
                         }
+                    }
+                    if ($contentItemQuantity > 0) {
+                        $inStockData = [
+                            'batch_no' => $productionBatch->batch_number,
+                            'sticker_no' => $productionItem['batch_code'],
+                            'production_date' => $productionBatch->productionOrder->production_date,
+                            'content_quantity' => $contentItemQuantity,
+                            'ambient_exp_date' => $productionBatch->ambient_exp_date,
+                            'chilled_exp_date' => $productionBatch->chilled_exp_date,
+                            'frozen_exp_date' => $productionBatch->frozen_exp_date
+                        ];
+                        $inStockArray[] = $inStockData;
                     }
                 }
             }

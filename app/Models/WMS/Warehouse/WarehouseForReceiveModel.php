@@ -21,4 +21,5 @@ class WarehouseForReceiveModel extends Model
     {
         return $this->belongsTo(WarehouseReceivingModel::class, 'reference_number', 'reference_number');
     }
+
 }

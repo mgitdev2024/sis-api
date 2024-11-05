@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
+use App\Models\WMS\Warehouse\WarehouseBulkReceivingModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -154,19 +154,26 @@ class WarehouseReceivingController extends Controller
         $fields = $request->validate([
             'created_by_id' => 'required',
             'action' => 'required|string|in:0,1', // 0 = Scan, 1 = Complete Transaction
+            'bulk_data' => 'nullable|json'
         ]);
         try {
             DB::beginTransaction();
             if ($fields['action'] == 0) {
-                $warehouseForReceiveModel = WarehouseForReceiveModel::where([
-                    'reference_number' => $referenceNumber,
-                    'created_by_id' => $fields['created_by_id']
-                ])
-                    ->orderBy('id', 'DESC')
-                    ->first();
-
-                $scannedItems = json_decode($warehouseForReceiveModel->production_items, true);
-                $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id']);
+                $scannedItems = null;
+                $isBulk = false;
+                if (isset($fields['bulk_data'])) {
+                    $scannedItems = json_decode($fields['bulk_data'], true);
+                    $isBulk = true;
+                } else {
+                    $warehouseForReceiveModel = WarehouseForReceiveModel::where([
+                        'reference_number' => $referenceNumber,
+                        'created_by_id' => $fields['created_by_id']
+                    ])
+                        ->orderBy('id', 'DESC')
+                        ->first();
+                    $scannedItems = json_decode($warehouseForReceiveModel->production_items, true);
+                }
+                $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id'], $isBulk);
                 $this->onCreatePutAway($scannedItems, $referenceNumber, $fields['created_by_id']);
 
             } else {
@@ -178,11 +185,12 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
 
-    public function onScanItems($scannedItems, $referenceNumber, $createdById)
+    public function onScanItems($scannedItems, $referenceNumber, $createdById, $isBulk)
     {
         try {
             DB::beginTransaction();
@@ -219,7 +227,10 @@ class WarehouseReceivingController extends Controller
                         $warehouseReceiving->discrepancy_data = json_encode($discrepancyData);
                         $warehouseReceiving->updated_by_id = $createdById;
                         $warehouseReceiving->save();
-                        WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+
+                        if (!$isBulk) {
+                            WarehouseForReceiveModel::where('reference_number', $referenceNumber)->delete();
+                        }
                         $this->createWarehouseLog(ProductionItemModel::class, $productionItem->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $createdById, 1);
                     }
                 }
@@ -348,8 +359,12 @@ class WarehouseReceivingController extends Controller
                     $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $logs->id, $logs->getAttributes(), $createdById, 1);
                 }
             }
-            $warehouseForReceiveItems->status = 0;
-            $warehouseForReceiveItems->save();
+
+            if ($warehouseForReceiveItems) {
+                $warehouseForReceiveItems->status = 0;
+                $warehouseForReceiveItems->save();
+            }
+
             $substandardController = new SubStandardItemController();
             $substandardRequest = new Request([
                 'created_by_id' => $createdById,
@@ -405,7 +420,6 @@ class WarehouseReceivingController extends Controller
                         'item_code'
                     ])
                     ->first();
-
                 if (!array_key_exists($itemCode, $warehouseReceivingArr)) {
                     $warehouseReceivingArr[$itemCode] = $warehouseReceivingModel->getAttributes();
                 }
