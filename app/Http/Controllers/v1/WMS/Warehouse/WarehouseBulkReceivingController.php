@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\Warehouse;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseBulkReceivingModel;
@@ -64,33 +65,6 @@ class WarehouseBulkReceivingController extends Controller
         }
     }
 
-    public function onPutAway(Request $request)
-    {
-        $fields = $request->validate([
-            'warehouse_production_items' => 'required|json',
-            'created_by_id' => 'required',
-        ]);
-        try {
-            $lastGroupTransactionNumber = WarehouseForReceiveModel::getLastGroupTransactionNumber();
-            $groupTransactionNumber = $lastGroupTransactionNumber + 1;
-            $warehouseProductionItems = json_decode($fields['warehouse_production_items'], true);
-            $createdById = $fields['created_by_id'];
-            foreach ($warehouseProductionItems as $warehouseKey => $warehouseItems) {
-                $keyExplode = explode('-', $warehouseKey);
-                $referenceNumber = $keyExplode[0];
-                $batchId = $keyExplode[1];
-                $subLocationId = $keyExplode[2];
-                $itemCode = $warehouseItems['additional_info']['item_code'];
-
-                $warehouseForReceiveModel = new WarehouseForReceiveModel();
-                $warehouseForReceiveModel->reference_number = $referenceNumber;
-
-            }
-        } catch (Exception $exception) {
-
-        }
-    }
-
     public function onCreate(Request $request)
     {
         try {
@@ -126,7 +100,7 @@ class WarehouseBulkReceivingController extends Controller
         }
     }
 
-    public function onGetAll($created_by_id)
+    public function onGetAll($created_by_id, $direct_access = false)
     {
         try {
             $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where('created_by_id', $created_by_id)->get();
@@ -151,6 +125,9 @@ class WarehouseBulkReceivingController extends Controller
                     ],
                     "items" => json_decode($warehouseBulkData->production_items, true) ?? []
                 ];
+            }
+            if ($direct_access) {
+                return $data;
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
@@ -191,10 +168,13 @@ class WarehouseBulkReceivingController extends Controller
     {
         $fields = $request->validate([
             'scanned_items' => 'required|json',
+            'reason' => 'required',
+            'attachment' => 'nullable',
         ]);
 
         try {
             $scannedItems = json_decode($fields['scanned_items'], true);
+            $warehouseOrganizedBulkItems = [];
             DB::beginTransaction();
             foreach ($scannedItems as $items) {
                 $productionBatchId = $items['bid'];
@@ -210,21 +190,159 @@ class WarehouseBulkReceivingController extends Controller
 
                 if ($warehouseBulkReceivingModel) {
                     $warehouseBulkProductionItems = json_decode($warehouseBulkReceivingModel->production_items, true);
+
                     foreach ($warehouseBulkProductionItems as $key => &$warehouseBulkItems) {
                         if ($warehouseBulkItems['bid'] == $items['bid'] && $warehouseBulkItems['sticker_no'] == $items['sticker_no']) {
+                            if (isset($warehouseOrganizedBulkItems["$warehouseReferenceNumber-{$warehouseBulkItems['bid']}"])) {
+                                $warehouseOrganizedBulkItems["$warehouseReferenceNumber-{$warehouseBulkItems['bid']}"][] = $items;
+                            } else {
+                                $warehouseOrganizedBulkItems["$warehouseReferenceNumber-{$warehouseBulkItems['bid']}"] = [$items];
+                            }
+
                             unset($warehouseBulkProductionItems[$key]);
                             break;
                         }
                     }
-                    $warehouseBulkReceivingModel->production_items = json_encode(array_values($warehouseBulkProductionItems));
+                    $warehouseBulkProductionItems = array_values($warehouseBulkProductionItems);
+                    $warehouseBulkReceivingModel->production_items = json_encode($warehouseBulkProductionItems);
                     $warehouseBulkReceivingModel->save();
                 }
+
             }
+            $this->onUpdateSubstandardItems($warehouseOrganizedBulkItems, $created_by_id, $fields['reason'], $fields['attachment'] ?? null);
             DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.update_failed'));
         }
+    }
+
+    public function onUpdateSubstandardItems($warehouseOrganizedBulkItems, $createdById, $reason, $attachment = null)
+    {
+        try {
+            foreach ($warehouseOrganizedBulkItems as $warehouseReferenceKey => $warehouseScannedItems) {
+                $warehouseReceivingKey = explode('-', $warehouseReferenceKey);
+                $referenceNumber = $warehouseReceivingKey[0];
+                $productionBatchId = $warehouseReceivingKey[1];
+
+                $warehouseBulkReceivingModel = WarehouseBulkReceivingModel::where([
+                    'reference_number' => $referenceNumber,
+                    'production_batch_id' => $productionBatchId,
+                    'created_by_id' => $createdById
+                ])->first();
+
+                $warehouseProductionItems = $warehouseBulkReceivingModel->production_items;
+                foreach ($warehouseScannedItems as $substandardItem) {
+                    $productionBatchId = $substandardItem['bid'];
+                    $productionBatchModel = ProductionBatchModel::find($productionBatchId);
+                    $productionOrderId = $productionBatchModel->production_order_id;
+                    $itemCode = $productionBatchModel->item_code;
+                    $productionItemModel = $productionBatchModel->productionItems;
+                    $inclusionArray = [2];
+                    $flag = $this->onItemCheckHoldInactiveDone(json_decode($productionItemModel->produced_items, true), $substandardItem['sticker_no'], $inclusionArray, []);
+
+                    if ($flag) {
+                        $warehouseReceivingModel = WarehouseReceivingModel::where([
+                            'item_code' => $itemCode,
+                            'production_batch_id' => $productionBatchId,
+                            'production_order_id' => $productionOrderId,
+                            'reference_number' => $referenceNumber
+                        ])->first();
+                        if ($warehouseReceivingModel) {
+                            $warehouseReceivingProductionItems = json_decode($warehouseReceivingModel->produced_items, true);
+                            $discrepancyData = json_decode($warehouseReceivingModel->discrepancy_data, true) ?? [];
+                            if (isset($discrepancyData[$substandardItem['sticker_no']])) {
+                                unset($discrepancyData[$substandardItem['sticker_no']]);
+                            }
+
+                            $mergedItems = [];
+                            if (count(json_decode($warehouseReceivingModel->substandard_data, true) ?? []) > 0) {
+                                $mergedItems[] = json_decode($warehouseReceivingModel->substandard_data, true);
+                            }
+
+                            $mergedItems[] = $substandardItem;
+                            $warehouseReceivingProductionItems[$substandardItem['sticker_no']]['status'] = 1.1;
+
+                            // Saving to db
+                            $warehouseReceivingModel->substandard_quantity += 1;
+                            $warehouseReceivingModel->substandard_data = json_encode($mergedItems);
+                            $warehouseReceivingModel->discrepancy_data = json_encode($discrepancyData);
+                            $warehouseReceivingModel->produced_items = json_encode($warehouseReceivingProductionItems);
+                            $warehouseReceivingModel->save();
+                            $warehouseReceivingLogKey = "$warehouseReceivingModel->item_code-$warehouseReceivingModel->batch_number-$warehouseReceivingModel->production_order_id-$warehouseReceivingModel->reference_number";
+
+                            $toBeLogged[$warehouseReceivingLogKey] = $warehouseReceivingModel;
+
+                        }
+                    }
+                }
+                if (count($toBeLogged) > 0) {
+                    foreach ($toBeLogged as $logs) {
+                        $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $logs->id, $logs->getAttributes(), $createdById, 1);
+                    }
+                }
+
+                $locationId = 3; // Warehouse Receiving
+                $substandardController = new SubStandardItemController();
+                $substandardRequest = new Request([
+                    'created_by_id' => $createdById,
+                    'scanned_items' => json_encode($warehouseScannedItems),
+                    'reason' => $reason,
+                    'attachment' => $attachment,
+                    'location_id' => $locationId,
+                ]);
+                $substandardController->onCreate($substandardRequest);
+
+                $warehouseReceivingController = new WarehouseReceivingController();
+                $createPutAwayRequest = new Request([
+                    'created_by_id' => $createdById,
+                    'action' => '0',
+                    'bulk_data' => $warehouseProductionItems,
+                ]);
+                $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+            }
+            WarehouseBulkReceivingModel::where('created_by_id', $createdById)->delete();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCreatePutAway(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+            $createdById = $fields['created_by_id'];
+            $warehouseBulkReceiving = $this->onGetAll($createdById, true);
+
+            foreach ($warehouseBulkReceiving as $warehouseReferenceKey => $value) {
+                $explodeReferenceKey = explode('-', $warehouseReferenceKey);
+                $referenceNumber = $explodeReferenceKey[0];
+
+                $warehouseReceivingController = new WarehouseReceivingController();
+                $createPutAwayRequest = new Request([
+                    'created_by_id' => $createdById,
+                    'action' => '0',
+                    'bulk_data' => json_encode($value['items']),
+                ]);
+                $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+            }
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.create_failed'));
+        }
+    }
+
+    public function onItemCheckHoldInactiveDone($producedItems, $itemKey, $inclusionArray, $exclusionArray)
+    {
+        $inArrayFlag = count($inclusionArray) > 0 ?
+            in_array($producedItems[$itemKey]['status'], $inclusionArray) :
+            !in_array($producedItems[$itemKey]['status'], $exclusionArray);
+        return $producedItems[$itemKey]['sticker_status'] != 0 && $inArrayFlag;
     }
 }
