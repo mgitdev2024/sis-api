@@ -334,6 +334,7 @@ class WarehouseBulkReceivingController extends Controller
                 ]);
                 $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
             }
+            return $this->dataResponse('success', 201, __('msg.create_success'));
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
