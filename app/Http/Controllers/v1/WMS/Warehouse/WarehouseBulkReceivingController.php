@@ -334,6 +334,8 @@ class WarehouseBulkReceivingController extends Controller
                 ]);
                 $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
             }
+            WarehouseBulkReceivingModel::where('created_by_id', $createdById)->delete();
+
             return $this->dataResponse('success', 201, __('msg.create_success'));
 
         } catch (Exception $exception) {
