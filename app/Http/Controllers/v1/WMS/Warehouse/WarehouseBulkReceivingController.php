@@ -36,7 +36,7 @@ class WarehouseBulkReceivingController extends Controller
                     $subLocationId = $producedItem['sub_location']['sub_location_id'];
                     $warehouseReceivingModel = WarehouseReceivingModel::where([
                         'reference_number' => $producedItem['warehouse']['warehouse_receiving']['reference_number'],
-                        'production_batch_id' => $productionBatch->id,
+                        'item_code' => $itemCode,
                     ])->first();
                     $data[] = [
                         'bid' => $itemDetails['bid'],

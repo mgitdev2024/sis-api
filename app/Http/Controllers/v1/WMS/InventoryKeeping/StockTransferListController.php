@@ -151,7 +151,7 @@ class StockTransferListController extends Controller
     public function onGetStockRequestList($statusId)
     {
         try {
-
+            // put date filtering
             $stockTransferListModel = StockTransferListModel::query();
 
             if ($statusId == 'pending') {

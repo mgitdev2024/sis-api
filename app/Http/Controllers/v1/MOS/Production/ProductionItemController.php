@@ -360,11 +360,11 @@ class ProductionItemController extends Controller
                     if ($is_specify) {
                         $warehouseReceivingModel = WarehouseReceivingModel::where([
                             'reference_number' => $warehouseReceivingRefNo,
-                            'production_batch_id' => $productionBatch->id,
+                            'item_code' => $itemCode,
                         ])->first();
                         $warehouseReceivingArray = [
                             'warehouse_receiving_id' => $warehouseReceivingModel->id,
-                            'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data,true) ?? []),
+                            'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data, true) ?? []),
                             'received_quantity' => $warehouseReceivingModel->received_quantity,
                         ];
                         $data['warehouse']['warehouse_receiving']['details'] = $warehouseReceivingArray;

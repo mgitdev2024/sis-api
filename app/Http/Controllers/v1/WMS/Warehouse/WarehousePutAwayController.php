@@ -268,16 +268,28 @@ class WarehousePutAwayController extends Controller
         }
     }
 
-    public function onGetCurrent($status)
+    public function onGetCurrent($status, $filter = null)
     {
+        // put date filtering
         $warehousePutAwayModel = WarehousePutAwayModel::select(
             '*',
             DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity') // discrepancy_data_count
         )
             ->with(['itemMasterdata', 'subLocation'])
-            ->where('status', $status)
-            ->orderBy('id', 'ASC')
-            ->get();
+            ->where('status', $status);
+
+        if ($status != 0) {
+            $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+            if ($whereObject) {
+                $warehousePutAwayModel->whereDate('created_at', $filter);
+            } else {
+                $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
+                $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
+                $warehousePutAwayModel->whereBetween('created_at', [$yesterday, $today]);
+            }
+        }
+        $warehousePutAwayModel->orderBy('id', 'ASC');
+        $warehousePutAwayModel = $warehousePutAwayModel->get();
         return $this->dataResponse('success', 200, 'Sub-Standard ' . __('msg.create_success'), $warehousePutAwayModel);
     }
     #endregion
