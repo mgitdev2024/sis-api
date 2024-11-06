@@ -34,10 +34,21 @@ class WarehouseBulkReceivingController extends Controller
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
                 if ($producedItem['status'] == $status) {
                     $subLocationId = $producedItem['sub_location']['sub_location_id'];
-                    $warehouseReceivingModel = WarehouseReceivingModel::where([
-                        'reference_number' => $producedItem['warehouse']['warehouse_receiving']['reference_number'],
-                        'item_code' => $itemCode,
-                    ])->first();
+                    $warehouseReceivingModel = WarehouseReceivingModel::select([
+                        'reference_number',
+                        'item_code',
+                        DB::raw('SUM(received_quantity) as received_quantity'),
+                        DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data')
+                    ])
+                        ->where([
+                            'reference_number' => $producedItem['warehouse']['warehouse_receiving']['reference_number'],
+                            'item_code' => $itemCode,
+                        ])
+                        ->groupBy([
+                            'reference_number',
+                            'item_code'
+                        ])
+                        ->first();
                     $data[] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
@@ -50,10 +61,9 @@ class WarehouseBulkReceivingController extends Controller
                         'rack_code' => SubLocationModel::find($subLocationId)->code,
                         'warehouse' => [
                             'warehouse_receiving' => [
-                                'id' => $warehouseReceivingModel->id,
                                 'reference_number' => $warehouseReceivingModel->reference_number,
                                 'received_quantity' => $warehouseReceivingModel->received_quantity,
-                                'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data, true) ?? [])
+                                'to_receive_quantity' => $warehouseReceivingModel->discrepancy_data
                             ]
                         ]
                     ];
@@ -61,6 +71,7 @@ class WarehouseBulkReceivingController extends Controller
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
+            dd($exception);
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
