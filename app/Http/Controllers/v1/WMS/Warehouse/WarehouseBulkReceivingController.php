@@ -105,7 +105,6 @@ class WarehouseBulkReceivingController extends Controller
                     $warehouseBulkReceivingModel->created_by_id = $createdById;
                     $warehouseBulkReceivingModel->save();
                 }
-
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
