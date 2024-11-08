@@ -147,15 +147,18 @@ class WarehouseBulkReceivingController extends Controller
                 if (isset($data[$bulkUniqueId])) {
                     $data[$bulkUniqueId]['production_batches'][$productionBatchId] = json_decode($warehouseBulkData->production_items, true) ?? [];
                 } else {
+                    $subLocationModel = SubLocationModel::find($subLocationId);
                     $data[$bulkUniqueId] = [
-                        "additional_info" => [
-                            "warehouse_reference_number" => $referenceNumber,
-                            "sub_location_code" => SubLocationModel::find($subLocationId)->code ?? null,
-                            "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
-                            "for_receive" => $warehouseReceivingModel->discrepancy_data,
-                            "received" => $warehouseReceivingModel->received_quantity ?? 0
+                        'additional_info' => [
+                            'warehouse_reference_number' => $referenceNumber,
+                            'rack_code' => $subLocationModel->code ?? null,
+                            'slid' => $subLocationModel->id ?? null,
+                            'item_code' => $itemCode,
+                            'item_id' => $itemId,
+                            'to_receive_quantity' => $warehouseReceivingModel->discrepancy_data,
+                            'received_quantity' => $warehouseReceivingModel->received_quantity ?? 0
                         ],
-                        "production_batches" => [$productionBatchId => json_decode($warehouseBulkData->production_items, true)] ?? []
+                        'production_batches' => [$productionBatchId => json_decode($warehouseBulkData->production_items, true)] ?? []
                     ];
                 }
             }
