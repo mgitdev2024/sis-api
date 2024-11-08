@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Warehouse\WarehouseBulkReceivingModel;
 use App\Models\WMS\Warehouse\WarehouseForReceiveModel;
@@ -71,7 +72,6 @@ class WarehouseBulkReceivingController extends Controller
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
@@ -92,16 +92,17 @@ class WarehouseBulkReceivingController extends Controller
             foreach ($warehouseProductionItems as $warehouseKey => $warehouseItems) {
                 $keyExplode = explode('-', $warehouseKey);
                 $referenceNumber = $keyExplode[0];
-                $batchId = $keyExplode[1];
-                $subLocationId = $keyExplode[2];
-                // $itemCode = $warehouseItems['additional_info']['item_code'];
-                $warehouseBulkReceivingModel = new WarehouseBulkReceivingModel();
-                $warehouseBulkReceivingModel->reference_number = $referenceNumber;
-                $warehouseBulkReceivingModel->production_batch_id = $batchId;
-                $warehouseBulkReceivingModel->sub_location_id = $subLocationId;
-                $warehouseBulkReceivingModel->production_items = json_encode($warehouseItems['items']);
-                $warehouseBulkReceivingModel->created_by_id = $createdById;
-                $warehouseBulkReceivingModel->save();
+                $subLocationId = SubLocationModel::where('code', $warehouseItems['additional_info']['sub_location_code'])->first()->id;
+                foreach ($warehouseItems['production_batches'] as $productionBatchId => $productionBatchItems) {
+                    $warehouseBulkReceivingModel = new WarehouseBulkReceivingModel();
+                    $warehouseBulkReceivingModel->reference_number = $referenceNumber;
+                    $warehouseBulkReceivingModel->production_batch_id = $productionBatchId;
+                    $warehouseBulkReceivingModel->sub_location_id = $subLocationId;
+                    $warehouseBulkReceivingModel->production_items = json_encode($productionBatchItems);
+                    $warehouseBulkReceivingModel->created_by_id = $createdById;
+                    $warehouseBulkReceivingModel->save();
+                }
+
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -120,22 +121,28 @@ class WarehouseBulkReceivingController extends Controller
             foreach ($warehouseBulkReceivingModel as $warehouseBulkData) {
                 $referenceNumber = $warehouseBulkData->reference_number;
                 $productionBatchId = $warehouseBulkData->production_batch_id;
+                $itemId = ProductionBatchModel::find($productionBatchId)->itemMasterdata->id;
                 $subLocationId = $warehouseBulkData->sub_location_id;
-                $bulkUniqueId = implode('-', [$referenceNumber, $productionBatchId, $subLocationId]);
+                $bulkUniqueId = implode('-', [$referenceNumber, $itemId]);
                 $warehouseReceivingModel = WarehouseReceivingModel::where([
                     'reference_number' => $referenceNumber,
                     'production_batch_id' => $productionBatchId,
                 ])->first();
-                $data[$bulkUniqueId] = [
-                    "additional_info" => [
-                        "warehouse_reference_number" => $referenceNumber,
-                        "sub_location_code" => SubLocationModel::find($subLocationId)->code,
-                        "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
-                        "for_receive" => count(json_decode($warehouseReceivingModel->discrepancy_data ?? null, true) ?? []),
-                        "received" => $warehouseReceivingModel->received_quantity ?? 0
-                    ],
-                    "items" => json_decode($warehouseBulkData->production_items, true) ?? []
-                ];
+
+                if (isset($data[$bulkUniqueId])) {
+                    $data[$bulkUniqueId]['production_batches'][$productionBatchId] = json_decode($warehouseBulkData->production_items, true) ?? [];
+                } else {
+                    $data[$bulkUniqueId] = [
+                        "additional_info" => [
+                            "warehouse_reference_number" => $referenceNumber,
+                            "sub_location_code" => SubLocationModel::find($subLocationId)->code,
+                            "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
+                            "for_receive" => count(json_decode($warehouseReceivingModel->discrepancy_data ?? null, true) ?? []),
+                            "received" => $warehouseReceivingModel->received_quantity ?? 0
+                        ],
+                        "production_batches" => [$productionBatchId => json_decode($warehouseBulkData->production_items, true)] ?? []
+                    ];
+                }
             }
             if ($direct_access) {
                 return $data;
@@ -333,17 +340,20 @@ class WarehouseBulkReceivingController extends Controller
             $createdById = $fields['created_by_id'];
             $warehouseBulkReceiving = $this->onGetAll($createdById, true);
 
-            foreach ($warehouseBulkReceiving as $warehouseReferenceKey => $value) {
+            foreach ($warehouseBulkReceiving as $warehouseReferenceKey => $warehouseValues) {
                 $explodeReferenceKey = explode('-', $warehouseReferenceKey);
                 $referenceNumber = $explodeReferenceKey[0];
 
-                $warehouseReceivingController = new WarehouseReceivingController();
-                $createPutAwayRequest = new Request([
-                    'created_by_id' => $createdById,
-                    'action' => '0',
-                    'bulk_data' => json_encode($value['items']),
-                ]);
-                $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+                foreach ($warehouseValues['production_batches'] as $productionBatches) {
+                    $warehouseReceivingController = new WarehouseReceivingController();
+                    $createPutAwayRequest = new Request([
+                        'created_by_id' => $createdById,
+                        'action' => '0',
+                        'bulk_data' => json_encode($productionBatches),
+                    ]);
+                    $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+                }
+
             }
             WarehouseBulkReceivingModel::where('created_by_id', $createdById)->delete();
 

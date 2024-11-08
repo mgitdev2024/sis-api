@@ -374,7 +374,8 @@ class ProductionItemController extends Controller
                             ])
                             ->first();
                         $warehouseReceivingArray = [
-                            'warehouse_receiving_id' => $warehouseReceivingModel->id,
+                            'reference_number' => $warehouseReceivingModel->referencee_number,
+                            'item_code' => $warehouseReceivingModel->item_code,
                             'to_receive_quantity' => $warehouseReceivingModel->discrepancy_data,
                             'received_quantity' => $warehouseReceivingModel->received_quantity,
                         ];
