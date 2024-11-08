@@ -92,8 +92,8 @@ class WarehouseBulkReceivingController extends Controller
             foreach ($warehouseProductionItems as $warehouseKey => $warehouseItems) {
                 $keyExplode = explode('-', $warehouseKey);
                 $referenceNumber = $keyExplode[0];
-                $subLocationId = $warehouseItems['additional_info']['sub_location_code'] ?? null
-                    ? SubLocationModel::where('code', $warehouseItems['additional_info']['sub_location_code'])->value('id')
+                $subLocationId = $warehouseItems['additional_info']['rack_code'] ?? null
+                    ? SubLocationModel::where('code', $warehouseItems['additional_info']['rack_code'])->value('id')
                     : null;
 
                 foreach ($warehouseItems['production_batches'] as $productionBatchId => $productionBatchItems) {
