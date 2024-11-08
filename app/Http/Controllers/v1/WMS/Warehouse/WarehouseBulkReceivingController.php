@@ -124,14 +124,26 @@ class WarehouseBulkReceivingController extends Controller
             foreach ($warehouseBulkReceivingModel as $warehouseBulkData) {
                 $referenceNumber = $warehouseBulkData->reference_number;
                 $productionBatchId = $warehouseBulkData->production_batch_id;
-                $itemId = ProductionBatchModel::find($productionBatchId)->itemMasterdata->id;
+                $productionBatchModel = ProductionBatchModel::find($productionBatchId);
+                $itemId = $productionBatchModel->itemMasterdata->id;
+                $itemCode = $productionBatchModel->item_code;
                 $subLocationId = $warehouseBulkData->sub_location_id;
                 $bulkUniqueId = implode('-', [$referenceNumber, $itemId]);
-                $warehouseReceivingModel = WarehouseReceivingModel::where([
-                    'reference_number' => $referenceNumber,
-                    'production_batch_id' => $productionBatchId,
-                ])->first();
-
+                $warehouseReceivingModel = WarehouseReceivingModel::select([
+                    'reference_number',
+                    'item_code',
+                    DB::raw('SUM(received_quantity) as received_quantity'),
+                    DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data')
+                ])
+                    ->where([
+                        'reference_number' => $referenceNumber,
+                        'item_code' => $itemCode,
+                    ])
+                    ->groupBy([
+                        'reference_number',
+                        'item_code'
+                    ])
+                    ->first();
                 if (isset($data[$bulkUniqueId])) {
                     $data[$bulkUniqueId]['production_batches'][$productionBatchId] = json_decode($warehouseBulkData->production_items, true) ?? [];
                 } else {
@@ -140,7 +152,7 @@ class WarehouseBulkReceivingController extends Controller
                             "warehouse_reference_number" => $referenceNumber,
                             "sub_location_code" => SubLocationModel::find($subLocationId)->code ?? null,
                             "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
-                            "for_receive" => count(json_decode($warehouseReceivingModel->discrepancy_data ?? null, true) ?? []),
+                            "for_receive" => $warehouseReceivingModel->discrepancy_data,
                             "received" => $warehouseReceivingModel->received_quantity ?? 0
                         ],
                         "production_batches" => [$productionBatchId => json_decode($warehouseBulkData->production_items, true)] ?? []
