@@ -92,7 +92,10 @@ class WarehouseBulkReceivingController extends Controller
             foreach ($warehouseProductionItems as $warehouseKey => $warehouseItems) {
                 $keyExplode = explode('-', $warehouseKey);
                 $referenceNumber = $keyExplode[0];
-                $subLocationId = SubLocationModel::where('code', $warehouseItems['additional_info']['sub_location_code'])->first()->id;
+                $subLocationId = $warehouseItems['additional_info']['sub_location_code'] ?? null
+                    ? SubLocationModel::where('code', $warehouseItems['additional_info']['sub_location_code'])->value('id')
+                    : null;
+
                 foreach ($warehouseItems['production_batches'] as $productionBatchId => $productionBatchItems) {
                     $warehouseBulkReceivingModel = new WarehouseBulkReceivingModel();
                     $warehouseBulkReceivingModel->reference_number = $referenceNumber;
@@ -135,7 +138,7 @@ class WarehouseBulkReceivingController extends Controller
                     $data[$bulkUniqueId] = [
                         "additional_info" => [
                             "warehouse_reference_number" => $referenceNumber,
-                            "sub_location_code" => SubLocationModel::find($subLocationId)->code,
+                            "sub_location_code" => SubLocationModel::find($subLocationId)->code ?? null,
                             "item_code" => ProductionBatchModel::find($productionBatchId)->item_code,
                             "for_receive" => count(json_decode($warehouseReceivingModel->discrepancy_data ?? null, true) ?? []),
                             "received" => $warehouseReceivingModel->received_quantity ?? 0
