@@ -37,6 +37,7 @@ class StockTransferItemController extends Controller
                         $data['item_masterdata'] = $itemMasterdata;
                         $data['item_details'] = [
                             'reference_number' => $stockTransferItemModel->stockTransferList->reference_number,
+                            'stock_transfer_list_id' => $stockTransferItemModel->stockTransferList->id,
                             'item_code' => $stockTransferItemModel->item_code,
                             'item_description' => $itemMasterdata->description,
                             'transfer_quantity' => $stockTransferItemModel->transfer_quantity,

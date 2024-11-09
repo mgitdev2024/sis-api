@@ -358,13 +358,25 @@ class ProductionItemController extends Controller
                 if ($warehouseReceivingRefNo) {
                     $data['warehouse'] = $item['warehouse'];
                     if ($is_specify) {
-                        $warehouseReceivingModel = WarehouseReceivingModel::where([
-                            'reference_number' => $warehouseReceivingRefNo,
-                            'production_batch_id' => $productionBatch->id,
-                        ])->first();
+                        $warehouseReceivingModel = WarehouseReceivingModel::select([
+                            'reference_number',
+                            'item_code',
+                            DB::raw('SUM(received_quantity) as received_quantity'),
+                            DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data')
+                        ])
+                            ->where([
+                                'reference_number' => $item['warehouse']['warehouse_receiving']['reference_number'],
+                                'item_code' => $itemCode,
+                            ])
+                            ->groupBy([
+                                'reference_number',
+                                'item_code'
+                            ])
+                            ->first();
                         $warehouseReceivingArray = [
-                            'warehouse_receiving_id' => $warehouseReceivingModel->id,
-                            'to_receive_quantity' => count(json_decode($warehouseReceivingModel->discrepancy_data,true) ?? []),
+                            'reference_number' => $warehouseReceivingModel->referencee_number,
+                            'item_code' => $warehouseReceivingModel->item_code,
+                            'to_receive_quantity' => $warehouseReceivingModel->discrepancy_data,
                             'received_quantity' => $warehouseReceivingModel->received_quantity,
                         ];
                         $data['warehouse']['warehouse_receiving']['details'] = $warehouseReceivingArray;

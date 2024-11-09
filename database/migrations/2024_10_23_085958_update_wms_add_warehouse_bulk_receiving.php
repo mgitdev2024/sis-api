@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->id();
             // $table->integer('bulk_transaction_number');
             $table->integer('production_batch_id');
-            $table->integer('sub_location_id');
+            $table->integer('sub_location_id')->nullable();
             $table->string('reference_number');
             $table->longText('production_items')->nullable();
             SchemaHelper::addCommonColumns($table);
