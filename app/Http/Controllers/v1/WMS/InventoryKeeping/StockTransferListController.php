@@ -157,16 +157,16 @@ class StockTransferListController extends Controller
             if ($statusId == 'pending') {
                 $stockTransferListModel->whereIn('status', [1, 2])->orderBy('created_at', 'DESC');
             } else {
-                $stockTransferListModel->where('status', $statusId);
+                $stockTransferListModel->where('status', 3);
                 $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
                 if ($whereObject) {
-                    $stockTransferListModel->whereDate('created_at', $filter);
+                    $stockTransferListModel->whereDate('completed_at', $filter);
                 } else {
                     $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
                     $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
-                    $stockTransferListModel->whereBetween('created_at', [$yesterday, $today]);
+                    $stockTransferListModel->whereBetween('completed_at', [$yesterday, $today]);
                 }
-                $stockTransferListModel->orderBy('created_at', 'DESC');
+                $stockTransferListModel->orderBy('completed_at', 'DESC');
             }
             $stockTransferListModel = $stockTransferListModel->get();
             foreach ($stockTransferListModel as $item) {

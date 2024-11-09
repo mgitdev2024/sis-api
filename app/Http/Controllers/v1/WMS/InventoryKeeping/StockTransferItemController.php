@@ -232,6 +232,7 @@ class StockTransferItemController extends Controller
             if ($completionCounter == count($stockTransferListItems)) {
                 $stockTransferListModel = $stockTransferItemModel->stockTransferList;
                 $stockTransferListModel->status = 3;
+                $stockTransferListModel->completed_at = now();
                 $stockTransferListModel->save();
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
             }

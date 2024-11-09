@@ -281,11 +281,11 @@ class WarehousePutAwayController extends Controller
         if ($status != 0) {
             $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
             if ($whereObject) {
-                $warehousePutAwayModel->whereDate('created_at', $filter);
+                $warehousePutAwayModel->whereDate('completed_at', $filter);
             } else {
                 $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
                 $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
-                $warehousePutAwayModel->whereBetween('created_at', [$yesterday, $today]);
+                $warehousePutAwayModel->whereBetween('completed_at', [$yesterday, $today]);
             }
         }
         $warehousePutAwayModel->orderBy('id', 'ASC');
@@ -474,7 +474,7 @@ class WarehousePutAwayController extends Controller
                 $temporaryStorageId = $warehousePutAway->temporary_storage_id;
                 $warehousePutAway->status = 1;
                 $warehousePutAway->temporary_storage_id = null;
-
+                $warehousePutAway->completed_at = now();
                 $warehousePutAway->save();
                 $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $createdById, 0);
 
