@@ -28,6 +28,7 @@ class WarehouseReceivingController extends Controller
                 'reference_number',
                 'temporary_storage_id',
                 DB::raw('MAX(created_at) as latest_created_at'),
+                DB::raw('MAX(completed_at) as latest_completed_at'),
                 DB::raw('count(*) as batch_count'),
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
@@ -38,11 +39,11 @@ class WarehouseReceivingController extends Controller
             if ($status != 0) {
                 $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
                 if ($whereObject) {
-                    $warehouseReceivingModel->whereDate('created_at', $filter);
+                    $warehouseReceivingModel->whereDate('completed_at', $filter);
                 } else {
                     $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
                     $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
-                    $warehouseReceivingModel->whereBetween('created_at', [$yesterday, $today]);
+                    $warehouseReceivingModel->whereBetween('completed_at', [$yesterday, $today]);
                 }
             }
 
@@ -60,6 +61,7 @@ class WarehouseReceivingController extends Controller
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
                     'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_created_at)) ?? null,
+                    'completed_at_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_completed_at)) ?? null,
                     'batch_count' => $value->batch_count,
                     'quantity' => $value->produced_items_count,
                     'received_quantity' => $value->received_quantity,
@@ -259,6 +261,7 @@ class WarehouseReceivingController extends Controller
                 $productionItemModel = $warehouseReceivingValue->productionBatch->productionItems;
                 $warehouseReceivingValue->status = 1;
                 $warehouseReceivingValue->updated_by_id = $createdById;
+                $warehouseReceivingValue->completed_at = now();
                 $warehouseReceivingValue->save();
                 $this->createWarehouseLog(ProductionItemModel::class, $productionItemModel->id, WarehouseReceivingModel::class, $warehouseReceivingValue->id, $warehouseReceivingValue->getAttributes(), $createdById, 1);
             }
