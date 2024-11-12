@@ -37,6 +37,7 @@ class StockTransferItemController extends Controller
                         $data['item_masterdata'] = $itemMasterdata;
                         $data['item_details'] = [
                             'reference_number' => $stockTransferItemModel->stockTransferList->reference_number,
+                            'stock_transfer_list_id' => $stockTransferItemModel->stockTransferList->id,
                             'item_code' => $stockTransferItemModel->item_code,
                             'item_description' => $itemMasterdata->description,
                             'transfer_quantity' => $stockTransferItemModel->transfer_quantity,
@@ -231,6 +232,7 @@ class StockTransferItemController extends Controller
             if ($completionCounter == count($stockTransferListItems)) {
                 $stockTransferListModel = $stockTransferItemModel->stockTransferList;
                 $stockTransferListModel->status = 3;
+                $stockTransferListModel->completed_at = now();
                 $stockTransferListModel->save();
                 $this->createWarehouseLog(null, null, StockTransferListModel::class, $stockTransferListModel->id, $stockTransferListModel->getAttributes(), $fields['created_by_id'], 0);
             }

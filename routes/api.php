@@ -114,7 +114,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], 
     Route::post('v1/produced/items/get', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetPaginatedList']);
     Route::get('v1/produced/items/get/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onGetById']);
     Route::post('v1/produced/items/scan/status', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
-    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
+    Route::get('v1/produced/items/scan/details/check/{batch_id}/{item_key}/{item_quantity}/{add_info?}/{is_specify?}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onCheckItemStatus']);
     // Route::post('v1/produced/items/scan/status/{status_id}/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onChangeStatus']);
     // Route::post('v1/produced/items/scan/deactivate/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionItemController::class, 'onDeactivateItem']);
     #endregion
@@ -379,10 +379,20 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
     #endregion
 
+    #region Warehouse Bulk Receiving
+    Route::get('v1/warehouse/bulk/temporary-storage/get/{slid}/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onGetTemporaryStorageItems']);
+    Route::post('v1/warehouse/bulk/receive/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onCreate']);
+    Route::get('v1/warehouse/bulk/receive/all/get/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onGetAll']);
+    Route::post('v1/warehouse/bulk/receive/sub-standard', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onSubstandard']);
+    Route::delete('v1/warehouse/bulk/receive/delete/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onDelete']);
+    Route::post('v1/warehouse/bulk/receive/update', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkReceivingController::class, 'onCreatePutAway']);
+
+    #endregion
+
     #region Warehouse Put Away
     Route::post('v1/warehouse/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCreate']);
     Route::post('v1/warehouse/put-away/sub-standard/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
-    Route::get('v1/warehouse/put-away/current/{status}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
+    Route::get('v1/warehouse/put-away/current/{status}/{filter?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
     Route::post('v1/warehouse/put-away/complete-transaction/{put_away_reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
     #endregion
@@ -434,7 +444,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCancel']);
     Route::get('v1/stock/transfer/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetAll']);
     Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetById']);
-    Route::get('v1/stock/transfer/request/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetStockRequestList']);
+    Route::get('v1/stock/transfer/request/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetStockRequestList']);
     Route::get('v1/stock/transfer/request/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetStockRequestById']);
     #endregion
 
