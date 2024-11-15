@@ -51,7 +51,7 @@ class ProductionItemController extends Controller
         // 0 => 'Good',
         // 1 => 'On Hold',
         // 1.1 => 'On Hold - Sub Standard
-        // 2 => 'For Receive',
+        // 2 => 'For Receive | Return to warehouse',
         // 2.1 => 'For Receive - In Process',
         // 3 => 'Received',
         // 3.1 => 'For Put-away - In Process',
@@ -62,6 +62,8 @@ class ProductionItemController extends Controller
         // 8 => 'For Sticker Update',
         // 9 => 'Sticker Updated',
         // 10 => 'Reviewed',
+        // 10.1 => 'For Endorsement',
+        // 10.2 => 'For Disposal',
         // 11 => 'Retouched',
         // 12 => 'Sliced',
         // 13 => 'Stored',
@@ -120,7 +122,6 @@ class ProductionItemController extends Controller
     {
         try {
             DB::beginTransaction();
-
             $scannedItem = json_decode($fields['scanned_item_qr'], true);
 
             $productionBatch = ProductionBatchModel::find($fields['production_batch_id']);
@@ -514,7 +515,6 @@ class ProductionItemController extends Controller
                 }
                 $this->onQueueStorage($createdById, $scannedItem, $temporaryStorageId, false);
             }
-
             foreach ($itemsToTransfer as $key => $value) {
                 if ($value['flag']) {
                     $warehouseReceive = new WarehouseReceivingModel();
@@ -536,6 +536,7 @@ class ProductionItemController extends Controller
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
+            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
