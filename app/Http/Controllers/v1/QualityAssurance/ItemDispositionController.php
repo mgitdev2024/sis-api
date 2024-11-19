@@ -527,4 +527,33 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
+
+    public function onGetEndorsedByQaItems($item_disposition_id)
+    {
+        try {
+            $itemDispositionModel = ItemDispositionModel::find($item_disposition_id);
+            // $productionType = $itemDispositionModel->production_type; // 0 = otb, 1 = ota
+            $fulfilledBatch = ProductionBatchModel::find($itemDispositionModel->fulfilled_batch_id);
+            $productionItems = json_decode($fulfilledBatch->productionItems->production_items, true);
+            $data = null;
+            if ($itemDispositionModel->action == 9) {
+                $data = [
+                    'produced_items' => json_encode([$itemDispositionModel->item_key => $productionItems[$itemDispositionModel->item_key]]),
+                    'production_batch_id' => $itemDispositionModel->production_batch_id,
+                    'production_batch' => $itemDispositionModel->productionBatch
+                ];
+            } else {
+                $data = [
+                    'produced_items' => $productionItems,
+                    'production_batch' => $fulfilledBatch,
+                    'batch_origin' => $itemDispositionModel->production_batch_id,
+                ];
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
 }
