@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\QualityAssurance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionOrderModel;
@@ -19,16 +20,39 @@ use App\Traits\MOS\ProductionLogTrait;
 
 class ItemDispositionController extends Controller
 {
+    #region status list
+    // 0 => 'Good',
+    // 1 => 'On Hold',
+    // 1.1 => 'On Hold - Sub Standard
+    // 2 => 'For Receive | Return to warehouse',
+    // 2.1 => 'For Receive - In Process',
+    // 3 => 'Received',
+    // 3.1 => 'For Put-away - In Process',
+    // 4 => 'For Investigation',
+    // 5 => 'For Sampling',
+    // 6 => 'For Retouch',
+    // 7 => 'For Slice',
+    // 8 => 'For Sticker Update',
+    // 9 => 'Sticker Updated',
+    // 10 => 'Reviewed',
+    // 10.1 => 'For Endorsement',
+    // 10.2 => 'For Disposal',
+    // 11 => 'Retouched',
+    // 12 => 'Sliced',
+    // 13 => 'Stored',
+    // 14 => 'For Transfer',
+    #endregion
     use MosCrudOperationsTrait, ProductionLogTrait;
     public function onUpdateById(Request $request, $id)
     {
         $rules = [
             'created_by_id' => 'required',
-            'action_status_id' => 'required|integer|in:6,7,8',
+            'action_status_id' => 'required|in:6,7,8,10.1,10.2',
             'aging_period' => 'required|integer',
             'quantity_update' => 'required_if:action_status_id,7,8|integer'
         ];
-        // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update
+        // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
+        // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal
         $fields = $request->validate($rules);
         try {
             DB::beginTransaction();
@@ -58,15 +82,67 @@ class ItemDispositionController extends Controller
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
             } else if ($fields['action_status_id'] == 7 && (($itemVariantType != 1 || $itemVariantType != 10) && $isNotSliceable)) {
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
             } else if ($fields['action_status_id'] == 6) {
                 $quantityUpdate = 0;
+                // $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
+                $producedItems[$itemDisposition->item_key]['status'] = 6;
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
             }
+            // else if ($fields['action_status_id'] == 2) {
+            //     $producedItems[$itemDisposition->item_key]['status'] = 0;
+            //     $producedItemModel->produced_items = json_encode($producedItems);
+            //     $producedItemModel->save();
+            //     $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
+            //     $productionItemController = new ProductionItemController();
+            //     $scannedItem = [
+            //         [
+            //             'bid' => $itemDisposition->production_batch_id,
+            //             'sticker_no' => $itemDisposition->item_key
+            //         ]
+            //     ];
+            //     $productionItemRequest = new Request([
+            //         'scanned_item_qr' => json_encode($scannedItem),
+            //         'status_id' => 2,
+            //         'created_by_id' => $fields['created_by_id']
+            //     ]);
+            //     $productionItemController->onChangeStatus($productionItemRequest);
+            // }
+            else if ($fields['action_status_id'] == 10.2) {
+                $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
+                $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
 
-            $producedItemModel->produced_items = json_encode($producedItems);
-            $producedItemModel->save();
-            $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
+                $productionBatchModel = $producedItemModel->productionBatch;
+                $modelClass = $productionBatchModel->productionOtb
+                    ? ProductionOTBModel::class
+                    : ProductionOTAModel::class;
+                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionToBakeAssemble->in_qa_count -= 1;
+                $productionToBakeAssemble->save();
+                $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
+            } else {
+                $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
+                $productionBatchModel = $producedItemModel->productionBatch;
+                $modelClass = $productionBatchModel->productionOtb
+                    ? ProductionOTBModel::class
+                    : ProductionOTAModel::class;
+                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                $productionToBakeAssemble->in_qa_count -= 1;
+                $productionToBakeAssemble->save();
+                $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
+            }
 
             $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
             $itemDisposition->quantity_update = $quantityUpdate;
@@ -97,26 +173,6 @@ class ItemDispositionController extends Controller
     }
     public function onCloseDisposition(Request $request, $id)
     {
-        #region status list
-        // 0 => 'Good',
-        // 1 => 'On Hold',
-        // 1.1 => 'On Hold - Sub Standard
-        // 2 => 'For Receive',
-        // 2.1 => 'For Receive - Inbound',
-        // 3 => 'Received',
-        // 3.1 => 'For Put-away - In Process',
-        // 4 => 'For Investigation',
-        // 5 => 'For Sampling',
-        // 6 => 'For Retouch',
-        // 7 => 'For Slice',
-        // 8 => 'For Sticker Update',
-        // 9 => 'Sticker Updated',
-        // 10 => 'Reviewed',
-        // 11 => 'Retouched',
-        // 12 => 'Sliced',
-        // 13 => 'Stored',
-        // 14 => 'For Transfer',
-        #endregion
         $fields = $request->validate([
             'created_by_id' => 'required',
             'item_disposition_type' => 'required|in:0,1'
@@ -124,7 +180,9 @@ class ItemDispositionController extends Controller
         try {
             // status to be excluded
             $createdById = $fields['created_by_id'];
-            $triggerReviewedStatus = [0, 2, 3, 6, 7, 8, 9, 11, 12];
+            // $triggerReviewedStatus = [0, 2, 3, 6, 7, 8, 9, 11, 12];
+            $triggerReviewedStatus = [1, 1.1, 4, 5];
+
             $productionBatch = ProductionBatchModel::find($id);
             $productionItems = $productionBatch->productionItems;
             $productionItemsArr = json_decode($productionItems->produced_items, true);
@@ -134,7 +192,9 @@ class ItemDispositionController extends Controller
             if ($productionBatch) {
                 foreach ($productionItemsArr as $itemKey => &$items) {
                     $statusItem = $items['status'];
-                    $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
+                    // $checkIfTriggerReviewedStatus = !in_array($statusItem, $triggerReviewedStatus);
+                    $checkIfTriggerReviewedStatus = in_array($statusItem, $triggerReviewedStatus);
+
                     if ($checkIfTriggerReviewedStatus) {
                         $isTriggeredReviewedStatus = true;
                         $triggeredReviewedStatusCount++;
@@ -468,6 +528,35 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('success', 200, __('msg.update_success'), $results);
         } catch (Exception $exception) {
             DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onGetEndorsedByQaItems($item_disposition_id)
+    {
+        try {
+            $itemDispositionModel = ItemDispositionModel::find($item_disposition_id);
+            // $productionType = $itemDispositionModel->production_type; // 0 = otb, 1 = ota
+            $fulfilledBatch = ProductionBatchModel::find($itemDispositionModel->fulfilled_batch_id);
+            $productionItems = json_decode($fulfilledBatch->productionItems->produced_items, true);
+            $data = null;
+            if ($itemDispositionModel->action == 9) {
+                $data = [
+                    'produced_items' => json_encode([$itemDispositionModel->item_key => $productionItems[$itemDispositionModel->item_key]]),
+                    'production_batch_id' => $itemDispositionModel->production_batch_id,
+                    'production_batch' => $itemDispositionModel->productionBatch
+                ];
+            } else {
+                $data = [
+                    'produced_items' => json_encode($productionItems),
+                    'production_batch' => $fulfilledBatch,
+                    'batch_origin' => $itemDispositionModel->production_batch_id,
+                ];
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+
+        } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

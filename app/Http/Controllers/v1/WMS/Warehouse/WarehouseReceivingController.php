@@ -506,6 +506,7 @@ class WarehouseReceivingController extends Controller
                 }
 
                 $warehouseReceivingValue->status = 1;
+                $warehouseReceivingValue->completed_at = now();
                 $warehouseReceivingValue->updated_by_id = $fields['created_by_id'];
                 $warehouseReceivingValue->produced_items = json_encode($warehouseReceivingProducedItems);
                 $warehouseReceivingValue->save();
