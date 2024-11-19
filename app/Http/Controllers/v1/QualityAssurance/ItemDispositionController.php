@@ -89,6 +89,11 @@ class ItemDispositionController extends Controller
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
             } else if ($fields['action_status_id'] == 6) {
                 $quantityUpdate = 0;
+                // $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
+                $producedItems[$itemDisposition->item_key]['status'] = 6;
+                $producedItemModel->produced_items = json_encode($producedItems);
+                $producedItemModel->save();
+                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
             }
             // else if ($fields['action_status_id'] == 2) {
             //     $producedItems[$itemDisposition->item_key]['status'] = 0;
@@ -128,7 +133,6 @@ class ItemDispositionController extends Controller
                 $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
                 $producedItemModel->produced_items = json_encode($producedItems);
                 $producedItemModel->save();
-
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
                 $productionBatchModel = $producedItemModel->productionBatch;
                 $modelClass = $productionBatchModel->productionOtb
@@ -544,7 +548,7 @@ class ItemDispositionController extends Controller
                 ];
             } else {
                 $data = [
-                    'produced_items' => $productionItems,
+                    'produced_items' => json_encode($productionItems),
                     'production_batch' => $fulfilledBatch,
                     'batch_origin' => $itemDispositionModel->production_batch_id,
                 ];
