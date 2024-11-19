@@ -534,7 +534,7 @@ class ItemDispositionController extends Controller
             $itemDispositionModel = ItemDispositionModel::find($item_disposition_id);
             // $productionType = $itemDispositionModel->production_type; // 0 = otb, 1 = ota
             $fulfilledBatch = ProductionBatchModel::find($itemDispositionModel->fulfilled_batch_id);
-            $productionItems = json_decode($fulfilledBatch->productionItems->production_items, true);
+            $productionItems = json_decode($fulfilledBatch->productionItems->produced_items, true);
             $data = null;
             if ($itemDispositionModel->action == 9) {
                 $data = [
