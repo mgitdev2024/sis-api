@@ -10,6 +10,7 @@ use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
+use App\Models\QualityAssurance\ItemDispositionRepositoryModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use Exception;
@@ -47,9 +48,11 @@ class ItemDispositionController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'action_status_id' => 'required|in:6,7,8,10.1,10.2',
+            'action_status_id' => 'required|in:6,7,8,10.1',
             'aging_period' => 'required|integer',
-            'quantity_update' => 'required_if:action_status_id,7,8|integer'
+            'quantity_update' => 'required_if:action_status_id,7,8|integer',
+            'quantity_qa_for_repository' => 'required_if:action_status_id,7,8|integer',
+            'type_qa_for_repository' => 'required_if:action_status_id,7,8|in:0,1,2',
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
         // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal
@@ -74,66 +77,19 @@ class ItemDispositionController extends Controller
                     $isNotSliceable = false;
                 }
             }
-
             $quantityUpdate = $fields['quantity_update'] ?? null;
-
             $producedItemModel = ProductionItemModel::where('production_batch_id', $itemDisposition->production_batch_id)->first();
             $producedItems = json_decode($producedItemModel->produced_items, true);
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-                $producedItemModel->produced_items = json_encode($producedItems);
-                $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
             } else if ($fields['action_status_id'] == 7 && (($itemVariantType != 1 || $itemVariantType != 10) && $isNotSliceable)) {
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
             } else if ($fields['action_status_id'] == 6) {
                 $quantityUpdate = 0;
-                // $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-                $producedItems[$itemDisposition->item_key]['status'] = 6;
-                $producedItemModel->produced_items = json_encode($producedItems);
-                $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
-            }
-            // else if ($fields['action_status_id'] == 2) {
-            //     $producedItems[$itemDisposition->item_key]['status'] = 0;
-            //     $producedItemModel->produced_items = json_encode($producedItems);
-            //     $producedItemModel->save();
-            //     $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
-            //     $productionItemController = new ProductionItemController();
-            //     $scannedItem = [
-            //         [
-            //             'bid' => $itemDisposition->production_batch_id,
-            //             'sticker_no' => $itemDisposition->item_key
-            //         ]
-            //     ];
-            //     $productionItemRequest = new Request([
-            //         'scanned_item_qr' => json_encode($scannedItem),
-            //         'status_id' => 2,
-            //         'created_by_id' => $fields['created_by_id']
-            //     ]);
-            //     $productionItemController->onChangeStatus($productionItemRequest);
-            // }
-            else if ($fields['action_status_id'] == 10.2) {
-                $producedItems[$itemDisposition->item_key]['sticker_status'] = 0;
-                $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
-                $producedItemModel->produced_items = json_encode($producedItems);
-                $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
+            } else if ($fields['action_status_id'] == 10.1) {
+                $quantityUpdate = 0;
 
-                $productionBatchModel = $producedItemModel->productionBatch;
-                $modelClass = $productionBatchModel->productionOtb
-                    ? ProductionOTBModel::class
-                    : ProductionOTAModel::class;
-                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
-                $productionToBakeAssemble->in_qa_count -= 1;
-                $productionToBakeAssemble->save();
-                $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
-            } else {
-                $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
-                $producedItemModel->produced_items = json_encode($producedItems);
-                $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
                 $productionBatchModel = $producedItemModel->productionBatch;
                 $modelClass = $productionBatchModel->productionOtb
                     ? ProductionOTBModel::class
@@ -144,6 +100,14 @@ class ItemDispositionController extends Controller
                 $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
             }
 
+            $forItemRepository = [7, 8, 10.1];
+            if (in_array($fields['action_status_id'], $forItemRepository)) {
+                $this->onQaItemDispositionRepository($itemDisposition, $fields['quantity_qa_for_repository'], $fields['type_qa_for_repository'], $createdById);
+            }
+
+            $producedItemModel->produced_items = json_encode($producedItems);
+            $producedItemModel->save();
+            $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemDisposition->item_key], $createdById, 1, $itemDisposition->item_key);
             $itemDisposition->produced_items = json_encode([$itemDisposition->item_key => $producedItems[$itemDisposition->item_key]]);
             $itemDisposition->quantity_update = $quantityUpdate;
             $itemDisposition->aging_period = $fields['aging_period'];
@@ -556,6 +520,23 @@ class ItemDispositionController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
 
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onQaItemDispositionRepository($itemDisposition, $quantity, $type, $createdById)
+    {
+        try {
+            $productionBatchId = $itemDisposition->production_batch_id;
+            $itemMasterdataId = $itemDisposition->productionBatch->itemMasterdata->id;
+            $itemDispositionRepository = new ItemDispositionRepositoryModel();
+            $itemDispositionRepository->type = $type;
+            $itemDispositionRepository->production_batch_id = $productionBatchId;
+            $itemDispositionRepository->item_id = $itemMasterdataId;
+            $itemDispositionRepository->quantity = $quantity;
+            $itemDispositionRepository->created_by_id = $createdById;
+            $itemDispositionRepository->save();
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
