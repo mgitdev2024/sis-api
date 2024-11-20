@@ -359,6 +359,10 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/item/disposition/endorsed-by-qa/get/{item_disposition_id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetEndorsedByQaItems']);
     #endregion
 
+    #region Item Disposition Repository
+    Route::get('v1/item/disposition/repo/current/{type}/{status}/{filter?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionRepositoryController::class, 'onGet']);
+    #endregion
+
     #region Sub Standard Items
     Route::post('v1/item/sub-standard/create', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onCreate']);
     Route::get('v1/item/sub-standard/notify', [App\Http\Controllers\v1\QualityAssurance\SubStandardItemController::class, 'onGetNotification']);
