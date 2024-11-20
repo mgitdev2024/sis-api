@@ -33,7 +33,8 @@ class ItemDispositionRepositoryController extends Controller
                 'idm.type',
                 'itm.item_code',
                 DB::raw("CONCAT(pb.batch_code, '-', LPAD(idm.item_key, 3, '0')) as sticker_no"),
-                'idm.quantity'
+                'idm.quantity',
+                'idm.created_at',
             ])
             ->leftJoin('wms_item_masterdata as itm', 'itm.id', '=', 'idm.item_id')
             ->leftJoin('mos_production_batches as pb', 'pb.id', '=', 'idm.production_batch_id');
