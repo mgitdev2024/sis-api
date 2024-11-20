@@ -19,12 +19,12 @@ class ItemDispositionRepositoryController extends Controller
         ];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
         if (($whereObject && $whereObject->format('Y-m-d') === $filter) && $status == 0) {
-            $whereFields['created_at'] = $filter;
+            $whereFields['idm.created_at'] = $filter;
         } else if ($status == 0) {
             $today = new \DateTime('today');
             $yesterday = new \DateTime('yesterday');
-            $whereFields['created_at'] = [$yesterday->format('Y-m-d'), $today->format('Y-m-d')];
-            $whereFields['status'] = [0];
+            $whereFields['idm.created_at'] = [$yesterday->format('Y-m-d'), $today->format('Y-m-d')];
+            $whereFields['idm.status'] = [0];
         }
 
         $itemDispositionRepositoryModel = ItemDispositionRepositoryModel::from('qa_item_disposition_repositories as idm')
