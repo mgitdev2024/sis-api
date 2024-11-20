@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->tinyInteger('type'); // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement,
             $table->unsignedBigInteger('production_batch_id');
+            $table->integer('item_key');
             $table->unsignedBigInteger('item_id');
             $table->integer('quantity');
             SchemaHelper::addCommonColumns($table); //  0 = closed, 1 = open,
