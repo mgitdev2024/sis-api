@@ -40,11 +40,13 @@ class ItemDispositionModel extends Model
 
     public function getItemVariantLabelAttribute()
     {
-        $otbItems = $this->productionBatch->productionOtb->itemMasterdata ?? null;
-        $otaItems = $this->productionBatch->productionOta->itemMasterdata ?? null;
-        $itemMasterdata = $otbItems ?? $otaItems;
-        $itemVariantType = $itemMasterdata->itemVariantType->toArray();
-        return isset($itemVariantType) ? $itemVariantType['name'] : null;
+        if ($this->production_batch_id != null) {
+            $otbItems = $this->productionBatch->productionOtb->itemMasterdata ?? null;
+            $otaItems = $this->productionBatch->productionOta->itemMasterdata ?? null;
+            $itemMasterdata = $otbItems ?? $otaItems;
+            $itemVariantType = $itemMasterdata->itemVariantType->toArray();
+            return isset($itemVariantType) ? $itemVariantType['name'] : null;
+        }
     }
 
     public static function getStatusLabel($index)
