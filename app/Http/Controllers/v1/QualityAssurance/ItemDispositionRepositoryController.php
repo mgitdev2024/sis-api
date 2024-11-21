@@ -18,9 +18,10 @@ class ItemDispositionRepositoryController extends Controller
             'idm.status' => $status
         ];
         $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
-        if (($whereObject && $whereObject->format('Y-m-d') === $filter) && $status == 0) {
+
+        if (($whereObject && $whereObject->format('Y-m-d') === $filter)) {
             $whereFields['idm.created_at'] = $filter;
-        } else if ($status == 0) {
+        } else if ($filter == null) {
             $today = new \DateTime('today');
             $yesterday = new \DateTime('yesterday');
             $whereFields['idm.created_at'] = [$yesterday->format('Y-m-d'), $today->format('Y-m-d')];
@@ -39,7 +40,13 @@ class ItemDispositionRepositoryController extends Controller
             ->leftJoin('wms_item_masterdata as itm', 'itm.id', '=', 'idm.item_id')
             ->leftJoin('mos_production_batches as pb', 'pb.id', '=', 'idm.production_batch_id');
         foreach ($whereFields as $key => $value) {
-            $itemDispositionRepositoryModel->where($key, $value);
+            if ($key == 'idm.created_at' && $filter != null) {
+                $itemDispositionRepositoryModel->whereDate($key, $value);
+            } else if ($key == 'idm.created_at') {
+                $itemDispositionRepositoryModel->whereBetween($key, $value);
+            } else {
+                $itemDispositionRepositoryModel->where($key, $value);
+            }
         }
         $itemDispositionRepositoryModel = $itemDispositionRepositoryModel->orderBy('idm.id', 'DESC')->get();
         return $this->dataResponse('success', 200, 'Item Disposition Repository', $itemDispositionRepositoryModel);
