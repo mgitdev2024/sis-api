@@ -12,6 +12,7 @@ class ItemDispositionRepositoryModel extends Model
     use HasFactory;
 
     protected $table = 'qa_item_disposition_repositories';
+    protected $appends = ['type_label'];
     protected $fillable = [
         'type', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
         'production_batch_id',
@@ -21,7 +22,6 @@ class ItemDispositionRepositoryModel extends Model
         'created_at',
         'updated_at',
     ];
-
     public function itemMasterdata()
     {
         return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
@@ -29,5 +29,14 @@ class ItemDispositionRepositoryModel extends Model
     public function productionBatch()
     {
         return $this->belongsTo(ProductionBatchModel::class, 'production_batch_id');
+    }
+    public function getTypeLabelAttribute()
+    {
+        if ($this->type !== null) {
+            $typeArray = ['For Disposal', 'For Consumption', 'For Endorsement'];
+            $type = $typeArray[$this->type];
+            return $type;
+        }
+
     }
 }

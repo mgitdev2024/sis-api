@@ -361,6 +361,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
 
     #region Item Disposition Repository
     Route::get('v1/item/disposition/repo/current/{type}/{status}/{filter?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionRepositoryController::class, 'onGet']);
+    Route::get('v1/item/disposition/repo/dashboard/get/{status}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionRepositoryController::class, 'onGetDashboardReport']);
     #endregion
 
     #region Sub Standard Items

@@ -534,6 +534,7 @@ class ItemDispositionController extends Controller
             $itemDispositionRepository->type = $type;
             $itemDispositionRepository->production_batch_id = $productionBatchId;
             $itemDispositionRepository->item_id = $itemMasterdataId;
+            $itemDispositionRepository->item_key = $itemDisposition->item_key;
             $itemDispositionRepository->quantity = $quantity;
             $itemDispositionRepository->created_by_id = $createdById;
             $itemDispositionRepository->save();
