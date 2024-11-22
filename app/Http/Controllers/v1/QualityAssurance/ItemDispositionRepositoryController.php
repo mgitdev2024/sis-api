@@ -28,7 +28,7 @@ class ItemDispositionRepositoryController extends Controller
                 $today = new \DateTime('today');
                 $yesterday = new \DateTime('yesterday');
                 $whereFields['idm.created_at'] = [$yesterday->format('Y-m-d 00:00:00'), $today->format('Y-m-d 23:59:59')];
-                $whereFields['idm.status'] = [0];
+                $whereFields['idm.status'] = [$status];
             }
 
             $itemDispositionRepositoryModel = ItemDispositionRepositoryModel::from('qa_item_disposition_repositories as idm')
