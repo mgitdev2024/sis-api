@@ -32,7 +32,7 @@ class ItemDispositionRepositoryModel extends Model
     }
     public function getTypeLabelAttribute()
     {
-        if ($this->type != null) {
+        if ($this->type !== null) {
             $typeArray = ['For Disposal', 'For Consumption', 'For Endorsement'];
             $type = $typeArray[$this->type];
             return $type;
