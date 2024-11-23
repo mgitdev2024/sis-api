@@ -28,7 +28,8 @@ class ItemMasterdataModel extends Model
         'sticker_remarks_label',
         'storage_type_label',
         'stock_type_label',
-        // 'stock_rotation_type_label'
+        // 'stock_rotation_type_label',
+        'has_add_ons_label'
     ];
     protected $fillable = [
         'item_code',
@@ -74,23 +75,17 @@ class ItemMasterdataModel extends Model
         'created_by_id',
         'updated_by_id',
         'status',
+
+        // Added Columns
+        'is_add_ons',
+        'add_ons_items',
+        'order_type',
+        'delivery_type_id',
+        'orderable_by',
+        'show_stocks',
+        'order_with_zero_stocks'
     ];
 
-    public function getStockRotationTypeLabelAttribute()
-    {
-        $stockRotationTypeLabel = ["FIFO", "FEFO"];
-        return $stockRotationTypeLabel[$this->stock_rotation_type];
-    }
-    public function getStickerRemarksLabelAttribute()
-    {
-        $stickerRemarksLabel = [
-            "STIC-KEEP-CHILLED" => "KEEP CHILLED",
-            "STIC-KEEP-FROZEN" => "KEEP FROZEN",
-            "STIC-KEEP-CHILLED-OPN" => "KEEP CHILLED ONCE OPENED",
-            "STIC-KEEP-COVERED-AMB" => "KEEP COVERED IN AMBIENT STORAGE"
-        ];
-        return $stickerRemarksLabel[$this->sticker_remarks_code] ?? null;
-    }
     public function itemCategory()
     {
         return $this->belongsTo(ItemCategoryModel::class, 'item_category_id', 'id');
@@ -131,6 +126,11 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(ItemClassificationModel::class, 'item_classification_id', 'id');
 
+    }
+
+    public function stockType()
+    {
+        return $this->belongsTo(ItemStockTypeModel::class, 'stock_type_id', 'id');
     }
     public function getItemCategoryLabelAttribute()
     {
@@ -230,14 +230,32 @@ class ItemMasterdataModel extends Model
         return null;
     }
 
-    public function stockType()
-    {
-        return $this->belongsTo(ItemStockTypeModel::class, 'stock_type_id', 'id');
-    }
-
     public function getStockTypeLabelAttribute()
     {
         $stockType = $this->stockType->toArray();
         return $stockType ?? null;
+    }
+
+
+    public function getStockRotationTypeLabelAttribute()
+    {
+        $stockRotationTypeLabel = ["FIFO", "FEFO"];
+        return $stockRotationTypeLabel[$this->stock_rotation_type];
+    }
+    public function getStickerRemarksLabelAttribute()
+    {
+        $stickerRemarksLabel = [
+            "STIC-KEEP-CHILLED" => "KEEP CHILLED",
+            "STIC-KEEP-FROZEN" => "KEEP FROZEN",
+            "STIC-KEEP-CHILLED-OPN" => "KEEP CHILLED ONCE OPENED",
+            "STIC-KEEP-COVERED-AMB" => "KEEP COVERED IN AMBIENT STORAGE"
+        ];
+        return $stickerRemarksLabel[$this->sticker_remarks_code] ?? null;
+    }
+
+    public function getHasAddOnsLabelAttribute()
+    {
+        $addOnsItems = count(json_decode($this->add_ons_items, true) ?? []);
+        return $addOnsItems > 0 ? true : false;
     }
 }
