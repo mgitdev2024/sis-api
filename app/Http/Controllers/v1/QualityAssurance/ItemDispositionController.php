@@ -210,17 +210,23 @@ class ItemDispositionController extends Controller
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
-    public function onGetAllCategory($type = null, $status)
+    public function onGetAllCategory($type, $status, $filter = null)
     {
         try {
             $itemDisposition = ItemDispositionModel::select('production_batch_id', 'is_release', DB::raw('count(*) as count'))
                 ->with('productionBatch')
                 ->where('status', $status)
-                ->where('type', $type)
-                ->groupBy([
-                    'production_batch_id',
-                    'is_release'
-                ])
+                ->where('type', $type);
+            if ($filter != null) {
+                $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+                if (($whereObject && $whereObject->format('Y-m-d') === $filter)) {
+                    $itemDisposition->whereDate('created_at', $filter);
+                }
+            }
+            $itemDisposition = $itemDisposition->groupBy([
+                'production_batch_id',
+                'is_release'
+            ])
                 ->get();
             $batchDisposition = [];
             $counter = 0;
