@@ -52,7 +52,7 @@ class ItemDispositionController extends Controller
             'aging_period' => 'required|integer',
             'quantity_update' => 'required_if:action_status_id,7,8|integer',
             'quantity_qa_for_repository' => 'required_if:action_status_id,7,8|integer',
-            'type_qa_for_repository' => 'required_if:action_status_id,7,8|in:0,1,2',
+            'type_qa_for_repository' => 'nullable|in:0,1,2', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
         // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal
@@ -528,16 +528,19 @@ class ItemDispositionController extends Controller
     public function onQaItemDispositionRepository($itemDisposition, $quantity, $type, $createdById)
     {
         try {
-            $productionBatchId = $itemDisposition->production_batch_id;
-            $itemMasterdataId = $itemDisposition->productionBatch->itemMasterdata->id;
-            $itemDispositionRepository = new ItemDispositionRepositoryModel();
-            $itemDispositionRepository->type = $type;
-            $itemDispositionRepository->production_batch_id = $productionBatchId;
-            $itemDispositionRepository->item_id = $itemMasterdataId;
-            $itemDispositionRepository->item_key = $itemDisposition->item_key;
-            $itemDispositionRepository->quantity = $quantity;
-            $itemDispositionRepository->created_by_id = $createdById;
-            $itemDispositionRepository->save();
+            $repositoryArray = [0, 1, 2];
+            if (in_array($type, $repositoryArray) && $quantity > 0) {
+                $productionBatchId = $itemDisposition->production_batch_id;
+                $itemMasterdataId = $itemDisposition->productionBatch->itemMasterdata->id;
+                $itemDispositionRepository = new ItemDispositionRepositoryModel();
+                $itemDispositionRepository->type = $type;
+                $itemDispositionRepository->production_batch_id = $productionBatchId;
+                $itemDispositionRepository->item_id = $itemMasterdataId;
+                $itemDispositionRepository->item_key = $itemDisposition->item_key;
+                $itemDispositionRepository->quantity = $quantity;
+                $itemDispositionRepository->created_by_id = $createdById;
+                $itemDispositionRepository->save();
+            }
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
