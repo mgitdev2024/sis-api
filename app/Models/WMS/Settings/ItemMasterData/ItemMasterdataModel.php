@@ -28,6 +28,7 @@ class ItemMasterdataModel extends Model
         'sticker_remarks_label',
         'storage_type_label',
         'stock_type_label',
+        'is_sliceable_label',
         // 'stock_rotation_type_label',
         'has_add_ons_label'
     ];
@@ -257,5 +258,23 @@ class ItemMasterdataModel extends Model
     {
         $addOnsItems = count(json_decode($this->add_ons_items, true) ?? []);
         return $addOnsItems > 0 ? true : false;
+    }
+
+    public function getIsSliceableLabelAttribute()
+    {
+        if ($this) {
+            $baseCode = explode(' ', $this->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isSliceable = false;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($this->id, $parentIds)) {
+                    $isSliceable = true;
+                }
+            }
+            return $isSliceable;
+        }
     }
 }
