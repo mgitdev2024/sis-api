@@ -212,37 +212,36 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onReopenDisposition(Request $request, $id)
+    public function onReopenDisposition(Request $request)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
-            'item_disposition_type' => 'required|in:0,1'
+            'item_disposition_ids' => 'required|string'
         ]);
         try {
             $createdById = $fields['created_by_id'];
-            $itemDispositionModel = ItemDispositionModel::where([
-                'production_batch_id' => $id,
-                'type' => $fields['item_disposition_type']
-            ])->get();
-            if (count($itemDispositionModel) > 0) {
-                foreach ($itemDispositionModel as &$itemDispositionValue) {
+            $itemDispositionIds = json_decode($fields['item_disposition_ids'], true);
+            if (count($itemDispositionIds) > 0) {
+                foreach ($itemDispositionIds as $itemDispositionId) {
+                    $itemDispositionModel = ItemDispositionModel::find($itemDispositionId);
                     DB::beginTransaction();
-                    $productionBatchModel = $itemDispositionValue->productionBatch;
+                    $productionBatchModel = $itemDispositionModel->productionBatch;
                     $productionItemModel = $productionBatchModel->productionItems;
                     $dispositionedItem = json_decode($productionItemModel->produced_items, true);
-                    $dispositionedItem[$itemDispositionValue['item_key']]['status'] = $itemDispositionValue['type'] == 0 ? 4 : 5;
-                    $dispositionedItem[$itemDispositionValue['item_key']]['sticker_status'] = 1;
+                    $dispositionedItem[$itemDispositionModel->item_key]['status'] = $itemDispositionModel->type == 0 ? 4 : 5;
+                    $dispositionedItem[$itemDispositionModel->item_key]['sticker_status'] = 1;
                     $productionItemModel->produced_items = json_encode($dispositionedItem);
                     $productionItemModel->save();
-                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $dispositionedItem, $createdById, 1, $itemDispositionValue['item_key']);
-                    $itemDispositionValue->status = 1;
-                    $itemDispositionValue->production_status = 1;
-                    $itemDispositionValue->is_printed = 0;
-                    $itemDispositionValue->action = null;
-                    $itemDispositionValue->save();
-                    $this->createProductionLog(ItemDispositionModel::class, $itemDispositionValue->id, $itemDispositionValue->getAttributes(), $createdById, 1, $itemDispositionValue['item_key']);
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $dispositionedItem, $createdById, 1, $itemDispositionModel->item_key);
+                    $itemDispositionModel->status = 1;
+                    $itemDispositionModel->production_status = 1;
+                    $itemDispositionModel->is_printed = 0;
+                    $itemDispositionModel->action = null;
+                    $itemDispositionModel->save();
+                    $this->createProductionLog(ItemDispositionModel::class, $itemDispositionModel->id, $itemDispositionModel->getAttributes(), $createdById, 1, $itemDispositionModel->item_key);
+
+                    DB::commit();
                 }
-                DB::commit();
                 return $this->dataResponse('success', 200, 'Item Disposition ' . __('msg.update_success'));
             } else {
                 return $this->dataResponse('error', 200, 'Item Disposition ' . __('msg.record_not_found'));

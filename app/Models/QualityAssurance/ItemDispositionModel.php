@@ -3,6 +3,7 @@
 namespace App\Models\QualityAssurance;
 
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,7 +11,7 @@ class ItemDispositionModel extends Model
 {
     use HasFactory;
     protected $table = 'qa_item_dispositions';
-    protected $appends = ['item_variant_label'];
+    protected $appends = ['item_variant_label', 'is_sliceable_label'];
     protected $fillable = [
         'production_batch_id',
         'item_code',
@@ -75,5 +76,23 @@ class ItemDispositionModel extends Model
             'key' => $index,
             'value' => $labels[$index]
         ];
+    }
+
+    public function getIsSliceableLabelAttribute()
+    {
+        if ($this) {
+            $baseCode = explode(' ', $this->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isSliceable = false;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($this->id, $parentIds)) {
+                    $isSliceable = true;
+                }
+            }
+            return $isSliceable;
+        }
     }
 }
