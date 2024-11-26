@@ -95,4 +95,23 @@ class ItemDispositionModel extends Model
             return $isSliceable;
         }
     }
+
+    public function onIsSliceable($itemMasterdata)
+    {
+        if ($itemMasterdata) {
+            $baseCode = explode(' ', $itemMasterdata->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isSliceable = false;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($itemMasterdata->id, $parentIds)) {
+                    $isSliceable = true;
+                }
+            }
+            return $isSliceable;
+        }
+        return false;
+    }
 }
