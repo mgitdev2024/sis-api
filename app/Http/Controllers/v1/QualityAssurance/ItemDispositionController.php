@@ -83,7 +83,7 @@ class ItemDispositionController extends Controller
             $producedItems[$itemDisposition->item_key]['status'] = $fields['action_status_id'];
             if ($fields['action_status_id'] == 8) {
                 $producedItems[$itemDisposition->item_key]['q'] = $fields['quantity_update'];
-            } else if ($fields['action_status_id'] == 7 && (($itemVariantType != 1 || $itemVariantType != 10) && $isNotSliceable)) {
+            } else if ($fields['action_status_id'] == 7 && /*(($itemVariantType != 1 || $itemVariantType != 10)) &&*/ $isNotSliceable) {
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
             } else if ($fields['action_status_id'] == 6) {
                 $quantityUpdate = 0;
@@ -190,6 +190,7 @@ class ItemDispositionController extends Controller
                 $productionItems->produced_items = json_encode($productionItemsArr);
                 $productionItems->save();
 
+                /*
                 if ($isTriggeredReviewedStatus) {
                     $productionToBakeAssemble = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                     $modelClass = $productionBatch->productionOtb
@@ -199,8 +200,48 @@ class ItemDispositionController extends Controller
                     // $productionToBakeAssemble->produced_items_count -= $triggeredReviewedStatusCount;
                     $productionToBakeAssemble->save();
                     $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
-                }
+                }*/
                 DB::commit();
+                return $this->dataResponse('success', 200, 'Item Disposition ' . __('msg.update_success'));
+            } else {
+                return $this->dataResponse('error', 200, 'Item Disposition ' . __('msg.record_not_found'));
+            }
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onReopenDisposition(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'item_disposition_ids' => 'required|string'
+        ]);
+        try {
+            $createdById = $fields['created_by_id'];
+            $itemDispositionIds = json_decode($fields['item_disposition_ids'], true);
+            if (count($itemDispositionIds) > 0) {
+                foreach ($itemDispositionIds as $itemDispositionId) {
+                    $itemDispositionModel = ItemDispositionModel::find($itemDispositionId);
+                    DB::beginTransaction();
+                    $productionBatchModel = $itemDispositionModel->productionBatch;
+                    $productionItemModel = $productionBatchModel->productionItems;
+                    $dispositionedItem = json_decode($productionItemModel->produced_items, true);
+                    $dispositionedItem[$itemDispositionModel->item_key]['status'] = $itemDispositionModel->type == 0 ? 4 : 5;
+                    $dispositionedItem[$itemDispositionModel->item_key]['sticker_status'] = 1;
+                    $productionItemModel->produced_items = json_encode($dispositionedItem);
+                    $productionItemModel->save();
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $dispositionedItem, $createdById, 1, $itemDispositionModel->item_key);
+                    $itemDispositionModel->status = 1;
+                    $itemDispositionModel->production_status = 1;
+                    $itemDispositionModel->is_printed = 0;
+                    $itemDispositionModel->action = null;
+                    $itemDispositionModel->save();
+                    $this->createProductionLog(ItemDispositionModel::class, $itemDispositionModel->id, $itemDispositionModel->getAttributes(), $createdById, 1, $itemDispositionModel->item_key);
+
+                    DB::commit();
+                }
                 return $this->dataResponse('success', 200, 'Item Disposition ' . __('msg.update_success'));
             } else {
                 return $this->dataResponse('error', 200, 'Item Disposition ' . __('msg.record_not_found'));
@@ -334,6 +375,7 @@ class ItemDispositionController extends Controller
                     $primaryConversionUnit = $productionToBakeAssemble->itemMasterdata->primaryConversion->long_name ?? null;
                     $dataset['id'] = $value['id'];
                     $dataset['item_variant_label'] = $productionToBakeAssemble->itemMasterdata->itemVariantType->name;
+                    $dataset['is_sliceable_label'] = ItemDispositionModel::onIsSliceable($productionToBakeAssemble->itemMasterdata);
                     $dataset['quantity_update'] = $value['quantity_update'];
                     $dataset['produced_items'] = $value['produced_items'];
                     $dataset['production_batch_id'] = $value['production_batch_id'];

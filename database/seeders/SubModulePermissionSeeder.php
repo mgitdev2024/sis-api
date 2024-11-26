@@ -63,6 +63,28 @@ class SubModulePermissionSeeder extends Seeder
                 'allow_update' => ["0005", "0000", 5182, 5358, 6208, 6233],
                 'allow_delete' => ["0005", "0000", 5182, 5358, 6208, 6233],
             ],
+            [
+                'module_permission_id' => 4,
+                'name' => 'QA For Investigation',
+                'code' => 'SCM-QUA-ASS-FIN',
+                'description' => 'Submodule of QA Item Disposition',
+                'is_enabled' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_view' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_create' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_update' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_delete' => ["0007", "0000", 5182, 5358, 6208, 6233],
+            ],
+            [
+                'module_permission_id' => 4,
+                'name' => 'QA For Sampling',
+                'code' => 'SCM-QUA-ASS-FSA',
+                'description' => 'Submodule of QA Item Disposition',
+                'is_enabled' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_view' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_create' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_update' => ["0007", "0000", 5182, 5358, 6208, 6233],
+                'allow_delete' => ["0007", "0000", 5182, 5358, 6208, 6233],
+            ],
         ];
 
         foreach ($scmSystem as $value) {
