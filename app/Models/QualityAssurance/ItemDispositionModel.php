@@ -96,7 +96,7 @@ class ItemDispositionModel extends Model
         }
     }
 
-    public function onIsSliceable($itemMasterdata)
+    public static function onIsSliceable($itemMasterdata)
     {
         if ($itemMasterdata) {
             $baseCode = explode(' ', $itemMasterdata->item_code)[0];
