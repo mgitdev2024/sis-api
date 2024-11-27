@@ -24,7 +24,7 @@ class ItemDispositionRepositoryController extends Controller
 
             if (($whereObject && $whereObject->format('Y-m-d') === $filter)) {
                 $whereFields['idm.created_at'] = $filter;
-            } else if ($filter == null) {
+            } else if ($filter == null && $status == 0) {
                 $today = new \DateTime('today');
                 $yesterday = new \DateTime('yesterday');
                 $whereFields['idm.created_at'] = [$yesterday->format('Y-m-d 00:00:00'), $today->format('Y-m-d 23:59:59')];
@@ -45,7 +45,7 @@ class ItemDispositionRepositoryController extends Controller
             foreach ($whereFields as $key => $value) {
                 if ($key == 'idm.created_at' && $filter != null) {
                     $itemDispositionRepositoryModel->whereDate($key, $value);
-                } else if ($key == 'idm.created_at') {
+                } else if ($key == 'idm.created_at' && $status == 0) {
                     $itemDispositionRepositoryModel->whereBetween($key, $value);
                 } else {
                     $itemDispositionRepositoryModel->where($key, $value);
@@ -61,7 +61,7 @@ class ItemDispositionRepositoryController extends Controller
     public function onGetDashboardReport($status)
     {
         try {
-            $today = new \DateTime('today');
+            // $today = new \DateTime('today');
             $forItemDispositionCount = ItemDispositionModel::select(
                 DB::raw('SUM(CASE WHEN production_status = 1 AND type = 0 AND action IS NULL THEN 1 ELSE 0 END) as for_investigation_count'),
                 DB::raw('SUM(CASE WHEN production_status = 1 AND type = 1 AND action IS NULL THEN 1 ELSE 0 END) as for_sampling_count'),
@@ -76,7 +76,7 @@ class ItemDispositionRepositoryController extends Controller
 
             )
                 ->where('status', $status)
-                ->whereDate('created_at', $today->format('Y-m-d'))
+                // ->whereDate('created_at', $today->format('Y-m-d'))
                 ->first();
             $data = [
                 'for_investigation_count' => $forItemDispositionCount->for_investigation_count ?? 0,
@@ -87,6 +87,30 @@ class ItemDispositionRepositoryController extends Controller
             ];
 
             return $this->dataResponse('success', 200, 'Item Disposition Repository', $data);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception);
+        }
+    }
+
+    public function onChangeStatus(Request $request)
+    {
+        try {
+            $fields = $request->validate([
+                'item_repository_ids' => 'required|string',
+                'updated_by_id' => 'required|string',
+            ]);
+            $itemRepositoryIds = json_decode($fields['item_repository_ids'], true);
+            if (count($itemRepositoryIds) > 0) {
+                foreach ($itemRepositoryIds as $value) {
+                    $itemRepositoryModel = ItemDispositionRepositoryModel::find($value);
+                    $itemRepositoryModel->status = 0;
+                    $itemRepositoryModel->updated_by_id = $fields['updated_by_id'];
+                    $itemRepositoryModel->save();
+                }
+                return $this->dataResponse('success', 200, 'Item Disposition Repository ' . __('msg.update_success'));
+            }
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception);
