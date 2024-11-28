@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\v1\WMS\InventoryKeeping;
+namespace App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer;
 
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionItemModel;
-use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
-use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Traits\WMS\QueueSubLocationTrait;

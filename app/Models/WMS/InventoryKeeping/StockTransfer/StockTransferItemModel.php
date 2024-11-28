@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\WMS\InventoryKeeping;
+namespace App\Models\WMS\InventoryKeeping\StockTransfer;
 
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;

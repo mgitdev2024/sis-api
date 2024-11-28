@@ -2,8 +2,8 @@
 
 namespace App\Models\WMS\InventoryKeeping\ForStockTransfer;
 
-use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
-use App\Models\WMS\InventoryKeeping\StockTransferListModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

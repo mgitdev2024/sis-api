@@ -8,7 +8,7 @@ use App\Models\MOS\Production\ProductionOTAModel;
 use App\Models\MOS\Production\ProductionOTBModel;
 use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
-use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemClassificationModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemCategoryModel;
