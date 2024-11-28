@@ -48,14 +48,14 @@ class ItemDispositionController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'action_status_id' => 'required|in:6,7,8,10.1',
+            'action_status_id' => 'required|in:6,7,8,10.1,10.2,10.3',
             'aging_period' => 'required|integer',
             'quantity_update' => 'required_if:action_status_id,7,8|integer',
             'quantity_qa_for_repository' => 'required_if:action_status_id,7,8|integer',
             'type_qa_for_repository' => 'nullable|in:0,1,2', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
-        // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal
+        // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal, 10.3 = For Consumption
         $fields = $request->validate($rules);
         try {
             DB::beginTransaction();
@@ -87,7 +87,7 @@ class ItemDispositionController extends Controller
                 return $this->dataResponse('error', 400, 'This item cannot be sliced');
             } else if ($fields['action_status_id'] == 6) {
                 $quantityUpdate = 0;
-            } else if ($fields['action_status_id'] == 10.1) {
+            } else if ($fields['action_status_id'] == 10.1 || $fields['action_status_id'] == 10.2 || $fields['action_status_id'] == 10.3) {
                 $quantityUpdate = 0;
 
                 $productionBatchModel = $producedItemModel->productionBatch;
@@ -100,7 +100,7 @@ class ItemDispositionController extends Controller
                 $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
             }
 
-            $forItemRepository = [7, 8, 10.1];
+            $forItemRepository = [7, 8, 10.1, 10.2, 10.3];
             if (in_array($fields['action_status_id'], $forItemRepository)) {
                 $this->onQaItemDispositionRepository($itemDisposition, $fields['quantity_qa_for_repository'], $fields['type_qa_for_repository'], $createdById);
             }
