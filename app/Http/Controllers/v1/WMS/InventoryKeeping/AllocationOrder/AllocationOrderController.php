@@ -63,7 +63,7 @@ class AllocationOrderController extends Controller
                 'item_id' => $key,
             ])->first();
             if ($existingAllocationItems) {
-                $this->onUpdateAllocationItems($key, $value, $existingAllocationItems, $createdById);
+                $this->onUpdateAllocationItems($value, $existingAllocationItems, $createdById);
             } else {
                 $this->onAddAllocationItems($key, $value, $allocationOrderModelId, $createdById);
             }
@@ -87,7 +87,7 @@ class AllocationOrderController extends Controller
         $allocationItemController->onCreate($allocationItemRequest);
     }
 
-    public function onUpdateAllocationItems($key, $value, $existingAllocationItems, $createdById)
+    public function onUpdateAllocationItems($value, $existingAllocationItems, $createdById)
     {
         $existingAllocationItems->theoretical_soh += $value['theoretical_soh'];
         $existingAllocationItems->store_order_quantity += $value['store_order_quantity'];

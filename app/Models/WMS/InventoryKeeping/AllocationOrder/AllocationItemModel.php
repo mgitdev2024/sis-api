@@ -10,6 +10,7 @@ class AllocationItemModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_allocation_items';
+    protected $appends = ['item_label'];
     protected $fillable = [
         'allocation_order_id',
         'item_id',
@@ -28,5 +29,9 @@ class AllocationItemModel extends Model
     public function itemMasterdata()
     {
         return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
+    }
+    public function getItemLabelAttribute()
+    {
+        return $this->itemMasterdata->item_code;
     }
 }
