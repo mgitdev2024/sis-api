@@ -51,7 +51,7 @@ class AllocationOrderController extends Controller
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, 'Allocation Orders ' . __('msg.create_failed'), $exception);
+            return $this->dataResponse('error', 400, 'Allocation Orders ' . __('msg.create_failed'), $exception->getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ class AllocationOrderController extends Controller
             'item_id' => $key,
             'request_type' => $value['request_type'],
             'theoretical_soh' => $value['theoretical_soh'],
-            'store_order_quantity' => $value['store_order_quantity'],
+            'total_order_quantity' => $value['total_order_quantity'],
             'store_order_details' => json_encode($value['store_order_details']),
             'excess_stocks' => $value['excess_stocks'],
             'allocated_stocks' => $value['allocated_stocks'],
@@ -90,10 +90,12 @@ class AllocationOrderController extends Controller
     public function onUpdateAllocationItems($value, $existingAllocationItems, $createdById)
     {
         $existingAllocationItems->theoretical_soh += $value['theoretical_soh'];
-        $existingAllocationItems->store_order_quantity += $value['store_order_quantity'];
+        $existingAllocationItems->total_order_quantity += $value['total_order_quantity'];
         $existingAllocationItems->excess_stocks += $value['excess_stocks'];
         $existingAllocationItems->allocated_stocks += $value['allocated_stocks'];
-        $existingAllocationItems->store_order_details = json_encode(array_merge(json_decode($existingAllocationItems->store_order_details, true), $value['store_order_details']));
+        $existingStoreOrderDetails = json_decode($existingAllocationItems->store_order_details, true);
+        $mergedArray = $existingStoreOrderDetails + $value['store_order_details'];
+        $existingAllocationItems->store_order_details = json_encode($mergedArray);
         $existingAllocationItems->updated_by_id = $createdById;
         $existingAllocationItems->save();
     }

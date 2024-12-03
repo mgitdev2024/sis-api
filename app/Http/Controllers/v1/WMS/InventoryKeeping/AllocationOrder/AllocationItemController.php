@@ -17,7 +17,7 @@ class AllocationItemController extends Controller
             'item_id' => 'required|integer|exists:wms_item_masterdata,id',
             'request_type' => 'required',
             'theoretical_soh' => 'required|numeric|min:0',
-            'store_order_quantity' => 'required|integer|min:0',
+            'total_order_quantity' => 'required|integer|min:0',
             'store_order_details' => 'required|string|max:255',
             'excess_stocks' => 'nullable|numeric|min:0',
             'allocated_stocks' => 'nullable|numeric|min:0',

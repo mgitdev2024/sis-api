@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('item_id');
             $table->string('request_type');
             $table->integer('theoretical_soh');
-            $table->integer('store_order_quantity');
+            $table->integer('total_order_quantity');
             $table->longText('store_order_details');
             $table->integer('excess_stocks');
             $table->integer('allocated_stocks');

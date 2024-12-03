@@ -16,7 +16,7 @@ class AllocationItemModel extends Model
         'item_id',
         'request_type',
         'theoretical_soh',
-        'store_order_quantity',
+        'total_order_quantity',
         'store_order_details',
         'excess_stocks',
         'allocated_stocks',
