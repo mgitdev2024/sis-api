@@ -14,7 +14,6 @@ class AllocationItemModel extends Model
     protected $fillable = [
         'allocation_order_id',
         'item_id',
-        'request_type',
         'theoretical_soh',
         'total_order_quantity',
         'store_order_details',

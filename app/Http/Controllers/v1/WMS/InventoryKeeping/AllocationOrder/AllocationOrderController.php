@@ -45,6 +45,7 @@ class AllocationOrderController extends Controller
                 $allocationOrderModel->estimated_delivery_date = $fields['estimated_delivery_date'];
                 $allocationOrderModel->created_by_id = $fields['created_by_id'];
                 $allocationOrderModel->save();
+                $this->createWarehouseLog(null, null, AllocationItemModel::class, $allocationOrderModel->id, $allocationOrderModel->getAttributes(), $fields['created_by_id'], 0);
 
                 $this->onInitializeAllocationItems($consolidatedItems, $allocationOrderModel->id, $fields['created_by_id']);
             }
@@ -76,7 +77,6 @@ class AllocationOrderController extends Controller
         $allocationItemRequest = new Request([
             'allocation_order_id' => $allocationOrderModelId,
             'item_id' => $key,
-            'request_type' => $value['request_type'],
             'theoretical_soh' => $value['theoretical_soh'],
             'total_order_quantity' => $value['total_order_quantity'],
             'store_order_details' => json_encode($value['store_order_details']),
@@ -98,5 +98,7 @@ class AllocationOrderController extends Controller
         $existingAllocationItems->store_order_details = json_encode($mergedArray);
         $existingAllocationItems->updated_by_id = $createdById;
         $existingAllocationItems->save();
+        $this->createWarehouseLog(null, null, AllocationItemModel::class, $existingAllocationItems->id, $existingAllocationItems->getAttributes(), $createdById, 1);
+
     }
 }

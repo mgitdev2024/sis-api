@@ -30,7 +30,8 @@ class ItemMasterdataModel extends Model
         'stock_type_label',
         'is_sliceable_label',
         // 'stock_rotation_type_label',
-        'has_add_ons_label'
+        'has_add_ons_label',
+        'picking_type_label',
     ];
     protected $fillable = [
         'item_code',
@@ -84,7 +85,8 @@ class ItemMasterdataModel extends Model
         'delivery_type_id',
         'orderable_by',
         'show_stocks',
-        'order_with_zero_stocks'
+        'order_with_zero_stocks',
+        'picking_type',
     ];
 
     public function itemCategory()
@@ -276,5 +278,11 @@ class ItemMasterdataModel extends Model
             }
             return $isSliceable;
         }
+    }
+
+    public function getPickingTypeLabelAttribute()
+    {
+        $pickingTypeLabel = ["Discreet", "Batch"];
+        return $pickingTypeLabel[$this->picking_type];
     }
 }

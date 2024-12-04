@@ -10,7 +10,7 @@ class StockInventoryModel extends Model
 {
     use HasFactory;
     protected $table = 'wms_stock_inventories';
-
+    protected $appends = ['item_code'];
     protected $fillable = [
         'item_id',
         'stock_count',
@@ -19,5 +19,11 @@ class StockInventoryModel extends Model
     public function itemMasterdata()
     {
         return $this->belongsTo(ItemMasterdataModel::class, 'item_id');
+    }
+
+    public function getItemCodeAttribute()
+    {
+        $itemMasterdataModel = ItemMasterdataModel::find($this->item_id);
+        return $itemMasterdataModel->item_code;
     }
 }

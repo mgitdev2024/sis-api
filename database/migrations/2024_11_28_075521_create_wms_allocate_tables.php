@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('allocation_order_id');
             $table->unsignedBigInteger('item_id');
-            $table->string('request_type');
+            // $table->string('request_type');
             $table->integer('theoretical_soh');
             $table->integer('total_order_quantity');
             $table->longText('store_order_details');

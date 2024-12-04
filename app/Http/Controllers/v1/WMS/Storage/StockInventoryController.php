@@ -10,6 +10,8 @@ use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\ZoneModel;
 use App\Models\WMS\Storage\QueuedSubLocationModel;
 use App\Models\WMS\Storage\StockInventoryModel;
+use App\Models\WMS\Warehouse\WarehousePutAwayModel;
+use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
@@ -451,4 +453,67 @@ class StockInventoryController extends Controller
     // 13 => 'Stored',
     // 14 => 'For Transfer',
     #endregion
+    public function onGetStockOnHandItems()
+    {
+        try {
+            $stockInventoryModel = StockInventoryModel::from('wms_stock_inventories AS si')
+                ->rightJoin('wms_item_masterdata AS im', 'im.id', 'si.item_id')
+                ->pluck('si.stock_count', 'im.item_code');
+
+            foreach ($stockInventoryModel as $itemCode => &$stockInventory) {
+                $itemCheckerArr = [];
+
+                // Check Warehouse Receiving
+                $warehouseReceivingModel = WarehouseReceivingModel::where([
+                    'item_code' => $itemCode,
+                    'status' => 0
+                ])->get();
+                foreach ($warehouseReceivingModel as $warehouseReceiving) {
+                    $warehouseReceivingItems = $this->onItemChecker($itemCheckerArr, json_decode($warehouseReceiving->produced_items, true));
+                    $itemCheckerArr = array_merge($itemCheckerArr, $warehouseReceivingItems);
+                }
+
+                // Check Warehouse Put Away
+                $itemId = ItemMasterdataModel::where('item_code', $itemCode)->select('id')->first()->id;
+                $warehousePutAwayModel = WarehousePutAwayModel::where([
+                    'item_id' => $itemId,
+                    'status' => 0
+                ])->get();
+                foreach ($warehousePutAwayModel as $warehousePutAway) {
+                    $warehouseReceivingItems = $this->onItemChecker($itemCheckerArr, json_decode($warehousePutAway->production_items, true));
+                    $itemCheckerArr = array_merge($itemCheckerArr, $warehouseReceivingItems);
+                }
+
+                $itemCheckCount = count($itemCheckerArr);
+                if ($itemCheckCount > 0) {
+                    $stockInventoryModel[$itemCode] += $itemCheckCount;
+                }
+                if ($stockInventoryModel[$itemCode] == null) {
+                    unset($stockInventoryModel[$itemCode]);
+                }
+            }
+            return $this->dataResponse('success', 200, 'Stock Inventory ' . __('msg.record_found'), $stockInventoryModel);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+
+    public function onItemChecker($container, $productionItemArray)
+    {
+        foreach ($productionItemArray as $itemArray) {
+            $productionBatchId = $itemArray['bid'];
+            $stickerNumber = $itemArray['sticker_no'];
+            $concatenatedBidStickerNo = "{$productionBatchId}-{$stickerNumber}";
+            if (!in_array($concatenatedBidStickerNo, $container)) {
+                $productionItemModel = ProductionItemModel::where('production_batch_id', $productionBatchId)->first();
+                $productionItem = json_decode($productionItemModel->produced_items, true);
+                $countedItemStatus = [2, 2.1, 3, 3.1];
+                if (in_array($productionItem[$stickerNumber]['status'], $countedItemStatus)) {
+                    $container[] = $concatenatedBidStickerNo;
+                }
+            }
+        }
+        return $container;
+    }
 }
