@@ -104,12 +104,9 @@ class AllocationItemController extends Controller
                 $excessStocks = $allocationItemModel->excess_stocks;
                 $storeOrderDetails = json_decode($allocationItemModel->store_order_details, true);
                 $updatedTotalAdjustedStocks = 0;
-                foreach ($allocationAdjustment as $storeId => $allocation) {
-                    $storeOrderDetails[$storeId]['regular_order_quantity'] += $allocation['regular_order_quantity'];
-                    $storeOrderDetails[$storeId]['advance_order_quantity'] += $allocation['advance_order_quantity'];
-                    $storeOrderDetails[$storeId]['reservation_order_quantity'] += $allocation['reservation_order_quantity'];
-                    $updatedTotalAdjustedStocks = $allocation['regular_order_quantity'] + $allocation['advance_order_quantity'] + $allocation['reservation_order_quantity'];
-                    $excessStocks -= $updatedTotalAdjustedStocks;
+                foreach ($allocationAdjustment as $allocation) {
+                    $storeOrderDetails[$allocation->id]['regular_order_quantity'] += $allocation['quantity'];
+                    $excessStocks -= $allocation['quantity'];
                 }
                 $allocationItemModel->allocated_stocks += $updatedTotalAdjustedStocks;
                 $allocationItemModel->excess_stocks = $excessStocks;
