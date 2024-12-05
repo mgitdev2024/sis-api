@@ -480,10 +480,12 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
 
     #region Allocation Order
     Route::post('v1/allocation/order/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationOrderController::class, 'onCreate']);
+    Route::get('v1/allocation/order/get/{status}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationOrderController::class, 'onGet']);
     #endregion
 
     #region Allocation Items
     Route::get('v1/allocation/item/store-order/get/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGetStoreOrderDetails']);
+    Route::get('v1/allocation/item/store-order/list/get/{allocation_order_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGet']);
     Route::post('v1/allocation/item/adjustment/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onAllocateExcessItems']);
     #endregion
 });

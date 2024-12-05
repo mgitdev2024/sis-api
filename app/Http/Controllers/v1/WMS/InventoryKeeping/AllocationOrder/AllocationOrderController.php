@@ -99,6 +99,27 @@ class AllocationOrderController extends Controller
         $existingAllocationItems->updated_by_id = $createdById;
         $existingAllocationItems->save();
         $this->createWarehouseLog(null, null, AllocationItemModel::class, $existingAllocationItems->id, $existingAllocationItems->getAttributes(), $createdById, 1);
+    }
 
+    public function onGet($status, $filter = null)
+    {
+        try {
+            // put date filtering
+            $allocationOrderModel = AllocationOrderModel::where('status', $status);
+            $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
+            if ($whereObject) {
+                $allocationOrderModel->whereDate('created_at', $filter);
+            } else if ($status != 0) {
+                $yesterday = (new \DateTime('yesterday'))->format('Y-m-d 00:00:00');
+                $today = (new \DateTime('today'))->format('Y-m-d 23:59:59');
+                $allocationOrderModel->whereBetween('created_at', [$yesterday, $today]);
+            }
+            $allocationOrderModel->orderBy('created_at', 'DESC');
+
+            $allocationOrderModel = $allocationOrderModel->get();
+            return $this->dataResponse('success', 200, 'Allocation Order', $allocationOrderModel);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Allocation Order ' . __('msg.record_not_found'));
+        }
     }
 }

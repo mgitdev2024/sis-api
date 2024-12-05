@@ -125,4 +125,9 @@ class AllocationItemController extends Controller
             return $this->dataResponse('error', 400, 'Allocation Items ' . __('msg.update_failed'), $exception->getMessage());
         }
     }
+
+    public function onGet($allocation_order_id)
+    {
+        return $this->readCurrentRecord(AllocationItemModel::class, null, ['allocation_order_id' => $allocation_order_id], null, null, 'Allocation Item');
+    }
 }
