@@ -5,13 +5,14 @@ namespace App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationItemModel;
 use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationOrderModel;
+use App\Traits\WMS\WarehouseLogTrait;
 use Illuminate\Http\Request;
 use Exception;
 use App\Traits\WMS\WmsCrudOperationsTrait;
 use DB;
 class AllocationOrderController extends Controller
 {
-    use WmsCrudOperationsTrait;
+    use WmsCrudOperationsTrait, WarehouseLogTrait;
 
     public function getRules()
     {
