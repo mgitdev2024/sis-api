@@ -441,6 +441,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
     Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
     Route::get('v1/item/stock/inventory/zone/item/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneItemList']);
+    Route::get('v1/item/stock/inventory/item-soh', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockOnHandItems']);
     #endregion
 
     #region Inventory Movement
@@ -448,24 +449,24 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Stock Transfer
-    Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCreate']);
-    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onCancel']);
-    Route::get('v1/stock/transfer/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetAll']);
-    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetById']);
-    Route::get('v1/stock/transfer/request/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetStockRequestList']);
-    Route::get('v1/stock/transfer/request/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferListController::class, 'onGetStockRequestById']);
+    Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onCreate']);
+    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onCancel']);
+    Route::get('v1/stock/transfer/all/get/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onGetAll']);
+    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onGetById']);
+    Route::get('v1/stock/transfer/request/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onGetStockRequestList']);
+    Route::get('v1/stock/transfer/request/get/{id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferListController::class, 'onGetStockRequestById']);
     #endregion
 
     #region Stock Transfer Cache
-    Route::post('v1/stock/transfer/cache/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferCacheController::class, 'onCreate']);
-    Route::get('v1/stock/transfer/cache/get/{created_by_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferCacheController::class, 'onGetCache']);
+    Route::post('v1/stock/transfer/cache/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferCacheController::class, 'onCreate']);
+    Route::get('v1/stock/transfer/cache/get/{created_by_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferCacheController::class, 'onGetCache']);
     #endregion
 
     #region Stock Transfer Items
-    Route::get('v1/stock/transfer/item/get/{stock_transfer_item_id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetById']);
-    Route::get('v1/stock/transfer/item/selected-items/get/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onGetSelectedItems']);
-    Route::post('v1/stock/transfer/item/scan-selected/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onScanSelectedItems']);
-    Route::post('v1/stock/transfer/item/complete-transaction/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransferItemController::class, 'onCompleteTransaction']);
+    Route::get('v1/stock/transfer/item/get/{stock_transfer_item_id}/{is_check_location_only?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferItemController::class, 'onGetById']);
+    Route::get('v1/stock/transfer/item/selected-items/get/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferItemController::class, 'onGetSelectedItems']);
+    Route::post('v1/stock/transfer/item/scan-selected/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferItemController::class, 'onScanSelectedItems']);
+    Route::post('v1/stock/transfer/item/complete-transaction/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\StockTransfer\StockTransferItemController::class, 'onCompleteTransaction']);
     #endregion
 
     #region Stock Request For Transfer
@@ -475,5 +476,16 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::delete('v1/stock/request/for-transfer/delete/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onDelete']);
     Route::post('v1/stock/request/for-transfer/transfer/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onTransferItems']);
     Route::post('v1/stock/request/for-transfer/transfer/sub-standard/{stock_transfer_item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferController::class, 'onSubstandardItems']);
+    #endregion
+
+    #region Allocation Order
+    Route::post('v1/allocation/order/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationOrderController::class, 'onCreate']);
+    Route::get('v1/allocation/order/get/{status}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationOrderController::class, 'onGet']);
+    #endregion
+
+    #region Allocation Items
+    Route::get('v1/allocation/item/store-order/get/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGetStoreOrderDetails']);
+    Route::get('v1/allocation/item/store-order/list/get/{allocation_order_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGet']);
+    Route::post('v1/allocation/item/adjustment/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onAllocateExcessItems']);
     #endregion
 });
