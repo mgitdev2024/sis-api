@@ -55,6 +55,7 @@ class ItemDispositionController extends Controller
             'type_qa_for_repository' => 'nullable|in:0,1,2', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
+//test
         // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal, 10.3 = For Consumption
         $fields = $request->validate($rules);
         try {
