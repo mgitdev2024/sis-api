@@ -114,4 +114,15 @@ class ItemDispositionModel extends Model
         }
         return false;
     }
+
+    public static function onGenerateItemDispositionReferenceNumber($type)
+    {
+        $latestItemDisposition = ItemDispositionModel::where('type', $type)->orderBy('id', 'DESC')->first()->reference_number;
+        $numericPart = (int) substr($latestItemDisposition, 3);
+        $nextNumber = $numericPart + 1;
+        $referenceCode = $type == 0 ? 'FI-' : 'LS-';
+        $referenceNumber = $referenceCode . $nextNumber;
+
+        return $referenceNumber;
+    }
 }

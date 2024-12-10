@@ -55,7 +55,6 @@ class ItemDispositionController extends Controller
             'type_qa_for_repository' => 'nullable|in:0,1,2', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
         ];
         // 6 = For Retouch, 7 = For Slice, 8 = For Sticker Update,
-//test
         // 2 = Return to warehouse, 10.1 = For Endorsement, 10.2 = For Disposal, 10.3 = For Consumption
         $fields = $request->validate($rules);
         try {
@@ -591,6 +590,62 @@ class ItemDispositionController extends Controller
                 $itemDispositionRepository->save();
             }
         } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onApplyReferenceNumberToExisting()
+    {
+        try {
+            DB::beginTransaction();
+            $forInvestigationCollection = ItemDispositionModel::where('type', 0)->whereNull('reference_number')->orderBy('id', 'ASC')->get();
+            $investigationReferenceNumbers = [];
+            foreach ($forInvestigationCollection as $investigationValue) {
+                if (!isset($investigationReferenceNumbers[$investigationValue['production_batch_id']])) {
+                    $investigationReferenceNumbers[$investigationValue['production_batch_id']] = [
+                        'disposition_ids' => []
+                    ];
+                }
+                $investigationReferenceNumbers[$investigationValue['production_batch_id']]['disposition_ids'][] = $investigationValue['id'];
+            }
+
+            $investigationCounter = 1;
+            foreach ($investigationReferenceNumbers as $investigationRefValue) {
+                $referenceNumber = 'FI-5' . str_pad($investigationCounter, 6, '0', STR_PAD_LEFT);
+                foreach ($investigationRefValue['disposition_ids'] as $itemDispositionId) {
+                    $itemDispositionModel = ItemDispositionModel::find($itemDispositionId);
+                    $itemDispositionModel->reference_number = $referenceNumber;
+                    $itemDispositionModel->save();
+                }
+                $investigationCounter++;
+            }
+
+            $forSamplingCollection = ItemDispositionModel::where('type', 1)->whereNull('reference_number')->orderBy('id', 'ASC')->get();
+            $forSamplingReferenceNumbers = [];
+            foreach ($forSamplingCollection as $samplingValue) {
+                if (!isset($forSamplingReferenceNumbers[$samplingValue['production_batch_id']])) {
+                    $forSamplingReferenceNumbers[$samplingValue['production_batch_id']] = [
+                        'disposition_ids' => []
+                    ];
+                }
+                $forSamplingReferenceNumbers[$samplingValue['production_batch_id']]['disposition_ids'][] = $samplingValue['id'];
+            }
+
+            $samplingCounter = 1;
+            foreach ($forSamplingReferenceNumbers as $investigationRefValue) {
+                $referenceNumber = 'LS-5' . str_pad($samplingCounter, 6, '0', STR_PAD_LEFT);
+                foreach ($investigationRefValue['disposition_ids'] as $itemDispositionId) {
+                    $itemDispositionModel = ItemDispositionModel::find($itemDispositionId);
+                    $itemDispositionModel->reference_number = $referenceNumber;
+                    $itemDispositionModel->save();
+                }
+                $samplingCounter++;
+            }
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+
+        } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

@@ -17,7 +17,7 @@ class AllocationOrderController extends Controller
     public function getRules()
     {
         return [
-            'reference_number' => 'required',
+            'consolidation_reference_number' => 'required',
             'created_by_id' => 'required',
             'consolidated_by' => 'required',
             'delivery_type_code' => 'required',
@@ -30,7 +30,7 @@ class AllocationOrderController extends Controller
         try {
             $fields = $request->validate($this->getRules());
             $existingAllocationOrderModel = AllocationOrderModel::where('delivery_type_code', 'like', $fields['delivery_type_code'] . '%')
-                ->where('reference_number', $fields['reference_number'])
+                ->where('consolidation_reference_number', $fields['consolidation_reference_number'])
                 ->first();
             $consolidatedItems = json_decode($fields['consolidated_items'], true);
 
@@ -40,7 +40,7 @@ class AllocationOrderController extends Controller
 
             } else {
                 $allocationOrderModel = new AllocationOrderModel();
-                $allocationOrderModel->reference_number = $fields['reference_number'];
+                $allocationOrderModel->consolidation_reference_number = $fields['consolidation_reference_number'];
                 $allocationOrderModel->consolidated_by = $fields['consolidated_by'];
                 $allocationOrderModel->delivery_type_code = $fields['delivery_type_code'];
                 $allocationOrderModel->estimated_delivery_date = $fields['estimated_delivery_date'];

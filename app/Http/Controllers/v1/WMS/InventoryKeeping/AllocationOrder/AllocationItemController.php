@@ -123,6 +123,39 @@ class AllocationItemController extends Controller
         }
     }
 
+    public function onUpdate(Request $request, $allocation_order_id, $itemId)
+    {
+        $fields = $request->validate([
+            'for_allocation_adjustment' => 'required|json',
+            'updated_by_id' => 'required'
+        ]);
+        try {
+            DB::beginTransaction();
+            $allocationAdjustment = json_decode($fields['for_allocation_adjustment'], true);
+            $allocationItemModel = AllocationItemModel::where([
+                'allocation_order_id' => $allocation_order_id,
+                'item_id' => $itemId
+            ])->first();
+            if ($allocationItemModel) {
+                $excessStocks = $allocationItemModel->excess_stocks;
+                $storeOrderDetails = json_decode($allocationItemModel->store_order_details, true);
+                foreach ($allocationAdjustment as $allocation) {
+                    $storeOrderDetails[$allocation['id']]['regular_order_quantity'] = $allocation['quantity'];
+                    $excessStocks -= $allocation['quantity'];
+                }
+                $allocationItemModel->store_order_details = json_encode($storeOrderDetails);
+                $allocationItemModel->updated_by_id = $fields['updated_by_id'];
+                $allocationItemModel->save();
+                $this->createWarehouseLog(null, null, AllocationItemModel::class, $allocationItemModel->id, $allocationItemModel->getAttributes(), $fields['updated_by_id'], 1);
+
+            }
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Allocation Items ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
     public function onGet($allocation_order_id)
     {
         return $this->readCurrentRecord(AllocationItemModel::class, null, ['allocation_order_id' => $allocation_order_id], null, null, 'Allocation Item');

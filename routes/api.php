@@ -358,6 +358,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/item/disposition/statistics', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetOverallStats']);
     Route::get('v1/item/disposition/endorsed-by-qa/get/{item_disposition_id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetEndorsedByQaItems']);
     Route::post('v1/item/disposition/reopen', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onReopenDisposition']);
+    Route::post('v1/item/disposition/apply-reference-number', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onApplyReferenceNumberToExisting']);
     #endregion
 
     #region Item Disposition Repository
@@ -487,5 +488,12 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/allocation/item/store-order/get/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGetStoreOrderDetails']);
     Route::get('v1/allocation/item/store-order/list/get/{allocation_order_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onGet']);
     Route::post('v1/allocation/item/adjustment/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onAllocateExcessItems']);
+    Route::post('v1/allocation/item/update/{allocation_order_id}/{item_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\AllocationOrder\AllocationItemController::class, 'onUpdate']);
+    #endregion
+
+    #region Generate Picklist
+    Route::post('v1/picklist/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onCreate']);
+    Route::get('v1/picklist/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGet']);
+    Route::get('v1/picklist/type/get/{type}/{status}/{generate_picklist_id?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetByPickingType']);
     #endregion
 });
