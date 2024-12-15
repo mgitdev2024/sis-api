@@ -20,6 +20,8 @@ Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::clas
 
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 
+Route::get('v1/item/stock/inventory/item-soh', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockOnHandItems']);
+
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });
@@ -442,7 +444,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/item/stock/inventory/zone/all/get', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetAllZoneLocation']);
     Route::get('v1/item/stock/inventory/zone/details/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneDetails']);
     Route::get('v1/item/stock/inventory/zone/item/get/{zone_id}/{item_id?}', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetZoneItemList']);
-    Route::get('v1/item/stock/inventory/item-soh', [App\Http\Controllers\v1\WMS\Storage\StockInventoryController::class, 'onGetStockOnHandItems']);
     #endregion
 
     #region Inventory Movement

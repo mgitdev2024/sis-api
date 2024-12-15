@@ -92,7 +92,6 @@ class GeneratePickListController extends Controller
 
             $data = $this->onGetStoreAreasAndOrders($generatePicklistModel, $allocationItems, $type);
 
-            dd($data);
             return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.record_found'), $data);
 
         } catch (Exception $exception) {
