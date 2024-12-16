@@ -71,9 +71,9 @@ class ItemDispositionRepositoryController extends Controller
 
             $forItemDispositionRepoCount = ItemDispositionRepositoryModel::select(
                 DB::raw('SUM(CASE WHEN type = 0 THEN 1 ELSE 0 END) as for_disposal_count'),
-                DB::raw('SUM(CASE WHEN type = 1 THEN 1 ELSE 0 END) as for_consumption_count'),
-                DB::raw('SUM(CASE WHEN type = 2 THEN 1 ELSE 0 END) as for_endorsement_count'),
-
+                DB::raw('SUM(CASE WHEN type = 1 THEN 1 ELSE 0 END) as for_intersell_count'),
+                DB::raw('SUM(CASE WHEN type = 2 THEN 1 ELSE 0 END) as for_store_distribution_count'),
+                DB::raw('SUM(CASE WHEN type = 3 THEN 1 ELSE 0 END) as for_complimentary_count'),
             )
                 ->where('status', $status)
                 // ->whereDate('created_at', $today->format('Y-m-d'))
@@ -82,8 +82,10 @@ class ItemDispositionRepositoryController extends Controller
                 'for_investigation_count' => $forItemDispositionCount->for_investigation_count ?? 0,
                 'for_sampling_count' => $forItemDispositionCount->for_sampling_count ?? 0,
                 'for_disposal_count' => $forItemDispositionRepoCount->for_disposal_count ?? 0,
-                'for_consumption_count' => $forItemDispositionRepoCount->for_consumption_count ?? 0,
-                'for_endorsement_count' => $forItemDispositionRepoCount->for_endorsement_count ?? 0,
+                'for_intersell_count' => $forItemDispositionRepoCount->for_intersell_count ?? 0,
+                'for_store_distribution_count' => $forItemDispositionRepoCount->for_store_distribution_count ?? 0,
+                'for_complimentary_count' => $forItemDispositionRepoCount->for_complimentary_count ?? 0,
+
             ];
 
             return $this->dataResponse('success', 200, 'Item Disposition Repository', $data);
