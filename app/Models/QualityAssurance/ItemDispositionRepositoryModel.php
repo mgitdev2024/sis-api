@@ -14,7 +14,7 @@ class ItemDispositionRepositoryModel extends Model
     protected $table = 'qa_item_disposition_repositories';
     protected $appends = ['type_label'];
     protected $fillable = [
-        'type', // 0 = For Disposal, 1 = For Consumption, 2 = For Endorsement
+        'type', // 0 = For Disposal, 1 = For Intersell, 2 = For Store Distribution, 3 = For Complimentary
         'production_batch_id',
         'item_id',
         'quantity',
@@ -33,7 +33,7 @@ class ItemDispositionRepositoryModel extends Model
     public function getTypeLabelAttribute()
     {
         if ($this->type !== null) {
-            $typeArray = ['For Disposal', 'For Consumption', 'For Endorsement'];
+            $typeArray = ['For Disposal', 'For Intersell', 'For Store Distribution', 'For Complimentary'];
             $type = $typeArray[$this->type];
             return $type;
         }

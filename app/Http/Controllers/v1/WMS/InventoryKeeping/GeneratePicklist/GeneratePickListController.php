@@ -118,8 +118,6 @@ class GeneratePickListController extends Controller
                 $storeToRoute[$storeId] = $routeName;
             }
         }
-
-
         foreach ($generatePicklistModel as $picklist) {
             if (isset($allocationItems[$picklist->allocation_order_id])) {
                 // Item ID Allocation Loop
