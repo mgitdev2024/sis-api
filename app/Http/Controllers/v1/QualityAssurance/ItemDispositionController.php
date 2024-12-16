@@ -48,7 +48,7 @@ class ItemDispositionController extends Controller
     {
         $rules = [
             'created_by_id' => 'required',
-            'action_status_id' => 'required|in:6,7,8,10.1,10.2,10.3',
+            'action_status_id' => 'required|in:6,7,8,10.1,10.2,10.3,10.4',
             'aging_period' => 'required|integer',
             'quantity_update' => 'required_if:action_status_id,7,8|integer',
             'quantity_qa_for_repository' => 'required_if:action_status_id,7,8|integer',
