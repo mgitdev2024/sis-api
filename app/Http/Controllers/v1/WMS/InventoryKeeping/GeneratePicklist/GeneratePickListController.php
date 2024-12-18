@@ -85,16 +85,15 @@ class GeneratePickListController extends Controller
             }
             $generatePicklistModel = $generatePicklistModel->get();
 
-
             $allocationItems = AllocationItemModel::whereIn('allocation_order_id', $generatePicklistModel->pluck('allocation_order_id'))
                 ->get()
                 ->groupBy('allocation_order_id');
-
             $data = $this->onGetStoreAreasAndOrders($generatePicklistModel, $allocationItems, $type);
 
             return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.record_found'), $data);
 
         } catch (Exception $exception) {
+            dd($exception);
             return $this->dataResponse('error', 400, 'Generate Picklist ' . __('msg.record_not_found'), $exception->getMessage());
         }
     }
@@ -102,22 +101,26 @@ class GeneratePickListController extends Controller
     public function onGetStoreAreasAndOrders($generatePicklistModel, $allocationItems, $type)
     {
         $data = [];
-        // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
-        $routes = [
-            'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
-            'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
-            'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
-            'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
-            'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
-        ];
-
-        // ************************************************
         $storeToRoute = [];
-        foreach ($routes as $routeName => $stores) {
-            foreach ($stores as $storeId) {
-                $storeToRoute[$storeId] = $routeName;
+
+        if ($type == 0) {
+            // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
+            $routes = [
+                'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
+                'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
+                'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
+                'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
+                'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
+            ];
+
+            // ************************************************
+            foreach ($routes as $routeName => $stores) {
+                foreach ($stores as $storeId) {
+                    $storeToRoute[$storeId] = $routeName;
+                }
             }
         }
+
         foreach ($generatePicklistModel as $picklist) {
             if (isset($allocationItems[$picklist->allocation_order_id])) {
                 // Item ID Allocation Loop
@@ -131,35 +134,56 @@ class GeneratePickListController extends Controller
 
                     // Store Loop
                     foreach ($storeOrderDetails as $storeId => $storeValue) {
-                        $storeRoute = $storeToRoute[$storeId];
+                        $storeRoute = $storeToRoute[$storeId] ?? null;
                         if (!isset($data[$storeRoute])) {
                             $data[$storeRoute] = [
                                 'total_item_count' => 0,
-                                'stores' => []
                             ];
+
+                            if ($type == 0) {
+                                $data[$storeRoute]['stores'] = [];
+                            } else {
+                                $data[$storeRoute]['items'] = [];
+                            }
                         }
 
-                        if (!isset($data[$storeRoute]['stores'][$storeId])) {
-                            $data[$storeRoute]['stores'][$storeId] = [
-                                'items' => [],
-                                'short_name' => $storeValue['short_name'],
-                                'area_type' => $storeValue['area_type'],
-                                'id' => $storeId,
-                            ];
-                        }
+                        if ($type == 0) {
+                            if (!isset($data[$storeRoute]['stores'][$storeId])) {
+                                $data[$storeRoute]['stores'][$storeId] = [
+                                    'items' => [],
+                                    'short_name' => $storeValue['short_name'],
+                                    'area_type' => $storeValue['area_type'],
+                                    'id' => $storeId,
+                                ];
+                            }
 
-                        if (!isset($data[$storeRoute]['stores'][$storeId]['items'][$itemId])) {
-                            $data[$storeRoute]['stores'][$storeId]['items'][$itemId] = [
-                                'item_code' => $itemMasterdata->item_code,
-                                'item_description' => $itemMasterdata->description,
-                                'item_id' => $itemId,
-                                'regular_order_quantity' => $storeValue['regular_order_quantity']
-                            ];
-                        } else {
-                            // If item already exists, update the regular_order_quantity
-                            $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                            if (!isset($data[$storeRoute]['stores'][$storeId]['items'][$itemId])) {
+                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId] = [
+                                    'item_code' => $itemMasterdata->item_code,
+                                    'item_description' => $itemMasterdata->description,
+                                    'item_id' => $itemId,
+                                    'regular_order_quantity' => $storeValue['regular_order_quantity']
+                                ];
+                            } else {
+                                // If item already exists, update the regular_order_quantity
+                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                            }
+                            $data[$storeRoute]['total_item_count']++;
+
+                        } else if ($type == 1) {
+                            if (!isset($data[$storeRoute]['items'][$itemId])) {
+                                $data[$storeRoute]['items'][$itemId] = [
+                                    'item_code' => $itemMasterdata->item_code,
+                                    'item_description' => $itemMasterdata->description,
+                                    'item_id' => $itemId,
+                                    'regular_order_quantity' => $storeValue['regular_order_quantity']
+                                ];
+                            } else {
+                                // If item already exists, update the regular_order_quantity
+                                $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                            }
+                            $data[$storeRoute]['total_item_count'] += $storeValue['regular_order_quantity'];
                         }
-                        $data[$storeRoute]['total_item_count']++;
                     }
                 }
             }

@@ -19,6 +19,18 @@ return new class extends Migration {
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
             $table->foreign('allocation_order_id')->references('id')->on('wms_allocation_orders');
         });
+
+        Schema::create('wms_generate_picklist_items', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('generate_picklist_id');
+            $table->string('store_id')->nullable();
+            $table->string('store_code')->nullable();
+            $table->string('store_name')->nullable();
+            $table->longText('picklist_items'); // {"item_id"=>1,"allocated_qty"=>22,"scanned_qty"=>22} "checked_qty"=>22
+
+            SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
+            $table->foreign('generate_picklist_id')->references('id')->on('wms_generate_picklists');
+        });
     }
 
     /**
@@ -27,5 +39,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('wms_generate_picklists');
+        Schema::dropIfExists('wms_generate_picklist_items');
+
     }
 };
