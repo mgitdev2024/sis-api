@@ -11,6 +11,9 @@ use App\Models\QualityAssurance\ItemDispositionModel;
 use App\Models\QualityAssurance\SubStandardItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedSubLocationModel;
+use App\Models\WMS\Storage\StockInventoryModel;
+use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseReceivingModel;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -96,6 +99,8 @@ class ProductionItemController extends Controller
                 $this->onWarehouseReceiveItem($scannedItem, $createdById, $temporaryStorageId);
             }
 
+            $forItemDispositionArr = [];
+            $itemDispositionType = null;
             foreach ($scannedItem as $value) {
                 $productionBatch = ProductionBatchModel::find($value['bid']);
                 $itemCode = $productionBatch->productionOta->item_code ?? $productionBatch->productionOtb->item_code;
@@ -104,12 +109,25 @@ class ProductionItemController extends Controller
                 if ($statusId == 2) {
                     $this->onForReceiveItem($value['bid'], $producedItems[$value['sticker_no']], $value['sticker_no'], $createdById);
                 } else if (in_array($statusId, $forQaDisposition)) {
-                    $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $itemCode, $value['sticker_no'], $statusId, $productionType);
+                    $itemDispositionType = $statusId == 4 ? 0 : 1;
+                    $forItemDispositionArr[] = [
+                        'created_by_id' => $createdById,
+                        'production_batch_id' => $value['bid'],
+                        'production_item' => $producedItems[$value['sticker_no']],
+                        'item_code' => $itemCode,
+                        'item_sticker_no' => $value['sticker_no'],
+                        'status_id' => $statusId,
+                        'production_type' => $productionType,
+                    ];
                 } else {
                     $this->onUpdateOtherStatus($productionBatch, $statusId, $value['sticker_no'], $createdById);
                 }
             }
 
+            if (count($forItemDispositionArr) > 0) {
+                $this->onItemDisposition($forItemDispositionArr, $itemDispositionType);
+                // $this->onItemDisposition($createdById, $value['bid'], $producedItems[$value['sticker_no']], $itemCode, $value['sticker_no'], $statusId, $productionType);
+            }
             DB::commit();
             return $this->dataResponse('success', 201, 'Produced Item ' . __('msg.update_success'));
         } catch (Exception $exception) {
@@ -156,62 +174,153 @@ class ProductionItemController extends Controller
         }
     }
 
-    public function onItemDisposition($createdById, $id, $value, $itemCode, $itemKey, $statusId, $productionType)
+    public function onItemDisposition($forItemDispositionArr, $type)
     {
         try {
-            $type = 1;
-            if ($statusId == 4) {
-                $type = 0;
-            }
-            $exclusionArray = [1, 4, 5, 6, 7, 8];
-            $productionBatchModel = ProductionBatchModel::find($id);
-            $producedItemModel = $productionBatchModel->productionItems;
-            $producedItems = json_decode($producedItemModel->produced_items, true);
-            $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
+            $itemDispositionReferenceNumber = ItemDispositionModel::onGenerateItemDispositionReferenceNumber($type);
+            foreach ($forItemDispositionArr as $itemValue) {
+                $statusId = $itemValue['status_id'];
+                $itemKey = $itemValue['item_sticker_no'];
+                $itemCode = $itemValue['item_code'];
+                $productionType = $itemValue['production_type'];
+                $id = $itemValue['production_batch_id'];
+                $createdById = $itemValue['created_by_id'];
+                $productionItem = $itemValue['production_item'];
 
-            if ($flag) {
-                $itemDisposition = new ItemDispositionModel();
-                $itemDisposition->created_by_id = $createdById;
-                $itemDisposition->production_batch_id = $id;
-                $itemDisposition->item_code = $itemCode;
-                $itemDisposition->item_key = $itemKey;
-                $itemDisposition->type = $type;
-                $itemDisposition->production_type = $productionType;
-                $itemDisposition->produced_items = json_encode([$itemKey => $value]);
-                $itemDisposition->save();
-                $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemKey);
+                $exclusionArray = [1, 4, 5, 6, 7, 8];
+                $productionBatchModel = ProductionBatchModel::find($id);
+                $producedItemModel = $productionBatchModel->productionItems;
+                $producedItems = json_decode($producedItemModel->produced_items, true);
+                $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
 
-                $this->onDeductCountedItem($productionBatchModel, $producedItems, $itemKey, $value);
+                if ($flag) {
+                    $itemDisposition = new ItemDispositionModel();
+                    $itemDisposition->created_by_id = $createdById;
+                    $itemDisposition->production_batch_id = $id;
+                    $itemDisposition->item_code = $itemCode;
+                    $itemDisposition->item_key = $itemKey;
+                    $itemDisposition->type = $type;
+                    $itemDisposition->production_type = $productionType;
+                    $itemDisposition->produced_items = json_encode([$itemKey => $productionItem]);
+                    $itemDisposition->reference_number = $itemDispositionReferenceNumber;
+                    $itemDisposition->save();
+                    $this->createProductionLog(ItemDispositionModel::class, $itemDisposition->id, $itemDisposition->getAttributes(), $createdById, 1, $itemKey);
 
-                $producedItems[$itemKey]['status'] = $statusId;
-                $producedItemModel->produced_items = json_encode($producedItems);
-                $producedItemModel->save();
-                $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
+                    $this->onDeductCountedItem($productionBatchModel, $producedItems, $itemKey, $productionItem);
 
-                $subStandardItem = SubStandardItemModel::where('production_batch_id', $id)
-                    ->where('item_key', $itemKey)
-                    ->where('status', 1)
-                    ->first();
-                if ($subStandardItem) {
-                    $subStandardItem->status = 0;
-                    $subStandardItem->save();
-                    $this->createProductionLog(SubStandardItemModel::class, $subStandardItem->id, $subStandardItem, $createdById, 1, $itemKey);
+                    $producedItems[$itemKey]['status'] = $statusId;
+                    $producedItemModel->produced_items = json_encode($producedItems);
+                    $producedItemModel->save();
+                    $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $producedItems[$itemKey], $createdById, 1, $itemKey);
 
+                    $subStandardItem = SubStandardItemModel::where('production_batch_id', $id)
+                        ->where('item_key', $itemKey)
+                        ->where('status', 1)
+                        ->first();
+                    if ($subStandardItem) {
+                        $subStandardItem->status = 0;
+                        $subStandardItem->save();
+                        $this->createProductionLog(SubStandardItemModel::class, $subStandardItem->id, $subStandardItem, $createdById, 1, $itemKey);
+
+                    }
+
+                    // Production batch & ota otb update in QA
+                    $modelClass = $productionBatchModel->productionOtb
+                        ? ProductionOTBModel::class
+                        : ProductionOTAModel::class;
+                    $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
+                    $productionToBakeAssemble->in_qa_count += 1;
+                    $productionToBakeAssemble->produced_items_count -= 1;
+                    $productionToBakeAssemble->save();
+                    $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
                 }
-
-                // Production batch & ota otb update in QA
-                $modelClass = $productionBatchModel->productionOtb
-                    ? ProductionOTBModel::class
-                    : ProductionOTAModel::class;
-                $productionToBakeAssemble = $productionBatchModel->productionOtb ?? $productionBatchModel->productionOta;
-                $productionToBakeAssemble->in_qa_count += 1;
-                $productionToBakeAssemble->produced_items_count -= 1;
-                $productionToBakeAssemble->save();
-                $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
-                return $itemDisposition;
             }
+            $this->onDeductStockCount($forItemDispositionArr, $createdById, $itemDispositionReferenceNumber);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
+        }
+    }
+
+
+    public function onDeductStockCount($forItemDispositionArr, $createdById, $itemDispositionReferenceNumber)
+    {
+        try {
+            $itemsToBeAdjusted = [];
+            foreach ($forItemDispositionArr as $itemDisposition) {
+                $storedSubLocationId = $itemDisposition['production_item']['stored_sub_location']['sub_location_id'];
+                $storedLayerIndex = $itemDisposition['production_item']['stored_sub_location']['layer_level'];
+                $itemId = ItemMasterdataModel::where('item_code', $itemDisposition['item_code'])->first('id')->id;
+                $storedItemArrayKey = "{$storedSubLocationId}-{$storedLayerIndex}-{$itemId}";
+                if (!isset($itemsToBeAdjusted[$storedItemArrayKey])) {
+                    $itemsToBeAdjusted[$storedItemArrayKey] = [
+                        'stored_sub_location_id' => $storedSubLocationId,
+                        'stored_layer_level' => $storedLayerIndex,
+                        'item_id' => $itemId,
+                        'produced_items' => []
+                    ];
+                }
+
+                $itemsToBeAdjusted[$storedItemArrayKey]['produced_items'][] = [
+                    'bid' => $itemDisposition['production_item']['bid'],
+                    'sticker_no' => $itemDisposition['production_item']['sticker_no'],
+                ];
+            }
+
+            foreach ($itemsToBeAdjusted as $itemDetails) {
+                // Queued Sub Location
+                $queuedSubLocation = QueuedSubLocationModel::where([
+                    'sub_location_id' => $itemDetails['stored_sub_location_id'],
+                    'layer_level' => $itemDetails['stored_layer_level'],
+                ])
+                    ->orderBy('id', 'DESC')
+                    ->first();
+                $storageRemainingSpace = 0;
+                $releaseStorageSpace = 0;
+                if ($queuedSubLocation) {
+                    $storedItems = json_decode($queuedSubLocation->production_items, true);
+                    foreach ($storedItems as $key => $storedItem) {
+                        foreach ($itemDetails['produced_items'] as $scannedItems) {
+                            if ($storedItem['bid'] == $scannedItems['bid'] && $storedItem['sticker_no'] == $scannedItems['sticker_no']) {
+                                $releaseStorageSpace++;
+                                unset($storedItems[$key]);
+                                break;
+                            }
+                        }
+                    }
+                    $storageRemainingSpace = $queuedSubLocation->storage_remaining_space + $releaseStorageSpace;
+                    $newQueuedSubLocation = new QueuedSubLocationModel();
+                    $newQueuedSubLocation->sub_location_id = $queuedSubLocation->sub_location_id;
+                    $newQueuedSubLocation->layer_level = $queuedSubLocation->layer_level;
+                    $newQueuedSubLocation->quantity = count($storedItems);
+                    $newQueuedSubLocation->production_items = json_encode(array_values($storedItems));
+                    $newQueuedSubLocation->storage_remaining_space = $storageRemainingSpace;
+                    $newQueuedSubLocation->created_by_id = $createdById;
+                    $newQueuedSubLocation->save();
+                    $this->createWarehouseLog(null, null, QueuedSubLocationModel::class, $newQueuedSubLocation->id, $newQueuedSubLocation->getAttributes(), $createdById, 0);
+                }
+
+                // Stock Inventories
+                $stockInventoryModel = StockInventoryModel::where('item_id', $itemId)->first();
+
+                // Stock Logs
+                $stockLogs = new StockLogModel();
+                $stockLogs->item_id = $itemId;
+                $stockLogs->action = 0;
+                $stockLogs->quantity = count($itemDetails['produced_items']);
+                $stockLogs->initial_stock = $stockInventoryModel->stock_count;
+                $stockLogs->final_stock = $stockInventoryModel->stock_count - count($itemDetails['produced_items']);
+                $stockLogs->sub_location_id = $itemDetails['stored_sub_location_id'];
+                $stockLogs->layer_level = $itemDetails['stored_layer_level'];
+                $stockLogs->reference_number = $itemDispositionReferenceNumber;
+                $stockLogs->storage_remaining_space = $storageRemainingSpace;
+                $stockLogs->created_by_id = $createdById;
+                $stockLogs->save();
+
+                $stockInventoryModel->stock_count = $stockInventoryModel->stock_count -= count($itemDetails['produced_items']);
+                $stockInventoryModel->save();
+            }
+        } catch (Exception $exception) {
+            throw new Exception('Error in deducting stock count');
         }
     }
 

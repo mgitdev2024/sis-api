@@ -86,7 +86,7 @@ class ItemMasterdataModel extends Model
         'orderable_by',
         'show_stocks',
         'order_with_zero_stocks',
-        'picking_type',
+        'picking_type', // 0 = discreet, 1 = batch
     ];
 
     public function itemCategory()

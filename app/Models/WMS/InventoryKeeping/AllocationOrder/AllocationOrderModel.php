@@ -11,7 +11,7 @@ class AllocationOrderModel extends Model
     use HasFactory;
     protected $table = 'wms_allocation_orders';
     protected $fillable = [
-        'reference_number',
+        'consolidation_reference_number',
         'estimated_delivery_date',
         'delivery_type_code',
         'consolidated_by',

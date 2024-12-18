@@ -12,11 +12,11 @@ return new class extends Migration {
     {
         Schema::create('wms_allocation_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number');
+            $table->string('consolidation_reference_number');
             $table->date('estimated_delivery_date');
             $table->string('delivery_type_code');
             $table->string('consolidated_by');
-            SchemaHelper::addCommonColumns($table, 0); // 0 = for allocation, 1 = allocated
+            SchemaHelper::addCommonColumns($table, 0); // 0 = for allocation, 1 = allocated, 2 = picklist
         });
         Schema::create('wms_allocation_items', function (Blueprint $table) {
             $table->id();
