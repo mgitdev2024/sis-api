@@ -20,6 +20,6 @@ class AllocationOrderModel extends Model
 
     public function allocatedItems()
     {
-        return $this->hasMany(AllocationItemModel::class, 'allocated_orders_id');
+        return $this->hasMany(AllocationItemModel::class, 'allocation_order_id');
     }
 }

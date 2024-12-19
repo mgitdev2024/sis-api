@@ -496,5 +496,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/picklist/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onCreate']);
     Route::get('v1/picklist/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGet']);
     Route::get('v1/picklist/type/get/{type}/{status}/{generate_picklist_id?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetByPickingType']);
+    Route::get('v1/picklist/route/get/{picklist_type}/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetPicklistByRoute']);
     #endregion
 });

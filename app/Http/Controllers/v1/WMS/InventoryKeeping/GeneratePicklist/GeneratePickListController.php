@@ -30,9 +30,11 @@ class GeneratePickListController extends Controller
     {
         $fields = $request->validate($this->getRules());
         try {
+            DB::beginTransaction();
             $allocationOrderModel = AllocationOrderModel::find($fields['allocation_order_id']);
 
             if (!GeneratePickListModel::where('allocation_order_id', $fields['allocation_order_id'])->exists()) {
+                // Generate Picklist Add
                 $picklistModel = new GeneratePickListModel();
                 $picklistModel->reference_number = GeneratePickListModel::onGeneratePickListReferenceNumber();
                 $picklistModel->allocation_order_id = $fields['allocation_order_id'];
@@ -41,14 +43,18 @@ class GeneratePickListController extends Controller
                 $picklistModel->save();
                 $this->createWarehouseLog(null, null, GeneratePickListModel::class, $picklistModel->id, $picklistModel->getAttributes(), $fields['created_by_id'], 0);
 
+                // Allocation Order Update
                 $allocationOrderModel->status = 2;
                 $allocationOrderModel->save();
                 $this->createWarehouseLog(null, null, AllocationOrderModel::class, $allocationOrderModel->id, $allocationOrderModel->getAttributes(), $fields['created_by_id'], 1);
+                DB::commit();
                 return $this->dataResponse('success', 201, 'Generate Picklist ' . __('msg.create_success'), $picklistModel);
             }
             return $this->dataResponse('success', 200, 'Generate Picklist Already Created');
 
         } catch (Exception $exception) {
+            DB::rollBack();
+            dd($exception);
             return $this->dataResponse('error', 400, 'Generate Picklist ' . __('msg.create_failed'), $exception->getMessage());
         }
     }
@@ -102,22 +108,17 @@ class GeneratePickListController extends Controller
     {
         $data = [];
         $storeToRoute = [];
-
-        if ($type == 0) {
-            // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
-            $routes = [
-                'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
-                'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
-                'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
-                'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
-                'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
-            ];
-
-            // ************************************************
-            foreach ($routes as $routeName => $stores) {
-                foreach ($stores as $storeId) {
-                    $storeToRoute[$storeId] = $routeName;
-                }
+        // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
+        $routes = [
+            'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
+            'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
+            'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
+            'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
+            'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
+        ];
+        foreach ($routes as $routeName => $stores) {
+            foreach ($stores as $storeId) {
+                $storeToRoute[$storeId] = $routeName;
             }
         }
 
@@ -134,7 +135,7 @@ class GeneratePickListController extends Controller
 
                     // Store Loop
                     foreach ($storeOrderDetails as $storeId => $storeValue) {
-                        $storeRoute = $storeToRoute[$storeId] ?? null;
+                        $storeRoute = $storeToRoute[$storeId];
                         if (!isset($data[$storeRoute])) {
                             $data[$storeRoute] = [
                                 'total_item_count' => 0,
@@ -164,6 +165,9 @@ class GeneratePickListController extends Controller
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
                                 ];
+                                // add the picked_scanned_quantity
+                                // add the checked_quantity
+                                // add the for_dispatch_quantity
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -178,6 +182,9 @@ class GeneratePickListController extends Controller
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
                                 ];
+                                // add the picked_scanned_quantity
+                                // add the checked_quantity
+                                // add the for_dispatch_quantity
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -188,7 +195,16 @@ class GeneratePickListController extends Controller
                 }
             }
         }
-
         return $data;
+    }
+
+    public function onPickScan()
+    {
+        // add function for scanning the items
+        try {
+
+        } catch (Exception $exception) {
+
+        }
     }
 }
