@@ -148,10 +148,16 @@ class ProductionItemController extends Controller
             $productionItems = $producedItemModel->produced_items;
             $producedItemArray = json_decode($productionItems, true);
 
+            $forValidationDuplicate = [];
             foreach ($scannedItem as $value) {
                 if ($producedItemArray[$value['sticker_no']]['status'] != 0) {
                     continue;
                 }
+                $itemKey = $value['bid'] . '-' . $value['sticker_no'];
+                if (in_array($itemKey, $forValidationDuplicate)) {
+                    continue;
+                }
+                $forValidationDuplicate[] = $itemKey;
                 $producedItemArray[$value['sticker_no']]['sticker_status'] = 0;
                 $producedItemArray[$value['sticker_no']]['status'] = null;
                 $this->createProductionLog(ProductionItemModel::class, $producedItemModel->id, $value, $fields['created_by_id'], 1, $value['sticker_no']);
