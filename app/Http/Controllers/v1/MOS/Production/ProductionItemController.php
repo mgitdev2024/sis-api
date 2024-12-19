@@ -169,7 +169,7 @@ class ProductionItemController extends Controller
                 ? ProductionOTBModel::class
                 : ProductionOTAModel::class;
 
-            $productionToBakeAssemble->produced_items_count -= count($scannedItem);
+            $productionToBakeAssemble->produced_items_count -= count($forValidationDuplicate);
             $productionToBakeAssemble->save();
             $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             DB::commit();
