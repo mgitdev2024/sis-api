@@ -60,6 +60,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], function () {
+
+    // Printer Spooler
+    Route::get('v1/printer/spooler-status', [App\Http\Controllers\v1\MOS\Printer\SpoolerController::class, 'checkPendingPrintJobs']);
+    
     #region Production Orders
     Route::post('v1/production/order/create', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onCreate']);
     Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onUpdateById']);
