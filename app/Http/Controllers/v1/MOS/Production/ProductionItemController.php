@@ -651,7 +651,6 @@ class ProductionItemController extends Controller
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
