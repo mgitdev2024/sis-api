@@ -117,7 +117,7 @@ class ItemDispositionModel extends Model
 
     public static function onGenerateItemDispositionReferenceNumber($type)
     {
-        $latestItemDisposition = ItemDispositionModel::where('type', $type)->orderBy('id', 'DESC')->first()->reference_number;
+        $latestItemDisposition = ItemDispositionModel::where('type', $type)->orderBy('id', 'DESC')->first()->reference_number ?? 0;
         $numericPart = (int) substr($latestItemDisposition, 3);
         $nextNumber = $numericPart + 1;
         $referenceCode = $type == 0 ? 'FI-' : 'LS-';

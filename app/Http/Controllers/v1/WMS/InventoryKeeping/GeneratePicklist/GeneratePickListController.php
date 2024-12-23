@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePicklist;
 
 use App\Http\Controllers\Controller;
+use App\Models\WMS\InventoryKeeping\GeneratePicklist\GeneratePickListItemModel;
 use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationItemModel;
 use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationOrderModel;
 use App\Models\WMS\InventoryKeeping\GeneratePickList\GeneratePickListModel;
@@ -54,7 +55,6 @@ class GeneratePickListController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Generate Picklist ' . __('msg.create_failed'), $exception->getMessage());
         }
     }
@@ -99,7 +99,6 @@ class GeneratePickListController extends Controller
             return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.record_found'), $data);
 
         } catch (Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, 'Generate Picklist ' . __('msg.record_not_found'), $exception->getMessage());
         }
     }
@@ -165,9 +164,11 @@ class GeneratePickListController extends Controller
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
                                 ];
-                                // add the picked_scanned_quantity
-                                // add the checked_quantity
-                                // add the for_dispatch_quantity
+                                $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 0);
+                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
+                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
+                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
+
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -182,9 +183,10 @@ class GeneratePickListController extends Controller
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
                                 ];
-                                // add the picked_scanned_quantity
-                                // add the checked_quantity
-                                // add the for_dispatch_quantity
+                                $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 1);
+                                $data[$storeRoute]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
+                                $data[$storeRoute]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
+                                $data[$storeRoute]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -198,13 +200,30 @@ class GeneratePickListController extends Controller
         return $data;
     }
 
-    public function onPickScan()
+    public function onCheckPickedData($storeId, $itemId, $picklist, $picklistType)
     {
-        // add function for scanning the items
-        try {
+        $data = [
+            'picked_scanned_quantity' => 0,
+            'checked_quantity' => 0,
+            'for_dispatch_quantity' => 0,
+        ];
+        $generatePicklistItems = GeneratePickListItemModel::where([
+            'generate_picklist_id' => $picklist->id,
+        ]);
 
-        } catch (Exception $exception) {
-
+        if ($picklistType == 0) {
+            $generatePicklistItems->where('store_id', $storeId);
         }
+        $generatePicklistItems = $generatePicklistItems->first();
+
+        if ($generatePicklistItems) {
+            $picklistItems = json_decode($generatePicklistItems->picklist_items, true);
+            if (isset($picklistItems[$itemId])) {
+                $data['picked_scanned_quantity'] = $picklistItems[$itemId]['picked_scanned_quantity'];
+                $data['checked_quantity'] = $picklistItems[$itemId]['checked_quantity'];
+                $data['for_dispatch_quantity'] = $picklistItems[$itemId]['for_dispatch_quantity'];
+            }
+        }
+        return $data;
     }
 }

@@ -71,6 +71,12 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
+        // 15 => 'For Picking',
+        // 15.1 => 'Picked',
+        // 15.2 => 'For Checking',
+        // 15.3 => 'Checked',
+        // 15.4 => 'For Dispatch',
+        // 15.5 => 'Dispatched
         #endregion
 
         $rules = [
@@ -198,7 +204,6 @@ class ProductionItemController extends Controller
                 $producedItemModel = $productionBatchModel->productionItems;
                 $producedItems = json_decode($producedItemModel->produced_items, true);
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
-
                 if ($flag) {
                     $itemDisposition = new ItemDispositionModel();
                     $itemDisposition->created_by_id = $createdById;
@@ -252,8 +257,14 @@ class ProductionItemController extends Controller
     {
         try {
             $itemsToBeAdjusted = [];
+            $counter = 1;
             foreach ($forItemDispositionArr as $itemDisposition) {
-                $storedSubLocationId = $itemDisposition['production_item']['stored_sub_location']['sub_location_id'];
+                $storedSubLocationId = $itemDisposition['production_item']['stored_sub_location']['sub_location_id'] ?? null;
+
+                if ($storedSubLocationId == null) {
+                    continue;
+                }
+
                 $storedLayerIndex = $itemDisposition['production_item']['stored_sub_location']['layer_level'];
                 $itemId = ItemMasterdataModel::where('item_code', $itemDisposition['item_code'])->first('id')->id;
                 $storedItemArrayKey = "{$storedSubLocationId}-{$storedLayerIndex}-{$itemId}";

@@ -60,10 +60,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], function () {
-
-    // Printer Spooler
-    Route::get('v1/printer/spooler-status', [App\Http\Controllers\v1\MOS\Printer\SpoolerController::class, 'checkPendingPrintJobs']);
-    
     #region Production Orders
     Route::post('v1/production/order/create', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onCreate']);
     Route::post('v1/production/order/update/{id}', [App\Http\Controllers\v1\MOS\Production\ProductionOrderController::class, 'onUpdateById']);
@@ -501,5 +497,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/picklist/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGet']);
     Route::get('v1/picklist/type/get/{type}/{status}/{generate_picklist_id?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetByPickingType']);
     Route::get('v1/picklist/route/get/{picklist_type}/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetPicklistByRoute']);
+    #endregion
+
+    #region Generate Items
+    Route::post('v1/picklist/items/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onScanItems']);
     #endregion
 });
