@@ -219,9 +219,9 @@ class GeneratePickListController extends Controller
         if ($generatePicklistItems) {
             $picklistItems = json_decode($generatePicklistItems->picklist_items, true);
             if (isset($picklistItems[$itemId])) {
-                $data['picked_scanned_quantity'] = $picklistItems[$itemId]['picked_scanned_quantity'];
-                $data['checked_quantity'] = $picklistItems[$itemId]['checked_quantity'];
-                $data['for_dispatch_quantity'] = $picklistItems[$itemId]['for_dispatch_quantity'];
+                $data['picked_scanned_quantity'] = $picklistItems[$itemId]['picked_scanned_quantity'] ?? 0;
+                $data['checked_quantity'] = $picklistItems[$itemId]['checked_quantity'] ?? 0;
+                $data['for_dispatch_quantity'] = $picklistItems[$itemId]['for_dispatch_quantity'] ?? 0;
             }
         }
         return $data;
