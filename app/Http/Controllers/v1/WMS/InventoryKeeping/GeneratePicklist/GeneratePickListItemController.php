@@ -43,6 +43,7 @@ class GeneratePickListItemController extends Controller
                         'bid' => $productionBatchId,
                         'sticker_no' => $stickerNo,
                     ];
+
                 } else {
                     $scannedItemsArray[$itemId] = [
                         'item_id' => $itemId,
@@ -50,9 +51,12 @@ class GeneratePickListItemController extends Controller
                         'picked_scanned_items' => [],
                         'scanned_by_id' => $fields['created_by_id'],
                     ];
+                    $scannedItemsArray[$itemId]['picked_scanned_items'][] = [
+                        'bid' => $productionBatchId,
+                        'sticker_no' => $stickerNo,
+                    ];
                 }
             }
-
             // Generate Picklist Item store data
             $existingPicklistItem = GeneratePickListItemModel::where('generate_picklist_id', $fields['generate_picklist_id']);
             if ($storeDetails != null) {
@@ -66,7 +70,7 @@ class GeneratePickListItemController extends Controller
                 $this->onInitializeItems($fields['generate_picklist_id'], $storeDetails, $scannedItemsArray, $createdById);
             }
             DB::commit();
-            return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.record_found'));
+            return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());
@@ -87,6 +91,9 @@ class GeneratePickListItemController extends Controller
             $generatePicklistItemModel->created_by_id = $createdById;
             $generatePicklistItemModel->save();
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePicklistItemModel->id, $generatePicklistItemModel->getAttributes(), $generatePicklistItemModel->created_by_id, 0);
+
+            // Create Checking Ticket Here
+            $this->onCreateCheckingTicket();
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -103,10 +110,38 @@ class GeneratePickListItemController extends Controller
                     $mappedPickedItems[$itemDetails['item_id']][] = $pickedItems['bid'] . '-' . $pickedItems['sticker_no'];
                 }
             }
-            dd($mappedPickedItems);
+
+            foreach ($scannedItemsArray as $itemId => $itemArray) {
+                foreach ($itemArray['picked_scanned_items'] as $pickedItems) {
+                    if (in_array($pickedItems['bid'] . '-' . $pickedItems['sticker_no'], $mappedPickedItems[$itemId])) {
+                        continue;
+                    } else {
+                        $pickedlistItems[$itemId]['picked_scanned_quantity'] += 1;
+                        $pickedlistItems[$itemId]['picked_scanned_items'][] = [
+                            'bid' => $pickedItems['bid'],
+                            'sticker_no' => $pickedItems['sticker_no'],
+                        ];
+                    }
+                }
+            }
+            $generatePickListModel->picklist_items = json_encode($pickedlistItems);
+            $generatePickListModel->save();
+            $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
+
+            // when saved generate a ticket for checking please...
+            // insert code below
+            $this->onCreateCheckingTicket();
         } catch (Exception $exception) {
-            dd($exception);
             throw $exception;
+        }
+    }
+
+    public function onCreateCheckingTicket()
+    {
+        try {
+
+        } catch (Exception $exception) {
+
         }
     }
 }

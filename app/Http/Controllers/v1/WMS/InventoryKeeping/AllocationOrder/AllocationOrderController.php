@@ -117,7 +117,6 @@ class AllocationOrderController extends Controller
             }
             $allocationOrderModel->orderBy('created_at', 'DESC');
 
-            dd($allocationOrderModel->toSql());
             $allocationOrderModel = $allocationOrderModel->get();
             return $this->dataResponse('success', 200, 'Allocation Order', $allocationOrderModel);
         } catch (Exception $exception) {

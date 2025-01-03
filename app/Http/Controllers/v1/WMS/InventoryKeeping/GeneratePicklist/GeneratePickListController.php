@@ -139,7 +139,7 @@ class GeneratePickListController extends Controller
                             $data[$storeRoute] = [
                                 'total_item_count' => 0,
                             ];
-
+                            $data[$storeRoute]['reference_number'] = $picklist->reference_number;
                             if ($type == 0) {
                                 $data[$storeRoute]['stores'] = [];
                             } else {
