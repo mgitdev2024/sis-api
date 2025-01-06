@@ -173,7 +173,7 @@ class GeneratePickListController extends Controller
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
-
+                                $data[$storeRoute]['stores'][$storeId]['is_picked'] = $alreadyPickedData['is_picked'];
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -192,6 +192,9 @@ class GeneratePickListController extends Controller
                                 $data[$storeRoute]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
                                 $data[$storeRoute]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
                                 $data[$storeRoute]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
+                                $data[$storeRoute]['stores'][$storeId][] = [
+                                    'is_picked' => $alreadyPickedData['is_picked'],
+                                ];
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
@@ -211,6 +214,7 @@ class GeneratePickListController extends Controller
             'picked_scanned_quantity' => 0,
             'checked_quantity' => 0,
             'for_dispatch_quantity' => 0,
+            'is_picked' => false,
         ];
         $generatePicklistItems = GeneratePickListItemModel::where([
             'generate_picklist_id' => $picklist->id,
@@ -227,6 +231,7 @@ class GeneratePickListController extends Controller
                 $data['picked_scanned_quantity'] = $picklistItems[$itemId]['picked_scanned_quantity'] ?? 0;
                 $data['checked_quantity'] = $picklistItems[$itemId]['checked_quantity'] ?? 0;
                 $data['for_dispatch_quantity'] = $picklistItems[$itemId]['for_dispatch_quantity'] ?? 0;
+                $data['is_picked'] = $picklistItems[$itemId]['picked_scanned_quantity'] > 0;
             }
         }
         return $data;

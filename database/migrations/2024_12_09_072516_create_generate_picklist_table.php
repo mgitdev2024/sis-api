@@ -24,7 +24,6 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('generate_picklist_id');
             $table->string('store_id')->nullable();
-            $table->string('store_code')->nullable();
             $table->string('store_name')->nullable();
             $table->longText('picklist_items'); // {"item_id"=>1,"allocated_qty"=>22,"scanned_qty"=>22} "checked_qty"=>22 item__data:{bid:1,sticker_no:1}
 
