@@ -185,6 +185,7 @@ class GeneratePickListController extends Controller
                                 $data[$storeRoute]['items'][$itemId] = [
                                     'item_code' => $itemMasterdata->item_code,
                                     'item_description' => $itemMasterdata->description,
+                                    'item_category_label' => $itemMasterdata->itemCategory->name,
                                     'item_attachment' => $itemMasterdata->attachment,
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
