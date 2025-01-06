@@ -141,6 +141,8 @@ class GeneratePickListController extends Controller
                             ];
                             $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
                             $data[$storeRoute]['reference_number'] = $picklist->reference_number;
+                            $data[$storeRoute]['generate_picklist_id'] = $picklist->id;
+
                             if ($type == 0) {
                                 $data[$storeRoute]['stores'] = [];
                             } else {
@@ -162,6 +164,8 @@ class GeneratePickListController extends Controller
                                 $data[$storeRoute]['stores'][$storeId]['items'][$itemId] = [
                                     'item_code' => $itemMasterdata->item_code,
                                     'item_description' => $itemMasterdata->description,
+                                    'item_category_label' => $itemMasterdata->itemCategory->name,
+                                    'item_attachment' => $itemMasterdata->attachment,
                                     'item_id' => $itemId,
                                     'regular_order_quantity' => $storeValue['regular_order_quantity']
                                 ];

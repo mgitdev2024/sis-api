@@ -554,6 +554,7 @@ class ProductionItemController extends Controller
             $itemDetails['item_details'] = [
                 'batch_number' => $productionBatch->batch_number,
                 'item_description' => $productionOrderToMake->itemMasterdata->description,
+                'item_category_label' => $productionOrderToMake->itemMasterdata->itemCategory->name,
             ];
             $itemDetails['is_viewable_by_otb'] = $productionOrderToMake->itemMasterdata->is_viewable_by_otb;
             $itemDetails['production_order_status'] = $productionOrder->status;
