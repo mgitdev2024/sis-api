@@ -134,17 +134,17 @@ class GeneratePickListController extends Controller
 
                     // Store Loop
                     foreach ($storeOrderDetails as $storeId => $storeValue) {
-                        $storeRoute = $storeToRoute[$storeId] . '-' . $picklist->reference_number;
+                        $storeRoute = $type == 0 ? $storeToRoute[$storeId] . '-' . $picklist->reference_number : $picklist->reference_number;
                         if (!isset($data[$storeRoute])) {
                             $data[$storeRoute] = [
                                 'total_item_count' => 0,
                             ];
-                            $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
                             $data[$storeRoute]['reference_number'] = $picklist->reference_number;
                             $data[$storeRoute]['generate_picklist_id'] = $picklist->id;
 
                             if ($type == 0) {
                                 $data[$storeRoute]['stores'] = [];
+                                $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
                             } else {
                                 $data[$storeRoute]['items'] = [];
                             }
@@ -192,9 +192,7 @@ class GeneratePickListController extends Controller
                                 $data[$storeRoute]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
                                 $data[$storeRoute]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
                                 $data[$storeRoute]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
-                                $data[$storeRoute]['stores'][$storeId][] = [
-                                    'is_picked' => $alreadyPickedData['is_picked'],
-                                ];
+                                $data[$storeRoute]['items'][$itemId]['is_picked'] = $alreadyPickedData['is_picked'];
                             } else {
                                 // If item already exists, update the regular_order_quantity
                                 $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
