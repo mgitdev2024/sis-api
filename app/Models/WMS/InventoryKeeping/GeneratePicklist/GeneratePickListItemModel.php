@@ -14,7 +14,6 @@ class GeneratePickListItemModel extends Model
     protected $fillable = [
         'generate_picklist_id',
         'store_id',
-        'store_code',
         'store_name',
         'picklist_items',
         'status',
