@@ -85,6 +85,7 @@ class GeneratePickListItemController extends Controller
             if ($storeDetails != null) {
                 $generatePicklistItemModel->store_id = $storeDetails['store_id'];
                 $generatePicklistItemModel->store_name = $storeDetails['store_name'];
+                $generatePicklistItemModel->store_code = $storeDetails['store_code'];
             }
             $generatePicklistItemModel->picklist_items = json_encode($scannedItemsArray);
             $generatePicklistItemModel->created_by_id = $createdById;
