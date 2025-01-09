@@ -92,6 +92,7 @@ class GeneratePickListItemController extends Controller
             $generatePicklistItemModel->save();
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePicklistItemModel->id, $generatePicklistItemModel->getAttributes(), $generatePicklistItemModel->created_by_id, 0);
 
+            // Decrement stock from stock log, stock inventory, and queued sub location
             // Create Checking Ticket Here
             $this->onCreateCheckingTicket();
         } catch (Exception $exception) {
@@ -112,6 +113,15 @@ class GeneratePickListItemController extends Controller
             }
 
             foreach ($scannedItemsArray as $itemId => $itemArray) {
+                if (!array_key_exists($itemId, $pickedlistItems)) {
+                    $pickedlistItems[$itemId] = [
+                        'item_id' => $itemId,
+                        'picked_scanned_quantity' => 0,
+                        'picked_scanned_items' => [],
+                        'scanned_by_id' => $createdById,
+                    ];
+                    $mappedPickedItems[$itemId] = [];
+                }
                 foreach ($itemArray['picked_scanned_items'] as $pickedItems) {
                     if (in_array($pickedItems['bid'] . '-' . $pickedItems['sticker_no'], $mappedPickedItems[$itemId])) {
                         continue;
@@ -128,10 +138,13 @@ class GeneratePickListItemController extends Controller
             $generatePickListModel->save();
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
 
+            // Decrement stock from stock log, stock inventory, and queued sub location
+
             // when saved generate a ticket for checking please...
             // insert code below
             $this->onCreateCheckingTicket();
         } catch (Exception $exception) {
+            dd($exception);
             throw $exception;
         }
     }
