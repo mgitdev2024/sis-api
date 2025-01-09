@@ -71,6 +71,12 @@ class ProductionItemController extends Controller
         // 12 => 'Sliced',
         // 13 => 'Stored',
         // 14 => 'For Transfer',
+        // 15 => 'For Picking',
+        // 15.1 => 'Picked',
+        // 15.2 => 'For Checking',
+        // 15.3 => 'Checked',
+        // 15.4 => 'For Dispatch',
+        // 15.5 => 'Dispatched
         #endregion
 
         $rules = [
@@ -169,7 +175,7 @@ class ProductionItemController extends Controller
                 ? ProductionOTBModel::class
                 : ProductionOTAModel::class;
 
-            $productionToBakeAssemble->produced_items_count -= count($scannedItem);
+            $productionToBakeAssemble->produced_items_count -= count($forValidationDuplicate);
             $productionToBakeAssemble->save();
             $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $fields['created_by_id'], 1);
             DB::commit();
@@ -198,7 +204,6 @@ class ProductionItemController extends Controller
                 $producedItemModel = $productionBatchModel->productionItems;
                 $producedItems = json_decode($producedItemModel->produced_items, true);
                 $flag = $this->onItemCheckHoldInactiveDone($producedItems, $itemKey, [], $exclusionArray);
-
                 if ($flag) {
                     $itemDisposition = new ItemDispositionModel();
                     $itemDisposition->created_by_id = $createdById;
@@ -252,8 +257,14 @@ class ProductionItemController extends Controller
     {
         try {
             $itemsToBeAdjusted = [];
+            $counter = 1;
             foreach ($forItemDispositionArr as $itemDisposition) {
-                $storedSubLocationId = $itemDisposition['production_item']['stored_sub_location']['sub_location_id'];
+                $storedSubLocationId = $itemDisposition['production_item']['stored_sub_location']['sub_location_id'] ?? null;
+
+                if ($storedSubLocationId == null) {
+                    continue;
+                }
+
                 $storedLayerIndex = $itemDisposition['production_item']['stored_sub_location']['layer_level'];
                 $itemId = ItemMasterdataModel::where('item_code', $itemDisposition['item_code'])->first('id')->id;
                 $storedItemArrayKey = "{$storedSubLocationId}-{$storedLayerIndex}-{$itemId}";
@@ -543,6 +554,7 @@ class ProductionItemController extends Controller
             $itemDetails['item_details'] = [
                 'batch_number' => $productionBatch->batch_number,
                 'item_description' => $productionOrderToMake->itemMasterdata->description,
+                'item_category_label' => $productionOrderToMake->itemMasterdata->itemCategory->name,
             ];
             $itemDetails['is_viewable_by_otb'] = $productionOrderToMake->itemMasterdata->is_viewable_by_otb;
             $itemDetails['production_order_status'] = $productionOrder->status;
@@ -651,7 +663,6 @@ class ProductionItemController extends Controller
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }

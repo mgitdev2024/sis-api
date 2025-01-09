@@ -102,7 +102,7 @@ class ItemDispositionController extends Controller
                 $this->createProductionLog($modelClass, $productionToBakeAssemble->id, $productionToBakeAssemble->getAttributes(), $createdById, 1);
             }
 
-            $forItemRepository = [7, 8, 10.1, 10.2, 10.3];
+            $forItemRepository = [7, 8, 10.1, 10.2, 10.3, 10.4];
             if (in_array($fields['action_status_id'], $forItemRepository)) {
                 $this->onQaItemDispositionRepository($itemDisposition, $fields['quantity_qa_for_repository'], $fields['type_qa_for_repository'], $createdById);
             }

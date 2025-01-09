@@ -21,9 +21,9 @@ class AllocationItemModel extends Model
         'allocated_stocks',
         'created_by_id'
     ];
-    public function allocatedOrder()
+    public function allocationOrder()
     {
-        return $this->belongsTo(AllocationOrderModel::class, 'allocated_orders_id');
+        return $this->belongsTo(AllocationOrderModel::class, 'allocation_order_id');
     }
     public function itemMasterdata()
     {

@@ -49,6 +49,12 @@ class ProductionItemModel extends Model
             12 => 'Sliced',
             13 => 'Stored',
             14 => 'For Transfer',
+            15 => 'For Picking',
+            15.1 => 'Picked',
+            15.2 => 'For Checking',
+            15.3 => 'Checked',
+            15.4 => 'For Dispatch',
+            15.5 => 'Dispatched',
         ];
 
         return [
