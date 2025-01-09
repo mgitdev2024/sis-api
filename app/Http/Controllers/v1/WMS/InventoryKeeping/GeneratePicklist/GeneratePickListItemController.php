@@ -112,10 +112,14 @@ class GeneratePickListItemController extends Controller
             }
 
             foreach ($scannedItemsArray as $itemId => $itemArray) {
-                if (array_key_exists($itemId, $pickedlistItems)) {
-                    dd('andito');
-                } else {
-                    dd('wala');
+                if (!array_key_exists($itemId, $pickedlistItems)) {
+                    $pickedlistItems[$itemId] = [
+                        'item_id' => $itemId,
+                        'picked_scanned_quantity' => 0,
+                        'picked_scanned_items' => [],
+                        'scanned_by_id' => $createdById,
+                    ];
+                    $mappedPickedItems[$itemId] = [];
                 }
                 foreach ($itemArray['picked_scanned_items'] as $pickedItems) {
                     if (in_array($pickedItems['bid'] . '-' . $pickedItems['sticker_no'], $mappedPickedItems[$itemId])) {
