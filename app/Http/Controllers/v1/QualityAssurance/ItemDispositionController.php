@@ -235,12 +235,13 @@ class ItemDispositionController extends Controller
                     $dispositionedItem[$itemDispositionModel->item_key]['status'] = $itemDispositionModel->type == 0 ? 4 : 5;
                     $dispositionedItem[$itemDispositionModel->item_key]['sticker_status'] = 1;
                     $actionArrayForIncrementQuantity = [7, 8, 9, 12];
+                    $itemRepositoryModel = ItemDispositionRepositoryModel::where('item_disposition_id', $itemDispositionModel->id)->first();
                     if (in_array($itemDispositionModel->action, $actionArrayForIncrementQuantity)) {
-                        $itemRepositoryModel = ItemDispositionRepositoryModel::where('item_disposition_id', $itemDispositionModel->id)->first();
                         $dispositionedQuantity = $itemRepositoryModel->quantity;
                         $dispositionedItem[$itemDispositionModel->item_key]['q'] += $dispositionedQuantity;
-                        $itemRepositoryModel->delete();
                     }
+                    $itemRepositoryModel->delete();
+
                     $productionItemModel->produced_items = json_encode($dispositionedItem);
                     $productionItemModel->save();
                     $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $dispositionedItem, $createdById, 1, $itemDispositionModel->item_key);
