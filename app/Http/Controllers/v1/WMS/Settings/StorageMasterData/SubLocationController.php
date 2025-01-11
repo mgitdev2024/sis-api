@@ -56,15 +56,15 @@ class SubLocationController extends Controller
                             $storageRemainingSpaceUpdate->storage_remaining_space += $additionalSpace;
                             $storageRemainingSpaceUpdate->save();   
                         }else if(($originalLayerSpace > $layer['max'])) { 
-                            $reducedSpace = $originalLayerSpace - $layer['max'];
+                            $reducedSpace = $originalLayerSpace - $layer['max']; 
                             if($storageRemainingSpaceUpdate->storage_remaining_space < $reducedSpace) {
                                 throw new Exception('Layer space cannot be reduced. Please check the storage'); 
                             }
-                            $storageRemainingSpaceUpdate->storage_remaining_space = $reducedSpace;
+                            $storageRemainingSpaceUpdate->storage_remaining_space -= $reducedSpace;
                             $storageRemainingSpaceUpdate->save();  
                         }
                     } 
-                }  
+                }   
                 $record->update($fields); 
                 DB::commit();
                 return $this->dataResponse('success', 201,   'Sub Location ' . __('msg.update_success'), $record);
