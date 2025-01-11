@@ -104,6 +104,8 @@ class ItemDispositionController extends Controller
 
             $forItemRepository = [7, 8, 10.1, 10.2, 10.3, 10.4];
             if (in_array($fields['action_status_id'], $forItemRepository)) {
+                $itemDisposition->item_repository_type = $fields['type_qa_for_repository'];
+
                 $this->onQaItemDispositionRepository($itemDisposition, $fields['quantity_qa_for_repository'], $fields['type_qa_for_repository'], $createdById);
             }
 
@@ -220,7 +222,7 @@ class ItemDispositionController extends Controller
             'created_by_id' => 'required',
             'item_disposition_ids' => 'required|string'
         ]);
-        try {
+        try {// 0 = For Disposal, 1 = For Intersell, 2 = For Store Distribution, 3 = For Complimentary
             $createdById = $fields['created_by_id'];
             $itemDispositionIds = json_decode($fields['item_disposition_ids'], true);
             if (count($itemDispositionIds) > 0) {
@@ -232,6 +234,13 @@ class ItemDispositionController extends Controller
                     $dispositionedItem = json_decode($productionItemModel->produced_items, true);
                     $dispositionedItem[$itemDispositionModel->item_key]['status'] = $itemDispositionModel->type == 0 ? 4 : 5;
                     $dispositionedItem[$itemDispositionModel->item_key]['sticker_status'] = 1;
+                    $actionArrayForIncrementQuantity = [7, 8, 9, 12];
+                    if (in_array($itemDispositionModel->action, $actionArrayForIncrementQuantity)) {
+                        $itemRepositoryModel = ItemDispositionRepositoryModel::where('item_disposition_id', $itemDispositionModel->id)->first();
+                        $dispositionedQuantity = $itemRepositoryModel->quantity;
+                        $dispositionedItem[$itemDispositionModel->item_key]['q'] += $dispositionedQuantity;
+                        $itemRepositoryModel->delete();
+                    }
                     $productionItemModel->produced_items = json_encode($dispositionedItem);
                     $productionItemModel->save();
                     $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $dispositionedItem, $createdById, 1, $itemDispositionModel->item_key);
@@ -323,7 +332,7 @@ class ItemDispositionController extends Controller
         }
     }
 
-    public function onGetCurrent($id, $type = null)
+    public function onGetCurrent($production_batch_id, $type = null)
     {
         try {
             $itemDisposition = ItemDispositionModel::select(
@@ -341,7 +350,7 @@ class ItemDispositionController extends Controller
                 'is_release',
                 'created_at',
             )
-                ->where('production_batch_id', $id);
+                ->where('production_batch_id', $production_batch_id);
             if ($type != null) {
                 $itemDisposition->where('type', $type);
             }
@@ -578,11 +587,12 @@ class ItemDispositionController extends Controller
     public function onQaItemDispositionRepository($itemDisposition, $quantity, $type, $createdById)
     {
         try {
-            $repositoryArray = [0, 1, 2, 3];
+            $repositoryArray = [0, 1, 2, 3]; // 0 = For Disposal, 1 = For Intersell, 2 = For Store Distribution, 3 = For Complimentary
             if (in_array($type, $repositoryArray) && $quantity > 0) {
                 $productionBatchId = $itemDisposition->production_batch_id;
                 $itemMasterdataId = $itemDisposition->productionBatch->itemMasterdata->id;
                 $itemDispositionRepository = new ItemDispositionRepositoryModel();
+                $itemDispositionRepository->item_disposition_id = $itemDisposition->id;
                 $itemDispositionRepository->type = $type;
                 $itemDispositionRepository->production_batch_id = $productionBatchId;
                 $itemDispositionRepository->item_id = $itemMasterdataId;
