@@ -134,17 +134,17 @@ class GeneratePickListController extends Controller
 
                     // Store Loop
                     foreach ($storeOrderDetails as $storeId => $storeValue) {
-                        $storeRoute = $type == 0 ? $storeToRoute[$storeId] . '-' . $picklist->reference_number : $picklist->reference_number;
+                        // $storeRoute = $type == 0 ? $storeToRoute[$storeId] . '-' . $picklist->reference_number : $picklist->reference_number;
+                        $storeRoute = $storeToRoute[$storeId] . '-' . $picklist->reference_number;
                         if (!isset($data[$storeRoute])) {
                             $data[$storeRoute] = [
                                 'total_item_count' => 0,
                             ];
                             $data[$storeRoute]['reference_number'] = $picklist->reference_number;
                             $data[$storeRoute]['generate_picklist_id'] = $picklist->id;
-
+                            $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
                             if ($type == 0) {
                                 $data[$storeRoute]['stores'] = [];
-                                $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
                             } else {
                                 $data[$storeRoute]['items'] = [];
                             }

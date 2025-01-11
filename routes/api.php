@@ -350,7 +350,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #region Item Disposition
     Route::post('v1/item/disposition/update/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onUpdateById']);
     Route::get('v1/item/disposition/category/{type}/{status}/{filter?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAllCategory']);
-    Route::get('v1/item/disposition/current/{id?}/{type?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
+    Route::get('v1/item/disposition/current/{production_batch_id?}/{type?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetCurrent']);
     Route::get('v1/item/disposition/all', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetAll']);
     Route::get('v1/item/disposition/{id?}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onGetById']);
     Route::post('v1/item/disposition/close/{id}', [App\Http\Controllers\v1\QualityAssurance\ItemDispositionController::class, 'onCloseDisposition']);
@@ -496,10 +496,12 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/picklist/create', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onCreate']);
     Route::get('v1/picklist/all/get/{status?}/{filter?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGet']);
     Route::get('v1/picklist/type/get/{type}/{status}/{generate_picklist_id?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetByPickingType']);
-    Route::get('v1/picklist/route/get/{picklist_type}/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetPicklistByRoute']);
+    // Route::get('v1/picklist/route/get/{picklist_type}/{status?}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListController::class, 'onGetPicklistByRoute']);
     #endregion
 
     #region Generate Items
-    Route::post('v1/picklist/items/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onScanItems']);
+    Route::post('v1/picklist/items/stockman/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onPickItems']);
+    Route::post('v1/picklist/items/checker/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onCheckPickedItem']);
+
     #endregion
 });

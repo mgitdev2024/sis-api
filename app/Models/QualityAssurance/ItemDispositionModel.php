@@ -121,7 +121,7 @@ class ItemDispositionModel extends Model
         $numericPart = (int) substr($latestItemDisposition, 3);
         $nextNumber = $numericPart + 1;
         $referenceCode = $type == 0 ? 'FI-' : 'LS-';
-        $referenceNumber = $referenceCode . $nextNumber;
+        $referenceNumber = $referenceCode . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }
