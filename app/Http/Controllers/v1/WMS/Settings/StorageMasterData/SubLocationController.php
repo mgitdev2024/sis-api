@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\WMS\Settings\StorageMasterData;
 use App\Http\Controllers\Controller;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
+use App\Models\WMS\Storage\QueuedSubLocationModel;
 use App\Traits\MOS\MosCrudOperationsTrait;
 use Illuminate\Http\Request;
 use DB;
@@ -31,20 +32,57 @@ class SubLocationController extends Controller
     }
     public function onCreate(Request $request)
     {
-        return $this->createRecord(SubLocationModel::class, $request, $this->getRules(), 'Sub Location Category');
+        return $this->createRecord(SubLocationModel::class, $request, $this->getRules(), 'Sub Location');
     }
     public function onUpdateById(Request $request, $id)
-    {
-        return $this->updateRecordById(SubLocationModel::class, $request, $this->getRules($id), 'Sub Location Category', $id);
+    { $fields = $request->validate($this->getRules($id));
+        try {
+            $record = new SubLocationModel();
+            $record = SubLocationModel::find($id);
+            if ($record) {
+                DB::beginTransaction();
+                $this->createProductionLog(SubLocationModel::class, $record->id, $fields, $fields['updated_by_id'], 1);
+
+                foreach(json_decode($fields['layers'], true) as $layer) { 
+                    $storageRemainingSpaceUpdate = QueuedSubLocationModel::where([
+                        'sub_location_id' => $id,
+                        'layer_level' => $layer['layer_no']
+                    ])->orderBy('id', 'DESC')->first(); 
+                    $subLocationModel = $storageRemainingSpaceUpdate->subLocation ?? null; 
+                    if($storageRemainingSpaceUpdate){
+                        $originalLayerSpace = json_decode($subLocationModel->layers, true)[$layer['layer_no']]['max']; 
+                        if($originalLayerSpace < $layer['max']) {
+                            $additionalSpace = $layer['max'] - $originalLayerSpace;
+                            $storageRemainingSpaceUpdate->storage_remaining_space = $additionalSpace;
+                            $storageRemainingSpaceUpdate->save();  
+                        }else if(($originalLayerSpace > $layer['max'])) { 
+                            $reducedSpace = $originalLayerSpace - $layer['max'];
+                            if($storageRemainingSpaceUpdate->storage_remaining_space < $reducedSpace) {
+                                throw new Exception('Layer space cannot be reduced. Please check the storage'); 
+                            }
+                            $storageRemainingSpaceUpdate->storage_remaining_space = $reducedSpace;
+                            $storageRemainingSpaceUpdate->save();  
+                        }
+                    } 
+                } 
+                $record->update($fields); 
+                DB::commit();
+                return $this->dataResponse('success', 201,   'Sub Location ' . __('msg.update_success'), $record);
+            }
+            return $this->dataResponse('error', 200,   'Sub Location ' . __('msg.update_failed'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        } 
     }
     public function onGetPaginatedList(Request $request)
     {
         $searchableFields = ['number'];
-        return $this->readPaginatedRecord(SubLocationModel::class, $request, $searchableFields, 'Sub Location Category');
+        return $this->readPaginatedRecord(SubLocationModel::class, $request, $searchableFields, 'Sub Location');
     }
     public function onGetall()
     {
-        return $this->readRecord(SubLocationModel::class, 'Sub Location Category', ['facility', 'warehouse', 'zone']);
+        return $this->readRecord(SubLocationModel::class, 'Sub Location', ['facility', 'warehouse', 'zone']);
     }
     public function onGetChildByParentId($id = null)
     {
@@ -52,15 +90,15 @@ class SubLocationController extends Controller
     }
     public function onGetById($id)
     {
-        return $this->readRecordById(SubLocationModel::class, $id, 'Sub Location Category');
+        return $this->readRecordById(SubLocationModel::class, $id, 'Sub Location');
     }
     public function onDeleteById($id)
     {
-        return $this->deleteRecordById(SubLocationModel::class, $id, 'Sub Location Category');
+        return $this->deleteRecordById(SubLocationModel::class, $id, 'Sub Location');
     }
     public function onChangeStatus(Request $request, $id)
     {
-        return $this->changeStatusRecordById(SubLocationModel::class, $id, 'Sub Location Category', $request);
+        return $this->changeStatusRecordById(SubLocationModel::class, $id, 'Sub Location', $request);
     }
     public function onBulk(Request $request)
     {

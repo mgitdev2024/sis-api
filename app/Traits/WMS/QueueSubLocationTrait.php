@@ -386,7 +386,7 @@ trait QueueSubLocationTrait
                 'sub_location_id' => $subLocationId,
                 'layer_level' => $layer
             ])->orderBy('id', 'DESC')->first();
-
+ 
             if ($subLocationStorageSpace) {
                 $remainingCapacity = $subLocationStorageSpace->storage_remaining_space;
             }
