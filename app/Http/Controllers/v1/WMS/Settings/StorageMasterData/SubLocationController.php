@@ -50,11 +50,11 @@ class SubLocationController extends Controller
                     ])->orderBy('id', 'DESC')->first(); 
                     $subLocationModel = $storageRemainingSpaceUpdate->subLocation ?? null; 
                     if($storageRemainingSpaceUpdate){
-                        $originalLayerSpace = json_decode($subLocationModel->layers, true)[$layer['layer_no']]['max']; 
+                        $originalLayerSpace = json_decode($subLocationModel->layers, true)[$layer['layer_no']]['max'];  
                         if($originalLayerSpace < $layer['max']) {
-                            $additionalSpace = $layer['max'] - $originalLayerSpace;
-                            $storageRemainingSpaceUpdate->storage_remaining_space = $additionalSpace;
-                            $storageRemainingSpaceUpdate->save();  
+                            $additionalSpace = $layer['max'] - $originalLayerSpace; 
+                            $storageRemainingSpaceUpdate->storage_remaining_space += $additionalSpace;
+                            $storageRemainingSpaceUpdate->save();   
                         }else if(($originalLayerSpace > $layer['max'])) { 
                             $reducedSpace = $originalLayerSpace - $layer['max'];
                             if($storageRemainingSpaceUpdate->storage_remaining_space < $reducedSpace) {
@@ -64,7 +64,7 @@ class SubLocationController extends Controller
                             $storageRemainingSpaceUpdate->save();  
                         }
                     } 
-                } 
+                }  
                 $record->update($fields); 
                 DB::commit();
                 return $this->dataResponse('success', 201,   'Sub Location ' . __('msg.update_success'), $record);
