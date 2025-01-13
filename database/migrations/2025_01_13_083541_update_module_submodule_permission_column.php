@@ -25,11 +25,11 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('access_module_permissions', function (Blueprint $table) {
-            $table->dropColumn('allow_reopen')->nullable();
+            $table->dropColumn('allow_reopen');
         });
 
         Schema::table('access_submodule_permissions', function (Blueprint $table) {
-            $table->dropColumn('allow_reopen')->nullable();
+            $table->dropColumn('allow_reopen');
         });
 
     }
