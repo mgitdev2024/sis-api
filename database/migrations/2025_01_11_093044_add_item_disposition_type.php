@@ -25,7 +25,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('qa_item_dispositions', function (Blueprint $table) {
-            $table->string('item_repository_type')->nullable();
+            $table->dropColumn('item_repository_type')->nullable();
         });
 
         Schema::table('qa_item_disposition_repositories', function (Blueprint $table) {

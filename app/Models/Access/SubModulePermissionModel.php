@@ -19,6 +19,7 @@ class SubModulePermissionModel extends Model
         'allow_create',
         'allow_update',
         'allow_delete',
+        'allow_reopen',
         'status',
         'created_by_id',
         'updated_by_id',
