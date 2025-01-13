@@ -8,7 +8,7 @@ use App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\InventoryKeeping\ForStockTransfer\StockRequestForTransferModel;
-use App\Models\WMS\InventoryKeeping\StockTransferItemModel;
+use App\Models\WMS\InventoryKeeping\StockTransfer\StockTransferItemModel;
 use App\Models\WMS\InventoryKeeping\StockTransferListModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;

@@ -3,6 +3,7 @@
 namespace App\Models\QualityAssurance;
 
 use App\Models\MOS\Production\ProductionBatchModel;
+use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,7 +11,7 @@ class ItemDispositionModel extends Model
 {
     use HasFactory;
     protected $table = 'qa_item_dispositions';
-    protected $appends = ['item_variant_label'];
+    protected $appends = ['item_variant_label', 'is_sliceable_label'];
     protected $fillable = [
         'production_batch_id',
         'item_code',
@@ -40,11 +41,13 @@ class ItemDispositionModel extends Model
 
     public function getItemVariantLabelAttribute()
     {
-        $otbItems = $this->productionBatch->productionOtb->itemMasterdata ?? null;
-        $otaItems = $this->productionBatch->productionOta->itemMasterdata ?? null;
-        $itemMasterdata = $otbItems ?? $otaItems;
-        $itemVariantType = $itemMasterdata->itemVariantType->toArray();
-        return isset($itemVariantType) ? $itemVariantType['name'] : null;
+        if ($this->production_batch_id != null) {
+            $otbItems = $this->productionBatch->productionOtb->itemMasterdata ?? null;
+            $otaItems = $this->productionBatch->productionOta->itemMasterdata ?? null;
+            $itemMasterdata = $otbItems ?? $otaItems;
+            $itemVariantType = $itemMasterdata->itemVariantType->toArray();
+            return isset($itemVariantType) ? $itemVariantType['name'] : null;
+        }
     }
 
     public static function getStatusLabel($index)
@@ -73,5 +76,53 @@ class ItemDispositionModel extends Model
             'key' => $index,
             'value' => $labels[$index]
         ];
+    }
+
+    public function getIsSliceableLabelAttribute()
+    {
+        if ($this) {
+            $baseCode = explode(' ', $this->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isSliceable = false;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($this->id, $parentIds)) {
+                    $isSliceable = true;
+                }
+            }
+            return $isSliceable;
+        }
+    }
+
+    public static function onIsSliceable($itemMasterdata)
+    {
+        if ($itemMasterdata) {
+            $baseCode = explode(' ', $itemMasterdata->item_code)[0];
+            $parentItemCollection = ItemMasterdataModel::where('item_code', 'like', $baseCode . '%')
+                ->whereNotNull('parent_item_id')
+                ->where('item_variant_type_id', 3)->first();
+            $isSliceable = false;
+            if ($parentItemCollection) {
+                $parentIds = json_decode($parentItemCollection->parent_item_id, true);
+                if (in_array($itemMasterdata->id, $parentIds)) {
+                    $isSliceable = true;
+                }
+            }
+            return $isSliceable;
+        }
+        return false;
+    }
+
+    public static function onGenerateItemDispositionReferenceNumber($type)
+    {
+        $latestItemDisposition = ItemDispositionModel::where('type', $type)->orderBy('id', 'DESC')->first()->reference_number ?? 0;
+        $numericPart = (int) substr($latestItemDisposition, 3);
+        $nextNumber = $numericPart + 1;
+        $referenceCode = $type == 0 ? 'FI-' : 'LS-';
+        $referenceNumber = $referenceCode . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+        return $referenceNumber;
     }
 }

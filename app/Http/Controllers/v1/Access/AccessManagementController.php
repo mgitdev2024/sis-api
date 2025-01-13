@@ -29,6 +29,8 @@ class AccessManagementController extends Controller
                 DB::raw("IF(JSON_CONTAINS(CAST(allow_create AS JSON), '" . $empno . "'), true, false) as allow_create"),
                 DB::raw("IF(JSON_CONTAINS(CAST(allow_update AS JSON), '" . $empno . "'), true, false) as allow_update"),
                 DB::raw("IF(JSON_CONTAINS(CAST(allow_delete AS JSON), '" . $empno . "'), true, false) as allow_delete"),
+                DB::raw("IF(JSON_CONTAINS(CAST(allow_reopen AS JSON), '" . $empno . "'), true, false) as allow_reopen"),
+
             ])
                 ->where('code', $fields['code'])
                 ->first();
@@ -65,7 +67,6 @@ class AccessManagementController extends Controller
                 }
                 $permissionTable->$action = json_encode($access);
                 $permissionTable->save();
-                DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $permissionTable);
             }
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
@@ -127,6 +128,8 @@ class AccessManagementController extends Controller
                         $subModuleArr[$subModule['code']]['allow_create'] = $this->onIsAllowed($subModule['allow_create'], $id);
                         $subModuleArr[$subModule['code']]['allow_update'] = $this->onIsAllowed($subModule['allow_update'], $id);
                         $subModuleArr[$subModule['code']]['allow_delete'] = $this->onIsAllowed($subModule['allow_delete'], $id);
+                        $subModuleArr[$subModule['code']]['allow_reopen'] = $this->onIsAllowed($subModule['allow_reopen'], $id);
+
                     }
                 }
 
@@ -141,6 +144,7 @@ class AccessManagementController extends Controller
                     $permissionList[$module['code']]['allow_create'] = $this->onIsAllowed($module['allow_create'], $id);
                     $permissionList[$module['code']]['allow_update'] = $this->onIsAllowed($module['allow_update'], $id);
                     $permissionList[$module['code']]['allow_delete'] = $this->onIsAllowed($module['allow_delete'], $id);
+                    $permissionList[$module['code']]['allow_reopen'] = $this->onIsAllowed($module['allow_reopen'], $id);
                 }
             }
 
@@ -152,7 +156,7 @@ class AccessManagementController extends Controller
 
     public function onIsAllowed($isAllowedArr, $id)
     {
-        $isAllowed = json_decode($isAllowedArr, true);
+        $isAllowed = json_decode($isAllowedArr ?? '[]', true);
 
         return in_array($id, $isAllowed);
     }
@@ -174,8 +178,9 @@ class AccessManagementController extends Controller
                 $allowCreate = $value['allow_create'];
                 $allowUpdate = $value['allow_update'];
                 $allowDelete = $value['allow_delete'];
+                $allowReopen = $value['allow_reopen'];
 
-                $this->checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete);
+                $this->checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete, $allowReopen);
             }
             DB::commit();
 
@@ -191,7 +196,7 @@ class AccessManagementController extends Controller
         }
     }
 
-    public function checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete)
+    public function checkModuleType($empno, $moduleType, $moduleCode, $allowView, $allowCreate, $allowUpdate, $allowDelete, $allowReopen)
     {
         try {
             $moduleSubPermission = strcasecmp($moduleType, 'module') == 0 ? ModulePermissionModel::class : SubModulePermissionModel::class;
@@ -201,7 +206,8 @@ class AccessManagementController extends Controller
                     'allow_view' => $allowView,
                     'allow_create' => $allowCreate,
                     'allow_update' => $allowUpdate,
-                    'allow_delete' => $allowDelete
+                    'allow_delete' => $allowDelete,
+                    'allow_reopen' => $allowReopen,
                 ];
                 $updateNeeded = false;
 

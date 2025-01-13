@@ -41,10 +41,17 @@ class ProductionItemModel extends Model
             8 => 'For Sticker Update',
             9 => 'Sticker Updated',
             10 => 'Reviewed',
+            10.1 => 'For Store Distribution',
+            10.2 => 'For Disposal',
+            10.3 => 'For Intersell',
+            10.4 => 'For Complimentary',
             11 => 'Retouched',
             12 => 'Sliced',
             13 => 'Stored',
             14 => 'For Transfer',
+            15 => 'Picked',
+            15.1 => 'Checked',
+            15.2 => 'Dispatched',
         ];
 
         return [

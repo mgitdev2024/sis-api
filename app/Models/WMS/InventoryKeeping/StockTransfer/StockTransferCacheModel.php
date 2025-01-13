@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\WMS\InventoryKeeping;
+namespace App\Models\WMS\InventoryKeeping\StockTransfer;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\WMS\InventoryKeeping;
+namespace App\Models\WMS\InventoryKeeping\StockTransfer;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +25,7 @@ class StockTransferListModel extends Model
     {
         $latestStockRequest = static::latest()->value('id');
         $nextStockRequest = $latestStockRequest + 1;
-        $referenceNumber = 'ST-7' . str_pad($nextStockRequest, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'ST-8' . str_pad($nextStockRequest, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }
