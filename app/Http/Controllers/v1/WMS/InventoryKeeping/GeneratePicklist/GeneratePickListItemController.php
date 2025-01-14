@@ -12,9 +12,10 @@ use Exception;
 use App\Traits\WMS\WarehouseLogTrait;
 use App\Traits\MOS\ProductionLogTrait;
 use DB;
+use App\Traits\WMS\QueueSubLocationTrait;
 class GeneratePickListItemController extends Controller
 {
-    use WarehouseLogTrait, ProductionLogTrait;
+    use WarehouseLogTrait, ProductionLogTrait, QueueSubLocationTrait;
     public function onPickItems(Request $request)
     {
         $fields = $request->validate([
@@ -120,7 +121,7 @@ class GeneratePickListItemController extends Controller
                         'item_id' => $itemId,
                         'picked_scanned_quantity' => 0,
                         'picked_scanned_items' => [],
-                        'scanned_by_id' => $createdById,
+                        'picked_scanned_by_id' => $createdById,
                     ];
                     $mappedPickedItems[$itemId] = [];
                 }
@@ -153,13 +154,14 @@ class GeneratePickListItemController extends Controller
             'scanned_items' => 'required|json',
             'created_by_id' => 'required',
             'store_details' => 'nullable|json',
-            'temporary_storage_id' => 'nullable'
+            'temporary_storage_id' => 'nullable',
         ]);
         try {
             DB::beginTransaction();
             $scannedItems = json_decode($fields['scanned_items'], true);
             $storeDetails = json_decode($fields['store_details'] ?? '', true);
             $createdById = $fields['created_by_id'];
+            $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
             // Generate Picklist Item store data
             $generatePickListModel = GeneratePickListItemModel::where('generate_picklist_id', $fields['generate_picklist_id']);
             if ($storeDetails != null) {
@@ -176,19 +178,64 @@ class GeneratePickListItemController extends Controller
                 }
             }
 
+            $forTemporaryStorageItems = [];
             foreach ($scannedItems as $pickedItems) {
-                $productionBatchModel = ProductionBatchModel::find($pickedItems['bid']);
-                $picklistType = $productionBatchModel->itemMasterData->picklist_type;
+                $itemId = $pickedItems['item_id'];
+                $stickerNo = $pickedItems['sticker_no'];
+                $productionBatchId = $pickedItems['bid'];
+                // $productionBatchModel = ProductionBatchModel::find($pickedItems['bid']);
+                // $picklistType = $productionBatchModel->itemMasterData->picklist_type;
                 $productionItemModel = ProductionItemModel::where('production_batch_id', $pickedItems['bid'])->first();
                 $producedItems = json_decode($productionItemModel->produced_items, true);
                 if ($producedItems[$pickedItems['sticker_no']]['status'] == 15) {
                     $producedItems[$pickedItems['sticker_no']]['status'] = 15.1;
+                    $productionItemModel->produced_items = json_encode($producedItems);
+                    $productionItemModel->save();
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNo], $fields['created_by_id'], 0, $stickerNo);
+                    if (isset($pickedlistItems[$itemId]) && in_array($productionBatchId . '-' . $stickerNo, $mappedPickedItems[$itemId])) {
+                        if (!isset($pickedlistItems[$itemId]['checked_scanned_quantity'])) {
+                            $pickedlistItems[$itemId]['checked_scanned_quantity'] = 1;
+                            $pickedlistItems[$itemId]['checked_scanned_items'][] = [
+                                'bid' => $productionBatchId,
+                                'sticker_no' => $stickerNo,
+                                'temporary_storage_id' => $temporaryStorageId,
+                            ];
+                            $pickedlistItems[$itemId]['checked_scanned_by'] = $createdById;
+                            $forTemporaryStorageItems[] = [
+                                'bid' => $productionBatchId,
+                                'sticker_no' => $stickerNo,
+                                'item_id' => $itemId,
+                            ];
+                        } else {
+                            $pickedlistItems[$itemId]['checked_scanned_quantity'] += 1;
+                            $pickedlistItems[$itemId]['checked_scanned_items'][] = [
+                                'bid' => $productionBatchId,
+                                'sticker_no' => $stickerNo,
+                                'temporary_storage_id' => $temporaryStorageId,
+                            ];
+                            $forTemporaryStorageItems[] = [
+                                'bid' => $productionBatchId,
+                                'sticker_no' => $stickerNo,
+                                'item_id' => $itemId,
+                            ];
+                        }
+                    }
                 }
-                dd($producedItems);
-            }
-            $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
 
+            }
+            if (count($forTemporaryStorageItems) > 0) {
+                if ($temporaryStorageId != null) {
+                    if (!$this->onCheckAvailability($temporaryStorageId, false)) {
+                        throw new Exception('Sub Location Unavailable');
+                    }
+                    $this->onQueueStorage($createdById, $forTemporaryStorageItems, $temporaryStorageId, false);
+                }
+            }
+
+            $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
             DB::commit();
+
+            return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());

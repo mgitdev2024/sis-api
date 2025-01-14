@@ -73,7 +73,7 @@ class ProductionItemController extends Controller
         // 14 => 'For Transfer',
         // 15 => 'Picked',
         // 15.1 => 'Checked',
-        // 15.2 => 'Dispatched',
+        // 15.2 => 'For Dispatch',
         #endregion
 
         $rules = [
