@@ -502,6 +502,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #region Generate Items
     Route::post('v1/picklist/items/stockman/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onPickItems']);
     Route::post('v1/picklist/items/checker/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onCheckPickedItem']);
+    #endregion
 
+    #region Stock Dispatch
+    Route::post('v1/stock/dispatch/create', [App\Http\Controllers\v1\WMS\Dispatch\StockDispatchController::class, 'onCreate']);
     #endregion
 });

@@ -147,9 +147,9 @@ class GeneratePickListItemController extends Controller
         }
     }
 
-    public function onCheckPickedItem()
+    public function onCheckPickedItem(Request $request)
     {
-        $fields = request()->validate([
+        $fields = $request->validate([
             'generate_picklist_id' => 'required|exists:wms_generate_picklists,id',
             'scanned_items' => 'required|json',
             'created_by_id' => 'required',
@@ -242,3 +242,31 @@ class GeneratePickListItemController extends Controller
         }
     }
 }
+
+/*
+    0 => 'Good',
+    1 => 'On Hold',
+    "1.1" => 'On Hold - Sub Standard',
+    2 => 'For Receive',
+    "2.1" => 'For Receive - In Process',
+    3 => 'Received',
+    "3.1" => 'For Put-away - In Process',
+    4 => 'For Investigation',
+    5 => 'For Sampling',
+    6 => 'For Retouch',
+    7 => 'For Slice',
+    8 => 'For Sticker Update',
+    9 => 'Sticker Updated',
+    10 => 'Reviewed',
+    10.1 => 'For Store Distribution',
+    10.2 => 'For Disposal',
+    10.3 => 'For Intersell',
+    10.4 => 'For Complimentary',
+    11 => 'Retouched',
+    12 => 'Sliced',
+    13 => 'Stored',
+    14 => 'For Transfer',
+    15 => 'Picked',
+    15.1 => 'Checked',
+    15.2 => 'For Dispatch',
+*/
