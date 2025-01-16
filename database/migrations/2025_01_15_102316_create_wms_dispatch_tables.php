@@ -16,7 +16,6 @@ return new class extends Migration {
             $table->string('reference_number');
             $table->unsignedBigInteger('generate_picklist_id')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-            $table->timestamps();
         });
 
         Schema::create('wms_stock_dispatch_items', function (Blueprint $table) {
@@ -26,7 +25,6 @@ return new class extends Migration {
             $table->string('store_name')->nullable();
             $table->longText('dispatch_items');
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = complete
-            $table->timestamps();
 
             $table->foreign('stock_dispatch_id')->references('id')->on('wms_stock_dispatch');
         });

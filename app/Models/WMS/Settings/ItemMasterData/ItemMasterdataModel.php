@@ -283,6 +283,6 @@ class ItemMasterdataModel extends Model
     public function getPickingTypeLabelAttribute()
     {
         $pickingTypeLabel = ["Discreet", "Batch"];
-        return $pickingTypeLabel[$this->picking_type];
+        return $pickingTypeLabel[$this->picking_type] ?? null;
     }
 }
