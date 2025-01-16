@@ -478,7 +478,16 @@ class WarehousePutAwayController extends Controller
                 $warehousePutAway->save();
                 $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $createdById, 0);
 
-                QueuedTemporaryStorageModel::where('sub_location_id', $temporaryStorageId)->delete();
+                $parentReferenceNumber = explode('-', $put_away_reference_number)[0];
+                $warehousePutAwayCount = WarehousePutAwayModel::select([
+                    DB::raw('COUNT(id) as total_count'), // Total number of rows
+                    DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as complete_count') // Count of rows where status is 0
+                ])->where('warehouse_receiving_reference_number', $parentReferenceNumber)
+                    ->first();
+
+                if ($warehousePutAwayCount->complete_count == $warehousePutAwayCount->total_count) {
+                    QueuedTemporaryStorageModel::where('sub_location_id', $temporaryStorageId)->delete();
+                }
             }
             DB::commit();
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_success'));
