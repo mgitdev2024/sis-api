@@ -153,6 +153,8 @@ class GeneratePickListItemController extends Controller
             'scanned_items' => 'required|json',
             'created_by_id' => 'required',
             'store_details' => 'nullable|json',
+            'picking_type' => 'required|in:0,1', // 0 = Discreet, 1 = Batch
+            'batch_count' => 'nullable|json',
             'temporary_storage_id' => 'nullable',
         ]);
         try {
@@ -176,7 +178,25 @@ class GeneratePickListItemController extends Controller
                     $mappedPickedItems[$itemDetails['item_id']][] = $pickedItems['bid'] . '-' . $pickedItems['sticker_no'];
                 }
             }
+            if ($fields['picking_type'] == 0) {
+                $this->onDiscreetChecking($generatePickListModel, $pickedlistItems, $scannedItems, $temporaryStorageId, $mappedPickedItems, $createdById);
+            } else {
+                $batchCount = json_decode($fields['batch_count'], true);
+                $this->onBatchChecking($generatePickListModel, $pickedlistItems, $batchCount, $createdById);
+            }
 
+            DB::commit();
+
+            return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onDiscreetChecking($generatePickListModel, $pickedlistItems, $scannedItems, $temporaryStorageId, $mappedPickedItems, $createdById)
+    {
+        try {
             $forTemporaryStorageItems = [];
             foreach ($scannedItems as $pickedItems) {
                 $itemId = $pickedItems['item_id'];
@@ -190,7 +210,7 @@ class GeneratePickListItemController extends Controller
                     $producedItems[$pickedItems['sticker_no']]['status'] = 15.1;
                     $productionItemModel->produced_items = json_encode($producedItems);
                     $productionItemModel->save();
-                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNo], $fields['created_by_id'], 0, $stickerNo);
+                    $this->createProductionLog(ProductionItemModel::class, $productionItemModel->id, $producedItems[$stickerNo], $createdById, 0, $stickerNo);
                     if (isset($pickedlistItems[$itemId]) && in_array($productionBatchId . '-' . $stickerNo, $mappedPickedItems[$itemId])) {
                         if (!isset($pickedlistItems[$itemId]['checked_scanned_quantity'])) {
                             $pickedlistItems[$itemId]['checked_scanned_quantity'] = 1;
@@ -227,17 +247,28 @@ class GeneratePickListItemController extends Controller
                     if (!$this->onCheckAvailability($temporaryStorageId, false)) {
                         throw new Exception('Sub Location Unavailable');
                     }
+                    $generatePickListModel->picklist_items = json_encode($pickedlistItems);
+                    $generatePickListModel->save();
+                    $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
+
                     $this->onQueueStorage($createdById, $forTemporaryStorageItems, $temporaryStorageId, false);
                 }
             }
-
-            $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
-            DB::commit();
-
-            return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.update_success'));
         } catch (Exception $exception) {
-            DB::rollBack();
-            return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onBatchChecking($generatePickListModel, $pickedlistItems, $batchCount, $createdById)
+    {
+        try {
+            foreach ($batchCount as $pickedItems) {
+                $itemId = $pickedItems['item_id'];
+                $checkedQuantityCount = $pickedItems['checked_quantity_count'];
+                $pickedlistItems[$itemId]['checked_scanned_quantity'] = $checkedQuantityCount;
+            }
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
         }
     }
 }
