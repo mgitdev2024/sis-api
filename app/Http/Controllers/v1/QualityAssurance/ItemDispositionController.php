@@ -38,6 +38,8 @@ class ItemDispositionController extends Controller
     // 10 => 'Reviewed',
     // 10.1 => 'For Store Distribution',
     // 10.2 => 'For Disposal',
+    // 10.3 => 'For Intersell',
+    // 10.4 => 'For Complimentary',
     // 11 => 'Retouched',
     // 12 => 'Sliced',
     // 13 => 'Stored',

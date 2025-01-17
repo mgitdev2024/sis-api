@@ -100,7 +100,7 @@ class ProductionOTBController extends Controller
                 })
                 // ->where('production_status', 1)
                 ->whereNotNull('action')
-                ->where('action', '!=', 10)
+                ->whereNotIn('action', [10, 10.1, 10.2, 10.3, 10.4])
                 ->where('is_printed', 0);
             if ($id != null) {
                 $itemDisposition->where('id', $id);
