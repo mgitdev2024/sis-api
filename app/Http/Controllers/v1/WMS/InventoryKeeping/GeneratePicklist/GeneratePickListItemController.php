@@ -146,6 +146,53 @@ class GeneratePickListItemController extends Controller
         }
     }
 
+    public function onStockmanRemovePickedItems(Request $request)
+    {
+        $fields = $request->validate([
+            'scanned_items' => 'required|json',
+            'item_id' => 'required',
+            'store_id' => 'nullable',
+            'generate_picklist_id' => 'required',
+            'created_by_id' => 'required'
+        ]);
+        try {
+            DB::beginTransaction();
+            $storeId = $fields['store_id'] ?? null;
+            $generatePicklistId = $fields['generate_picklist_id'];
+            $scannedItems = json_decode($fields['scanned_items'], true);
+            $createdById = $fields['created_by_id'];
+            $itemId = $fields['item_id'];
+            $generatePicklistItemModel = GeneratePickListItemModel::where('generate_picklist_id', $generatePicklistId);
+            if ($storeId != null) {
+                $generatePicklistItemModel->where('store_id', $storeId);
+            }
+            $generatePicklistItemModel = $generatePicklistItemModel->first();
+
+            if ($generatePicklistItemModel == null) {
+                return $this->dataResponse('error', 400, 'Generate Picklist Item not found');
+            }
+            $pickedlistItems = json_decode($generatePicklistItemModel->picklist_items, true);
+            $pickedListItemArray = [];
+            foreach ($pickedlistItems[$itemId]['picked_scanned_items'] as $pickedItem) {
+                $pickedListItemArray[$pickedItem['bid'] . '-' . $pickedItem['sticker_no']] = $pickedItem;
+            }
+
+            foreach ($scannedItems as $item) {
+                $itemToRemove = $item['bid'] . '-' . $item['sticker_no'];
+                if (array_key_exists($itemToRemove, $pickedListItemArray)) {
+                    unset($pickedListItemArray[$itemToRemove]);
+                }
+            }
+            $pickedlistItems[$itemId]['picked_scanned_items'] = array_values($pickedListItemArray);
+            dd($pickedlistItems);
+            // Continue for store transfer items
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
     public function onCheckPickedItem(Request $request)
     {
         $fields = $request->validate([
