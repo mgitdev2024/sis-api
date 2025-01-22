@@ -106,7 +106,7 @@ class AllocationOrderController extends Controller
     {
         try {
             // put date filtering
-            $allocationOrderModel = AllocationOrderModel::where('status', $status);
+            $allocationOrderModel = AllocationOrderModel::whereIn('status', [1, 0]);
             $whereObject = \DateTime::createFromFormat('Y-m-d', $filter);
             if ($whereObject) {
                 $allocationOrderModel->whereDate('created_at', $filter);
