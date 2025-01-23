@@ -5,7 +5,10 @@ namespace App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePicklist;
 use App\Http\Controllers\Controller;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationItemModel;
+use App\Models\WMS\InventoryKeeping\AllocationOrder\AllocationOrderModel;
 use App\Models\WMS\InventoryKeeping\GeneratePicklist\GeneratePickListItemModel;
+use App\Models\WMS\InventoryKeeping\GeneratePicklist\GeneratePickListModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use Illuminate\Http\Request;
 use Exception;
@@ -184,12 +187,60 @@ class GeneratePickListItemController extends Controller
                 }
             }
             $pickedlistItems[$itemId]['picked_scanned_items'] = array_values($pickedListItemArray);
-            dd($pickedlistItems);
+            $pickedlistItems[$itemId]['picked_scanned_quantity'] = count($pickedListItemArray);
+            $generatePicklistItemModel->picklist_items = json_encode($pickedlistItems);
+            $generatePicklistItemModel->save();
+            dd($generatePicklistItemModel);
             // Continue for store transfer items
             DB::commit();
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onGetRemoveItemData($item_id, $store_id, $generate_picklist_id)
+    {
+        try {
+            $generatePicklistItemModel = GeneratePickListItemModel::where([
+                'generate_picklist_id' => $generate_picklist_id,
+            ])->get();
+            $generatePicklistModel = GeneratePickListModel::find($generate_picklist_id);
+            if (count($generatePicklistItemModel) > 0) {
+                $allocationOrderModel = $generatePicklistModel->AllocationOrder->id;
+
+                $storeList = [];
+                foreach ($generatePicklistItemModel as $storeDetails) {
+                    $picklistItem = json_decode($storeDetails['picklist_items'], true);
+                    if (array_key_exists($item_id, $picklistItem)) {
+                        $storeList[$storeDetails['store_id']] = [
+                            'store_id' => $storeDetails['store_id'],
+                            'store_name' => $storeDetails['store_name'],
+                            'picked_quantity' => $picklistItem[$item_id]['picked_scanned_quantity'],
+                            'picked_items' => $picklistItem[$item_id]['picked_scanned_items'],
+                        ];
+                    }
+                }
+                $allocationItemModel = AllocationItemModel::where([
+                    'item_id' => $item_id,
+                    'allocation_order_id' => $allocationOrderModel,
+                ])->first();
+                $storeOrderDetails = json_decode($allocationItemModel->store_order_details, true);
+                foreach ($storeOrderDetails as $storeId => $storeOrder) {
+                    if (array_key_exists($storeId, $storeList)) {
+                        if ($storeList[$storeId]['picked_quantity'] >= $storeOrder['regular_order_quantity']) {
+                            unset($storeList[$storeId]);
+                        } else {
+                            $storeList[$storeId]['regular_order_quantity'] = $storeOrder['regular_order_quantity'];
+                        }
+                    }
+                }
+                return $this->dataResponse('success', 200, 'Generate Picklist Items ' . __('msg.record_found'), $storeList);
+            }
+            return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Generate Picklist Items ' . __('msg.record_not_found'), $exception->getMessage());
+
         }
     }
 
