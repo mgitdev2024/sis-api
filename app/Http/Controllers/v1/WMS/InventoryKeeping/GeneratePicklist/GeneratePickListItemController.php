@@ -217,7 +217,8 @@ class GeneratePickListItemController extends Controller
                         $itemDetails = [
                             'item_id' => $item_id,
                             'item_description' => $itemMasterData->description,
-                            'item_category' => $itemMasterData->item_category_label
+                            'item_category' => $itemMasterData->item_category_label,
+                            'attachment' => $itemMasterData->attachment,
                         ];
                         $storeList[$storeDetails['store_id']] = [
                             'item_details' => $itemDetails,
