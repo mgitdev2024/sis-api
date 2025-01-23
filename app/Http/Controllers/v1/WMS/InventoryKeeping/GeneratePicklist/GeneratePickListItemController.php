@@ -213,7 +213,14 @@ class GeneratePickListItemController extends Controller
                 foreach ($generatePicklistItemModel as $storeDetails) {
                     $picklistItem = json_decode($storeDetails['picklist_items'], true);
                     if (array_key_exists($item_id, $picklistItem)) {
+                        $itemMasterData = ItemMasterdataModel::find($item_id);
+                        $itemDetails = [
+                            'item_id' => $item_id,
+                            'item_description' => $itemMasterData->description,
+                            'item_category' => $itemMasterData->item_category_label
+                        ];
                         $storeList[$storeDetails['store_id']] = [
+                            'item_details' => $itemDetails,
                             'store_id' => $storeDetails['store_id'],
                             'store_name' => $storeDetails['store_name'],
                             'picked_quantity' => $picklistItem[$item_id]['picked_scanned_quantity'],
