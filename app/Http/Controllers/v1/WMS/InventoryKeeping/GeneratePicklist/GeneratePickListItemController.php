@@ -236,11 +236,15 @@ class GeneratePickListItemController extends Controller
                 $storeOrderDetails = json_decode($allocationItemModel->store_order_details, true);
                 foreach ($storeOrderDetails as $storeId => $storeOrder) {
                     if (array_key_exists($storeId, $storeList)) {
+                        $storeList[$storeId]['regular_order_quantity'] = $storeOrder['regular_order_quantity'];
+
+                        if ($storeId == $store_id) {
+                            $storeList[$storeId]['excess_quantity'] = $storeList[$storeId]['picked_quantity'] - $storeOrder['regular_order_quantity'];
+                        }
                         if ($storeId != $store_id && ($storeList[$storeId]['picked_quantity'] >= $storeOrder['regular_order_quantity'])) {
                             unset($storeList[$storeId]);
-                        } else {
-                            $storeList[$storeId]['regular_order_quantity'] = $storeOrder['regular_order_quantity'];
                         }
+
                     }
                 }
                 return $this->dataResponse('success', 200, 'Generate Picklist Items ' . __('msg.record_found'), $storeList);
