@@ -175,7 +175,17 @@ class StockTransferItemController extends Controller
                 $stockTransferItemModel->save();
                 $this->createWarehouseLog(null, null, StockTransferItemModel::class, $stockTransferItemModel->id, $stockTransferItemModel->getAttributes(), $fields['updated_by_id'], 1);
 
-                $this->onQueueStorage($updateById, $selectedItemForTransfer, $subLocationId, false, null, null, null, $stockTransferListModel->reference_number, 1);
+                $this->onQueueStorage(
+                    $updateById,
+                    $selectedItemForTransfer,
+                    $subLocationId,
+                    false,
+                    null,
+                    null,
+                    null,
+                    $stockTransferListModel->reference_number,
+                    1
+                );
                 DB::commit();
                 return $this->dataResponse('success', 200, 'Stock Transfer Item ' . __('msg.update_success'));
 

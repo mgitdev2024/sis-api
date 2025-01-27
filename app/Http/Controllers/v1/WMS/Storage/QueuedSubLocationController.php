@@ -32,7 +32,6 @@ class QueuedSubLocationController extends Controller
                 'item_id' => $fields['item_id'],
                 'status' => 1
             ])->first();
-
             if ($warehouseForPutAway && $warehouseForPutAway->sub_location_id) {
                 DB::beginTransaction();
                 $createdById = $fields['created_by_id'];
@@ -294,7 +293,6 @@ class QueuedSubLocationController extends Controller
             return false;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
-
         }
     }
 

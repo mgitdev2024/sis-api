@@ -75,6 +75,7 @@ trait QueueSubLocationTrait
                     $this->onUpdateItemLocationLog($value['bid'], $value['sticker_no'], $subLocationId, $layerLevel, $createdById, true);
                 }
             }
+
             $mergedItemArray = array_merge($existingItemStored, $currentScannedItems);
             $queuePermanentStorage = new QueuedSubLocationModel();
             $queuePermanentStorage->sub_location_id = $subLocationId;
@@ -103,6 +104,7 @@ trait QueueSubLocationTrait
             $totalCurrentStock = $action == 1 ? $currentStock + $quantity : $currentStock - $quantity;
             $existingStockLogs = StockLogModel::where('transaction_number', $stockLogTransactionNumber)->first();
             if ($existingStockLogs) {
+                $existingStockLogs->storage_remaining_space = $storageRemainingSpace;
                 $existingStockLogs->quantity += $quantity;
                 $existingStockLogs->final_stock = $totalCurrentStock;
                 $existingStockLogs->save();
@@ -386,7 +388,7 @@ trait QueueSubLocationTrait
                 'sub_location_id' => $subLocationId,
                 'layer_level' => $layer
             ])->orderBy('id', 'DESC')->first();
- 
+
             if ($subLocationStorageSpace) {
                 $remainingCapacity = $subLocationStorageSpace->storage_remaining_space;
             }
@@ -401,7 +403,6 @@ trait QueueSubLocationTrait
             throw $exception;
         }
     }
-
 
     public function onGetSubLocationDetails($subLocationId, $layer, $isPermanent)
     {
@@ -442,6 +443,21 @@ trait QueueSubLocationTrait
 
             return $data;
 
+        } catch (Exception $exception) {
+            throw $exception;
+        }
+    }
+
+    // Create a function in creating single-item storage for decrementing and incrementing stocks
+    public function onDecrementSingleItemStock($scannedItems)
+    {
+        try {
+            dd($scannedItems);
+            foreach ($scannedItems as $item) {
+                $productionBatch = ProductionBatchModel::find($item['bid']);
+                $productionItems = $productionBatch->productionItems;
+                $producedItems = json_decode($productionItems->produced_items, true);
+            }
         } catch (Exception $exception) {
             throw $exception;
         }

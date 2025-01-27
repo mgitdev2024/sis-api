@@ -86,7 +86,6 @@ class WarehouseForPutAwayController extends Controller
 
                 $itemMasterdata = $warehouseForPutAwayModel->itemMasterdata;
                 $isStorageTypeMismatch = !($permanentSubLocation->zone->storage_type_id === $itemMasterdata->storage_type_id);
-
                 $data = [];
 
                 if ($isStorageTypeMismatch) {

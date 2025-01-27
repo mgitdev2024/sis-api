@@ -242,7 +242,9 @@ class ItemDispositionController extends Controller
                         $dispositionedQuantity = $itemRepositoryModel->quantity;
                         $dispositionedItem[$itemDispositionModel->item_key]['q'] += $dispositionedQuantity;
                     }
-                    $itemRepositoryModel->delete();
+                    if ($itemRepositoryModel) {
+                        $itemRepositoryModel->delete();
+                    }
 
                     $productionItemModel->produced_items = json_encode($dispositionedItem);
                     $productionItemModel->save();

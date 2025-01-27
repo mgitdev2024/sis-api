@@ -100,6 +100,7 @@ class GeneratePickListItemController extends Controller
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePicklistItemModel->id, $generatePicklistItemModel->getAttributes(), $generatePicklistItemModel->created_by_id, 0);
 
             // Decrement stock from stock log, stock inventory, and queued sub location
+            $this->onDecrementSingleItemStock($scannedItemsArray);
         } catch (Exception $exception) {
             throw $exception;
         }
