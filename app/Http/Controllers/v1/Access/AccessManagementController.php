@@ -113,7 +113,6 @@ class AccessManagementController extends Controller
         try {
             $modulePermissionList = ModulePermissionModel::with('subModulePermissions')->get();
             $permissionList = [];
-
             foreach ($modulePermissionList as $module) {
                 $subModuleArr = [];
 

@@ -75,7 +75,7 @@ class GeneratePickListItemController extends Controller
             if ($existingPicklistItem) {
                 $this->onUpdateItems($existingPicklistItem, $scannedItemsArray, $createdById);
             } else {
-                $this->onInitializeItems($fields['generate_picklist_id'], $storeDetails, $scannedItemsArray, $createdById);
+                $this->onInitializeItems($fields['generate_picklist_id'], $storeDetails, $scannedItemsArray, $itemId, $createdById);
             }
             DB::commit();
             return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.create_success'));
@@ -85,7 +85,7 @@ class GeneratePickListItemController extends Controller
         }
     }
 
-    public function onInitializeItems($generatePicklistId, $storeDetails, $scannedItemsArray, $createdById)
+    public function onInitializeItems($generatePicklistId, $storeDetails, $scannedItemsArray, $itemId, $createdById)
     {
         try {
             $generatePicklistItemModel = new GeneratePickListItemModel();
@@ -100,7 +100,7 @@ class GeneratePickListItemController extends Controller
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePicklistItemModel->id, $generatePicklistItemModel->getAttributes(), $generatePicklistItemModel->created_by_id, 0);
 
             // Decrement stock from stock log, stock inventory, and queued sub location
-            $this->onDecrementSingleItemStock($scannedItemsArray);
+            $this->onDecrementSingleItemStock($scannedItemsArray[$itemId]['picked_scanned_items']);
         } catch (Exception $exception) {
             throw $exception;
         }

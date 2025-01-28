@@ -317,6 +317,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/storage/sub_location/generate_code/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
     Route::get('v1/storage/sub_location/generate_code/all/get', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCodeAll']);
     Route::post('v1/storage/sub_location/generate_sub_location', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateSubLocation']);
+    Route::post('v1/storage/sub_location/force-bulk-temporary-storage', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onForceBulkTemporaryStorageLocation']);
     #endregion
 
     #region Item Masterdata
@@ -449,6 +450,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
 
     #region Inventory Movement
     Route::get('v1/item/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
+    Route::post('v1/item/movement/revert/stored-data', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onRevertToStoredItem']);
+
     #endregion
 
     #region Stock Transfer
