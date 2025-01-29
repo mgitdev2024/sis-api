@@ -449,8 +449,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Inventory Movement
-    Route::get('v1/item/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
-    Route::post('v1/item/movement/revert/stored-data', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onRevertToStoredItem']);
+    Route::get('v1/inventory/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
+    Route::post('v1/inventory/movement/revert/stored-data', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onRevertToStoredItem']);
 
     #endregion
 

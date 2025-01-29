@@ -32,6 +32,7 @@ class GeneratePickListItemController extends Controller
             $scannedItems = json_decode($fields['scanned_items'], true);
             $storeDetails = json_decode($fields['store_details'] ?? '', true);
             $scannedItemsArray = [];
+            $mergedScannedItems = [];
             $createdById = $fields['created_by_id'];
             foreach ($scannedItems as $items) {
                 $productionBatchId = $items['bid'];
@@ -50,7 +51,10 @@ class GeneratePickListItemController extends Controller
                             'bid' => $productionBatchId,
                             'sticker_no' => $stickerNo,
                         ];
-
+                        $mergedScannedItems[] = [
+                            'bid' => $productionBatchId,
+                            'sticker_no' => $stickerNo,
+                        ];
                     } else {
                         $scannedItemsArray[$itemId] = [
                             'item_id' => $itemId,
@@ -59,6 +63,10 @@ class GeneratePickListItemController extends Controller
                             'scanned_by_id' => $fields['created_by_id'],
                         ];
                         $scannedItemsArray[$itemId]['picked_scanned_items'][] = [
+                            'bid' => $productionBatchId,
+                            'sticker_no' => $stickerNo,
+                        ];
+                        $mergedScannedItems[] = [
                             'bid' => $productionBatchId,
                             'sticker_no' => $stickerNo,
                         ];
@@ -75,7 +83,7 @@ class GeneratePickListItemController extends Controller
             if ($existingPicklistItem) {
                 $this->onUpdateItems($existingPicklistItem, $scannedItemsArray, $createdById);
             } else {
-                $this->onInitializeItems($fields['generate_picklist_id'], $storeDetails, $scannedItemsArray, $itemId, $createdById);
+                $this->onInitializeItems($fields['generate_picklist_id'], $storeDetails, $scannedItemsArray, $itemId, $createdById, $mergedScannedItems);
             }
             DB::commit();
             return $this->dataResponse('success', 200, 'Generate Picklist ' . __('msg.create_success'));
@@ -85,9 +93,10 @@ class GeneratePickListItemController extends Controller
         }
     }
 
-    public function onInitializeItems($generatePicklistId, $storeDetails, $scannedItemsArray, $itemId, $createdById)
+    public function onInitializeItems($generatePicklistId, $storeDetails, $scannedItemsArray, $itemId, $createdById, $mergedScannedItems)
     {
         try {
+            $generatePicklistReferenceNumber = GeneratePickListModel::find($generatePicklistId)->reference_number;
             $generatePicklistItemModel = new GeneratePickListItemModel();
             $generatePicklistItemModel->generate_picklist_id = $generatePicklistId;
             if ($storeDetails != null) {
@@ -100,7 +109,7 @@ class GeneratePickListItemController extends Controller
             $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePicklistItemModel->id, $generatePicklistItemModel->getAttributes(), $generatePicklistItemModel->created_by_id, 0);
 
             // Decrement stock from stock log, stock inventory, and queued sub location
-            $this->onDecrementSingleItemStock($scannedItemsArray[$itemId]['picked_scanned_items']);
+            $this->onAdjustSingleItemStock($mergedScannedItems, 0, $generatePicklistReferenceNumber, $createdById);
         } catch (Exception $exception) {
             throw $exception;
         }
