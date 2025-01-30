@@ -458,7 +458,7 @@ trait QueueSubLocationTrait
                     $this->onDecrementStock($scannedItems, $referenceNumber, $createdById);
                     break;
                 case 1:
-                    $this->onIncrementStock($scannedItems);
+                    $this->onIncrementStock($scannedItems, $referenceNumber, $createdById);
                     break;
                 default:
                     throw new Exception('Invalid adjustment type');
@@ -523,12 +523,13 @@ trait QueueSubLocationTrait
                 'layer_level' => $layerLevel
             ])->orderBy('id', 'DESC')->first();
             $preMappedItems = $itemIdArray['pre_mapped_items'];
-
+            $itemCount = 0;
             foreach ($itemIdArray['items'] as $itemId => $itemValue) {
                 foreach ($itemValue as $item) {
                     $itemKey = $item['bid'] . '-' . $item['sticker_no'];
                     if (array_key_exists($itemKey, $preMappedItems)) {
                         unset($preMappedItems[$itemKey]);
+                        $itemCount++;
                     }
                 }
 
@@ -561,7 +562,7 @@ trait QueueSubLocationTrait
                 $newStockLogModel->layer_level = $layerLevel;
                 $newStockLogModel->storage_remaining_space = $storageRemainingSpace + count($itemValue);
                 $newStockLogModel->initial_stock = $stockItemLogModel->final_stock;
-                $newStockLogModel->final_stock = $stockItemLogModel->final_stock + count($itemValue);
+                $newStockLogModel->final_stock = $stockItemLogModel->final_stock - count($itemValue);
                 $newStockLogModel->created_by_id = $createdById;
                 $newStockLogModel->save();
 
@@ -576,8 +577,8 @@ trait QueueSubLocationTrait
             $newQueuedSubLocationModel->sub_location_id = $subLocationId;
             $newQueuedSubLocationModel->layer_level = $layerLevel;
             $newQueuedSubLocationModel->production_items = json_encode(array_values($preMappedItems));
-            $newQueuedSubLocationModel->storage_remaining_space = $queuedSubLocationModel->storage_remaining_space + count($preMappedItems);
-            $newQueuedSubLocationModel->quantity = count($preMappedItems);
+            $newQueuedSubLocationModel->storage_remaining_space = $queuedSubLocationModel->storage_remaining_space + $itemCount;
+            $newQueuedSubLocationModel->quantity = $queuedSubLocationModel->quantity - $itemCount;
             $newQueuedSubLocationModel->created_by_id = $createdById;
             $newQueuedSubLocationModel->save();
 
@@ -585,9 +586,131 @@ trait QueueSubLocationTrait
         #endregion
     }
 
-    public function onIncrementStock($scannedItems)
+    public function onIncrementStock($scannedItems, $referenceNumber, $createdById)
     {
+        $subLocationToAdjustArray = [];
+        #region Validation and Retrieval of Items to Put Back
+        foreach ($scannedItems as $item) {
+            $productionBatch = ProductionBatchModel::find($item['bid']);
+            $itemMasterdata = $productionBatch->itemMasterdata;
+            $itemId = $itemMasterdata->id;
+            $itemCode = $itemMasterdata->item_code;
+            $productionItemModel = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+            $producedItems = json_decode($productionItemModel->produced_items, true)[$item['sticker_no']];
+            $lastStoredSubLocationId = $producedItems['stored_sub_location']['sub_location_id'];
+            $lastStoredLayerLevel = $producedItems['stored_sub_location']['layer_level'];
 
+            // Queued Sub Location Update Unset code be bussin
+            $itemToUnset = $item['bid'] . '-' . $item['sticker_no'];
+
+            // Queued Sub Location Update Unset code be bussin
+            $queuedSubLocationModel = QueuedSubLocationModel::select(['production_items', 'storage_remaining_space', 'quantity'])->
+                where([
+                    'sub_location_id' => $lastStoredSubLocationId,
+                    'layer_level' => $lastStoredLayerLevel
+                ])->orderBy('id', 'DESC')->first();
+
+            if ($queuedSubLocationModel) {
+                $preMappedQueuedItems = [];
+                foreach (json_decode($queuedSubLocationModel->production_items, true) as $queuedItems) {
+                    $preMappedQueuedItems[$queuedItems['bid'] . '-' . $queuedItems['sticker_no']] = $queuedItems;
+                }
+                if (!array_key_exists($itemToUnset, $preMappedQueuedItems)) {
+                    if (!isset($subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"])) {
+                        $subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"] = [];
+                    }
+                    if (!isset($subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"]['pre_mapped_items'])) {
+                        $subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"]['pre_mapped_items'] = $preMappedQueuedItems;
+                    }
+                    if (!isset($subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"]['items'][$itemId])) {
+                        $subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"]['items'][$itemId] = [];
+                    }
+                    $subLocationToAdjustArray["$lastStoredSubLocationId-$lastStoredLayerLevel"]['items'][$itemId][] = [
+                        'bid' => $item['bid'],
+                        "item_code" => $itemCode,
+                        "item_id" => $itemId,
+                        'sticker_no' => $item['sticker_no'],
+                        "q" => $producedItems['q'],
+                        "batch_code" => $producedItems['batch_code'],
+                        "parent_batch_code" => $producedItems['parent_batch_code'],
+
+                    ];
+                }
+            }
+        }
+        #endregion
+
+        #region Item Re-Stock Methods
+        foreach ($subLocationToAdjustArray as $subLocationIdLayerLevel => $itemIdArray) {
+            $subLocationId = explode('-', $subLocationIdLayerLevel)[0];
+            $layerLevel = explode('-', $subLocationIdLayerLevel)[1];
+            $queuedSubLocationModel = QueuedSubLocationModel::where([
+                'sub_location_id' => $subLocationId,
+                'layer_level' => $layerLevel
+            ])->orderBy('id', 'DESC')->first();
+            $preMappedItems = $itemIdArray['pre_mapped_items'];
+            $itemCount = 0;
+
+            foreach ($itemIdArray['items'] as $itemId => $itemValue) {
+                foreach ($itemValue as $item) {
+                    $itemKey = $item['bid'] . '-' . $item['sticker_no'];
+                    if (!array_key_exists($itemKey, $preMappedItems)) {
+                        $itemCount++;
+                        $preMappedItems[$itemKey] = $item;
+                    }
+                }
+
+                // Stock Log Update
+                $stockLogModel = StockLogModel::where([
+                    'sub_location_id' => $subLocationId,
+                    'layer_level' => $layerLevel
+                ])->orderBy('id', 'DESC')
+                    ->first();
+                $stockItemLogModel = StockLogModel::where([
+                    'sub_location_id' => $subLocationId,
+                    'layer_level' => $layerLevel,
+                    'item_id' => $itemId
+                ])->orderBy('id', 'DESC')
+                    ->first();
+                $storageRemainingSpace = 0;
+                if ($stockLogModel) {
+                    $storageRemainingSpace = $stockLogModel->storage_remaining_space;
+                } else {
+                    $subLocationModel = SubLocationModel::find($subLocationId);
+                    $layers = json_decode($subLocationModel->layers, true);
+                    $storageRemainingSpace = $layers[$layerLevel]['max'];
+                }
+                $newStockLogModel = new stockLogModel();
+                $newStockLogModel->reference_number = $referenceNumber;
+                $newStockLogModel->action = 0;
+                $newStockLogModel->item_id = $itemId;
+                $newStockLogModel->quantity = count($itemValue);
+                $newStockLogModel->sub_location_id = $subLocationId;
+                $newStockLogModel->layer_level = $layerLevel;
+                $newStockLogModel->storage_remaining_space = $storageRemainingSpace - count($itemValue);
+                $newStockLogModel->initial_stock = $stockItemLogModel->final_stock;
+                $newStockLogModel->final_stock = $stockItemLogModel->final_stock + count($itemValue);
+                $newStockLogModel->created_by_id = $createdById;
+                $newStockLogModel->save();
+
+                // Stock Inventory Update
+                $stockInventoryModel = StockInventoryModel::where('item_id', $itemId)->first();
+                $stockInventoryModel->stock_count += count($itemValue);
+                $stockInventoryModel->save();
+            }
+
+            // Queued Sub Location Update
+            $newQueuedSubLocationModel = new QueuedSubLocationModel();
+            $newQueuedSubLocationModel->sub_location_id = $subLocationId;
+            $newQueuedSubLocationModel->layer_level = $layerLevel;
+            $newQueuedSubLocationModel->production_items = json_encode(array_values($preMappedItems));
+            $newQueuedSubLocationModel->storage_remaining_space = $queuedSubLocationModel->storage_remaining_space - $itemCount;
+            $newQueuedSubLocationModel->quantity = $queuedSubLocationModel->quantity + $itemCount;
+            $newQueuedSubLocationModel->created_by_id = $createdById;
+            $newQueuedSubLocationModel->save();
+
+        }
+        #endregion
     }
 
 }
