@@ -306,7 +306,6 @@ class GeneratePickListItemController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $scannedItems = json_decode($fields['scanned_items'], true);
             $storeDetails = json_decode($fields['store_details'] ?? '', true);
             $createdById = $fields['created_by_id'];
             $temporaryStorageId = $fields['temporary_storage_id'] ?? null;
@@ -326,6 +325,7 @@ class GeneratePickListItemController extends Controller
                 }
             }
             if ($fields['picking_type'] == 0) {
+                $scannedItems = json_decode($fields['scanned_items'], true);
                 $this->onDiscreetChecking($generatePickListModel, $pickedlistItems, $scannedItems, $temporaryStorageId, $mappedPickedItems, $createdById);
             } else {
                 $batchCount = json_decode($fields['batch_count'], true);
@@ -414,6 +414,10 @@ class GeneratePickListItemController extends Controller
                 $checkedQuantityCount = $pickedItems['checked_quantity_count'];
                 $pickedlistItems[$itemId]['checked_scanned_quantity'] = $checkedQuantityCount;
             }
+
+            $generatePickListModel->picklist_items = json_encode($pickedlistItems);
+            $generatePickListModel->save();
+            $this->createWarehouseLog(null, null, GeneratePickListItemModel::class, $generatePickListModel->id, $generatePickListModel->getAttributes(), $createdById, 1);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }

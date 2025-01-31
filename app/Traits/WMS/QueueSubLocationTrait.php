@@ -708,7 +708,6 @@ trait QueueSubLocationTrait
             $newQueuedSubLocationModel->quantity = $queuedSubLocationModel->quantity + $itemCount;
             $newQueuedSubLocationModel->created_by_id = $createdById;
             $newQueuedSubLocationModel->save();
-
         }
         #endregion
     }
