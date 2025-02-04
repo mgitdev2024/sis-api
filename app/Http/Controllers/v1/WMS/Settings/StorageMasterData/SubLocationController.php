@@ -35,7 +35,8 @@ class SubLocationController extends Controller
         return $this->createRecord(SubLocationModel::class, $request, $this->getRules(), 'Sub Location');
     }
     public function onUpdateById(Request $request, $id)
-    { $fields = $request->validate($this->getRules($id));
+    {
+        $fields = $request->validate($this->getRules($id));
         try {
             $record = new SubLocationModel();
             $record = SubLocationModel::find($id);
@@ -43,37 +44,37 @@ class SubLocationController extends Controller
                 DB::beginTransaction();
                 $this->createProductionLog(SubLocationModel::class, $record->id, $fields, $fields['updated_by_id'], 1);
 
-                foreach(json_decode($fields['layers'], true) as $layer) { 
+                foreach (json_decode($fields['layers'], true) as $layer) {
                     $storageRemainingSpaceUpdate = QueuedSubLocationModel::where([
                         'sub_location_id' => $id,
                         'layer_level' => $layer['layer_no']
-                    ])->orderBy('id', 'DESC')->first(); 
-                    $subLocationModel = $storageRemainingSpaceUpdate->subLocation ?? null; 
-                    if($storageRemainingSpaceUpdate){
-                        $originalLayerSpace = json_decode($subLocationModel->layers, true)[$layer['layer_no']]['max'];  
-                        if($originalLayerSpace < $layer['max']) {
-                            $additionalSpace = $layer['max'] - $originalLayerSpace; 
+                    ])->orderBy('id', 'DESC')->first();
+                    $subLocationModel = $storageRemainingSpaceUpdate->subLocation ?? null;
+                    if ($storageRemainingSpaceUpdate) {
+                        $originalLayerSpace = json_decode($subLocationModel->layers, true)[$layer['layer_no']]['max'];
+                        if ($originalLayerSpace < $layer['max']) {
+                            $additionalSpace = $layer['max'] - $originalLayerSpace;
                             $storageRemainingSpaceUpdate->storage_remaining_space += $additionalSpace;
-                            $storageRemainingSpaceUpdate->save();   
-                        }else if(($originalLayerSpace > $layer['max'])) { 
-                            $reducedSpace = $originalLayerSpace - $layer['max']; 
-                            if($storageRemainingSpaceUpdate->storage_remaining_space < $reducedSpace) {
-                                throw new Exception('Layer space cannot be reduced. Please check the storage'); 
+                            $storageRemainingSpaceUpdate->save();
+                        } else if (($originalLayerSpace > $layer['max'])) {
+                            $reducedSpace = $originalLayerSpace - $layer['max'];
+                            if ($storageRemainingSpaceUpdate->storage_remaining_space < $reducedSpace) {
+                                throw new Exception('Layer space cannot be reduced. Please check the storage');
                             }
                             $storageRemainingSpaceUpdate->storage_remaining_space -= $reducedSpace;
-                            $storageRemainingSpaceUpdate->save();  
+                            $storageRemainingSpaceUpdate->save();
                         }
-                    } 
-                }   
-                $record->update($fields); 
+                    }
+                }
+                $record->update($fields);
                 DB::commit();
-                return $this->dataResponse('success', 201,   'Sub Location ' . __('msg.update_success'), $record);
+                return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.update_success'), $record);
             }
-            return $this->dataResponse('error', 200,   'Sub Location ' . __('msg.update_failed'));
+            return $this->dataResponse('error', 200, 'Sub Location ' . __('msg.update_failed'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
-        } 
+        }
     }
     public function onGetPaginatedList(Request $request)
     {
@@ -243,6 +244,56 @@ class SubLocationController extends Controller
 
             DB::commit();
             return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onForceBulkTemporaryStorageLocation(Request $request)
+    {
+        $fields = $request->validate([
+            'base_code' => 'required',
+            'number_to_add' => 'required',
+            'created_by_id' => 'required',
+            'sub_location_type' => 'required',
+        ]);
+        try {
+            $baseCode = $fields['base_code'];
+            $numberToAdd = $fields['number_to_add'];
+            $createdById = $fields['created_by_id'];
+            $subLocationType = $fields['sub_location_type'];
+            DB::beginTransaction();
+            // Get the latest sub-location code based on the base code
+            $latestSubLocation = SubLocationModel::where('code', 'LIKE', "%{$baseCode}%")
+                ->orderBy('id', 'DESC')
+                ->first();
+
+            $nextCode = $baseCode . str_pad('001', 3, '0', STR_PAD_LEFT); // Default start
+            if ($latestSubLocation) {
+                // Extract the number part from the latest sub-location code and increment it
+                $lastNumber = intval(substr($latestSubLocation->code, strlen($baseCode)));
+                $nextNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+                $nextCode = $baseCode . $nextNumber;
+            }
+            for ($i = 0; $i < $numberToAdd; $i++) {
+                $subLocationModel = new SubLocationModel();
+                $subLocationModel->code = $nextCode;
+                $subLocationModel->created_by_id = $createdById;
+                $subLocationModel->is_permanent = 0;
+                $subLocationModel->has_layer = 1;
+                $subLocationModel->number = 1;
+                $subLocationModel->layers = '{"1":{"min":1,"max":500,"layer_no":1}}';
+                $subLocationModel->facility_id = 1;
+                $subLocationModel->warehouse_id = null;
+                $subLocationModel->zone_id = null;
+                $subLocationModel->sub_location_type_id = $subLocationType;
+                $subLocationModel->save();
+                $nextCode = $baseCode . str_pad((intval(substr($nextCode, strlen($baseCode)))) + 1, 3, '0', STR_PAD_LEFT);
+            }
+            DB::commit();
+            return $this->dataResponse('success', 201, 'Sub Location ' . __('msg.create_success'));
+
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
