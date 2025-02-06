@@ -7,13 +7,14 @@ use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationTypeModel;
 use App\Models\WMS\Storage\QueuedSubLocationModel;
 use App\Traits\MOS\MosCrudOperationsTrait;
+use App\Traits\WMS\QueueSubLocationTrait;
 use Illuminate\Http\Request;
 use DB;
 use Exception;
 
 class SubLocationController extends Controller
 {
-    use MosCrudOperationsTrait;
+    use MosCrudOperationsTrait, QueueSubLocationTrait;
     public static function getRules($itemId = null)
     {
         return [
@@ -297,6 +298,22 @@ class SubLocationController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function onSubLocationDetails($sub_location_id, $is_permanent, $layer_level = null)
+    {
+        try {
+            if ($is_permanent == 1) {
+                $data = $this->onGetSubLocationDetails($sub_location_id, $layer_level, true);
+
+            } else {
+                $data = $this->onGetSubLocationDetails($sub_location_id, $layer_level, false);
+
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
 }
