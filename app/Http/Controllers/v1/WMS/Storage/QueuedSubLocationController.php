@@ -8,6 +8,7 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
+use App\Models\WMS\Warehouse\WarehouseForPutAwayV2Model;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
 use App\Traits\ResponseTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -171,8 +172,10 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onGetCurrent($sub_location_id, $item_id)
+    public function onGetCurrent($put_away_key)
     {
+        #region old code remains here RIP....
+        /*
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
                 'item_id' => $item_id,
@@ -199,7 +202,29 @@ class QueuedSubLocationController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+        */
+        #endregion
+        try {
+            $warehouseForPutAwayV2Model = WarehouseForPutAwayV2Model::where('warehouse_put_away_key', $put_away_key)->orderBy('id', 'DESC')->first();
+            if ($warehouseForPutAwayV2Model) {
+                $subLocationDetails = $this->onGetSubLocationDetails($warehouseForPutAwayV2Model->sub_location_id, $warehouseForPutAwayV2Model->layer_level, true);
+                $productionItems = json_decode($warehouseForPutAwayV2Model->production_items, true) ?? [];
+                $restructuredArray = [];
+                foreach ($productionItems as $item) {
+                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
 
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
+                    $restructuredArray[$batchCode] = $item;
+                }
+
+                $subLocationDetails['production_items'] = $restructuredArray;
+                return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 
@@ -295,5 +320,4 @@ class QueuedSubLocationController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
-
 }

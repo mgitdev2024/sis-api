@@ -2,6 +2,7 @@
 
 namespace App\Traits\WMS;
 
+use App\Http\Controllers\v1\MOS\Production\ProductionItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
@@ -68,7 +69,8 @@ trait QueueSubLocationTrait
             $currentScannedItems = [];
             foreach ($scannedItems as $value) {
                 if ($currentLayerCapacity > 0) {
-                    $itemId = $value['item_id'];
+                    $productionBatchModel = ProductionBatchModel::find($value['bid']);
+                    $itemId = $productionBatchModel->itemMasterdata->id;
                     $currentScannedItems[] = $value;
                     --$currentLayerCapacity;
 
