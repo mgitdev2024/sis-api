@@ -180,6 +180,47 @@ class WarehouseForPutAwayV2Controller extends Controller
             return $this->dataResponse('error', 400, 'Warehouse For Put Away ' . __('msg.delete_failed'));
         }
     }
+
+    public function onGet($put_away_key, $created_by_id)
+    {
+        try {
+            $warehouseForPutAwayV2Model = WarehouseForPutAwayV2Model::where([
+                'warehouse_put_away_key' => $put_away_key,
+                'created_by_id' => $created_by_id,
+            ])->first();
+
+            if ($warehouseForPutAwayV2Model) {
+                $productionItems = json_decode($warehouseForPutAwayV2Model->production_items, true);
+
+                $data = [];
+                foreach ($productionItems as $items) {
+                    $productionBatchModel = ProductionBatchModel::find($items['bid']);
+                    $itemMasterdataModel = $productionBatchModel->itemMasterdata;
+                    $itemCode = $itemMasterdataModel->item_code;
+                    $itemId = $itemMasterdataModel->id;
+                    $productionItemModel = ProductionItemModel::where('production_batch_id', $productionBatchModel->id)->first();
+                    $producedItems = json_decode($productionItemModel->produced_items, true);
+                    $batchCode = $producedItems[$items['sticker_no']]['batch_code'];
+
+                    $data[] = [
+                        'bid' => $productionBatchModel->id,
+                        'q' => $producedItems[$items['sticker_no']]['q'],
+                        'sticker_no' => $items['sticker_no'],
+                        'item_code' => $itemCode,
+                        'item_id' => $itemId,
+                        'batch_code' => $batchCode
+                    ];
+                }
+                return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_found'), $data);
+
+            }
+            return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_not_found'));
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_not_found'));
+
+        }
+    }
     #endregion
 
     #region New Put Away Functions
