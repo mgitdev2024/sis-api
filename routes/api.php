@@ -426,6 +426,11 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/for/put-away/v2/delete/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onDeleteSingleTransaction']);
     #endregion
 
+    #region Warehouse Bulk Put Away
+    Route::get('v1/warehouse/put-away/bulk/temporary-storage/get/{slid}/{status}/{storage_type}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkPutAwayController::class, 'onGetTemporaryStorageItems']);
+    Route::post('v1/warehouse/put-away/bulk/temporary-storage/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkPutAwayController::class, 'onBulkPutAway']);
+    #endregion
+
     #region Queued Temporary Storage
     Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/temporary/items/get/{sub_location_id}/{status}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetItems']);
