@@ -78,7 +78,7 @@ class WarehouseBulkPutAwayController extends Controller
                 $data['sub_location_error_message'] = $message;
                 return $this->dataResponse('error', 200, __('msg.record_not_found'), $data);
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), array_values($data)[0]);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
