@@ -246,7 +246,8 @@ class QueuedSubLocationController extends Controller
                             'item_code' => $itemCode,
                             'item_id' => $itemId,
                             'q' => $prodItem['q'],
-                            'sticker_no' => $prodItem['sticker_no']
+                            'sticker_no' => $prodItem['sticker_no'],
+                            'batch_code' => $prodItem['batch_code']
                         ];
                     }
                 }
