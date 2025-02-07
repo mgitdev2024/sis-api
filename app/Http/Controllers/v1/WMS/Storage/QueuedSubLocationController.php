@@ -206,11 +206,14 @@ class QueuedSubLocationController extends Controller
         */
         #endregion
         try {
+            $putAwayItemsArr = [];
+
             $warehouseForPutAwayV2Model = WarehouseForPutAwayV2Model::where('warehouse_put_away_key', $put_away_key)->orderBy('id', 'DESC')->first();
             if ($warehouseForPutAwayV2Model) {
                 $subLocationDetails = $this->onGetSubLocationDetails($warehouseForPutAwayV2Model->sub_location_id, $warehouseForPutAwayV2Model->layer_level, true);
                 $productionItems = json_decode($warehouseForPutAwayV2Model->production_items, true) ?? [];
                 $restructuredArray = [];
+
                 foreach ($productionItems as $item) {
                     $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
                     $itemDetails = json_decode($productionItemDetails->produced_items, true);
@@ -230,16 +233,15 @@ class QueuedSubLocationController extends Controller
                 }
                 $warehousePutAwayItems = $warehousePutAwayItems->get();
 
-                $putAwayItems = [];
                 foreach ($warehousePutAwayItems as $putAwayItems) {
                     $productionItems = json_decode($putAwayItems['production_items'], true);
                     foreach ($productionItems as $prodItem) {
                         $productionBatchModel = ProductionBatchModel::find($prodItem['bid']);
                         $itemMasterdataModel = $productionBatchModel->itemMasterdata;
+
                         $itemCode = $itemMasterdataModel->item_code;
                         $itemId = $itemMasterdataModel->id;
-
-                        $putAwayItems[] = [
+                        $putAwayItemsArr[] = [
                             'bid' => $prodItem['bid'],
                             'item_code' => $itemCode,
                             'item_id' => $itemId,
@@ -248,7 +250,7 @@ class QueuedSubLocationController extends Controller
                         ];
                     }
                 }
-                $subLocationDetails['put_away_items'] = $putAwayItems;
+                $subLocationDetails['put_away_items'] = $putAwayItemsArr;
                 $subLocationDetails['production_items'] = $restructuredArray;
                 return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
             }
