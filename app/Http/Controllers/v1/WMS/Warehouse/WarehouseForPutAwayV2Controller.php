@@ -116,6 +116,7 @@ class WarehouseForPutAwayV2Controller extends Controller
         $fields = $request->validate([
             'production_items' => 'required',
             'action' => 'required|in:0,1', // 0 = update, 1 = transfer
+            'is_storage_full' => 'nullable|in:1', // 1 = true
             'created_by_id' => 'required'
         ]);
         try {
@@ -128,9 +129,6 @@ class WarehouseForPutAwayV2Controller extends Controller
             switch ($action) {
                 case 0:
                     $scannedItems = json_decode($fields['production_items'], true);
-                    if (!$warehouseForPutAway) {
-                        return $this->dataResponse('success', 200, __('msg.record_not_found'));
-                    }
                     // Update status = 3.1
                     foreach ($scannedItems as $items) {
                         $this->onUpdateItemStatus($items, 3.1, 3);
@@ -140,8 +138,13 @@ class WarehouseForPutAwayV2Controller extends Controller
                     break;
 
                 case 1:
-                    // update WarehouseForPutAwayV2 status = 0 and transferreditems
                     $scannedItems = json_decode($fields['production_items'], true);
+
+                    if ($fields['is_storage_full'] == 1) {
+                        $warehouseForPutAway->production_items = json_encode($scannedItems);
+                        $warehouseForPutAway->save();
+                    }
+                    // update WarehouseForPutAwayV2 status = 0 and transferreditems
                     $this->onStoreSingleTransaction($warehouseForPutAway, $scannedItems, $fields['created_by_id']); // Store transaction status = 13
                     break;
             }
