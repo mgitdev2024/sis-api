@@ -142,6 +142,11 @@ class WarehouseForPutAwayV2Controller extends Controller
                 case 1:
                     // update WarehouseForPutAwayV2 status = 0 and transferreditems
                     $scannedItems = json_decode($fields['production_items'], true);
+                    foreach ($scannedItems as $items) {
+                        if ($items['status'] == 3) {
+                            $this->onUpdateItemStatus($items, 3.1);
+                        }
+                    }
                     $this->onStoreSingleTransaction($warehouseForPutAway, $scannedItems, $fields['created_by_id']); // Store transaction status = 13
                     break;
             }
