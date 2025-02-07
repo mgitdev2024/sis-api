@@ -133,7 +133,7 @@ class WarehouseForPutAwayV2Controller extends Controller
                     }
                     // Update status = 3.1
                     foreach ($scannedItems as $items) {
-                        $this->onUpdateItemStatus($items, 3.1);
+                        $this->onUpdateItemStatus($items, 3.1, 3);
                     }
                     $warehouseForPutAway->production_items = json_encode($scannedItems);
                     $warehouseForPutAway->save();
@@ -142,11 +142,6 @@ class WarehouseForPutAwayV2Controller extends Controller
                 case 1:
                     // update WarehouseForPutAwayV2 status = 0 and transferreditems
                     $scannedItems = json_decode($fields['production_items'], true);
-                    foreach ($scannedItems as $items) {
-                        if ($items['status'] == 3) {
-                            $this->onUpdateItemStatus($items, 3.1);
-                        }
-                    }
                     $this->onStoreSingleTransaction($warehouseForPutAway, $scannedItems, $fields['created_by_id']); // Store transaction status = 13
                     break;
             }
@@ -172,7 +167,7 @@ class WarehouseForPutAwayV2Controller extends Controller
                 } else {
                     $productionItems = json_decode($warehouseForPutAway->production_items, true);
                     foreach ($productionItems as $items) {
-                        $this->onUpdateItemStatus($items, 3);
+                        $this->onUpdateItemStatus($items, 3, null);
                     }
                 }
                 DB::commit();
@@ -266,7 +261,7 @@ class WarehouseForPutAwayV2Controller extends Controller
     }
 
 
-    public function onUpdateItemStatus($items, $status)
+    public function onUpdateItemStatus($items, $status, $validation)
     {
         try {
             $productionBatchId = $items['bid'];
@@ -274,9 +269,16 @@ class WarehouseForPutAwayV2Controller extends Controller
 
             $productionItemModel = ProductionItemModel::where('production_batch_id', $productionBatchId)->first();
             $producedItems = json_decode($productionItemModel->produced_items, true);
-            $producedItems[$stickerNo]['status'] = $status;
-            $productionItemModel->produced_items = json_encode($producedItems);
-            $productionItemModel->save();
+            if ($validation == null) {
+                $producedItems[$stickerNo]['status'] = $status;
+                $productionItemModel->produced_items = json_encode($producedItems);
+                $productionItemModel->save();
+            } else if ($producedItems[$stickerNo]['status'] == $validation) {
+                $producedItems[$stickerNo]['status'] = $status;
+                $productionItemModel->produced_items = json_encode($producedItems);
+                $productionItemModel->save();
+            }
+
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
