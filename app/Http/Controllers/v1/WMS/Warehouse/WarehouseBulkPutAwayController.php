@@ -62,7 +62,11 @@ class WarehouseBulkPutAwayController extends Controller
                         'production_items' => []
                     ];
                 }
-                $data[$warehousePutAwayKey]['production_items'][] = $itemDetails;
+
+                if (!isset($data[$warehousePutAwayKey]['production_items'][$itemCode])) {
+                    $data[$warehousePutAwayKey]['production_items'][$itemCode] = [];
+                }
+                $data[$warehousePutAwayKey]['production_items'][$itemCode] = $itemDetails;
                 $data[$warehousePutAwayKey]['total_item_count']++;
             }
 
