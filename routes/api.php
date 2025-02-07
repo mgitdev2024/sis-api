@@ -423,6 +423,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/for/put-away/v2/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onCreateSingleTransaction']);
     Route::post('v1/warehouse/for/put-away/v2/update/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onUpdateSingleTransaction']);
     Route::post('v1/warehouse/for/put-away/v2/delete/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onDeleteSingleTransaction']);
+    Route::get('v1/warehouse/for/put-away/v2/get/{put_away_key}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onGet']);
     #endregion
 
     #region Warehouse Bulk Put Away
