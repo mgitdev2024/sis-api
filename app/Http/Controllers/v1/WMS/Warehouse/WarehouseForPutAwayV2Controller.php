@@ -169,6 +169,8 @@ class WarehouseForPutAwayV2Controller extends Controller
                     foreach ($productionItems as $items) {
                         $this->onUpdateItemStatus($items, 3, null);
                     }
+                    $warehouseForPutAway->delete();
+
                 }
                 DB::commit();
                 return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.delete_success'));
