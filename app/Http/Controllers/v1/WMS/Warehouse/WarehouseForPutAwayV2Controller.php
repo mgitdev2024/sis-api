@@ -141,6 +141,9 @@ class WarehouseForPutAwayV2Controller extends Controller
                     $scannedItems = json_decode($fields['production_items'], true);
 
                     if ($fields['is_storage_full'] == 1) {
+                        foreach ($scannedItems as $items) {
+                            $this->onUpdateItemStatus($items, 3.1, 3);
+                        }
                         $warehouseForPutAway->production_items = json_encode($scannedItems);
                         $warehouseForPutAway->save();
                     }
