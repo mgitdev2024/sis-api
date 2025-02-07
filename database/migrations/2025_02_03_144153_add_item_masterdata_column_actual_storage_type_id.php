@@ -13,6 +13,8 @@ return new class extends Migration {
         Schema::table('wms_item_masterdata', function (Blueprint $table) {
             $table->tinyInteger('actual_storage_type_id')->nullable();
         });
+        // Set the initial value of actual_storage_type_id to match storage_type_id
+        DB::statement('UPDATE wms_item_masterdata SET actual_storage_type_id = storage_type_id');
     }
 
     /**
