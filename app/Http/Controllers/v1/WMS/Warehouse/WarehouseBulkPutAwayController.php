@@ -93,6 +93,7 @@ class WarehouseBulkPutAwayController extends Controller
             'temporary_storages' => 'required|json'
         ]);
         try {
+            DB::beginTransaction();
             $createdById = $fields['created_by_id'];
             $layerLevel = $fields['layer_level'];
             $subLocationId = $fields['sub_location_id'];
@@ -162,11 +163,13 @@ class WarehouseBulkPutAwayController extends Controller
 
                     $warehouseForPutAwayItems = $itemsToTransfer;
                     $this->onQueueSubLocation($createdById, $itemsToTransfer, $warehouseForPutAwayItems, $subLocationId, $layerLevel, $warehouseReceivingReferenceNumber);
-
-                    return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
                 }
             }
+            DB::commit();
+            return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
+
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }
