@@ -221,7 +221,7 @@ class WarehouseBulkPutAwayController extends Controller
                 if (($value['sticker_no'] == $stickerNumber) && $value['bid'] == $batchId) {
                     $productionItems = ProductionItemModel::where('production_batch_id', $batchId)->first();
                     $item = json_decode($productionItems->produced_items, true)[$stickerNumber];
-                    if ($item['status'] == '3.1') {
+                    if ($item['status'] == '3') {
                         return true;
                     }
                 }
