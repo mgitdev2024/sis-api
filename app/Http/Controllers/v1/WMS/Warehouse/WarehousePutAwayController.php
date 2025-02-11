@@ -103,7 +103,6 @@ class WarehousePutAwayController extends Controller
                         if ($remainingPieces >= $primaryPackingSize || $receivedQuantity >= $primaryPackingSize) {
                             if ($receivedQuantity >= $primaryPackingSize) {
                                 $receivedQuantity[$primaryUom]++;
-
                             }
                             if ($remainingPieces >= $primaryPackingSize) {
                                 $remainingQuantity[$primaryUom]++;
@@ -129,6 +128,10 @@ class WarehousePutAwayController extends Controller
                     $warehouseReceivingProductionItems[$value['sticker_no']]['status'] = 3; // Received
                     $warehouseReceiving->produced_items = json_encode($warehouseReceivingProductionItems);
                     $warehouseReceiving->save();
+
+                    $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
+                    $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
+                    $warehousePutAwayModel->save();
                     $this->createWarehouseLog(ProductionItemModel::class, $produceItemModel->id, WarehouseReceivingModel::class, $warehouseReceiving->id, $warehouseReceiving->getAttributes(), $fields['created_by_id'], 1);
                 }
                 unset($value);
@@ -140,9 +143,6 @@ class WarehousePutAwayController extends Controller
 
             $warehousePutAwayModel->production_items = json_encode($currentWarehouseItems);
             $warehousePutAwayModel->discrepancy_data = json_encode($currentDiscrepancyData);
-
-            $warehousePutAwayModel->received_quantity = json_encode($receivedQuantity);
-            $warehousePutAwayModel->remaining_quantity = json_encode($remainingQuantity);
             $warehousePutAwayModel->save();
             $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehousePutAwayModel->id, $warehousePutAwayModel->getAttributes(), $fields['created_by_id'], 1);
         } catch (Exception $exception) {
