@@ -69,7 +69,7 @@ class WarehouseForPutAwayV2Controller extends Controller
                 return $this->dataResponse('success', 200, __('msg.update_failed'), $data);
             }
             // Storage Mismatch
-            $isStorageTypeMismatch = !($subLocationModel->zone->storage_type_id == $itemMasterdata->actual_storage_type_id);
+            $isStorageTypeMismatch = !($subLocationModel->zone->storage_type_id == $itemMasterdata->storage_type_id);
             if ($isStorageTypeMismatch) {
                 $message = [
                     'error_type' => 'storage_mismatch',

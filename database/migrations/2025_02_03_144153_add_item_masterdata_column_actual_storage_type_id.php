@@ -11,10 +11,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('wms_item_masterdata', function (Blueprint $table) {
-            $table->tinyInteger('actual_storage_type_id')->nullable();
+            $table->tinyInteger('secondary_storage_type_id')->nullable();
         });
-        // Set the initial value of actual_storage_type_id to match storage_type_id
-        DB::statement('UPDATE wms_item_masterdata SET actual_storage_type_id = storage_type_id');
+        // Set the initial value of secondary_storage_type_id to match storage_type_id
+        DB::statement('UPDATE wms_item_masterdata SET secondary_storage_type_id = storage_type_id');
     }
 
     /**
@@ -23,7 +23,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('wms_item_masterdata', function (Blueprint $table) {
-            $table->dropColumn('actual_storage_type_id');
+            $table->dropColumn('secondary_storage_type_id');
         });
     }
 };

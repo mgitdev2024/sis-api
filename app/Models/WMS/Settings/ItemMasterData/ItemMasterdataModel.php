@@ -87,7 +87,7 @@ class ItemMasterdataModel extends Model
         'show_stocks',
         'order_with_zero_stocks',
         'picking_type', // 0 = discreet, 1 = batch
-        'actual_storage_type_id',
+        'secondary_storage_type_id',
     ];
 
     public function itemCategory()
@@ -106,9 +106,9 @@ class ItemMasterdataModel extends Model
     {
         return $this->belongsTo(StorageTypeModel::class, 'storage_type_id', 'id');
     }
-    public function actualStorageType()
+    public function secondaryStorageType()
     {
-        return $this->belongsTo(StorageTypeModel::class, 'actual_storage_type_id', 'id');
+        return $this->belongsTo(StorageTypeModel::class, 'secondary_storage_type_id', 'id');
     }
     public function primaryConversion()
     {
