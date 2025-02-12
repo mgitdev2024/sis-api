@@ -28,11 +28,11 @@ class WarehouseBulkPutAwayController extends Controller
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
                 $itemCode = $productionOrderToMake->item_code;
                 $itemId = $productionOrderToMake->itemMasterdata->id;
-                $actualStorageTypeId = $productionOrderToMake->itemMasterdata->actual_storage_type_id;
+                $storageStorageTypeId = $productionOrderToMake->itemMasterdata->storage_type_id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
 
-                if ($producedItem['status'] != $status || $actualStorageTypeId != $storageType) {
+                if ($producedItem['status'] != $status || $storageStorageTypeId != $storageType) {
                     $isMatch = false;
                     break;
                 }

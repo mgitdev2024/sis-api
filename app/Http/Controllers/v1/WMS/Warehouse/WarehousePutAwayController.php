@@ -287,8 +287,8 @@ class WarehousePutAwayController extends Controller
                         'item_uom' => $itemMasterdata->uom->long_name,
                         'item_primary_conversion_unit' => $itemMasterdata->primaryConversion->long_name ?? null,
                         'actual_storage_type' => [
-                            'storage_type_id' => $itemMasterdata->actual_storage_type_id,
-                            'storage_type' => $itemMasterdata->actualStorageType->long_name ?? null
+                            'storage_type_id' => $itemMasterdata->storage_type_id,
+                            'storage_type' => $itemMasterdata->StorageType->long_name ?? null
                         ],
                         'sub_location_code' => $warehousePutAway->subLocation->code,
                     ];
