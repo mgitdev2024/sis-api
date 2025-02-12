@@ -8,6 +8,7 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayModel;
+use App\Models\WMS\Warehouse\WarehouseForPutAwayV2Model;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
 use App\Traits\ResponseTrait;
 use App\Traits\WMS\QueueSubLocationTrait;
@@ -32,7 +33,6 @@ class QueuedSubLocationController extends Controller
                 'item_id' => $fields['item_id'],
                 'status' => 1
             ])->first();
-
             if ($warehouseForPutAway && $warehouseForPutAway->sub_location_id) {
                 DB::beginTransaction();
                 $createdById = $fields['created_by_id'];
@@ -172,8 +172,10 @@ class QueuedSubLocationController extends Controller
         }
     }
 
-    public function onGetCurrent($sub_location_id, $item_id)
+    public function onGetCurrent($put_away_key)
     {
+        #region old code remains here RIP....
+        /*
         try {
             $warehouseForPutAway = WarehouseForPutAwayModel::where([
                 'item_id' => $item_id,
@@ -200,7 +202,62 @@ class QueuedSubLocationController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+        */
+        #endregion
+        try {
+            $putAwayItemsArr = [];
 
+            $warehouseForPutAwayV2Model = WarehouseForPutAwayV2Model::where('warehouse_put_away_key', $put_away_key)->orderBy('id', 'DESC')->first();
+            if ($warehouseForPutAwayV2Model) {
+                $subLocationDetails = $this->onGetSubLocationDetails($warehouseForPutAwayV2Model->sub_location_id, $warehouseForPutAwayV2Model->layer_level, true);
+                $productionItems = json_decode($warehouseForPutAwayV2Model->production_items, true) ?? [];
+                $restructuredArray = [];
+
+                foreach ($productionItems as $item) {
+                    $productionItemDetails = ProductionItemModel::where('production_batch_id', $item['bid'])->first();
+                    $itemDetails = json_decode($productionItemDetails->produced_items, true);
+
+                    $batchCode = $itemDetails[$item['sticker_no']]['batch_code'];
+                    $restructuredArray[$batchCode] = $item;
+                }
+
+                $warehousePutAwayKey = explode('-', $put_away_key);
+                $warehousePutAwayItems = WarehousePutAwayModel::where([
+                    'warehouse_receiving_reference_number' => $warehousePutAwayKey[0],
+                    'item_id' => $warehousePutAwayKey[1],
+                ]);
+
+                if (isset($warehousePutAwayKey[2])) {
+                    $warehousePutAwayItems->where('temporary_storage_id', $warehousePutAwayKey[2]);
+                }
+                $warehousePutAwayItems = $warehousePutAwayItems->get();
+
+                foreach ($warehousePutAwayItems as $putAwayItems) {
+                    $productionItems = json_decode($putAwayItems['production_items'], true);
+                    foreach ($productionItems as $prodItem) {
+                        $productionBatchModel = ProductionBatchModel::find($prodItem['bid']);
+                        $itemMasterdataModel = $productionBatchModel->itemMasterdata;
+
+                        $itemCode = $itemMasterdataModel->item_code;
+                        $itemId = $itemMasterdataModel->id;
+                        $putAwayItemsArr[$prodItem['bid'] . '-' . $prodItem['sticker_no']] = [
+                            'bid' => $prodItem['bid'],
+                            'item_code' => $itemCode,
+                            'item_id' => $itemId,
+                            'q' => $prodItem['q'],
+                            'sticker_no' => $prodItem['sticker_no'],
+                            'batch_code' => $prodItem['batch_code']
+                        ];
+                    }
+                }
+                $subLocationDetails['put_away_items'] = $putAwayItemsArr;
+                $subLocationDetails['production_items'] = $restructuredArray;
+                return $this->dataResponse('success', 200, __('msg.record_found'), $subLocationDetails);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 
@@ -294,8 +351,6 @@ class QueuedSubLocationController extends Controller
             return false;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
-
         }
     }
-
 }

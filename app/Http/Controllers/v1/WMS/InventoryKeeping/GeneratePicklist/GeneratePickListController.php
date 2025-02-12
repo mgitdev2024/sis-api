@@ -105,107 +105,111 @@ class GeneratePickListController extends Controller
 
     public function onGetStoreAreasAndOrders($generatePicklistModel, $allocationItems, $type)
     {
-        $data = [];
-        $storeToRoute = [];
-        // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
-        $routes = [
-            'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
-            'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
-            'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
-            'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
-            'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
-        ];
-        foreach ($routes as $routeName => $stores) {
-            foreach ($stores as $storeId) {
-                $storeToRoute[$storeId] = $routeName;
+        try {
+            $data = [];
+            $storeToRoute = [];
+            // SAMPLE DATA FOR ROUTE, SHOULD BE CALLED THRU API
+            $routes = [
+                'North E1' => [2, 3, 4, 6, 7, 8, 9, 10, 14, 16, 26, 28, 33, 37, 39, 40, 42, 50, 54, 60, 69, 71, 77, 80, 85, 93, 98, 100, 105, 107, 115, 117, 130, 131, 142],
+                'South D1' => [1, 12, 29, 51, 59, 65, 68, 74, 83, 87, 88, 91, 92, 94, 96, 108, 111, 113, 118, 127, 128, 138, 140, 144, 149, 152],
+                'East W2' => [5, 13, 20, 23, 34, 44, 45, 48, 49, 52, 57, 58, 64, 72, 84, 99, 106, 123, 126, 137, 143, 147],
+                'West A3' => [11, 18, 22, 35, 46, 56, 61, 66, 67, 70, 75, 76, 78, 81, 82, 89, 90, 97, 103, 109, 110, 112, 114, 120, 124, 129, 133, 134, 139, 141, 148, 150, 151],
+                'Central Z4' => [15, 17, 19, 21, 24, 25, 27, 30, 31, 32, 36, 38, 41, 43, 47, 53, 55, 62, 63, 73, 79, 86, 95, 101, 102, 104, 116, 119, 121, 122, 125, 132, 135, 136, 145, 146, 201, 202],
+            ];
+            foreach ($routes as $routeName => $stores) {
+                foreach ($stores as $storeId) {
+                    $storeToRoute[$storeId] = $routeName;
+                }
             }
-        }
-
-        foreach ($generatePicklistModel as $picklist) {
-            if (isset($allocationItems[$picklist->allocation_order_id])) {
-                // Item ID Allocation Loop
-                foreach ($allocationItems[$picklist->allocation_order_id] as $allocationItemValue) {
-                    $storeOrderDetails = json_decode($allocationItemValue->store_order_details, true);
-                    $itemMasterdata = $allocationItemValue->itemMasterdata;
-                    $itemId = $itemMasterdata->id;
-                    if (!$itemMasterdata->picking_type == $type) {
-                        continue;
-                    }
-
-                    // Store Loop
-                    foreach ($storeOrderDetails as $storeId => $storeValue) {
-                        // $storeRoute = $type == 0 ? $storeToRoute[$storeId] . '-' . $picklist->reference_number : $picklist->reference_number;
-                        $storeRoute = $storeToRoute[$storeId] . '-' . $picklist->reference_number;
-                        if (!isset($data[$storeRoute])) {
-                            $data[$storeRoute] = [
-                                'total_item_count' => 0,
-                            ];
-                            $data[$storeRoute]['reference_number'] = $picklist->reference_number;
-                            $data[$storeRoute]['generate_picklist_id'] = $picklist->id;
-                            $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
-                            if ($type == 0) {
-                                $data[$storeRoute]['stores'] = [];
-                            } else {
-                                $data[$storeRoute]['items'] = [];
-                            }
+            foreach ($generatePicklistModel as $picklist) {
+                if (isset($allocationItems[$picklist->allocation_order_id])) {
+                    // Item ID Allocation Loop
+                    foreach ($allocationItems[$picklist->allocation_order_id] as $allocationItemValue) {
+                        $storeOrderDetails = json_decode($allocationItemValue->store_order_details, true);
+                        $itemMasterdata = $allocationItemValue->itemMasterdata;
+                        $itemId = $itemMasterdata->id;
+                        if (!$itemMasterdata->picking_type == $type) {
+                            continue;
                         }
 
-                        if ($type == 0) {
-                            if (!isset($data[$storeRoute]['stores'][$storeId])) {
-                                $data[$storeRoute]['stores'][$storeId] = [
-                                    'items' => [],
-                                    'short_name' => $storeValue['short_name'],
-                                    'area_type' => $storeValue['area_type'],
-                                    'id' => $storeId,
+                        // Store Loop
+                        foreach ($storeOrderDetails as $storeId => $storeValue) {
+                            // $storeRoute = $type == 0 ? $storeToRoute[$storeId] . '-' . $picklist->reference_number : $picklist->reference_number;
+                            $storeRoute = $storeToRoute[$storeId] . '-' . $picklist->reference_number;
+                            if (!isset($data[$storeRoute])) {
+                                $data[$storeRoute] = [
+                                    'total_item_count' => 0,
                                 ];
+                                $data[$storeRoute]['reference_number'] = $picklist->reference_number;
+                                $data[$storeRoute]['generate_picklist_id'] = $picklist->id;
+                                $data[$storeRoute]['route_name'] = $storeToRoute[$storeId];
+                                if ($type == 0) {
+                                    $data[$storeRoute]['stores'] = [];
+                                } else {
+                                    $data[$storeRoute]['items'] = [];
+                                }
                             }
 
-                            if (!isset($data[$storeRoute]['stores'][$storeId]['items'][$itemId])) {
-                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId] = [
-                                    'item_code' => $itemMasterdata->item_code,
-                                    'item_description' => $itemMasterdata->description,
-                                    'item_category_label' => $itemMasterdata->itemCategory->name,
-                                    'item_attachment' => $itemMasterdata->attachment,
-                                    'item_id' => $itemId,
-                                    'regular_order_quantity' => $storeValue['regular_order_quantity']
-                                ];
-                                $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 0);
-                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
-                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
-                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
-                                $data[$storeRoute]['stores'][$storeId]['is_picked'] = $alreadyPickedData['is_picked'];
-                            } else {
-                                // If item already exists, update the regular_order_quantity
-                                $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
-                            }
-                            $data[$storeRoute]['total_item_count']++;
+                            if ($type == 0) {
+                                if (!isset($data[$storeRoute]['stores'][$storeId])) {
+                                    $data[$storeRoute]['stores'][$storeId] = [
+                                        'items' => [],
+                                        'short_name' => $storeValue['short_name'],
+                                        'area_type' => $storeValue['area_type'],
+                                        'id' => $storeId,
+                                    ];
+                                }
 
-                        } else if ($type == 1) {
-                            if (!isset($data[$storeRoute]['items'][$itemId])) {
-                                $data[$storeRoute]['items'][$itemId] = [
-                                    'item_code' => $itemMasterdata->item_code,
-                                    'item_description' => $itemMasterdata->description,
-                                    'item_category_label' => $itemMasterdata->itemCategory->name,
-                                    'item_attachment' => $itemMasterdata->attachment,
-                                    'item_id' => $itemId,
-                                    'regular_order_quantity' => $storeValue['regular_order_quantity']
-                                ];
-                                $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 1);
-                                $data[$storeRoute]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
-                                $data[$storeRoute]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
-                                $data[$storeRoute]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
-                                $data[$storeRoute]['items'][$itemId]['is_picked'] = $alreadyPickedData['is_picked'];
-                            } else {
-                                // If item already exists, update the regular_order_quantity
-                                $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                                if (!isset($data[$storeRoute]['stores'][$storeId]['items'][$itemId])) {
+                                    $data[$storeRoute]['stores'][$storeId]['items'][$itemId] = [
+                                        'item_code' => $itemMasterdata->item_code,
+                                        'item_description' => $itemMasterdata->description,
+                                        'item_category_label' => $itemMasterdata->itemCategory->name,
+                                        'item_attachment' => $itemMasterdata->attachment,
+                                        'item_id' => $itemId,
+                                        'regular_order_quantity' => $storeValue['regular_order_quantity']
+                                    ];
+                                    $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 0);
+                                    $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
+                                    $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
+                                    $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
+                                    $data[$storeRoute]['stores'][$storeId]['is_picked'] = $alreadyPickedData['is_picked'];
+                                } else {
+                                    // If item already exists, update the regular_order_quantity
+                                    $data[$storeRoute]['stores'][$storeId]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                                }
+                                $data[$storeRoute]['total_item_count']++;
+
+                            } else if ($type == 1) {
+                                if (!isset($data[$storeRoute]['items'][$itemId])) {
+                                    $data[$storeRoute]['items'][$itemId] = [
+                                        'item_code' => $itemMasterdata->item_code,
+                                        'item_description' => $itemMasterdata->description,
+                                        'item_category_label' => $itemMasterdata->itemCategory->name,
+                                        'item_attachment' => $itemMasterdata->attachment,
+                                        'item_id' => $itemId,
+                                        'regular_order_quantity' => $storeValue['regular_order_quantity']
+                                    ];
+                                    $alreadyPickedData = $this->onCheckPickedData($storeId, $itemId, $picklist, 1);
+                                    $data[$storeRoute]['items'][$itemId]['picked_scanned_quantity'] = $alreadyPickedData['picked_scanned_quantity'];
+                                    $data[$storeRoute]['items'][$itemId]['checked_quantity'] = $alreadyPickedData['checked_quantity'];
+                                    $data[$storeRoute]['items'][$itemId]['for_dispatch_quantity'] = $alreadyPickedData['for_dispatch_quantity'];
+                                    $data[$storeRoute]['items'][$itemId]['is_picked'] = $alreadyPickedData['is_picked'];
+                                } else {
+                                    // If item already exists, update the regular_order_quantity
+                                    $data[$storeRoute]['items'][$itemId]['regular_order_quantity'] += $storeValue['regular_order_quantity'];
+                                }
+                                $data[$storeRoute]['total_item_count'] += $storeValue['regular_order_quantity'];
                             }
-                            $data[$storeRoute]['total_item_count'] += $storeValue['regular_order_quantity'];
                         }
                     }
                 }
             }
+            return $data;
+        } catch (Exception $exception) {
+            dd($exception);
+            throw new Exception('Error occurred while generating picklist data: ' . $exception->getMessage());
         }
-        return $data;
     }
 
     public function onCheckPickedData($storeId, $itemId, $picklist, $picklistType)

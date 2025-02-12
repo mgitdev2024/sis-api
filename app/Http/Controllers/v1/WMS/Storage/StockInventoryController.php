@@ -145,7 +145,7 @@ class StockInventoryController extends Controller
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
                     $contentItemQuantity = 0;
                     foreach ($productionItems as $productionItem) {
-                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['stored_sub_location'])) {
                             $contentItemQuantity++;
 
                         }
@@ -184,9 +184,9 @@ class StockInventoryController extends Controller
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
                     \Log::info($productionItems);
                     foreach ($productionItems as $productionItem) {
-                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['sub_location'])) {
-                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
-                            $layerLevel = $productionItem['sub_location']['layer_level'];
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['stored_sub_location'])) {
+                            $subLocationId = $productionItem['stored_sub_location']['sub_location_id'];
+                            $layerLevel = $productionItem['stored_sub_location']['layer_level'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
                             $warehouseKey = "Z${zoneId}-SL${subLocationId}-L${layerLevel}";
@@ -272,8 +272,8 @@ class StockInventoryController extends Controller
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
 
                     foreach ($productionItems as $productionItem) {
-                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
-                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['stored_sub_location'])) {
+                            $subLocationId = $productionItem['stored_sub_location']['sub_location_id'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
 
@@ -337,8 +337,8 @@ class StockInventoryController extends Controller
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
 
                     foreach ($productionItems as $productionItem) {
-                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
-                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['stored_sub_location'])) {
+                            $subLocationId = $productionItem['stored_sub_location']['sub_location_id'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
                             $isItemCodeFilter = $itemCode ? $productionBatch->item_code == $itemCode : false;
@@ -390,11 +390,11 @@ class StockInventoryController extends Controller
                     $productionItems = json_decode($productionBatch->productionItems->produced_items, true);
 
                     foreach ($productionItems as $productionItem) {
-                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1) {
+                        if ($productionItem['status'] == 13 && $productionItem['sticker_status'] == 1 && isset($productionItem['stored_sub_location'])) {
                             $itemCode = $productionBatch->item_code;
                             $itemId = $productionBatch->productionOta->itemMasterdata->id ?? $productionBatch->productionOtb->itemMasterdata->id;
-                            $subLocationId = $productionItem['sub_location']['sub_location_id'];
-                            $layerLevel = $productionItem['sub_location']['layer_level'];
+                            $subLocationId = $productionItem['stored_sub_location']['sub_location_id'];
+                            $layerLevel = $productionItem['stored_sub_location']['layer_level'];
                             $subLocationModel = SubLocationModel::find($subLocationId);
                             $zoneId = $subLocationModel->zone_id;
                             $zoneItemKey = "${itemCode}-SL${subLocationId}-L${layerLevel}";

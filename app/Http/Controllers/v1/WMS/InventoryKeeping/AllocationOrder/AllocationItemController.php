@@ -141,7 +141,7 @@ class AllocationItemController extends Controller
                 $storeOrderDetails = json_decode($allocationItemModel->store_order_details, true);
                 foreach ($allocationAdjustment as $allocation) {
                     $storeOrderDetails[$allocation['id']]['regular_order_quantity'] = $allocation['quantity'];
-                    $excessStocks -= $allocation['quantity'];
+                    $excessStocks += $allocation['quantity'];
                 }
                 $allocationItemModel->store_order_details = json_encode($storeOrderDetails);
                 $allocationItemModel->updated_by_id = $fields['updated_by_id'];

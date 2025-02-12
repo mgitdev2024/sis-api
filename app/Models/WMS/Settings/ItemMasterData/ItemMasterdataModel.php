@@ -87,6 +87,7 @@ class ItemMasterdataModel extends Model
         'show_stocks',
         'order_with_zero_stocks',
         'picking_type', // 0 = discreet, 1 = batch
+        'secondary_storage_type_id',
     ];
 
     public function itemCategory()
@@ -104,6 +105,10 @@ class ItemMasterdataModel extends Model
     public function storageType()
     {
         return $this->belongsTo(StorageTypeModel::class, 'storage_type_id', 'id');
+    }
+    public function secondaryStorageType()
+    {
+        return $this->belongsTo(StorageTypeModel::class, 'secondary_storage_type_id', 'id');
     }
     public function primaryConversion()
     {
@@ -283,6 +288,6 @@ class ItemMasterdataModel extends Model
     public function getPickingTypeLabelAttribute()
     {
         $pickingTypeLabel = ["Discreet", "Batch"];
-        return $pickingTypeLabel[$this->picking_type];
+        return $pickingTypeLabel[$this->picking_type] ?? null;
     }
 }

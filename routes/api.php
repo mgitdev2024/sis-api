@@ -317,6 +317,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/storage/sub_location/generate_code/get/{id}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCode']);
     Route::get('v1/storage/sub_location/generate_code/all/get', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateCodeAll']);
     Route::post('v1/storage/sub_location/generate_sub_location', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onGenerateSubLocation']);
+    Route::post('v1/storage/sub_location/force-bulk-temporary-storage', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onForceBulkTemporaryStorageLocation']);
+    Route::get('v1/storage/sub_location/space/get/{sub_location_id}/{is_permanent}/{layer_level?}', [App\Http\Controllers\v1\WMS\Settings\StorageMasterData\SubLocationController::class, 'onSubLocationDetails']);
+
     #endregion
 
     #region Item Masterdata
@@ -330,6 +333,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/item/masterdata/status/{status}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onChangeStatus']);
     Route::delete('v1/item/masterdata/delete/{id}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onDeleteById']);
     Route::get('v1/item/masterdata/current/{id?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetCurrent']);
+    Route::get('v1/item/masterdata/filter/{category_id?}/{name?}', [App\Http\Controllers\v1\WMS\Settings\ItemMasterData\ItemMasterdataController::class, 'onGetByFilter']);
     #endregion
 
 
@@ -403,7 +407,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/put-away/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCreate']);
     Route::post('v1/warehouse/put-away/sub-standard/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onSubStandard']);
     Route::get('v1/warehouse/put-away/current/{status}/{filter?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
-    Route::get('v1/warehouse/put-away/get/{id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetById']);
+    Route::get('v1/warehouse/put-away/key/get/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetByPutAwayKey']);
     Route::post('v1/warehouse/put-away/complete-transaction/{put_away_reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
     #endregion
 
@@ -415,6 +419,18 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::delete('v1/warehouse/for/put-away/delete/{warehouse_put_away_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayController::class, 'onDelete']);
     #endregion
 
+    #region Warehouse For Put Away V2
+    Route::post('v1/warehouse/for/put-away/v2/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onCreateSingleTransaction']);
+    Route::post('v1/warehouse/for/put-away/v2/update/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onUpdateSingleTransaction']);
+    Route::post('v1/warehouse/for/put-away/v2/delete/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onDeleteSingleTransaction']);
+    Route::get('v1/warehouse/for/put-away/v2/get/{put_away_key}/{created_by_id}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseForPutAwayV2Controller::class, 'onGet']);
+    #endregion
+
+    #region Warehouse Bulk Put Away
+    Route::get('v1/warehouse/put-away/bulk/temporary-storage/get/{slid}/{status}/{storage_type}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkPutAwayController::class, 'onGetTemporaryStorageItems']);
+    Route::post('v1/warehouse/put-away/bulk/temporary-storage/create', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseBulkPutAwayController::class, 'onBulkPutAway']);
+    #endregion
+
     #region Queued Temporary Storage
     Route::get('v1/queue/storage/temporary/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetCurrent']);
     Route::get('v1/queue/storage/temporary/items/get/{sub_location_id}/{status}', [App\Http\Controllers\v1\WMS\Storage\QueuedTemporaryStorageController::class, 'onGetItems']);
@@ -423,8 +439,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
 
     #region Queued Permanent Storage
     Route::post('v1/queue/storage/permanent/create', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onCreate']);
-    Route::get('v1/queue/storage/permanent/current/get/{sub_location_id}/{item_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
-    Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
+    Route::get('v1/queue/storage/permanent/current/get/{put_away_key}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetCurrent']);
+    Route::get('v1/queue/storage/permanent/items/get/{sub_location_id}/{status}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetItems']);
     Route::get('v1/queue/storage/permanent/status/get/{sub_location_id}', [App\Http\Controllers\v1\WMS\Storage\QueuedSubLocationController::class, 'onGetStatus']);
     #endregion
 
@@ -447,7 +463,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Inventory Movement
-    Route::get('v1/item/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
+    Route::get('v1/inventory/movement/stats/get/{date}', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onGetInventoryMovementStats']);
+    Route::post('v1/inventory/movement/revert/stored-data', [App\Http\Controllers\v1\WMS\InventoryKeeping\InventoryMovementController::class, 'onRevertToStoredItem']);
+
     #endregion
 
     #region Stock Transfer
@@ -500,8 +518,13 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     #endregion
 
     #region Generate Items
+    Route::get('v1/picklist/items/stockman/remove-items/get/{item_id}/{store_id}/{generate_picklist_id}', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onGetRemoveItemData']);
     Route::post('v1/picklist/items/stockman/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onPickItems']);
+    Route::post('v1/picklist/items/stockman/remove-items', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onStockmanRemovePickedItems']);
     Route::post('v1/picklist/items/checker/scan', [App\Http\Controllers\v1\WMS\InventoryKeeping\GeneratePickList\GeneratePickListItemController::class, 'onCheckPickedItem']);
+    #endregion
 
+    #region Stock Dispatch
+    Route::post('v1/stock/dispatch/create', [App\Http\Controllers\v1\WMS\Dispatch\StockDispatchController::class, 'onCreate']);
     #endregion
 });
