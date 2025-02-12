@@ -241,7 +241,7 @@ class WarehousePutAwayController extends Controller
             $explodeKey = explode('-', $put_away_key);
             $warehouseReceivingReferenceNumber = $explodeKey[0];
             $itemId = $explodeKey[1];
-            $temporaryStorageId = $explodeKey[2] ?? null;
+            $temporaryStorageId = $explodeKey[2] ?? 'Nan';
 
             $warehousePutAwayModel = WarehousePutAwayModel::select(
                 '*',
@@ -252,7 +252,8 @@ class WarehousePutAwayController extends Controller
                     'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                     'item_id' => $itemId
                 ]);
-            if ($temporaryStorageId != null) {
+            if ($temporaryStorageId != 'Nan') {
+                $temporaryStorageId = null;
                 $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAwayModel = $warehousePutAwayModel->get();
@@ -392,7 +393,6 @@ class WarehousePutAwayController extends Controller
             if ($warehousePutAway) {
                 $temporaryStorageId = $warehousePutAway->temporary_storage_id ?? null;
                 $warehousePutAway->status = 1;
-                $warehousePutAway->temporary_storage_id = null;
                 $warehousePutAway->completed_at = now();
                 $warehousePutAway->save();
                 $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $createdById, 0);
