@@ -241,7 +241,7 @@ class QueuedSubLocationController extends Controller
 
                         $itemCode = $itemMasterdataModel->item_code;
                         $itemId = $itemMasterdataModel->id;
-                        $putAwayItemsArr[] = [
+                        $putAwayItemsArr[$prodItem['bid'] . '-' . $prodItem['sticker_no']] = [
                             'bid' => $prodItem['bid'],
                             'item_code' => $itemCode,
                             'item_id' => $itemId,
