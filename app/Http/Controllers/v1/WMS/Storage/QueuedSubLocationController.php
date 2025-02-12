@@ -228,7 +228,7 @@ class QueuedSubLocationController extends Controller
                     'item_id' => $warehousePutAwayKey[1],
                 ]);
 
-                if (isset($warehousePutAwayKey[2])) {
+                if (isset($warehousePutAwayKey[2]) && strcasecmp($warehousePutAwayKey[2], 'Nan') != 0) {
                     $warehousePutAwayItems->where('temporary_storage_id', $warehousePutAwayKey[2]);
                 }
                 $warehousePutAwayItems = $warehousePutAwayItems->get();

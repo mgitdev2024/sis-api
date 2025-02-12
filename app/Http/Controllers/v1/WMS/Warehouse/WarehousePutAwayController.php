@@ -377,13 +377,13 @@ class WarehousePutAwayController extends Controller
             $explodeKey = explode('-', $put_away_key);
             $warehouseReceivingReferenceNumber = $explodeKey[0];
             $itemId = $explodeKey[1];
-            $temporaryStorageId = $explodeKey[2] ?? null;
+            $temporaryStorageId = $explodeKey[2] ?? 'Nan';
             $warehousePutAway = WarehousePutAwayModel::where([
                 'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                 'item_id' => $itemId,
                 'status' => 0,
             ]);
-            if ($temporaryStorageId != null) {
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0 ) {
                 $warehousePutAway->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAway = $warehousePutAway->firstOrFail();
