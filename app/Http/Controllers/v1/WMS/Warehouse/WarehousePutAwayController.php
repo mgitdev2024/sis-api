@@ -241,7 +241,7 @@ class WarehousePutAwayController extends Controller
             $explodeKey = explode('-', $put_away_key);
             $warehouseReceivingReferenceNumber = $explodeKey[0];
             $itemId = $explodeKey[1];
-            $temporaryStorageId = $explodeKey[2] ?? null;
+            $temporaryStorageId = $explodeKey[2] ?? 'Nan';
 
             $warehousePutAwayModel = WarehousePutAwayModel::select(
                 '*',
@@ -251,9 +251,9 @@ class WarehousePutAwayController extends Controller
                 ->where([
                     'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                     'item_id' => $itemId
-                ]);
-            if ($temporaryStorageId != null) {
-                $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId);
+                ]); 
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0) { 
+                $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId); 
             }
             $warehousePutAwayModel = $warehousePutAwayModel->get();
             if (count($warehousePutAwayModel) <= 0) {
@@ -290,7 +290,7 @@ class WarehousePutAwayController extends Controller
                             'storage_type_id' => $itemMasterdata->storage_type_id,
                             'storage_type' => $itemMasterdata->StorageType->long_name ?? null
                         ],
-                        'sub_location_code' => $warehousePutAway->subLocation->code,
+                        'sub_location_code' => $warehousePutAway->subLocation->code ?? null,
                     ];
                     if ($checkHasForPutAway) {
                         $putAwayMergedItems['warehouse_put_away_details']['warehouse_for_put_away_v2_id'] = $checkHasForPutAway->id;
@@ -308,7 +308,7 @@ class WarehousePutAwayController extends Controller
                 $putAwayMergedItems['discrepancy_quantity'] += $discrepancyQuantity;
             }
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_found'), $putAwayMergedItems);
-        } catch (Exception $exception) {
+        } catch (Exception $exception) {  
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.record_not_found'));
         }
     }
@@ -377,13 +377,13 @@ class WarehousePutAwayController extends Controller
             $explodeKey = explode('-', $put_away_key);
             $warehouseReceivingReferenceNumber = $explodeKey[0];
             $itemId = $explodeKey[1];
-            $temporaryStorageId = $explodeKey[2] ?? null;
+            $temporaryStorageId = $explodeKey[2] ?? 'Nan';
             $warehousePutAway = WarehousePutAwayModel::where([
                 'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                 'item_id' => $itemId,
                 'status' => 0,
             ]);
-            if ($temporaryStorageId != null) {
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0 ) {
                 $warehousePutAway->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAway = $warehousePutAway->firstOrFail();
@@ -392,7 +392,6 @@ class WarehousePutAwayController extends Controller
             if ($warehousePutAway) {
                 $temporaryStorageId = $warehousePutAway->temporary_storage_id ?? null;
                 $warehousePutAway->status = 1;
-                $warehousePutAway->temporary_storage_id = null;
                 $warehousePutAway->completed_at = now();
                 $warehousePutAway->save();
                 $this->createWarehouseLog(null, null, WarehousePutAwayModel::class, $warehousePutAway->id, $warehousePutAway->getAttributes(), $createdById, 0);

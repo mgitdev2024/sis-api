@@ -45,6 +45,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     #region User Access
+    Route::get('v1/user/all-access-info', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessInfo']);
     Route::post('v1/user/access', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccess']);
     Route::post('v1/user/access/update', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onUpdateAccess']);
     Route::post('v1/user/access/remove', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onRemoveAccess']);

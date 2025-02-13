@@ -33,7 +33,7 @@ class WarehouseForPutAwayV2Controller extends Controller
             $explodeWarehousePutAwayKey = explode('-', $fields['warehouse_put_away_key']);
             $warehouseReceivingReferenceNumber = $explodeWarehousePutAwayKey[0];
             $itemId = $explodeWarehousePutAwayKey[1];
-            $temporaryStorageId = $explodeWarehousePutAwayKey[2] ?? null;
+            $temporaryStorageId = $explodeWarehousePutAwayKey[2] ?? 'Nan';
             $data = [];
 
             // Check if put away key exists
@@ -41,7 +41,7 @@ class WarehouseForPutAwayV2Controller extends Controller
                 'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                 'item_id' => $itemId,
             ]);
-            if ($temporaryStorageId != null) {
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0) {
                 $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAwayModel = $warehousePutAwayModel->exists();
@@ -98,7 +98,7 @@ class WarehouseForPutAwayV2Controller extends Controller
             $warehouseForPutAway->warehouse_put_away_key = $fields['warehouse_put_away_key'];
             $warehouseForPutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
             $warehouseForPutAway->item_id = $itemId;
-            $warehouseForPutAway->temporary_storage_id = $temporaryStorageId;
+            $warehouseForPutAway->temporary_storage_id = $temporaryStorageId == 'Nan'? null : $temporaryStorageId;
             $warehouseForPutAway->sub_location_id = $fields['sub_location_id'];
             $warehouseForPutAway->layer_level = $fields['layer_level'];
             $warehouseForPutAway->created_by_id = $fields['created_by_id'];
@@ -106,7 +106,7 @@ class WarehouseForPutAwayV2Controller extends Controller
             DB::commit();
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
         } catch (Exception $exception) {
-            DB::rollback();
+            DB::rollback(); 
             return $this->dataResponse('error', 400, 'Warehouse For Put Away ' . __('msg.create_failed'));
         }
     }

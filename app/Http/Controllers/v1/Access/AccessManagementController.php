@@ -13,6 +13,45 @@ use DB;
 class AccessManagementController extends Controller
 {
     use ResponseTrait;
+
+
+    public function onGetAccessInfo()
+    {
+        try {
+            $modulePermissionList = ModulePermissionModel::with('subModulePermissions')->get();
+            $permissionList = [];
+
+            foreach ($modulePermissionList as $module) {
+                $subModuleArr = [];
+
+                foreach ($module->subModulePermissions as $subModule) {
+                    $subModuleArr[$subModule['code']] = [
+                        'name' => $subModule['name'],
+                        'allow_view' => json_decode($subModule['allow_view'], true) ?? [],
+                        'allow_create' => json_decode($subModule['allow_create'], true) ?? [],
+                        'allow_update' => json_decode($subModule['allow_update'], true) ?? [],
+                        'allow_delete' => json_decode($subModule['allow_delete'], true) ?? [],
+                        'allow_reopen' => json_decode($subModule['allow_reopen'], true) ?? [],
+                    ];
+                }
+
+                $permissionList[$module['code']] = [
+                    'name' => $module['name'],
+                    'allow_view' => json_decode($module['allow_view'], true) ?? [],
+                    'allow_create' => json_decode($module['allow_create'], true) ?? [],
+                    'allow_update' => json_decode($module['allow_update'], true) ?? [],
+                    'allow_delete' => json_decode($module['allow_delete'], true) ?? [],
+                    'allow_reopen' => json_decode($module['allow_reopen'], true) ?? [],
+                    'sub_module' => $subModuleArr,
+                ];
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $permissionList);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
+    }
+
     public function onGetAccess(Request $request)
     {
         $fields = $request->validate([
@@ -67,6 +106,7 @@ class AccessManagementController extends Controller
                 }
                 $permissionTable->$action = json_encode($access);
                 $permissionTable->save();
+                DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'), $permissionTable);
             }
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
