@@ -41,6 +41,10 @@ class StockDispatchController extends Controller
             $generatePickListItems = $generatePickListItems->first();
 
             dd($generatePickListItems->picklist_items);
+            // NOTE: Please continue working on this function.
+            // REQUIREMENTS: This function should be able to handle both picklist items and picked items from the get go. Might check with bakery personnel about this.
+            // TODO
+            // !this is an danger must create
             DB::commit();
         } catch (Exception $exception) {
             DB::rollback();
