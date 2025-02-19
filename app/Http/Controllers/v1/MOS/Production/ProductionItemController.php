@@ -354,7 +354,7 @@ class ProductionItemController extends Controller
                     $warehouseReceivingModel = WarehouseReceivingModel::where([
                         'reference_number' => $producedItems[$itemKey]['warehouse']['warehouse_receiving']['reference_number'],
                         'batch_number' => $productionBatchModel->batch_number,
-                        'status' => 0
+                        // 'status' => 0
                     ])->first();
                     $warehouseProducedItems = json_decode($warehouseReceivingModel->produced_items, true);
 
