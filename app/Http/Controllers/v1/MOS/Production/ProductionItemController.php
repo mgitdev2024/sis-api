@@ -245,7 +245,6 @@ class ProductionItemController extends Controller
             }
             $this->onDeductStockCount($forItemDispositionArr, $createdById, $itemDispositionReferenceNumber);
         } catch (Exception $exception) {
-            dd($exception);
             throw new Exception($exception->getMessage());
         }
     }
