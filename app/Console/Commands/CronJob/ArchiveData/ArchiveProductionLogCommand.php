@@ -74,12 +74,6 @@ class ArchiveProductionLogCommand extends Command
 
             DB::commit();
         } catch (Exception $e) {
-            Log::info("Database connection issue: " . $e->getMessage());
-            Log::info("Current environment: " . app()->environment());
-            Log::info("Current user: " . get_current_user());
-            Log::info("Cron running at: " . now());
-            Log::info('CRON Archive: Failed to archive Production Logs. Error: ' . $e->getMessage());
-
             DB::rollback();
         }
     }
