@@ -269,9 +269,34 @@ class ProductionOrderController extends Controller
     public function onAlignProductionCount(Request $request, $production_order_id)
     {
         try {
-
+            #region status list
+            // 0 => 'Good',
+            // 1 => 'On Hold',
+            // 1.1 => 'On Hold - Sub Standard
+            // 2 => 'For Receive | Return to warehouse',
+            // 2.1 => 'For Receive - In Process',
+            // 3 => 'Received',
+            // 3.1 => 'For Put-away - In Process',
+            // 4 => 'For Investigation',
+            // 5 => 'For Sampling',
+            // 6 => 'For Retouch',
+            // 7 => 'For Slice',
+            // 8 => 'For Sticker Update',
+            // 9 => 'Sticker Updated',
+            // 10 => 'Reviewed',
+            // 10.1 => 'For Endorsement',
+            // 10.2 => 'For Disposal',
+            // 11 => 'Retouched',
+            // 12 => 'Sliced',
+            // 13 => 'Stored',
+            // 14 => 'For Transfer',
+            // 15 => 'Picked',
+            // 15.1 => 'Checked',
+            // 15.2 => 'For Dispatch',
+            #endregion
             DB::beginTransaction();
             $productionOrder = ProductionOrderModel::find($production_order_id);
+            $excludedItemStatus = [0, 1, 1.1, 4, 5, 6, 7, 8, 9, 10, 10.1, 10.2];
             if ($productionOrder) {
                 $productionBatches = ProductionBatchModel::where('production_order_id', $production_order_id)
                     ->get();
@@ -282,6 +307,8 @@ class ProductionOrderController extends Controller
 
                     $producedItemCount = 0;
                     $receivedItemCount = 0;
+                    $actualQuantityCount = 0;
+                    $actualSecondaryQuantityCount = 0;
                     foreach ($productionItems as $itemValue) {
                         if ($itemValue['sticker_status'] == 1) {
                             $producedItemCount++;
@@ -289,24 +316,36 @@ class ProductionOrderController extends Controller
                         if ($itemValue['status'] == 3) {
                             $receivedItemCount++;
                         }
+                        if (!in_array($itemValue['status'], $excludedItemStatus)) {
+                            $actualQuantityCount++;
+                            $actualSecondaryQuantityCount += $itemValue['q'];
+
+                        }
                     }
                     $productionToBakeAssemble = $batch->productionOta ?? $batch->productionOtb;
                     $productionType = $batch->productionOta ? 1 : 0;
                     if (isset($productionArr[$productionType . '-' . $productionToBakeAssemble->id])) {
                         $productionArr[$productionType . '-' . $productionToBakeAssemble->id]['producedItemCount'] += $producedItemCount;
                         $productionArr[$productionType . '-' . $productionToBakeAssemble->id]['receivedItemCount'] += $receivedItemCount;
+                        $productionArr[$productionType . '-' . $productionToBakeAssemble->id]['actualQuantityCount'] += $actualQuantityCount;
+                        $productionArr[$productionType . '-' . $productionToBakeAssemble->id]['actualSecondaryQuantityCount'] += $actualSecondaryQuantityCount;
                     } else {
                         $productionArr[$productionType . '-' . $productionToBakeAssemble->id] = [
                             'productionToBakeAssemble' => $productionToBakeAssemble,
                             'item_code' => $productionToBakeAssemble->item_code,
                             'producedItemCount' => $producedItemCount,
                             'receivedItemCount' => $receivedItemCount,
+                            'actualQuantityCount' => $actualQuantityCount,
+                            'actualSecondaryQuantityCount' => $actualSecondaryQuantityCount,
                         ];
                     }
                 }
                 foreach ($productionArr as $value) {
                     $value['productionToBakeAssemble']->produced_items_count = $value['producedItemCount'];
                     $value['productionToBakeAssemble']->received_items_count = $value['receivedItemCount'];
+                    $value['productionToBakeAssemble']->actual_quantity = $value['actualQuantityCount'];
+                    $value['productionToBakeAssemble']->actual_secondary_quantity = $value['actualSecondaryQuantityCount'];
+
                     $value['productionToBakeAssemble']->update();
                 }
                 DB::commit();
