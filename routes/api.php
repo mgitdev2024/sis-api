@@ -394,6 +394,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
     Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
+    Route::post('v1/warehouse/receive/push/transmittal', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onPushToTransmittalBulk']);
+
     #endregion
 
     #region Warehouse Bulk Receiving
@@ -412,7 +414,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/warehouse/put-away/current/{status}/{filter?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/key/get/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetByPutAwayKey']);
     Route::post('v1/warehouse/put-away/complete-transaction/{put_away_reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
-    Route::post('v1/warehouse/put-away/push/transmittal', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onPushToTransmittalBulk']);
     #endregion
 
     #region Warehouse For Put Away
