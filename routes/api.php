@@ -19,9 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
+// Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });
 
@@ -410,6 +412,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::get('v1/warehouse/put-away/current/{status}/{filter?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetCurrent']);
     Route::get('v1/warehouse/put-away/key/get/{put_away_key}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onGetByPutAwayKey']);
     Route::post('v1/warehouse/put-away/complete-transaction/{put_away_reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onCompleteTransaction']);
+    Route::post('v1/warehouse/put-away/push/transmittal', [App\Http\Controllers\v1\WMS\Warehouse\WarehousePutAwayController::class, 'onPushToTransmittalBulk']);
     #endregion
 
     #region Warehouse For Put Away

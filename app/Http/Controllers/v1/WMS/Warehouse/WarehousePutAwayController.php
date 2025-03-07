@@ -251,9 +251,9 @@ class WarehousePutAwayController extends Controller
                 ->where([
                     'warehouse_receiving_reference_number' => $warehouseReceivingReferenceNumber,
                     'item_id' => $itemId
-                ]); 
-            if (strcasecmp($temporaryStorageId, 'Nan') != 0) { 
-                $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId); 
+                ]);
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0) {
+                $warehousePutAwayModel->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAwayModel = $warehousePutAwayModel->get();
             if (count($warehousePutAwayModel) <= 0) {
@@ -308,7 +308,7 @@ class WarehousePutAwayController extends Controller
                 $putAwayMergedItems['discrepancy_quantity'] += $discrepancyQuantity;
             }
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_found'), $putAwayMergedItems);
-        } catch (Exception $exception) {  
+        } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.record_not_found'));
         }
     }
@@ -383,7 +383,7 @@ class WarehousePutAwayController extends Controller
                 'item_id' => $itemId,
                 'status' => 0,
             ]);
-            if (strcasecmp($temporaryStorageId, 'Nan') != 0 ) {
+            if (strcasecmp($temporaryStorageId, 'Nan') != 0) {
                 $warehousePutAway->where('temporary_storage_id', $temporaryStorageId);
             }
             $warehousePutAway = $warehousePutAway->firstOrFail();
@@ -417,6 +417,60 @@ class WarehousePutAwayController extends Controller
     }
     #endregion
 
+    public function onPushToTransmittalBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'date_to_push' => 'required',
+        ]);
+        try {
+            $dateToPush = date('Y-m-d', strtotime($fields['date_to_push']));
+            $warehouseReceivingModel = DB::table('wms_warehouse_receiving as wr')
+                ->select(
+                    'wr.reference_number',
+                    'wr.item_code',
+                    'im.item_category_id',
+                    DB::raw('SUM(wr.quantity) AS for_receive_quantity'),
+                    DB::raw('SUM(wr.received_quantity) AS received_quantity'),
+                    DB::raw('SUM(JSON_LENGTH(wr.discrepancy_data)) AS discrepancy_data'),
+                    DB::raw('MAX(wr.created_at) AS created_at'),
+                    DB::raw('MAX(wr.completed_at) AS completed_at')
+                )
+                ->leftJoin('wms_item_masterdata as im', 'wr.item_code', '=', 'im.item_code')
+                ->whereDate('wr.completed_at', $dateToPush)
+                ->groupBy('wr.reference_number', 'wr.item_code')
+                ->get();
+
+            if (count($warehouseReceivingModel) > 0) {
+                $data = [
+                    'transmittal_code' => $warehouseReceivingModel[0]->reference_number,
+                    'transmittal_date' => $warehouseReceivingModel[0]->created_at,
+                    'dispatch_cakes' => [],
+                    'dispatch_breads' => []
+                ];
+
+                foreach ($warehouseReceivingModel as $warehouseReceiving) {
+                    if ($warehouseReceiving->item_category_id == 1) {
+                        $data['dispatch_breads'][] = $warehouseReceiving;
+                    } else {
+                        $data['dispatch_cakes'][] = $warehouseReceiving;
+                    }
+                }
+
+                $token = request()->bearerToken();
+                $bulkTransmittalResponse = \Http::timeout(30)->post(env('MGIOS_URL') . '/bulk-transmittal', [
+                    'created_by_id' => $fields['created_by_id'],
+                    'bulk_data' => json_encode($data),
+                ]);
+                if ($bulkTransmittalResponse->status() == 200) {
+                    return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_success'));
+                }
+            }
+            return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_failed'), $bulkTransmittalResponse->json());
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
     #region Old version
     public function onSubStandard(Request $request, $warehouse_put_away_id)
     {

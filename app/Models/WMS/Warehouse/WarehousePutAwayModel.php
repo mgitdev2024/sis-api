@@ -24,7 +24,7 @@ class WarehousePutAwayModel extends Model
         'substandard_quantity',
         'remaining_quantity',
         'temporary_storage_id',
-        'status',
+        'status', // 0 = pending, 1 = complete
     ];
     public static function onGenerateWarehousePutAwayReferenceNumber($warehouseReceivingReferenceNumber)
     {
