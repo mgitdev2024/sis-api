@@ -590,10 +590,10 @@ class WarehouseReceivingController extends Controller
                     DB::commit();
                     return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_success'));
                 }
-                return $this->dataResponse('success', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $bulkTransmittalResponse->json());
+                return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $bulkTransmittalResponse->json());
 
             }
-            return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.record_not_found'));
+            return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.record_not_found'));
 
         } catch (Exception $exception) {
             DB::rollBack();
