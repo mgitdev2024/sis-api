@@ -572,12 +572,13 @@ class WarehouseReceivingController extends Controller
                 }
 
                 $token = request()->bearerToken();
-                $bulkTransmittalResponse = \Http::timeout(30)->post(env('MGIOS_URL') . '/bulk-transmittal', [
+                $bulkTransmittalResponse = \Http::timeout(60)->post(env('MGIOS_URL') . '/bulk-transmittal', [
                     'bulk_data' => json_encode($data),
                 ]);
                 if ($bulkTransmittalResponse->status() == 200) {
                     foreach (array_keys($data) as $referenceNumber) {
-                        $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumber)
+                        $referenceNumberDetail = explode('|', $referenceNumber)[0];
+                        $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumberDetail)
                             ->where('is_transmittal_pushed', 0)
                             ->get();
                         foreach ($warehouseReceiving as $warehouse) {
