@@ -54,6 +54,7 @@ class WarehouseBulkReceivingController extends Controller
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
                         'item_id' => $itemId,
+                        'item_status' => $producedItem['status'],
                         'sticker_no' => $stickerNumber,
                         'q' => $producedItem['q'],
                         'batch_code' => $producedItem['batch_code'],
