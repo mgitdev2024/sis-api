@@ -573,7 +573,6 @@ class WarehouseReceivingController extends Controller
 
                 $token = request()->bearerToken();
                 $bulkTransmittalResponse = \Http::timeout(30)->post(env('MGIOS_URL') . '/bulk-transmittal', [
-                    'created_by_id' => $fields['created_by_id'],
                     'bulk_data' => json_encode($data),
                 ]);
                 if ($bulkTransmittalResponse->status() == 200) {
@@ -583,6 +582,7 @@ class WarehouseReceivingController extends Controller
                             ->get();
                         foreach ($warehouseReceiving as $warehouse) {
                             $warehouse->is_transmittal_pushed = 1;
+                            $warehouse->transmittal_pushed_by = $fields['created_by_id'];
                             $warehouse->save();
                         }
                     }
@@ -596,7 +596,6 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollBack();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
         }
     }

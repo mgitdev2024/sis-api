@@ -12,6 +12,8 @@ return new class extends Migration {
     {
         Schema::table('wms_warehouse_receiving', function (Blueprint $table) {
             $table->tinyInteger('is_transmittal_pushed')->default(0);
+            $table->string('transmittal_pushed_by')->nullable();
+
         });
     }
 
@@ -22,6 +24,8 @@ return new class extends Migration {
     {
         Schema::table('wms_warehouse_receiving', function (Blueprint $table) {
             $table->dropColumn('is_transmittal_pushed');
+            $table->dropColumn('transmittal_pushed_by');
+
         });
     }
 };
