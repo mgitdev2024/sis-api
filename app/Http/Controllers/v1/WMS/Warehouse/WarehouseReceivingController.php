@@ -27,6 +27,7 @@ class WarehouseReceivingController extends Controller
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
+                'is_transmittal_pushed',
                 DB::raw('MAX(created_at) as latest_created_at'),
                 DB::raw('MAX(completed_at) as latest_completed_at'),
                 DB::raw('count(*) as batch_count'),
@@ -49,7 +50,8 @@ class WarehouseReceivingController extends Controller
 
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
                 'reference_number',
-                'temporary_storage_id'
+                'temporary_storage_id',
+                'is_transmittal_pushed',
             ])
                 ->orderBy('latest_created_at', 'DESC')
                 ->get();
@@ -84,7 +86,6 @@ class WarehouseReceivingController extends Controller
             $warehouseReceivingAdd = WarehouseReceivingModel::select(
                 'reference_number',
                 'item_code',
-                'is_transmittal_pushed',
                 DB::raw('SUM(substandard_quantity) as substandard_quantity'),
                 DB::raw('SUM(received_quantity) as received_quantity'),
                 DB::raw('SUM(JSON_LENGTH(produced_items)) as produced_items_count'),
@@ -96,7 +97,6 @@ class WarehouseReceivingController extends Controller
                 ->groupBy([
                     'item_code',
                     'reference_number',
-                    'is_transmittal_pushed'
                 ]);
             if ($received_status == 1) {
                 $warehouseReceivingAdd->havingRaw('SUM(received_quantity) + SUM(substandard_quantity) <> SUM(JSON_LENGTH(produced_items))');
