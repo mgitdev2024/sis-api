@@ -62,6 +62,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
+                    'is_transmittal_pushed' => $value->is_transmittal_pushed,
                     'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_created_at)) ?? null,
                     'completed_at_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_completed_at)) ?? null,
                     'batch_count' => $value->batch_count,
