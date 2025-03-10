@@ -23,6 +23,7 @@ class WarehouseBulkPutAwayController extends Controller
             $items = $this->onGetQueuedItems($sub_location_id, false);
             $combinedItems = array_merge(...$items);
             $data = [];
+            $currentItemStatus = null;
             foreach ($combinedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
@@ -32,6 +33,7 @@ class WarehouseBulkPutAwayController extends Controller
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
 
+                $currentItemStatus = $producedItem['status'];
                 if ($producedItem['status'] != $status || $storageStorageTypeId != $storageType) {
                     $isMatch = false;
                     break;
@@ -70,7 +72,7 @@ class WarehouseBulkPutAwayController extends Controller
                 $data[$warehousePutAwayKey]['production_items'][$itemCode]['item_status'] = $producedItem['status'];
                 $data[$warehousePutAwayKey]['total_item_count']++;
             }
-
+            $data['current_item_status'] = $currentItemStatus;
             if (!$isMatch) {
                 $message = [
                     'error_type' => 'storage_type_not_matched',

@@ -26,6 +26,7 @@ class WarehouseBulkReceivingController extends Controller
             $items = $this->onGetQueuedItems($sub_location_id, false);
             $combinedItems = array_merge(...$items);
             $data = [];
+            $currentItemStatus = null;
             foreach ($combinedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
@@ -33,6 +34,8 @@ class WarehouseBulkReceivingController extends Controller
                 $itemId = $productionOrderToMake->itemMasterdata->id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
+                $currentItemStatus = $producedItem['status'];
+
                 if ($producedItem['status'] == $status) {
                     $subLocationId = $producedItem['sub_location']['sub_location_id'];
                     $warehouseReceivingModel = WarehouseReceivingModel::select([
@@ -50,7 +53,7 @@ class WarehouseBulkReceivingController extends Controller
                             'item_code'
                         ])
                         ->first();
-                    $data[] = [
+                    $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
                         'item_id' => $itemId,
@@ -71,6 +74,7 @@ class WarehouseBulkReceivingController extends Controller
                     ];
                 }
             }
+            $data['current_item_status'] = $currentItemStatus;  
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
