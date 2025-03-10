@@ -69,10 +69,9 @@ class WarehouseBulkPutAwayController extends Controller
                     $data[$warehousePutAwayKey]['production_items'][$itemCode] = [];
                 }
                 $data[$warehousePutAwayKey]['production_items'][$itemCode][] = $itemDetails;
-                $data[$warehousePutAwayKey]['production_items'][$itemCode]['item_status'] = $producedItem['status'];
+                $data[$warehousePutAwayKey]['current_item_status'] = $producedItem['status'];
                 $data[$warehousePutAwayKey]['total_item_count']++;
             }
-            $data['current_item_status'] = $currentItemStatus;
             if (!$isMatch) {
                 $message = [
                     'error_type' => 'storage_type_not_matched',
