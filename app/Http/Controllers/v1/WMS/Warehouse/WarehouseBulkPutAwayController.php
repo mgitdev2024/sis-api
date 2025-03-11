@@ -34,9 +34,12 @@ class WarehouseBulkPutAwayController extends Controller
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
 
                 $currentItemStatus = $producedItem['status'];
-                if ($producedItem['status'] != $status || $storageStorageTypeId != $storageType) {
+                if ($storageStorageTypeId != $storageType) {
                     $isMatch = false;
                     break;
+                }
+                if ($producedItem['status'] != $status) {
+                    continue;
                 }
                 $warehouseReceivingReferenceNumber = $producedItem['warehouse']['warehouse_receiving']['reference_number'];
                 $warehousePutAwayModel = WarehousePutAwayModel::where([
@@ -69,16 +72,20 @@ class WarehouseBulkPutAwayController extends Controller
                     $data[$warehousePutAwayKey]['production_items'][$itemCode] = [];
                 }
                 $data[$warehousePutAwayKey]['production_items'][$itemCode][] = $itemDetails;
-                $data[$warehousePutAwayKey]['current_item_status'] = $producedItem['status'];
                 $data[$warehousePutAwayKey]['total_item_count']++;
             }
+            $data['current_item_status'] = [
+                'status' => $producedItem['status']
+            ];
+
             if (!$isMatch) {
                 $message = [
                     'error_type' => 'storage_type_not_matched',
                     'message' => 'Items in this storage do not match the required type'
                 ];
+                $data['current_item_status'] = $producedItem['status'];
                 $data['sub_location_error_message'] = $message;
-                return $this->dataResponse('error', 200, __('msg.record_not_found'), $data);
+                return $this->dataResponse('success', 200, __('msg.record_not_found'), $data);
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
