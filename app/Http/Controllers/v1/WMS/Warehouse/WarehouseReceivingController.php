@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
@@ -190,7 +191,6 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
@@ -598,6 +598,92 @@ class WarehouseReceivingController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onGetMetalLineBacktrack($type, $production_order_id = null)
+    {
+        try {
+            $today = new \DateTime('today');
+            $dayBeforeYesterday = new \DateTime('2 days ago');
+            $productionOrderModel = ProductionOrderModel::select('id')
+                ->whereBetween('production_date', [$dayBeforeYesterday->format('Y-m-d'), $today->format('Y-m-d')])
+                ->pluck('id');
+
+
+            $isViewableByOtb = ItemMasterdataModel::getViewableOtb(true);
+            $warehouseReceivingModel = WarehouseReceivingModel::query()
+                ->select([
+                    'production_order_id',
+                    'reference_number',
+                    'sku_type',
+                    DB::raw('SUM(quantity) as quantity'),
+                    DB::raw('SUM(received_quantity) as received_quantity'),
+                    DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                    DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count'),
+                    DB::raw('MAX(created_at) AS created_at'),
+                    'temporary_storage_id'
+                ]);
+            if (strcasecmp($type, 'otb') === 0) {
+                $warehouseReceivingModel->where(function ($query) use ($isViewableByOtb) {
+                    $query->where('sku_type', 'Breads')
+                        ->orWhereIn('item_code', $isViewableByOtb);
+                });
+            } else {
+                $warehouseReceivingModel->where(function ($query) use ($isViewableByOtb) {
+                    $query->where('sku_type', '!=', 'Breads')
+                        ->orWhereNotIn('item_code', $isViewableByOtb);
+                });
+            }
+            if ($production_order_id != null) {
+                $warehouseReceivingModel->where('production_order_id', $production_order_id);
+            } else {
+                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+            }
+            $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
+                'production_order_id',
+                'reference_number',
+                'sku_type',
+                'temporary_storage_id'
+            ])
+                ->get();
+
+            $data = [];
+            foreach ($warehouseReceivingModel as $warehouseReceiving) {
+                $productionOrderReferenceNumber = $warehouseReceiving->productionOrder->reference_number;
+                if (!isset($data[$productionOrderReferenceNumber])) {
+                    $data[$productionOrderReferenceNumber] = [];
+                }
+                $data[$productionOrderReferenceNumber][] = array_merge(
+                    $warehouseReceiving->toArray(),
+                    ['sub_location_code' => $warehouseReceiving->subLocation->code ?? 'N/A']
+                );
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+        }
+    }
+
+    public function onGetByReferenceNumber($reference_number)
+    {
+        try {
+            $warehouseReceivingModel = WarehouseReceivingModel::select([
+                'item_code',
+                'sku_type',
+                'quantity',
+                'received_quantity',
+                'substandard_quantity',
+                DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity'),
+            ])
+                ->where('reference_number', $reference_number)
+                ->get();
+            if (count($warehouseReceivingModel) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceivingModel);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
 }

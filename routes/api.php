@@ -395,7 +395,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
     Route::post('v1/warehouse/receive/push/transmittal', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onPushToTransmittalBulk']);
-
+    Route::get('v1/warehouse/receive/metal-line/backtrack/get/{type}/{production_order_id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetMetalLineBacktrack']);
+    Route::get('v1/warehouse/receive/reference-number/get/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetByReferenceNumber']);
     #endregion
 
     #region Warehouse Bulk Receiving
