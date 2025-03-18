@@ -656,6 +656,7 @@ class WarehouseReceivingController extends Controller
                 }
                 $data[$productionOrderReferenceNumber][] = array_merge(
                     $warehouseReceiving->toArray(),
+                    ['latest_created_at' => date('Y-m-d (h:i:A)', strtotime($warehouseReceiving->created_at)) ?? null],
                     ['sub_location_code' => $warehouseReceiving->subLocation->code ?? 'N/A']
                 );
             }
