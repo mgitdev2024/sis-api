@@ -579,7 +579,7 @@ class WarehouseReceivingController extends Controller
                     'wr.is_transmittal_pushed' => 0
                 ])
                 // ->whereDate('wr.completed_at', $dateToPush)
-                ->groupBy('wr.reference_number', 'wr.item_code')
+                ->groupBy('wr.reference_number', 'wr.item_code', 'im.item_category_id')
                 ->get();
 
             if (count($warehouseReceivingModel) > 0) {
