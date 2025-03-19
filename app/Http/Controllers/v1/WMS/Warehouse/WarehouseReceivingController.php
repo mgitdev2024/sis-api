@@ -181,6 +181,7 @@ class WarehouseReceivingController extends Controller
                 }
                 $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id'], $isBulk);
                 $this->onCreatePutAway($scannedItems, $referenceNumber, $fields['created_by_id']);
+                $this->onAutoCompleteTransaction($scannedItems, $referenceNumber, $fields['created_by_id']);
 
             } else {
                 $this->onCompleteTransaction($referenceNumber, $fields['created_by_id']);
@@ -195,6 +196,35 @@ class WarehouseReceivingController extends Controller
         }
     }
 
+    public function onAutoCompleteTransaction($scannedItems, $referenceNumber, $createdById)
+    {
+        try {
+            DB::beginTransaction();
+            $warehouseRecevingBatchId = [];
+
+            foreach ($scannedItems as $scannedItem) {
+                if (!in_array($scannedItem['bid'], $warehouseRecevingBatchId)) {
+                    $warehouseRecevingBatchId[] = $scannedItem['bid'];
+                }
+            }
+
+            foreach ($warehouseRecevingBatchId as $bid) {
+                $warehouseReceivingModel = WarehouseReceivingModel::where([
+                    'reference_number' => $referenceNumber,
+                    'production_batch_id' => $bid
+                ])->first();
+                if ($warehouseReceivingModel) {
+                    $warehouseReceivingModel->status = 1; // complete
+                    $warehouseReceivingModel->save();
+                    $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceivingModel->id, $warehouseReceivingModel->getAttributes(), $createdById, 1);
+                }
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw new Exception($exception->getMessage());
+        }
+    }
     public function onScanItems($scannedItems, $referenceNumber, $createdById, $isBulk)
     {
         try {

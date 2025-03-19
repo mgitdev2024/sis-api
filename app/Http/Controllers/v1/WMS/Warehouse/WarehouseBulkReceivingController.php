@@ -74,7 +74,7 @@ class WarehouseBulkReceivingController extends Controller
                     ];
                 }
             }
-            $data['current_item_status'] = $currentItemStatus;  
+            $data['current_item_status'] = $currentItemStatus;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
@@ -359,6 +359,7 @@ class WarehouseBulkReceivingController extends Controller
             'created_by_id' => 'required',
         ]);
         try {
+            DB::beginTransaction();
             $createdById = $fields['created_by_id'];
             $warehouseBulkReceiving = $this->onGetAll($createdById, true);
 
@@ -366,7 +367,15 @@ class WarehouseBulkReceivingController extends Controller
                 $explodeReferenceKey = explode('-', $warehouseReferenceKey);
                 $referenceNumber = $explodeReferenceKey[0];
 
-                foreach ($warehouseValues['production_batches'] as $productionBatches) {
+                foreach ($warehouseValues['production_batches'] as $productionBatchId => $productionBatches) {
+                    $warehouseReceivingModel = WarehouseReceivingModel::where([
+                        'reference_number' => $referenceNumber,
+                        'production_batch_id' => $productionBatchId,
+                    ])->first();
+                    if ($warehouseReceivingModel) {
+                        $warehouseReceivingModel->status = 1; // completed
+                        $warehouseReceivingModel->save();
+                    }
                     $warehouseReceivingController = new WarehouseReceivingController();
                     $createPutAwayRequest = new Request([
                         'created_by_id' => $createdById,
@@ -374,14 +383,14 @@ class WarehouseBulkReceivingController extends Controller
                         'bulk_data' => json_encode($productionBatches),
                     ]);
                     $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+                    DB::commit();
                 }
 
             }
             WarehouseBulkReceivingModel::where('created_by_id', $createdById)->delete();
-
             return $this->dataResponse('success', 201, __('msg.create_success'));
-
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }

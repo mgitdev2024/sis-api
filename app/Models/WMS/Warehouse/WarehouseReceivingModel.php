@@ -25,7 +25,7 @@ class WarehouseReceivingModel extends Model
         'received_quantity',
         'substandard_quantity' .
         'sku_type',
-        'status',
+        'status', // 0 = pending, 1 = completed
         'created_by_id',
         'updated_by_id',
     ];
