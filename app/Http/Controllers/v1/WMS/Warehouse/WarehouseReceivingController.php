@@ -215,6 +215,7 @@ class WarehouseReceivingController extends Controller
                 ])->first();
                 if ($warehouseReceivingModel) {
                     $warehouseReceivingModel->status = 1; // complete
+                    $warehouseReceivingModel->completed_at = now();
                     $warehouseReceivingModel->save();
                     $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceivingModel->id, $warehouseReceivingModel->getAttributes(), $createdById, 1);
                 }

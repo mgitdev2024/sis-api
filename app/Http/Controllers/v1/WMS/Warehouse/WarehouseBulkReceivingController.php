@@ -374,6 +374,7 @@ class WarehouseBulkReceivingController extends Controller
                     ])->first();
                     if ($warehouseReceivingModel) {
                         $warehouseReceivingModel->status = 1; // completed
+                        $warehouseReceivingModel->completed_at = now();
                         $warehouseReceivingModel->save();
                     }
                     $warehouseReceivingController = new WarehouseReceivingController();
