@@ -16,7 +16,7 @@ class ProductionOrderModel extends Model
         'production_date',
         'created_by_id',
         'updated_by_id',
-        'status',
+        'status', // 0 = Pending, 1 = Complete
     ];
 
 

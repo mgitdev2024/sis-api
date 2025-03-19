@@ -635,12 +635,9 @@ class WarehouseReceivingController extends Controller
     public function onGetMetalLineBacktrack($type, $production_order_id = null)
     {
         try {
-            $today = new \DateTime('today');
-            $dayBeforeYesterday = new \DateTime('2 days ago');
             $productionOrderModel = ProductionOrderModel::select('id')
-                ->whereBetween('production_date', [$dayBeforeYesterday->format('Y-m-d'), $today->format('Y-m-d')])
+                ->where('status', '0')
                 ->pluck('id');
-
 
             $isViewableByOtb = ItemMasterdataModel::getViewableOtb(true);
             $warehouseReceivingModel = WarehouseReceivingModel::query()
