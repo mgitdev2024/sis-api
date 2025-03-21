@@ -7,6 +7,7 @@ use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
+use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
 use App\Models\WMS\Storage\StockLogModel;
 use App\Models\WMS\Warehouse\WarehouseForPutAwayV2Model;
 use App\Models\WMS\Warehouse\WarehousePutAwayModel;
@@ -98,7 +99,7 @@ class WarehouseForPutAwayV2Controller extends Controller
             $warehouseForPutAway->warehouse_put_away_key = $fields['warehouse_put_away_key'];
             $warehouseForPutAway->warehouse_receiving_reference_number = $warehouseReceivingReferenceNumber;
             $warehouseForPutAway->item_id = $itemId;
-            $warehouseForPutAway->temporary_storage_id = $temporaryStorageId == 'Nan'? null : $temporaryStorageId;
+            $warehouseForPutAway->temporary_storage_id = $temporaryStorageId == 'Nan' ? null : $temporaryStorageId;
             $warehouseForPutAway->sub_location_id = $fields['sub_location_id'];
             $warehouseForPutAway->layer_level = $fields['layer_level'];
             $warehouseForPutAway->created_by_id = $fields['created_by_id'];
@@ -106,7 +107,7 @@ class WarehouseForPutAwayV2Controller extends Controller
             DB::commit();
             return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.create_success'));
         } catch (Exception $exception) {
-            DB::rollback(); 
+            DB::rollback();
             return $this->dataResponse('error', 400, 'Warehouse For Put Away ' . __('msg.create_failed'));
         }
     }
@@ -140,7 +141,7 @@ class WarehouseForPutAwayV2Controller extends Controller
                 case 1:
                     $scannedItems = json_decode($fields['production_items'], true);
 
-                    if ($fields['is_storage_full'] == 1) {
+                    if (isset($fields['is_storage_full']) && $fields['is_storage_full'] == 1) {
                         foreach ($scannedItems as $items) {
                             $this->onUpdateItemStatus($items, 3.1, 3);
                         }
@@ -169,6 +170,10 @@ class WarehouseForPutAwayV2Controller extends Controller
             if ($warehouseForPutAway) {
                 $isStored = $warehouseForPutAway->status == 0; // 0 = stored, 1 = on going
                 if ($isStored) {
+                    if ($warehouseForPutAway->temporary_storage_id != null) {
+                        QueuedTemporaryStorageModel::where('sub_location_id', $warehouseForPutAway->temporary_storage_id)->delete();
+                    }
+
                     $warehouseForPutAway->delete();
                 } else {
                     $productionItems = json_decode($warehouseForPutAway->production_items, true);
