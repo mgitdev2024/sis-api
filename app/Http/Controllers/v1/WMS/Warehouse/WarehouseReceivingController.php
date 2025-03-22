@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\v1\QualityAssurance\SubStandardItemController;
 use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\MOS\Production\ProductionItemModel;
+use App\Models\MOS\Production\ProductionOrderModel;
 use App\Models\WMS\Settings\ItemMasterData\ItemMasterdataModel;
 use App\Models\WMS\Settings\StorageMasterData\SubLocationModel;
 use App\Models\WMS\Storage\QueuedTemporaryStorageModel;
@@ -27,6 +28,7 @@ class WarehouseReceivingController extends Controller
             $warehouseReceivingModel = WarehouseReceivingModel::select(
                 'reference_number',
                 'temporary_storage_id',
+                'is_transmittal_pushed',
                 DB::raw('MAX(created_at) as latest_created_at'),
                 DB::raw('MAX(completed_at) as latest_completed_at'),
                 DB::raw('count(*) as batch_count'),
@@ -49,7 +51,8 @@ class WarehouseReceivingController extends Controller
 
             $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
                 'reference_number',
-                'temporary_storage_id'
+                'temporary_storage_id',
+                'is_transmittal_pushed',
             ])
                 ->orderBy('latest_created_at', 'DESC')
                 ->get();
@@ -60,6 +63,7 @@ class WarehouseReceivingController extends Controller
                 $warehouseReceiving[$counter] = [
                     'reference_number' => $value->reference_number,
                     'temporary_storage' => SubLocationModel::find($value->temporary_storage_id)->code ?? 'N/A',
+                    'is_transmittal_pushed' => $value->is_transmittal_pushed,
                     'transaction_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_created_at)) ?? null,
                     'completed_at_date' => date('Y-m-d (h:i:A)', strtotime($value->latest_completed_at)) ?? null,
                     'batch_count' => $value->batch_count,
@@ -94,7 +98,7 @@ class WarehouseReceivingController extends Controller
                 ->where('reference_number', $referenceNumber)
                 ->groupBy([
                     'item_code',
-                    'reference_number'
+                    'reference_number',
                 ]);
             if ($received_status == 1) {
                 $warehouseReceivingAdd->havingRaw('SUM(received_quantity) + SUM(substandard_quantity) <> SUM(JSON_LENGTH(produced_items))');
@@ -177,6 +181,7 @@ class WarehouseReceivingController extends Controller
                 }
                 $this->onScanItems($scannedItems, $referenceNumber, $fields['created_by_id'], $isBulk);
                 $this->onCreatePutAway($scannedItems, $referenceNumber, $fields['created_by_id']);
+                $this->onAutoCompleteTransaction($scannedItems, $referenceNumber, $fields['created_by_id']);
 
             } else {
                 $this->onCompleteTransaction($referenceNumber, $fields['created_by_id']);
@@ -187,11 +192,40 @@ class WarehouseReceivingController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }
     }
 
+    public function onAutoCompleteTransaction($scannedItems, $referenceNumber, $createdById)
+    {
+        try {
+            DB::beginTransaction();
+            $warehouseRecevingBatchId = [];
+
+            foreach ($scannedItems as $scannedItem) {
+                if (!in_array($scannedItem['bid'], $warehouseRecevingBatchId)) {
+                    $warehouseRecevingBatchId[] = $scannedItem['bid'];
+                }
+            }
+
+            foreach ($warehouseRecevingBatchId as $bid) {
+                $warehouseReceivingModel = WarehouseReceivingModel::where([
+                    'reference_number' => $referenceNumber,
+                    'production_batch_id' => $bid
+                ])->first();
+                if ($warehouseReceivingModel) {
+                    $warehouseReceivingModel->status = 1; // complete
+                    $warehouseReceivingModel->completed_at = now();
+                    $warehouseReceivingModel->save();
+                    $this->createWarehouseLog(null, null, WarehouseReceivingModel::class, $warehouseReceivingModel->id, $warehouseReceivingModel->getAttributes(), $createdById, 1);
+                }
+            }
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollBack();
+            throw new Exception($exception->getMessage());
+        }
+    }
     public function onScanItems($scannedItems, $referenceNumber, $createdById, $isBulk)
     {
         try {
@@ -514,6 +548,169 @@ class WarehouseReceivingController extends Controller
             }
 
             return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+        }
+    }
+
+    public function onPushToTransmittalBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            // 'date_to_push' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            // $dateToPush = date('Y-m-d', strtotime($fields['date_to_push']));
+            $warehouseReceivingModel = DB::table('wms_warehouse_receiving as wr')
+                ->select(
+                    'wr.reference_number',
+                    'wr.item_code',
+                    'im.item_category_id',
+                    DB::raw('SUM(wr.quantity) AS for_receive_quantity'),
+                    DB::raw('SUM(wr.received_quantity) AS received_quantity'),
+                    DB::raw('SUM(JSON_LENGTH(wr.discrepancy_data)) AS discrepancy_data'),
+                    DB::raw('MAX(wr.created_at) AS created_at'),
+                    DB::raw('MAX(wr.completed_at) AS completed_at')
+                )
+                ->leftJoin('wms_item_masterdata as im', 'wr.item_code', '=', 'im.item_code')
+                ->where([
+                    'wr.status' => 1,
+                    'wr.is_transmittal_pushed' => 0
+                ])
+                // ->whereDate('wr.completed_at', $dateToPush)
+                ->groupBy('wr.reference_number', 'wr.item_code', 'im.item_category_id')
+                ->get();
+
+            if (count($warehouseReceivingModel) > 0) {
+                $data = [];
+
+                foreach ($warehouseReceivingModel as $warehouseReceiving) {
+                    $referenceNumber = $warehouseReceiving->reference_number;
+                    $completedAt = $warehouseReceiving->completed_at;
+
+                    if (!isset($data["$referenceNumber|$completedAt"])) {
+                        $data["$referenceNumber|$completedAt"] = [
+                            'dispatch_breads' => [],
+                            'dispatch_cakes' => [],
+                        ];
+                    }
+                    if ($warehouseReceiving->item_category_id == 1) {
+                        $data["$referenceNumber|$completedAt"]['dispatch_breads'][] = $warehouseReceiving;
+                    } else {
+                        $data["$referenceNumber|$completedAt"]['dispatch_cakes'][] = $warehouseReceiving;
+                    }
+                }
+
+                $token = request()->bearerToken();
+                $bulkTransmittalResponse = \Http::timeout(60)->post(env('MGIOS_URL') . '/bulk-transmittal', [
+                    'bulk_data' => json_encode($data),
+                ]);
+                if ($bulkTransmittalResponse->status() == 200) {
+                    foreach (array_keys($data) as $referenceNumber) {
+                        $referenceNumberDetail = explode('|', $referenceNumber)[0];
+                        $warehouseReceiving = WarehouseReceivingModel::where('reference_number', $referenceNumberDetail)
+                            ->where('is_transmittal_pushed', 0)
+                            ->get();
+                        foreach ($warehouseReceiving as $warehouse) {
+                            $warehouse->is_transmittal_pushed = 1;
+                            $warehouse->transmittal_pushed_by = $fields['created_by_id'];
+                            $warehouse->save();
+                        }
+                    }
+                    DB::commit();
+                    return $this->dataResponse('success', 200, 'Warehouse Put Away ' . __('msg.update_success'));
+                }
+                return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $bulkTransmittalResponse->json());
+
+            }
+            return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.record_not_found'));
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Warehouse Put Away ' . __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onGetMetalLineBacktrack($type, $production_order_id = null)
+    {
+        try {
+            $productionOrderModel = ProductionOrderModel::select('id')
+                ->where('status', '0')
+                ->pluck('id');
+
+            $isViewableByOtb = ItemMasterdataModel::getViewableOtb(true);
+            $warehouseReceivingModel = WarehouseReceivingModel::query()
+                ->select([
+                    'production_order_id',
+                    'reference_number',
+                    'sku_type',
+                    DB::raw('SUM(quantity) as quantity'),
+                    DB::raw('SUM(received_quantity) as received_quantity'),
+                    DB::raw('SUM(substandard_quantity) as substandard_quantity'),
+                    DB::raw('SUM(JSON_LENGTH(discrepancy_data)) as discrepancy_data_count'),
+                    DB::raw('MAX(created_at) AS created_at'),
+                    'temporary_storage_id'
+                ]);
+            if (strcasecmp($type, 'otb') === 0) {
+                $warehouseReceivingModel->where(function ($query) use ($isViewableByOtb) {
+                    $query->where('sku_type', 'Breads')
+                        ->orWhereIn('item_code', $isViewableByOtb);
+                });
+            } else {
+                $warehouseReceivingModel->where(function ($query) use ($isViewableByOtb) {
+                    $query->where('sku_type', '!=', 'Breads')
+                        ->orWhereNotIn('item_code', $isViewableByOtb);
+                });
+            }
+            if ($production_order_id != null) {
+                $warehouseReceivingModel->where('production_order_id', $production_order_id);
+            } else {
+                $warehouseReceivingModel->whereIn('production_order_id', $productionOrderModel);
+            }
+            $warehouseReceivingModel = $warehouseReceivingModel->groupBy([
+                'production_order_id',
+                'reference_number',
+                'sku_type',
+                'temporary_storage_id'
+            ])
+                ->get();
+
+            $data = [];
+            foreach ($warehouseReceivingModel as $warehouseReceiving) {
+                $productionOrderReferenceNumber = $warehouseReceiving->productionOrder->reference_number;
+                if (!isset($data[$productionOrderReferenceNumber])) {
+                    $data[$productionOrderReferenceNumber] = [];
+                }
+                $data[$productionOrderReferenceNumber][] = array_merge(
+                    $warehouseReceiving->toArray(),
+                    ['latest_created_at' => date('Y-m-d (h:i:A)', strtotime($warehouseReceiving->created_at)) ?? null],
+                    ['sub_location_code' => $warehouseReceiving->subLocation->code ?? 'N/A']
+                );
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
+        }
+    }
+
+    public function onGetByReferenceNumber($reference_number)
+    {
+        try {
+            $warehouseReceivingModel = WarehouseReceivingModel::select([
+                'item_code',
+                'sku_type',
+                'quantity',
+                'received_quantity',
+                'substandard_quantity',
+                DB::raw('JSON_LENGTH(discrepancy_data) as discrepancy_quantity'),
+            ])
+                ->where('reference_number', $reference_number)
+                ->get();
+            if (count($warehouseReceivingModel) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $warehouseReceivingModel);
+            }
+            return $this->dataResponse('success', 200, __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'Warehouse Receiving ' . $exception->getMessage());
         }

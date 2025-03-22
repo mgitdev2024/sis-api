@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ResponseTrait;
 use DB;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class CredentialController extends Controller
 {
@@ -65,4 +66,34 @@ class CredentialController extends Controller
         }
     }
 
+    public function onCheckToken()
+    {
+        try {
+
+            // if ($instance = PersonalAccessToken::find($id)) {
+            //     $checkToken = hash_equals($instance->token, hash('sha256', $token)) ? $instance : null;
+            // }
+
+            // $data = [
+            //     'status' => false,
+            //     'message' => 'Token is invalid'
+            // ];
+            // $checkToken = PersonalAccessToken::findToken($token);
+            // if ($checkToken && $checkToken->tokenable) {
+            //     $data['status'] = true;
+            //     $data['message'] = 'Token is valid';
+            //     return response()->json($data);
+            // } else {
+            //     return response()->json($data, 401);
+            // }
+            return response()->json('success');
+        } catch (Exception $exception) {
+            \Log::info($exception);
+            $data = [
+                'status' => false,
+                'message' => 'Token is invalid'
+            ];
+            return response()->json($data, 401);
+        }
+    }
 }

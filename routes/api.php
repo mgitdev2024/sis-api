@@ -19,9 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
+// Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 });
 
@@ -392,6 +394,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-WMS']], 
     Route::post('v1/warehouse/receive/update/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onUpdate']);
     Route::post('v1/warehouse/receive/complete-transaction/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onCompleteTransactionMVP']);
     Route::post('v1/warehouse/receive/sub-standard/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onSubStandard']);
+    Route::post('v1/warehouse/receive/push/transmittal', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onPushToTransmittalBulk']);
+    Route::get('v1/warehouse/receive/metal-line/backtrack/get/{type}/{production_order_id?}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetMetalLineBacktrack']);
+    Route::get('v1/warehouse/receive/reference-number/get/{reference_number}', [App\Http\Controllers\v1\WMS\Warehouse\WarehouseReceivingController::class, 'onGetByReferenceNumber']);
     #endregion
 
     #region Warehouse Bulk Receiving

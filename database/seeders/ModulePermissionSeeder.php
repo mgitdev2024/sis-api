@@ -111,11 +111,11 @@ class ModulePermissionSeeder extends Seeder
                 'name' => 'Item Master Data',
                 'code' => 'SCM-ITM-MTD',
                 'description' => 'Module for Item Master Data.',
-                'is_enabled' => ["0000", 5182, 5358, 6208, 6233],
-                'allow_view' => ["0000", 5182, 5358, 6208, 6233],
-                'allow_create' => ["0000", 5182, 5358, 6208, 6233],
-                'allow_update' => ["0000", 5182, 5358, 6208, 6233],
-                'allow_delete' => ["0000", 5182, 5358, 6208, 6233],
+                'is_enabled' => ["0000", 5182, 5358, 6208, 6233, 4902],
+                'allow_view' => ["0000", 5182, 5358, 6208, 6233, 4902],
+                'allow_create' => ["0000", 5182, 5358, 6208, 6233, 4902],
+                'allow_update' => ["0000", 5182, 5358, 6208, 6233, 4902],
+                'allow_delete' => ["0000", 5182, 5358, 6208, 6233, 4902],
             ],
         ];
 

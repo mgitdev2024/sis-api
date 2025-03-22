@@ -19,12 +19,13 @@ class WarehouseReceivingModel extends Model
         'production_batch_id',
         'batch_number',
         'item_code',
+        'temporary_storage_id',
         'produced_items',
         'quantity',
         'received_quantity',
         'substandard_quantity' .
         'sku_type',
-        'status',
+        'status', // 0 = pending, 1 = completed
         'created_by_id',
         'updated_by_id',
     ];
@@ -39,7 +40,7 @@ class WarehouseReceivingModel extends Model
     }
     public function subLocation()
     {
-        return $this->belongsTo(SubLocationModel::class);
+        return $this->belongsTo(SubLocationModel::class, 'temporary_storage_id', 'id');
     }
 
     public static function onGenerateWarehouseReceiveReferenceNumber()

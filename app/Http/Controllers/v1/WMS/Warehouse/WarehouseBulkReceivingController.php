@@ -26,6 +26,7 @@ class WarehouseBulkReceivingController extends Controller
             $items = $this->onGetQueuedItems($sub_location_id, false);
             $combinedItems = array_merge(...$items);
             $data = [];
+            $currentItemStatus = null;
             foreach ($combinedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
@@ -33,6 +34,8 @@ class WarehouseBulkReceivingController extends Controller
                 $itemId = $productionOrderToMake->itemMasterdata->id;
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
+                $currentItemStatus = $producedItem['status'];
+
                 if ($producedItem['status'] == $status) {
                     $subLocationId = $producedItem['sub_location']['sub_location_id'];
                     $warehouseReceivingModel = WarehouseReceivingModel::select([
@@ -50,10 +53,11 @@ class WarehouseBulkReceivingController extends Controller
                             'item_code'
                         ])
                         ->first();
-                    $data[] = [
+                    $data['production_items'][] = [
                         'bid' => $itemDetails['bid'],
                         'item_code' => $itemCode,
                         'item_id' => $itemId,
+                        'item_status' => $producedItem['status'],
                         'sticker_no' => $stickerNumber,
                         'q' => $producedItem['q'],
                         'batch_code' => $producedItem['batch_code'],
@@ -70,6 +74,7 @@ class WarehouseBulkReceivingController extends Controller
                     ];
                 }
             }
+            $data['current_item_status'] = $currentItemStatus;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
@@ -354,6 +359,7 @@ class WarehouseBulkReceivingController extends Controller
             'created_by_id' => 'required',
         ]);
         try {
+            DB::beginTransaction();
             $createdById = $fields['created_by_id'];
             $warehouseBulkReceiving = $this->onGetAll($createdById, true);
 
@@ -361,7 +367,16 @@ class WarehouseBulkReceivingController extends Controller
                 $explodeReferenceKey = explode('-', $warehouseReferenceKey);
                 $referenceNumber = $explodeReferenceKey[0];
 
-                foreach ($warehouseValues['production_batches'] as $productionBatches) {
+                foreach ($warehouseValues['production_batches'] as $productionBatchId => $productionBatches) {
+                    $warehouseReceivingModel = WarehouseReceivingModel::where([
+                        'reference_number' => $referenceNumber,
+                        'production_batch_id' => $productionBatchId,
+                    ])->first();
+                    if ($warehouseReceivingModel) {
+                        $warehouseReceivingModel->status = 1; // completed
+                        $warehouseReceivingModel->completed_at = now();
+                        $warehouseReceivingModel->save();
+                    }
                     $warehouseReceivingController = new WarehouseReceivingController();
                     $createPutAwayRequest = new Request([
                         'created_by_id' => $createdById,
@@ -369,14 +384,14 @@ class WarehouseBulkReceivingController extends Controller
                         'bulk_data' => json_encode($productionBatches),
                     ]);
                     $warehouseReceivingController->onUpdate($createPutAwayRequest, $referenceNumber);
+                    DB::commit();
                 }
 
             }
             WarehouseBulkReceivingModel::where('created_by_id', $createdById)->delete();
-
             return $this->dataResponse('success', 201, __('msg.create_success'));
-
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.create_failed'));
         }
     }

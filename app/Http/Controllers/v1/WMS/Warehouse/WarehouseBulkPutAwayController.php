@@ -23,6 +23,7 @@ class WarehouseBulkPutAwayController extends Controller
             $items = $this->onGetQueuedItems($sub_location_id, false);
             $combinedItems = array_merge(...$items);
             $data = [];
+            $currentItemStatus = null;
             foreach ($combinedItems as $itemDetails) {
                 $productionBatch = ProductionBatchModel::find($itemDetails['bid']);
                 $productionOrderToMake = $productionBatch->productionOtb ?? $productionBatch->productionOta;
@@ -32,9 +33,13 @@ class WarehouseBulkPutAwayController extends Controller
                 $stickerNumber = $itemDetails['sticker_no'];
                 $producedItem = json_decode($productionBatch->productionItems->produced_items, true)[$stickerNumber];
 
-                if ($producedItem['status'] != $status || $storageStorageTypeId != $storageType) {
+                $currentItemStatus = $producedItem['status'];
+                if ($storageStorageTypeId != $storageType) {
                     $isMatch = false;
                     break;
+                }
+                if ($producedItem['status'] != $status) {
+                    continue;
                 }
                 $warehouseReceivingReferenceNumber = $producedItem['warehouse']['warehouse_receiving']['reference_number'];
                 $warehousePutAwayModel = WarehousePutAwayModel::where([
@@ -69,14 +74,18 @@ class WarehouseBulkPutAwayController extends Controller
                 $data[$warehousePutAwayKey]['production_items'][$itemCode][] = $itemDetails;
                 $data[$warehousePutAwayKey]['total_item_count']++;
             }
+            $data['current_item_status'] = [
+                'status' => $producedItem['status']
+            ];
 
             if (!$isMatch) {
                 $message = [
                     'error_type' => 'storage_type_not_matched',
                     'message' => 'Items in this storage do not match the required type'
                 ];
+                $data['current_item_status'] = $producedItem['status'];
                 $data['sub_location_error_message'] = $message;
-                return $this->dataResponse('error', 200, __('msg.record_not_found'), $data);
+                return $this->dataResponse('success', 200, __('msg.record_not_found'), $data);
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
