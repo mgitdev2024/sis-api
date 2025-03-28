@@ -5,10 +5,10 @@ namespace App\Models\Admin\System;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ScmSystemModel extends Model
+class AdminSystemModel extends Model
 {
     use HasFactory;
-    protected $table = 'scm_systems';
+    protected $table = 'admin_systems';
     protected $fillable = [
         'name',
         'code',

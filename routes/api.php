@@ -17,16 +17,16 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
-
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 // Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
+
+
+Route::post('v1/store/receive-inventory', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
     Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
-});
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/run-migrations', function () {
         // Artisan::call('migrate', ["--force" => true]);
         Artisan::call('migrate', ["--force" => true]);
@@ -56,10 +56,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #region System Status
     Route::post('v1/system/admin/status/change/{system_id}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onChangeStatus']);
     Route::get('v1/system/admin/get/{system_id?}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onGet']);
-
     #endregion
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SCM-MOS']], function () {
-
+Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
+    Route::get('v1/store/receive-inventory/current/get/{status}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
 });

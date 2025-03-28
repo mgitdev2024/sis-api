@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Admin\System\ScmSystemModel;
+use App\Models\Admin\System\AdminSystemModel;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +16,7 @@ class CheckSystemStatus
      */
     public function handle(Request $request, Closure $next, $systemName): Response
     {
-        $system = ScmSystemModel::where('code', $systemName)->first();
+        $system = AdminSystemModel::where('code', $systemName)->first();
 
         if ($system && in_array($system->status, [2, 3])) {
             $statusMessage = [

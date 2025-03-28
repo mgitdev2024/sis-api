@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ResponseTrait;
 use DB;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class CredentialController extends Controller
 {

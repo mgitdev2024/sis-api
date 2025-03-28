@@ -2,7 +2,7 @@
 
 namespace App\Models\Access;
 
-use App\Models\Admin\System\ScmSystemModel;
+use App\Models\Admin\System\AdminSystemModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,7 +28,7 @@ class ModulePermissionModel extends Model
 
     public function scmSystem()
     {
-        return $this->belongsTo(ScmSystemModel::class);
+        return $this->belongsTo(AdminSystemModel::class);
     }
 
     public function subModulePermissions()

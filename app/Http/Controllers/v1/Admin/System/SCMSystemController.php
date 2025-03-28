@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\v1\Admin\System;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\System\ScmSystemModel;
+use App\Models\Admin\System\AdminSystemModel;
 use App\Traits\Admin\AdminTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
@@ -19,14 +19,14 @@ class SCMSystemController extends Controller
             'status' => 'required|integer|in:1,2,3',
         ]);
         try {
-            $system = ScmSystemModel::find($system_id);
+            $system = AdminSystemModel::find($system_id);
             if (!$system) {
                 return $this->dataResponse('error', 200, __('msg.record_not_found'));
             }
             $system->status = $fields['status'];
             $system->updated_by_id = $fields['created_by_id'];
             $system->save();
-            $this->onCreateAdminLogs($system_id, ScmSystemModel::class, $system->getAttributes(), 1, $fields['created_by_id']);
+            $this->onCreateAdminLogs($system_id, AdminSystemModel::class, $system->getAttributes(), 1, $fields['created_by_id']);
             return $this->dataResponse('success', 200, __('msg.update_success'), $system);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.update_failed'));
@@ -37,9 +37,9 @@ class SCMSystemController extends Controller
     {
         $systems = null;
         if ($system_id) {
-            $systems = ScmSystemModel::find($system_id);
+            $systems = AdminSystemModel::find($system_id);
         } else {
-            $systems = ScmSystemModel::all();
+            $systems = AdminSystemModel::all();
         }
 
         return $this->dataResponse('success', 200, __('msg.record_found'), $systems);
