@@ -35,37 +35,7 @@ class DatabaseSeeder extends Seeder
     {
         #region Admin Seeder
         $this->call([
-            AssetListSeeder::class,
-        ]);
-        #endregion
-
-        #region Credential Seeder
-        $this->call([
-            CredentialSeeder::class,
-            ScmSystemSeeder::class,
-            ModulePermissionSeeder::class,
-            SubModulePermissionSeeder::class,
-        ]);
-        #endregion
-
-        #region WMS Seeder
-        $this->call([
-            FacilityPlantSeeder::class,
-            UomSeeder::class,
-            ConversionSeeder::class,
-            StorageTypeSeeder::class,
-            ItemCategorySeeder::class,
-            ItemClassificationSeeder::class,
-            ItemVariantTypeSeeder::class,
-            DeliveryTypeSeeder::class,
-            ItemVariantTypeMultiplierSeeder::class,
-            StorageWarehouseSeeder::class,
-            ZoneSeeder::class,
-            SubLocationTypeSeeder::class,
-            SubLocationSeeder::class,
-            StockTypeSeeder::class,
-            ItemMovementSeeder::class,
-            // ItemMasterdataSeeder::class,
+            AdminSystemSeeder::class,
         ]);
         #endregion
     }
