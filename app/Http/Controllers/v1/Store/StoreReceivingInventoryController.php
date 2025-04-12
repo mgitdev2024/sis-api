@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\v1\Store;
 
 use App\Http\Controllers\Controller;
+use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\Store\StoreReceivingInventoryModel;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Traits\ResponseTrait;
+use DB;
 class StoreReceivingInventoryController extends Controller
 {
     use ResponseTrait;
@@ -33,6 +35,18 @@ class StoreReceivingInventoryController extends Controller
             $warehouseCode = $consolidatedData['warehouse_code'];
             $insertData = [];
 
+            $generatedReferenceNumber = StoreReceivingInventoryModel::onGenerateReferenceNumber($consolidatedOrderId);
+            $storeReceivingInventory = StoreReceivingInventoryModel::create([
+                'consolidated_order_id' => $consolidatedOrderId,
+                'warehouse_code' => $warehouseCode,
+                'reference_number' => $generatedReferenceNumber,
+                'delivery_date' => $consolidatedData['delivery_date'],
+                'delivery_type' => $consolidatedData['delivery_type'],
+                'created_by_name' => $createdByName,
+                'created_by_id' => $createdById,
+                'updated_by_id' => $createdById,
+            ]);
+
             foreach ($consolidatedData['sessions'] as $storeOrders) {
                 $storeCode = $storeOrders['store_code'];
                 $storeName = $storeOrders['store_name'];
@@ -43,8 +57,9 @@ class StoreReceivingInventoryController extends Controller
                 if (isset($storeOrders['ordered_items'])) {
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
                         $insertData[] = [
-                            'consolidated_order_id' => $consolidatedOrderId,
-                            'warehouse_code' => $warehouseCode,
+                            'store_receiving_inventory_id' => $storeReceivingInventory->id,
+                            'is_special' => $orderedItems['is_special'] ?? false,
+                            'order_session_id' => $storeOrders['order_session_id'],
                             'store_code' => $storeCode,
                             'store_name' => $storeName,
                             'delivery_date' => $deliveryDate,
@@ -55,6 +70,7 @@ class StoreReceivingInventoryController extends Controller
                             'received_quantity' => 0,
                             'received_items' => json_encode([]),
                             'created_by_id' => $createdById,
+                            'created_by_name' => $createdByName,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
@@ -64,25 +80,60 @@ class StoreReceivingInventoryController extends Controller
 
             // Bulk insert to speed up
             if (!empty($insertData)) {
-                StoreReceivingInventoryModel::insert($insertData);
+                StoreReceivingInventoryItemModel::insert($insertData);
             }
 
-            return $this->dataResponse('success', 200, __('msg.create_success'), );
-        } catch (Exception $e) {
-            \Log::info($e->getMessage());
-            return $this->dataResponse('error', 404, __('msg.create_failed'), $e->getMessage());
+            return $this->dataResponse('success', 200, __('msg.create_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
 
-    public function onGetCurrent($status, $store_code)
+    public function onGetById($store_receiving_inventory_id)
     {
         try {
-            $storeReceivingInventoryModel = StoreReceivingInventoryModel::where([
-                'status' => $status,
-                'store_code' => $store_code
-            ]);
-        } catch (Exception $e) {
+            $storeReceivingInventoryModel = StoreReceivingInventoryModel::findOrFail($store_receiving_inventory_id);
+            $data = [
+                'reference_number' => $storeReceivingInventoryModel->reference_number,
+                'store_inventory_items' => $storeReceivingInventoryModel->storeReceivingInventoryItems
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
 
+    public function onGetCurrent($status, $store_code = null)
+    {
+        try {
+            $storeReceivingInventoryItemModel = StoreReceivingInventoryItemModel::with('storeReceivingInventory')
+                ->select([
+                    'store_receiving_inventory_id',
+                    'delivery_date',
+                    'delivery_type',
+                    DB::raw('COUNT(*) as total_items'),
+                    'status',
+                ])
+                ->where('status', $status);
+
+            if ($store_code !== null) {
+                $storeReceivingInventoryItemModel->where('store_code', $store_code);
+            }
+
+            $storeReceivingInventoryItemModel = $storeReceivingInventoryItemModel->groupBy([
+                'store_receiving_inventory_id',
+                'delivery_date',
+                'delivery_type',
+                'status',
+            ])->orderBy('store_receiving_inventory_id', 'DESC')->get();
+
+            if (count($storeReceivingInventoryItemModel) > 0) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $storeReceivingInventoryItemModel);
+            }
+
+            return $this->dataResponse('error', 200, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
     }
 }

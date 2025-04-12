@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Traits\MOS;
+namespace App\Traits;
 
-use App\Http\Controllers\v1\History\ProductionLogController;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
 use Illuminate\Database\QueryException;
 
-trait MosCrudOperationsTrait
+trait CrudOperationsTrait
 {
-    use ResponseTrait, ProductionLogTrait;
+    use ResponseTrait;
     public function createRecord($model, $request, $rules, $modelName, $path = null)
     {
         $fields = $request->validate($rules);
@@ -23,7 +22,6 @@ trait MosCrudOperationsTrait
                 $record->attachment = $filepath;
             }
             $record->save();
-            $this->createProductionLog($model, $record->id, $fields, $fields['created_by_id'], 0);
             return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.create_success'), $record);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.create_failed'));
@@ -43,7 +41,6 @@ trait MosCrudOperationsTrait
                     $record->attachment = $filepath;
                     $record->save();
                 }
-                $this->createProductionLog($model, $record->id, $fields, $fields['updated_by_id'], 1);
                 return $this->dataResponse('success', 201, $modelName . ' ' . __('msg.update_success'), $record);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.update_failed'));
@@ -236,7 +233,6 @@ trait MosCrudOperationsTrait
                 $response = $data->toArray();
                 $response['status'] = !$response['status'];
                 $data->update($response);
-                $this->createProductionLog($model, $model->id, $data, $fields['created_by_id'], 1);
                 return $this->dataResponse('success', 200, __('msg.update_success'), $response);
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
