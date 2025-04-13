@@ -128,6 +128,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->received_quantity = $orderSessionValue['received_quantity'];
                     $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items']);
                     $storeInventoryItemModel->updated_by_id = $createdById;
+                    $storeInventoryItemModel->updated_at = now();
+                    $storeInventoryItemModel->status = 1;
                     $storeInventoryItemModel->save();
                 }
 
@@ -163,11 +165,16 @@ class StoreReceivingInventoryItemController extends Controller
                     'received_items' => json_encode($wrongDroppedValue['received_items']),
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
+                    'status' => 1,
                 ]);
             }
 
             // Deletion of cache
-            StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId)->delete();
+            $cacheQuery = StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId);
+
+            if ($cacheQuery->exists()) {
+                $cacheQuery->delete();
+            }
         } catch (Exception $exception) {
             throw new Exception('Error in updating order sessions');
         }
