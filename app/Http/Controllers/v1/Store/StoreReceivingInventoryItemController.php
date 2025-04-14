@@ -14,12 +14,15 @@ class StoreReceivingInventoryItemController extends Controller
 {
     use ResponseTrait;
 
-    public function onGetCurrent($store_code, $status = null)
+    public function onGetCurrent($store_code, $status = null, $order_session_id = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
+            }
+            if ($order_session_id != null) {
+                $storeInventoryItemModel = $storeInventoryItemModel->where('order_session_id', $order_session_id);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->orderBy('id', 'DESC')->get();
 
