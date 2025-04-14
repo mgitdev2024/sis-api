@@ -23,6 +23,7 @@ class StoreReceivingInventoryItemModel extends Model
         'delivery_type',
         'order_date',
         'item_code',
+        'item_description',
         'order_quantity',
         'received_quantity',
         'received_items',

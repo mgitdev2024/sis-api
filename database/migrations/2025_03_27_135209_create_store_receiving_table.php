@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->date('delivery_date');
             $table->string('delivery_type');
             $table->string('warehouse_code'); // BK-BREADS
+            $table->string('warehouse_name'); // BK-BREADS
             $table->string('created_by_name');
             SchemaHelper::addCommonColumns($table, 0);
         });
@@ -32,6 +33,7 @@ return new class extends Migration {
             $table->string('delivery_type');
             $table->date('order_date');
             $table->string('item_code');
+            $table->string('item_description');
             $table->integer('order_quantity');
             $table->integer('received_quantity');
             $table->longText('received_items'); // JSON Data of each item scanned

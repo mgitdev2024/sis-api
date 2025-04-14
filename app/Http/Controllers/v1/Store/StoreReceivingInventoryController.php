@@ -39,6 +39,7 @@ class StoreReceivingInventoryController extends Controller
             $storeReceivingInventory = StoreReceivingInventoryModel::create([
                 'consolidated_order_id' => $consolidatedOrderId,
                 'warehouse_code' => $warehouseCode,
+                'warehouse_name' => $consolidatedData['warehouse_name'],
                 'reference_number' => $generatedReferenceNumber,
                 'delivery_date' => $consolidatedData['delivery_date'],
                 'delivery_type' => $consolidatedData['delivery_type'],
@@ -66,6 +67,7 @@ class StoreReceivingInventoryController extends Controller
                             'delivery_type' => $deliveryType,
                             'order_date' => $orderDate,
                             'item_code' => $orderedItems['item_code'],
+                            'item_description' => $orderedItems['item_description'],
                             'order_quantity' => $orderedItems['order_quantity'],
                             'received_quantity' => 0,
                             'received_items' => json_encode([]),

@@ -15,6 +15,7 @@ class StoreReceivingInventoryModel extends Model
     protected $fillable = [
         'consolidated_order_id',
         'warehouse_code',
+        'warehouse_name',
         'reference_number',
         'delivery_date',
         'delivery_type',

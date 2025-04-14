@@ -26,7 +26,39 @@ class StoreReceivingInventoryItemController extends Controller
             }
             $storeInventoryItemModel = $storeInventoryItemModel->orderBy('id', 'DESC')->get();
 
-            return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
+            $data = [
+                'reservation_request' => [],
+                'requested_items' => [],
+                'request_details' => [],
+            ];
+            foreach ($storeInventoryItemModel as $item) {
+                $data['reservation_request'] = [
+                    'delivery_location' => $item->store_name,
+                    'estimated_delivery_date' => $item->delivery_date,
+                    'reference_number' => $order_session_id
+                ];
+
+                $data['requested_items'][] = [
+                    'item_code' => $item->item_code,
+                    'order_quantity' => $item->order_quantity,
+                    'received_quantity' => $item->received_quantity,
+                    'received_items' => json_decode($item->received_items),
+                    'is_special' => $item->is_special,
+                    'is_wrong_drop' => $item->is_wrong_drop,
+                    'created_by_name' => $item->created_by_name,
+                    'status' => $item->status,
+                ];
+
+                $data['request_details'] = [
+                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                    'delivery_location' => $item->delivery_date,
+                    'delivery_scheme' => $item->delivery_type,
+                    'requested_by' => $item->created_by_name,
+                    'status' => $item->status,
+                ];
+            }
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
