@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Store\StoreReceivingInventoryItemCacheModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
+use Http;
 use Illuminate\Http\Request;
 use Exception;
 use App\Traits\ResponseTrait;
@@ -95,7 +96,7 @@ class StoreReceivingInventoryItemController extends Controller
     {
         $fields = $request->validate([
             'order_session_id' => 'required',
-            'scanned_items' => 'required|json', // {"bid":1,"item_code":"CR 12","q":1},{"bid":1,"item_code":"CR 12","q":1}
+            'scanned_items' => 'required|json', // {"item_code":"CR 12","q":1},{"item_code":"CR 12","q":1}
             'created_by_id' => 'required',
         ]);
         try {
@@ -113,14 +114,12 @@ class StoreReceivingInventoryItemController extends Controller
                     ->where('item_code', $itemCode)
                     ->first();
                 if ($storeInventoryItemModel) {
-                    if (!isset($orderSessionData["$store_code-$orderSessionId-$itemCode"])) {
-                        $orderSessionData["$store_code-$orderSessionId-$itemCode"] = [
-                            'received_quantity' => 0,
-                            'received_items' => []
-                        ];
-                    }
-                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
-                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
+                    // if (!isset($orderSessionData["$store_code-$orderSessionId-$itemCode"])) {
+                    //     $orderSessionData["$store_code-$orderSessionId-$itemCode"] = [
+                    //         'received_quantity' => 0,
+                    //     ];
+                    // }
+                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = $items['q'];
                 } else {
                     $wrongDroppedItems[] = $items;
                 }
@@ -128,14 +127,14 @@ class StoreReceivingInventoryItemController extends Controller
 
             foreach ($wrongDroppedItems as $items) {
                 $itemCode = $items['item_code'];
-                if (!isset($wrongDroppedData["$store_code-$orderSessionId-$itemCode"])) {
-                    $wrongDroppedData["$store_code-$orderSessionId-$itemCode"] = [
-                        'received_quantity' => 0,
-                        'received_items' => []
-                    ];
-                }
-                $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
-                $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
+                // if (!isset($wrongDroppedData["$store_code-$orderSessionId-$itemCode"])) {
+                //     $wrongDroppedData["$store_code-$orderSessionId-$itemCode"] = [
+                //         'received_quantity' => 0,
+                //         'received_items' => []
+                //     ];
+                // }
+                $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = $items['q'];
+                // $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
             }
             $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId);
             DB::commit();
@@ -143,6 +142,7 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
@@ -161,7 +161,7 @@ class StoreReceivingInventoryItemController extends Controller
                     ->first();
                 if ($storeInventoryItemModel) {
                     $storeInventoryItemModel->received_quantity = $orderSessionValue['received_quantity'];
-                    $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items']);
+                    // $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items']);
                     $storeInventoryItemModel->updated_by_id = $createdById;
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 1;
@@ -181,6 +181,11 @@ class StoreReceivingInventoryItemController extends Controller
                 $storeCode = $key[0];
                 $itemCode = $key[2];
 
+                $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
+                if ($response->failed()) {
+                    continue; // throw new Exception if this is not valid
+                }
+                $itemData = $response->json();
                 $userModel = User::where('employee_id', $createdById)->first() ?? null;
                 $firstName = $userModel->first_name ?? '';
                 $lastName = $userModel->last_name ?? '';
@@ -196,8 +201,9 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_quantity' => 0,
                     'is_wrong_drop' => true,
                     'item_code' => $itemCode,
+                    'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
-                    'received_items' => json_encode($wrongDroppedValue['received_items']),
+                    // 'received_items' => json_encode($wrongDroppedValue['received_items']),
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 1,
@@ -211,6 +217,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $cacheQuery->delete();
             }
         } catch (Exception $exception) {
+            dd($exception);
             throw new Exception('Error in updating order sessions');
         }
     }

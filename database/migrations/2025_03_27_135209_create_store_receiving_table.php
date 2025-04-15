@@ -36,7 +36,7 @@ return new class extends Migration {
             $table->string('item_description');
             $table->integer('order_quantity');
             $table->integer('received_quantity');
-            $table->longText('received_items'); // JSON Data of each item scanned
+            //$table->longText('received_items'); // JSON Data of each item scanned
             $table->boolean('is_special')->default(false); // 0 = Regular, 1 = Special
             $table->string('order_session_id');
             $table->boolean('is_wrong_drop')->default(false); // 0 = No, 1 = Yes

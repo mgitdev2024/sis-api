@@ -26,7 +26,7 @@ class StoreReceivingInventoryItemModel extends Model
         'item_description',
         'order_quantity',
         'received_quantity',
-        'received_items',
+        // 'received_items',
         'created_by_name',
         'created_by_id',
         'updated_by_id'
