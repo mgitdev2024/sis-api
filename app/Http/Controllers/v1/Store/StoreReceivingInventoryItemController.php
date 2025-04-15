@@ -108,7 +108,7 @@ class StoreReceivingInventoryItemController extends Controller
             $wrongDroppedItems = [];
             $wrongDroppedData = [];
             $orderSessionData = [];
-            foreach ($scannedItems as $stickerNumber => $items) {
+            foreach ($scannedItems as $items) {
                 $itemCode = $items['item_code'];
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code)
                     ->where('order_session_id', $orderSessionId)
@@ -122,7 +122,6 @@ class StoreReceivingInventoryItemController extends Controller
                         ];
                     }
 
-                    $items['sticker_no'] = $stickerNumber;
                     $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
                     $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
 
@@ -139,7 +138,6 @@ class StoreReceivingInventoryItemController extends Controller
                         'received_items' => []
                     ];
                 }
-                $items['sticker_no'] = $stickerNumber;
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
             }
