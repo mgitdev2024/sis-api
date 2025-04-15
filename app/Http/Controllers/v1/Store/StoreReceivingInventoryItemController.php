@@ -42,6 +42,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $data['requested_items'][] = [
                     'item_code' => $item->item_code,
                     'order_quantity' => $item->order_quantity,
+                    'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
                     'is_special' => $item->is_special,
