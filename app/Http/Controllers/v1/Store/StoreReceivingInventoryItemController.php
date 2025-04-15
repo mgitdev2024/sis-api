@@ -40,6 +40,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
+                    'reference_number' => $order_session_id,
                     'item_code' => $item->item_code,
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
