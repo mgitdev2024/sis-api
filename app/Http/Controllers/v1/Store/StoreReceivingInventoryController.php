@@ -54,6 +54,9 @@ class StoreReceivingInventoryController extends Controller
                 $deliveryDate = $storeOrders['delivery_date'];
                 $deliveryType = $storeOrders['delivery_type'];
                 $orderDate = $storeOrders['order_date'];
+                $storeSubUnitId = $storeOrders['store_sub_unit_id'];
+                $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'];
+                $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'];
 
                 if (isset($storeOrders['ordered_items'])) {
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
@@ -69,6 +72,10 @@ class StoreReceivingInventoryController extends Controller
                             'item_code' => $orderedItems['item_code'],
                             'item_description' => $orderedItems['item_description'],
                             'order_quantity' => $orderedItems['order_quantity'],
+                            'allocated_quantity' => $orderedItems['allocated_quantity'],
+                            'store_sub_unit_id' => $storeSubUnitId,
+                            'store_sub_unit_short_name' => $storeSubUnitShortName,
+                            'store_sub_unit_long_name' => $storeSubUnitLongName,
                             'received_quantity' => 0,
                             'received_items' => json_encode([]),
                             'created_by_id' => $createdById,
