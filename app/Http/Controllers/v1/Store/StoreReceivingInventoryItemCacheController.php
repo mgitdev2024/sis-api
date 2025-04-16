@@ -17,7 +17,8 @@ class StoreReceivingInventoryItemCacheController extends Controller
         $fields = $request->validate([
             'order_session_id' => 'required', // 22145
             'scanned_items' => 'required', // {"bid":1,"item_code":"CR 12","q":1},{"bid":1,"item_code":"CR 12","q":1}
-            'created_by_id' => 'required' // 0000
+            'created_by_id' => 'required', // 0000
+            'receive_type' => 'required', // 0 = scan 1 = manual
         ]);
         try {
             $fields['store_code'] = $store_code;
@@ -32,11 +33,12 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-    public function onGetCurrent($order_session_id)
+    public function onGetCurrent($order_session_id, $receive_type)
     {
         try {
             $whereFields = [
                 'order_session_id' => $order_session_id,
+                'receive_type' => $receive_type,
             ];
             return $this->readCurrentRecord(StoreReceivingInventoryItemCacheModel::class, null, $whereFields, null, ['id' => 'DESC'], 'Store Receiving Inventory Item Cache', false, null, 1);
         } catch (Exception $exception) {
