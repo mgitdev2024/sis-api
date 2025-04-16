@@ -110,7 +110,7 @@ class StoreReceivingInventoryItemController extends Controller
             $wrongDroppedData = [];
             $orderSessionData = [];
             foreach ($scannedItems as $items) {
-                $itemCode = $items['item_code'];
+                $itemCode = $items['ic']; // item code
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code)
                     ->where('order_session_id', $orderSessionId)
                     ->where('item_code', $itemCode)
@@ -132,7 +132,7 @@ class StoreReceivingInventoryItemController extends Controller
             }
 
             foreach ($wrongDroppedItems as $items) {
-                $itemCode = $items['item_code'];
+                $itemCode = $items['ic']; // item code
                 if (!isset($wrongDroppedData["$store_code-$orderSessionId-$itemCode"])) {
                     $wrongDroppedData["$store_code-$orderSessionId-$itemCode"] = [
                         'received_quantity' => 0,
