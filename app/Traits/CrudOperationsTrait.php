@@ -168,7 +168,7 @@ trait CrudOperationsTrait
         }
     }
 
-    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null)
+    public function readCurrentRecord($model, $id, $whereFields, $withFields, $orderFields, $modelName, $triggerOr = false, $notNullFields = null, $limit = null)
     {
         try {
             $data = $model::query();
@@ -213,7 +213,12 @@ trait CrudOperationsTrait
             if ($withFields != null) {
                 $data->with($withFields);
             }
-            $dataList = $data->get();
+
+            if ($limit > 0) {
+                $dataList = $data->limit($limit)->get();
+            } else {
+                $dataList = $data->get();
+            }
             if ($dataList->isNotEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_found'), $dataList);
             }

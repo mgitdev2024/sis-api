@@ -167,7 +167,7 @@ class StoreReceivingInventoryItemController extends Controller
                     ->first();
                 if ($storeInventoryItemModel) {
                     $storeInventoryItemModel->received_quantity = $orderSessionValue['received_quantity'];
-                    $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items']);
+                    $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items'] ?? []);
                     $storeInventoryItemModel->updated_by_id = $createdById;
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 1;
@@ -217,7 +217,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'item_code' => $itemCode,
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
-                    'received_items' => json_encode($wrongDroppedValue['received_items']),
+                    'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 1,
