@@ -38,7 +38,7 @@ class StoreReceivingInventoryItemCacheController extends Controller
             $whereFields = [
                 'order_session_id' => $order_session_id,
             ];
-            return $this->readCurrentRecord(StoreReceivingInventoryItemCacheModel::class, null, $whereFields, null, null, 'Store Receiving Inventory Item Cache', false, null, 1);
+            return $this->readCurrentRecord(StoreReceivingInventoryItemCacheModel::class, null, $whereFields, null, ['id', 'DESC'], 'Store Receiving Inventory Item Cache', false, null, 1);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
