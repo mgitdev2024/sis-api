@@ -14,6 +14,7 @@ class StoreReceivingInventoryItemCacheModel extends Model
     protected $fillable = [
         'order_session_id',
         'store_code',
+        'receive_type',
         'scanned_items',
         'status',
         'created_by_id',
