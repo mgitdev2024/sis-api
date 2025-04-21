@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Store\StoreReceivingInventoryItemCacheModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
+use App\Traits\Stock\StockTrait;
 use Http;
 use Illuminate\Http\Request;
 use Exception;
@@ -13,7 +14,7 @@ use App\Traits\ResponseTrait;
 use DB;
 class StoreReceivingInventoryItemController extends Controller
 {
-    use ResponseTrait;
+    use ResponseTrait, StockTrait;
 
     public function onGetCurrent($store_code, $status = null, $order_session_id = null)
     {
@@ -100,8 +101,10 @@ class StoreReceivingInventoryItemController extends Controller
             'order_session_id' => 'required',
             'scanned_items' => 'required|json', // ["2":{"bid":1,"q":1,"item_code":"TAS WH"},"3":{"bid":1,"q":1}]
             'created_by_id' => 'required',
+            'receive_type' => 'required|in:scan,manual'
         ]);
         try {
+            $receiveType = $fields['receive_type']; // Stock In, Stock Out
             DB::beginTransaction();
             $scannedItems = json_decode($fields['scanned_items'], true);
             $orderSessionId = $fields['order_session_id'];
@@ -123,6 +126,12 @@ class StoreReceivingInventoryItemController extends Controller
                         ];
                     }
 
+                    $receivedQuantity = 0;
+                    if ($receiveType == 'scan') {
+                        $receivedQuantity = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+                    } else {
+                        $receivedQuantity += $items['q'] ?? 0;
+                    }
                     $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
                     $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
 
@@ -139,11 +148,17 @@ class StoreReceivingInventoryItemController extends Controller
                         'received_items' => []
                     ];
                 }
+                $wrongQuantity = 0;
+                if ($receiveType == 'scan') {
+                    $wrongQuantity = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+                } else {
+                    $wrongQuantity += $items['q'] ?? 0;
+                }
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
             }
 
-            $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId);
+            $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
 
@@ -153,7 +168,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId)
+    private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType)
     {
         try {
             foreach ($orderSessionData as $orderSessionKey => $orderSessionValue) {
@@ -172,6 +187,16 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 1;
                     $storeInventoryItemModel->save();
+
+                    // Stock In
+                    $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
+                    $storeInventoryItemId = $storeInventoryItemModel->id;
+                    if ($receiveType == 'scan') {
+                        $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items']);
+
+                    } else {
+                        $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType);
+                    }
                 }
 
             }

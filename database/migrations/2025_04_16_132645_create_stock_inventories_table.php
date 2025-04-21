@@ -41,6 +41,8 @@ return new class extends Migration {
             $table->string('store_sub_unit_short_name'); // FOH BOH
             $table->string('item_code');
             $table->string('batch_id');
+            $table->longText('received_items')->nullable();
+
             SchemaHelper::addCommonColumns($table);
         });
     }
