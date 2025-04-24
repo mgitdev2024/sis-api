@@ -129,10 +129,11 @@ class StoreReceivingInventoryItemController extends Controller
                     $receivedQuantity = 0;
                     if ($receiveType == 'scan') {
                         $receivedQuantity = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+
                     } else {
                         $receivedQuantity += $items['q'] ?? 0;
                     }
-                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = $receivedQuantity;
                     $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
 
                 } else {
@@ -151,11 +152,13 @@ class StoreReceivingInventoryItemController extends Controller
                 $wrongQuantity = 0;
                 if ($receiveType == 'scan') {
                     $wrongQuantity = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+
                 } else {
                     $wrongQuantity += $items['q'] ?? 0;
                 }
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
                 $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
+
             }
 
             $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType);
@@ -174,6 +177,7 @@ class StoreReceivingInventoryItemController extends Controller
             foreach ($orderSessionData as $orderSessionKey => $orderSessionValue) {
                 $key = explode('-', $orderSessionKey);
                 $storeCode = $key[0];
+                $referenceNumber = $key[1];
                 $itemCode = $key[2];
 
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $storeCode)
@@ -183,6 +187,7 @@ class StoreReceivingInventoryItemController extends Controller
                 if ($storeInventoryItemModel) {
                     $storeInventoryItemModel->received_quantity = $orderSessionValue['received_quantity'];
                     $storeInventoryItemModel->received_items = json_encode($orderSessionValue['received_items'] ?? []);
+                    $storeInventoryItemModel->receive_type = $receiveType == 'scan' ? 0 : 1;
                     $storeInventoryItemModel->updated_by_id = $createdById;
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 1;
@@ -191,12 +196,7 @@ class StoreReceivingInventoryItemController extends Controller
                     // Stock In
                     $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
                     $storeInventoryItemId = $storeInventoryItemModel->id;
-                    if ($receiveType == 'scan') {
-                        $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items']);
-
-                    } else {
-                        $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType);
-                    }
+                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber);
                 }
 
             }

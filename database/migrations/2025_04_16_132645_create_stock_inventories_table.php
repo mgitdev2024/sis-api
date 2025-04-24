@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name'); // FOH BOH
             $table->string('item_code');
+            $table->integer('quantity');
             $table->integer('initial_stock');
             $table->integer('final_stock');
             $table->longText('transaction_items')->nullable();
