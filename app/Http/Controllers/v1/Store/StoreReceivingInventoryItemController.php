@@ -215,7 +215,6 @@ class StoreReceivingInventoryItemController extends Controller
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
-
                 $key = explode(':', $wrongDroppedKey);
                 $storeCode = $key[0];
                 $referenceNumber = $key[1];
@@ -253,9 +252,10 @@ class StoreReceivingInventoryItemController extends Controller
                     'created_by_name' => "$firstName $lastName",
                     'status' => 1,
                 ]);
-            }
 
-            $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name']);
+                $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name']);
+            }
+ 
 
             // Deletion of cache
             $cacheQuery = StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId);
@@ -264,8 +264,8 @@ class StoreReceivingInventoryItemController extends Controller
                 $cacheQuery->delete();
             }
 
-        } catch (Exception $exception) {
-            throw new Exception('Error in updating order sessions');
+        } catch (Exception $exception) { 
+            throw new Exception($exception->getMessage());
         }
     }
 }
