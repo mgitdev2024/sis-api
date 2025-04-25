@@ -17,7 +17,7 @@ class StockInventoryController extends Controller
         try {
             $stockInventoryModel = StockInventoryModel::where('store_code', $store_code);
             if ($sub_unit != null) {
-                $stockInventoryModel->where('sub_unit', $sub_unit);
+                $stockInventoryModel->where('store_sub_unit_short_name', $sub_unit);
             }
             $stockInventoryModel = $stockInventoryModel->orderBy('status', 'DESC')->orderBy('item_code', 'ASC')->get();
 
