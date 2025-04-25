@@ -33,7 +33,8 @@ class StoreReceivingInventoryItemModel extends Model
         'received_items',
         'created_by_name',
         'created_by_id',
-        'updated_by_id'
+        'updated_by_id',
+        'status'
     ];
 
     public function storeReceivingInventory()

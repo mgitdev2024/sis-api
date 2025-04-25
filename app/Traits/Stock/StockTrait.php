@@ -126,7 +126,7 @@ trait StockTrait
         ])->orderBy('id', 'DESC')->first();
         $finalStock = $stockLogModel->final_stock ?? 0;
         $stockQuantity = $finalStock + $itemQuantityCount;
-        $currentTransactionItems = $stockLogModel->transaction_items ?? [];
+        $currentTransactionItems = $stockLogModel->transaction_items ?? '[]';
         $stockTransactionItems = array_merge(
             json_decode($currentTransactionItems ?? '[]', true),
             $transactionItems

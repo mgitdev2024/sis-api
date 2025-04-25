@@ -112,15 +112,16 @@ class StoreReceivingInventoryItemController extends Controller
             $wrongDroppedItems = [];
             $wrongDroppedData = [];
             $orderSessionData = [];
-            foreach ($scannedItems as $items) {
+            foreach ($scannedItems as $items) { 
+
                 $itemCode = $items['ic']; // item code
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code)
                     ->where('order_session_id', $orderSessionId)
                     ->where('item_code', $itemCode)
                     ->first();
                 if ($storeInventoryItemModel) {
-                    if (!isset($orderSessionData["$store_code-$orderSessionId-$itemCode"])) {
-                        $orderSessionData["$store_code-$orderSessionId-$itemCode"] = [
+                    if (!isset($orderSessionData["$store_code:$orderSessionId:$itemCode"])) {
+                        $orderSessionData["$store_code:$orderSessionId:$itemCode"] = [
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
@@ -128,13 +129,13 @@ class StoreReceivingInventoryItemController extends Controller
 
                     $receivedQuantity = 0;
                     if ($receiveType == 'scan') {
-                        $receivedQuantity = ++$orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+                        $receivedQuantity = ++$orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_quantity'];
 
                     } else {
                         $receivedQuantity += $items['q'] ?? 0;
                     }
-                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = $receivedQuantity;
-                    $orderSessionData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
+                    $orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_quantity'] = $receivedQuantity;
+                    $orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_items'][] = $items;
 
                 } else {
                     $wrongDroppedItems[] = $items;
@@ -143,21 +144,21 @@ class StoreReceivingInventoryItemController extends Controller
 
             foreach ($wrongDroppedItems as $items) {
                 $itemCode = $items['ic']; // item code
-                if (!isset($wrongDroppedData["$store_code-$orderSessionId-$itemCode"])) {
-                    $wrongDroppedData["$store_code-$orderSessionId-$itemCode"] = [
+                if (!isset($wrongDroppedData["$store_code:$orderSessionId:$itemCode"])) {
+                    $wrongDroppedData["$store_code:$orderSessionId:$itemCode"] = [
                         'received_quantity' => 0,
                         'received_items' => []
                     ];
                 }
                 $wrongQuantity = 0;
                 if ($receiveType == 'scan') {
-                    $wrongQuantity = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
+                    $wrongQuantity = ++$wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_quantity'];
 
                 } else {
                     $wrongQuantity += $items['q'] ?? 0;
                 }
-                $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'] = ++$wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_quantity'];
-                $wrongDroppedData["$store_code-$orderSessionId-$itemCode"]['received_items'][] = $items;
+                $wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_quantity'] = $wrongQuantity;
+                $wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_items'][] = $items;
 
             }
 
@@ -174,8 +175,9 @@ class StoreReceivingInventoryItemController extends Controller
     private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType)
     {
         try {
+
             foreach ($orderSessionData as $orderSessionKey => $orderSessionValue) {
-                $key = explode('-', $orderSessionKey);
+                $key = explode(':', $orderSessionKey);
                 $storeCode = $key[0];
                 $referenceNumber = $key[1];
                 $itemCode = $key[2];
@@ -211,11 +213,12 @@ class StoreReceivingInventoryItemController extends Controller
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
 
-            foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
-                $key = explode('-', $wrongDroppedKey);
+            foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) { 
+                $key = explode(':', $wrongDroppedKey);
                 $storeCode = $key[0];
-                $itemCode = $key[2];
-
+                $referenceNumber = $key[1];
+                $itemCode = $key[2];  
+ 
                 $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
                 if ($response->failed()) {
                     continue; // throw new Exception if this is not valid
@@ -224,7 +227,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $userModel = User::where('employee_id', $createdById)->first() ?? null;
                 $firstName = $userModel->first_name ?? '';
                 $lastName = $userModel->last_name ?? '';
-                $storeInventoryItemModel = StoreReceivingInventoryItemModel::insert([
+                $storeInventoryItemModel = StoreReceivingInventoryItemModel::create([
                     'store_receiving_inventory_id' => $storeReceivingInventoryId,
                     'is_special' => false,
                     'store_name' => $storeName,
@@ -248,14 +251,17 @@ class StoreReceivingInventoryItemController extends Controller
                     'status' => 1,
                 ]);
             }
+ 
+            $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber);
 
             // Deletion of cache
             $cacheQuery = StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId);
 
             if ($cacheQuery->exists()) {
                 $cacheQuery->delete();
-            }
-        } catch (Exception $exception) {
+            } 
+
+        } catch (Exception $exception) { 
             throw new Exception('Error in updating order sessions');
         }
     }
