@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name'); // FOH BOH
             $table->string('item_code');
+            $table->string('item_description');
             $table->integer('stock_count');
             SchemaHelper::addCommonColumns($table);
         });
@@ -26,6 +27,7 @@ return new class extends Migration {
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name'); // FOH BOH
             $table->string('item_code');
+            $table->string('item_description');
             $table->integer('quantity');
             $table->integer('initial_stock');
             $table->integer('final_stock');
@@ -41,6 +43,7 @@ return new class extends Migration {
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name'); // FOH BOH
             $table->string('item_code');
+            $table->string('item_description');
             $table->string('batch_id');
             $table->longText('received_items')->nullable();
 
