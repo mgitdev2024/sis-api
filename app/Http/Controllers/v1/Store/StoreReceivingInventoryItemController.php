@@ -215,6 +215,7 @@ class StoreReceivingInventoryItemController extends Controller
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
+
                 $key = explode(':', $wrongDroppedKey);
                 $storeCode = $key[0];
                 $referenceNumber = $key[1];
@@ -222,7 +223,8 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
                 if ($response->failed()) {
-                    continue; // throw new Exception if this is not valid
+                    throw new Exception('Error in API call');
+                    // throw new Exception if this is not valid
                 }
                 $itemData = $response->json();
                 $userModel = User::where('employee_id', $createdById)->first() ?? null;
