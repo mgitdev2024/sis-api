@@ -198,7 +198,8 @@ class StoreReceivingInventoryItemController extends Controller
                     // Stock In
                     $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
                     $storeInventoryItemId = $storeInventoryItemModel->id;
-                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber);
+                    $itemDescription = $storeInventoryItemModel->item_description;
+                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber, $itemDescription);
                 }
 
             }
@@ -252,7 +253,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ]);
             }
 
-            $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber);
+            $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name']);
 
             // Deletion of cache
             $cacheQuery = StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId);

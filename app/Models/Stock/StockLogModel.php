@@ -16,6 +16,7 @@ class StockLogModel extends Model
         'store_code',
         'store_sub_unit_short_name',
         'item_code',
+        'item_description',
         'quantity',
         'initial_stock',
         'final_stock',

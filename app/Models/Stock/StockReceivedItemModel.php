@@ -17,6 +17,7 @@ class StockReceivedItemModel extends Model
         'store_code',
         'store_sub_unit_short_name',
         'item_code',
+        'item_description',
         'batch_id',
         'status',
         'created_by_id',
