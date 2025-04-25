@@ -78,10 +78,10 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Stock Inventory
-    Route::get('v1/store/stock-inventory/get/{store_code}/{sub_unit}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    Route::get('v1/store/stock-inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     #endregion
 
     #region Stock Log
-    Route::get('v1/store/stock-log/get/{store_code}/{sub_unit}/{item_code}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    Route::get('v1/store/stock-log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
     #endregion
 });

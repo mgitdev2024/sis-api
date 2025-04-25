@@ -42,7 +42,7 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $data['requested_items'][] = [
                     'reference_number' => $order_session_id,
-                    'item_code' => $item->item_code,
+                    'item_code' => trim($item->item_code),
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
@@ -112,7 +112,7 @@ class StoreReceivingInventoryItemController extends Controller
             $wrongDroppedItems = [];
             $wrongDroppedData = [];
             $orderSessionData = [];
-            foreach ($scannedItems as $items) { 
+            foreach ($scannedItems as $items) {
 
                 $itemCode = $items['ic']; // item code
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code)
@@ -213,12 +213,12 @@ class StoreReceivingInventoryItemController extends Controller
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
 
-            foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) { 
+            foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
                 $key = explode(':', $wrongDroppedKey);
                 $storeCode = $key[0];
                 $referenceNumber = $key[1];
-                $itemCode = $key[2];  
- 
+                $itemCode = $key[2];
+
                 $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
                 if ($response->failed()) {
                     continue; // throw new Exception if this is not valid
@@ -242,7 +242,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'store_sub_unit_long_name' => $storeSubUnitLongName,
                     'is_wrong_drop' => true,
-                    'item_code' => $itemCode,
+                    'item_code' => trim($itemCode),
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
@@ -251,7 +251,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'status' => 1,
                 ]);
             }
- 
+
             $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber);
 
             // Deletion of cache
@@ -259,9 +259,9 @@ class StoreReceivingInventoryItemController extends Controller
 
             if ($cacheQuery->exists()) {
                 $cacheQuery->delete();
-            } 
+            }
 
-        } catch (Exception $exception) { 
+        } catch (Exception $exception) {
             throw new Exception('Error in updating order sessions');
         }
     }

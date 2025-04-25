@@ -13,15 +13,19 @@ use Carbon\Carbon;
 class StockLogController extends Controller
 {
     use ResponseTrait;
-    public function onGet($store_code, $sub_unit, $item_code)
+    public function onGet($store_code, $item_code, $sub_unit = null)
     {
         try {
             $stockLogModel = StockLogModel::where([
                 'store_code' => $store_code,
-                'store_sub_unit_short_name' => $sub_unit,
                 'item_code' => $item_code,
-            ])
-                ->orderBy('id', 'DESC')
+            ]);
+
+            if ($sub_unit != null) {
+                $stockLogModel->where('store_sub_unit_short_name', $sub_unit);
+
+            }
+            $stockLogModel = $stockLogModel->orderBy('id', 'DESC')
                 ->get()
                 ->map(function ($log) {
                     $log->formatted_created_at = Carbon::parse($log->created_at)
