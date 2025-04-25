@@ -60,5 +60,28 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
-    Route::get('v1/store/receive-inventory/current/get/{status}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
+    #region Store Receiving Inventory
+    Route::get('v1/store/receive-inventory/current/get/{status}/{store_code?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
+    Route::get('v1/store/receive-inventory/get/{store_receiving_inventory_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetById']);
+    #endregion
+
+    #region Store Receiving Inventory Item
+    Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{status?}/{order_session_id?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
+    Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
+    Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
+    #endregion
+
+    #region Store Receiving Inventory Item Cache
+    Route::post('v1/store/receive-inventory-item-cache/create/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onCreate']);
+    Route::get('v1/store/receive-inventory-item-cache/current/get/{order_session_id}/{receive_type}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
+    Route::post('v1/store/receive-inventory-item-cache/delete/{order_session_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
+    #endregion
+
+    #region Stock Inventory
+    Route::get('v1/store/stock-inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    #endregion
+
+    #region Stock Log
+    Route::get('v1/store/stock-log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    #endregion
 });
