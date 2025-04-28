@@ -12,7 +12,7 @@ class StoreReceivingInventoryItemCacheModel extends Model
     protected $table = 'store_receiving_items_cache';
 
     protected $fillable = [
-        'order_session_id',
+        'reference_number',
         'store_code',
         'receive_type',
         'scanned_items',

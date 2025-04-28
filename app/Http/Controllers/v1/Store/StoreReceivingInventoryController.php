@@ -63,7 +63,7 @@ class StoreReceivingInventoryController extends Controller
                         $insertData[] = [
                             'store_receiving_inventory_id' => $storeReceivingInventory->id,
                             'is_special' => $orderedItems['is_special'] ?? false,
-                            'order_session_id' => $storeOrders['order_session_id'],
+                            'reference_number' => 'CO-' . $storeOrders['order_session_id'],
                             'store_code' => $storeCode,
                             'store_name' => $storeName,
                             'delivery_date' => $deliveryDate,
@@ -78,6 +78,7 @@ class StoreReceivingInventoryController extends Controller
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
                             'received_quantity' => 0,
                             'received_items' => json_encode([]),
+                            'type' => 0, // Order
                             'created_by_id' => $createdById,
                             'created_by_name' => $createdByName,
                             'created_at' => now(),
@@ -94,6 +95,7 @@ class StoreReceivingInventoryController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
+            \Log::info($exception->getMessage());
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }

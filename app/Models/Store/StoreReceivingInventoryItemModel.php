@@ -11,10 +11,10 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label'];
+    protected $appends = ['status_label', 'type_label', 'receive_type_label'];
     protected $fillable = [
         'store_receiving_inventory_id',
-        'order_session_id',
+        'reference_number',
         'is_special',
         'is_wrong_drop',
         'store_code',
@@ -31,6 +31,8 @@ class StoreReceivingInventoryItemModel extends Model
         'allocated_quantity',
         'received_quantity',
         'received_items',
+        'receive_type',
+        'type',
         'created_by_name',
         'created_by_id',
         'updated_by_id',
@@ -44,5 +46,21 @@ class StoreReceivingInventoryItemModel extends Model
     public function getStatusLabelAttribute()
     {
         return $this->status == 1 ? 'Complete' : 'Pending';
+    }
+
+    public function getReceiveTypeLabelAttribute()
+    {
+        return $this->status == 0 ? 'Scan' : 'Manual';
+    }
+
+
+    public function geTypeLabelAttribute()
+    {
+        $typeArr = [
+            0 => 'Order',
+            1 => 'Pull-Out Transfer',
+            2 => 'Store Transfer',
+        ];
+        return $typeArr[$this->type] ?? 'Unknown';
     }
 }

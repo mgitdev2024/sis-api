@@ -13,7 +13,7 @@ return new class extends Migration {
     {
         Schema::create('store_receiving_items_cache', function (Blueprint $table) {
             $table->id();
-            $table->integer('order_session_id');
+            $table->integer('reference_number');
             $table->string('store_code'); // C001
             $table->longText('scanned_items'); // {"bid":1,"item_code":"CR 12","q":1},{"bid":1,"item_code":"CR 12","q":1}
             $table->tinyInteger('receive_type'); // 0 = scan 1 = manual

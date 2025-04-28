@@ -14,12 +14,12 @@ return new class extends Migration {
     {
         Schema::create('store_receiving_inventory', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('consolidated_order_id'); // Check MGIOS for consolidated_order_table
+            $table->unsignedBigInteger('consolidated_order_id')->nullable(); // Check MGIOS for consolidated_order_table
             $table->string('reference_number');
-            $table->date('delivery_date');
-            $table->string('delivery_type');
-            $table->string('warehouse_code'); // BK-BREADS
-            $table->string('warehouse_name'); // BK-BREADS
+            $table->date('delivery_date')->nullable();
+            $table->string('delivery_type')->nullable();
+            $table->string('warehouse_code')->nullable(); // BK-BREADS
+            $table->string('warehouse_name')->nullable(); // BK-BREADS
             $table->string('created_by_name');
             SchemaHelper::addCommonColumns($table, 0);
         });
@@ -32,19 +32,21 @@ return new class extends Migration {
             $table->integer('store_sub_unit_id');
             $table->string('store_sub_unit_short_name');
             $table->string('store_sub_unit_long_name');
-            $table->date('delivery_date');
-            $table->string('delivery_type');
-            $table->date('order_date');
+            $table->date('delivery_date')->nullable();
+            $table->string('delivery_type')->nullable();
+            $table->date('order_date')->nullable();
             $table->string('item_code');
             $table->string('item_description');
-            $table->integer('order_quantity');
-            $table->integer('allocated_quantity');
-            $table->integer('received_quantity');
+            $table->integer('order_quantity')->nullable();
+            $table->integer('allocated_quantity')->nullable();
+            $table->integer('received_quantity')->nullable();
             $table->longText('received_items')->nullable(); // JSON Data of each item scanned
             $table->tinyInteger('receive_type')->nullable(); // 0 = scan 1 = manual
             $table->boolean('is_special')->default(false); // 0 = Regular, 1 = Special
-            $table->string('order_session_id');
+            $table->string('reference_number')->nullable();
             $table->boolean('is_wrong_drop')->default(false); // 0 = No, 1 = Yes
+            $table->tinyInteger('type'); // receiving, store transfer, pull out
+
             $table->string('created_by_name');
             SchemaHelper::addCommonColumns($table, 0);
         });
@@ -56,5 +58,6 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('store_receiving_inventory');
+        Schema::dropIfExists('store_receiving_inventory_items');
     }
 };

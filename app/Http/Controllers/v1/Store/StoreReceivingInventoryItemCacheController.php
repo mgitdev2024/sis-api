@@ -15,7 +15,7 @@ class StoreReceivingInventoryItemCacheController extends Controller
     public function onCreate(Request $request, $store_code)
     {
         $fields = $request->validate([
-            'order_session_id' => 'required', // 22145
+            'reference_number' => 'required', // 22145
             'scanned_items' => 'required', // {"bid":1,"item_code":"CR 12","q":1},{"bid":1,"item_code":"CR 12","q":1}
             'created_by_id' => 'required', // 0000
             'receive_type' => 'required', // 0 = scan 1 = manual
@@ -33,11 +33,11 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-    public function onGetCurrent($order_session_id, $receive_type)
+    public function onGetCurrent($reference_number, $receive_type)
     {
         try {
             $whereFields = [
-                'order_session_id' => $order_session_id,
+                'reference_number' => $reference_number,
                 'receive_type' => $receive_type,
             ];
             return $this->readCurrentRecord(StoreReceivingInventoryItemCacheModel::class, null, $whereFields, null, ['id' => 'DESC'], 'Store Receiving Inventory Item Cache', false, null, 1);
@@ -46,10 +46,10 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-    public function onDelete($order_session_id)
+    public function onDelete($reference_number)
     {
         try {
-            $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where('order_session_id', $order_session_id)->delete();
+            $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where('reference_number', $reference_number)->delete();
             if ($storeReceivingInventoryItemCacheModel) {
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
