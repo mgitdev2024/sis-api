@@ -53,8 +53,7 @@ class StoreReceivingInventoryItemModel extends Model
         return $this->status == 0 ? 'Scan' : 'Manual';
     }
 
-
-    public function geTypeLabelAttribute()
+    public function getTypeLabelAttribute()
     {
         $typeArr = [
             0 => 'Order',
