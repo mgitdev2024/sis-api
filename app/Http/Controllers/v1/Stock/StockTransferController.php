@@ -21,8 +21,10 @@ class StockTransferController extends Controller
             'remarks' => 'nullable|string',
             'type' => 'required|in:pullout,store',
             'transfer_to_store_code' => 'required_if:type,store',
+            'transfer_to_store_name' => 'required_if:type,store',
+            'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
             'transportation_type' => 'required_if:type,store|in:1,2', // 1: Logistics, 2: Third Party
-            'proof_of_booking' => 'required_if:transportation_type,2|in:1,2',
+            'proof_of_booking' => 'required_if:transportation_type,2',
             'created_by_id' => 'required',
 
             // Store Details
@@ -36,11 +38,13 @@ class StockTransferController extends Controller
             $remarks = $fields['remarks'] ?? '';
             $type = $fields['type'];
             $transferToStoreCode = $fields['transfer_to_store_code'] ?? null;
+            $transferToStoreName = $fields['transfer_to_store_name'] ?? null;
+            $transferToStoreSubUnitShortName = $fields['transfer_to_store_sub_unit_short_name'] ?? null;
             $transportationType = $fields['transportation_type'] ?? null;
             $filepath = null;
 
             if ($fields['proof_of_booking'] != null) {
-                $attachmentPath = $request->file('attachment')->store('public/attachments/stock_transfer');
+                $attachmentPath = $request->file('proof_of_booking')->store('public/attachments/stock_transfer');
                 $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
             }
             $createdById = $fields['created_by_id'];
@@ -57,7 +61,8 @@ class StockTransferController extends Controller
                 'transportation_type' => $transportationType,
                 'pickup_date' => $pickupDate,
                 'location_code' => $transferToStoreCode,
-                'location_name' => $remarks,
+                'location_name' => $transferToStoreName,
+                'location_sub_unit' => $transferToStoreSubUnitShortName,
                 'remarks' => $remarks,
                 'attachment' => $filepath,
                 'created_by_id' => $createdById,
@@ -74,7 +79,7 @@ class StockTransferController extends Controller
             ]);
             $stockTransferItemController->onCreate($stockTransferItemRequest);
 
-            // If Store, create a receiving ticket for them to receive the items tobe continued
+            // TODO If Store, create a receiving ticket for them to receive the items tobe continued
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
 

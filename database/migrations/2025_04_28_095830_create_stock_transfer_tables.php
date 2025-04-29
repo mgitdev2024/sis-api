@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->date('pickup_date');
             $table->string('location_code'); // C001, BK-BREADS, BK
             $table->string('location_name'); // Arcovia, Bakery, etc
+            $table->string('location_sub_unit')->nullable(); // C001
             $table->string('remarks');
             $table->text('attachment')->nullable();
             SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Receive, 2 = Received

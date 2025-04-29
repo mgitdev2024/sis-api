@@ -20,6 +20,7 @@ class StockTransferModel extends Model
         'pickup_date',
         'location_code',
         'location_name',
+        'location_sub_unit',
         'remarks',
         'attachment',
         'created_by_id',
