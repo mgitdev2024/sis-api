@@ -71,6 +71,7 @@ class StoreReceivingInventoryController extends Controller
                             'order_date' => $orderDate,
                             'item_code' => $orderedItems['item_code'],
                             'item_description' => $orderedItems['item_description'],
+                            'item_category_name' => $orderedItems['item_category_name'],
                             'order_quantity' => $orderedItems['order_quantity'],
                             'allocated_quantity' => $orderedItems['allocated_quantity'],
                             'store_sub_unit_id' => $storeSubUnitId,

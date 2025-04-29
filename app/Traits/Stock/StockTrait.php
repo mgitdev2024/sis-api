@@ -14,7 +14,7 @@ trait StockTrait
 {
     use ResponseTrait;
 
-    public function onCreateStockLogs($type, $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeReceivingInventoryId, $transactionItems, $referenceNumber, $itemDescription)
+    public function onCreateStockLogs($type, $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeReceivingInventoryId = null, $transactionItems, $referenceNumber, $itemDescription, $itemCategoryName)
     {
         // Type = 'stock_in' or 'stock_out'
         /**
@@ -25,11 +25,12 @@ trait StockTrait
             switch ($type) {
                 case 'stock_in':
                     if ($receiveType == 'scan') {
-                        $this->onStoreReceivedItems($storeCode, $storeSubUnitShortName, $storeReceivingInventoryId, $transactionItems, $createdById, $itemDescription);
+                        $this->onStoreReceivedItems($storeCode, $storeSubUnitShortName, $storeReceivingInventoryId, $transactionItems, $createdById, $itemDescription, $itemCategoryName);
                     }
-                    $this->onStockUpdate($storeCode, $storeSubUnitShortName, $transactionItems, 'stock_in', $receiveType, $referenceNumber, $createdById, $itemDescription);
+                    $this->onStockUpdate($storeCode, $storeSubUnitShortName, $transactionItems, 'stock_in', $receiveType, $referenceNumber, $createdById, $itemDescription, $itemCategoryName);
                     break;
                 case 'stock_out':
+                    $this->onStockUpdate($storeCode, $storeSubUnitShortName, $transactionItems, 'stock_out', $receiveType, $referenceNumber, $createdById, $itemDescription, $itemCategoryName);
                     break;
                 default:
                     throw new Exception("Invalid stock type");
@@ -43,7 +44,7 @@ trait StockTrait
         }
     }
 
-    public function onStoreReceivedItems($storeCode, $storeSubUnitShortName, $storeReceivingInventoryId, $transactionItems, $createdById, $itemDescription)
+    public function onStoreReceivedItems($storeCode, $storeSubUnitShortName, $storeReceivingInventoryId, $transactionItems, $createdById, $itemDescription, $itemCategoryName)
     {
         try {
             // Find the store and check if it is existing. If yes, update that, else create a new one
@@ -71,6 +72,7 @@ trait StockTrait
                     $stockReceivedItems->store_sub_unit_short_name = $storeSubUnitShortName;
                     $stockReceivedItems->item_code = $itemCode;
                     $stockReceivedItems->item_description = $itemDescription;
+                    $stockReceivedItems->item_category_name = $itemCategoryName;
                     $stockReceivedItems->batch_id = $items['bid'];
                     $stockReceivedItems->received_items = json_encode([
                         [
@@ -91,17 +93,15 @@ trait StockTrait
         }
     }
 
-    public function onStockUpdate($storeCode, $storeSubUnitShortName, $transactionItems, $type, $receiveType, $referenceNumber, $createdById, $itemDescription)
+    public function onStockUpdate($storeCode, $storeSubUnitShortName, $transactionItems, $type, $receiveType, $referenceNumber, $createdById, $itemDescription, $itemCategoryName)
     {
         try {
-            // Stock Log Update
-            if ($receiveType == 'scan' && $type == 'stock_in') {
-                $this->onStockLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription);
-                $this->onStockInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription);
-
-            } else if ($receiveType == 'manual' && $type == 'stock_in') {
-                $this->onStockLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription);
-                $this->onStockInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription);
+            if ($type == 'stock_in') {
+                $this->onStockInLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription, $itemCategoryName);
+                $this->onStockInInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $itemDescription, $itemCategoryName);
+            } else {
+                $this->onStockOutLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType);
+                $this->onStockOutInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber);
             }
 
         } catch (Exception $exception) {
@@ -109,7 +109,7 @@ trait StockTrait
         }
     }
 
-    private function onStockLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription)
+    private function onStockInLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription, $itemCategoryName)
     {
         $itemCode = array_key_first(collect($transactionItems)->groupBy('ic')->toArray());
 
@@ -137,6 +137,7 @@ trait StockTrait
         $stockLogCreateModel->store_sub_unit_short_name = $storeSubUnitShortName;
         $stockLogCreateModel->item_code = $itemCode;
         $stockLogCreateModel->item_description = $itemDescription;
+        $stockLogCreateModel->item_category_name = $itemCategoryName;
         $stockLogCreateModel->transaction_items = $receiveType == 'scan' ? json_encode($stockTransactionItems) : null;
         $stockLogCreateModel->transaction_type = 'in';
         $stockLogCreateModel->transaction_sub_type = 'received';
@@ -146,7 +147,7 @@ trait StockTrait
         $stockLogCreateModel->created_by_id = $createdById;
         $stockLogCreateModel->save();
     }
-    private function onStockInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType, $itemDescription)
+    private function onStockInInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $itemDescription, $itemCategoryName)
     {
         $itemCode = array_key_first(collect($transactionItems)->groupBy('ic')->toArray());
 
@@ -164,6 +165,8 @@ trait StockTrait
 
         if ($stockInventoryModel) {
             $stockInventoryModel->stock_count += $itemQuantityCount;
+            $stockInventoryModel->updated_by_id = $createdById;
+            $stockInventoryModel->updated_at = now();
             $stockInventoryModel->save();
         } else {
             $stockInventoryCreateModel = new StockInventoryModel();
@@ -171,9 +174,69 @@ trait StockTrait
             $stockInventoryCreateModel->store_sub_unit_short_name = $storeSubUnitShortName;
             $stockInventoryCreateModel->item_code = $itemCode;
             $stockInventoryCreateModel->item_description = $itemDescription;
+            $stockInventoryCreateModel->item_category_name = $itemCategoryName;
             $stockInventoryCreateModel->stock_count = $itemQuantityCount;
             $stockInventoryCreateModel->created_by_id = $createdById;
             $stockInventoryCreateModel->save();
+        }
+    }
+
+    private function onStockOutLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType)
+    {
+        try {
+            // Receive Type is temporary
+            $itemCode = $transactionItems['ic'];
+            $itemQuantityCount = $transactionItems['q'];
+            $itemCategoryName = $transactionItems['ict'];
+            $itemDescription = $transactionItems['icd'];
+            $stockLogModel = StockLogModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'item_code' => $itemCode,
+            ])->orderBy('id', 'DESC')->first();
+
+            $currentFinalStock = $stockLogModel->final_stock ?? 0;
+            $newStockLogModel = new StockLogModel();
+            $newStockLogModel->reference_number = $referenceNumber;
+            $newStockLogModel->store_code = $storeCode;
+            $newStockLogModel->store_sub_unit_short_name = $storeSubUnitShortName;
+            $newStockLogModel->item_code = $itemCode;
+            $newStockLogModel->item_description = $itemDescription;
+            $newStockLogModel->item_category_name = $itemCategoryName;
+            $newStockLogModel->quantity = $itemQuantityCount;
+            $newStockLogModel->initial_stock = $currentFinalStock;
+            $newStockLogModel->final_stock = $currentFinalStock - $itemQuantityCount;
+            $newStockLogModel->transaction_type = 'out';
+            $newStockLogModel->transaction_sub_type = 'transferred';
+            $newStockLogModel->created_by_id = $createdById;
+            $newStockLogModel->save();
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    private function onStockOutInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $receiveType)
+    {
+        try {
+            // Receive Type is temporary
+            $itemCode = $transactionItems['ic'];
+            $itemQuantityCount = $transactionItems['q'];
+            $itemCategoryName = $transactionItems['ict'];
+            $itemDescription = $transactionItems['icd'];
+
+            $stockInventoryModel = StockInventoryModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'item_code' => $itemCode,
+            ])->first();
+
+            $stockInventoryModel->stock_count -= $itemQuantityCount;
+            $stockInventoryModel->updated_by_id = $createdById;
+            $stockInventoryModel->updated_at = now();
+            $stockInventoryModel->save();
+
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
         }
     }
 }

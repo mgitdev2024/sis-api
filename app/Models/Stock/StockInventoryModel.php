@@ -16,6 +16,7 @@ class StockInventoryModel extends Model
         'store_sub_unit_short_name',
         'item_code',
         'item_description',
+        'item_category_name',
         'stock_count',
         'status',
         'created_by_id',

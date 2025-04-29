@@ -78,10 +78,18 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Stock Inventory
-    Route::get('v1/store/stock-inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    Route::get('v1/stock/inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     #endregion
 
     #region Stock Log
-    Route::get('v1/store/stock-log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    Route::get('v1/stock/log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    Route::get('v1/stock/log/details/get/{item_code}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGetStockDetails']);
+    #endregion
+
+    #region Stock Transfer
+    Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCreate']);
+    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCancel']);
+    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
+    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
     #endregion
 });

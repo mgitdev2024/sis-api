@@ -37,6 +37,7 @@ return new class extends Migration {
             $table->date('order_date')->nullable();
             $table->string('item_code');
             $table->string('item_description');
+            $table->string('item_category_name');
             $table->integer('order_quantity')->nullable();
             $table->integer('allocated_quantity')->nullable();
             $table->integer('received_quantity')->nullable();

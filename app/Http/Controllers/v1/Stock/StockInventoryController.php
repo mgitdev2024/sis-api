@@ -19,7 +19,7 @@ class StockInventoryController extends Controller
             if ($sub_unit != null) {
                 $stockInventoryModel->where('store_sub_unit_short_name', $sub_unit);
             }
-            $stockInventoryModel = $stockInventoryModel->orderBy('status', 'DESC')->orderBy('item_code', 'ASC')->get();
+            $stockInventoryModel = $stockInventoryModel->orderBy('status', 'DESC')->orderBy('item_code', 'ASC')->get()->groupBy('item_category_name');
 
             if (count($stockInventoryModel) <= 0) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);

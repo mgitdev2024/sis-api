@@ -200,7 +200,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
                     $storeInventoryItemId = $storeInventoryItemModel->id;
                     $itemDescription = $storeInventoryItemModel->item_description;
-                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber, $itemDescription);
+                    $itemCategoryName = $storeInventoryItemModel->item_category_name;
+                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber, $itemDescription, $itemCategoryName);
                 }
 
             }
@@ -214,6 +215,7 @@ class StoreReceivingInventoryItemController extends Controller
             $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
+
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
                 $key = explode(':', $wrongDroppedKey);
@@ -249,13 +251,14 @@ class StoreReceivingInventoryItemController extends Controller
                     'is_wrong_drop' => true,
                     'item_code' => trim($itemCode),
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
+                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? null,
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 1,
                 ]);
-                $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name']);
+                $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name'], $itemData['item_base']['item_category']['category_name']);
             }
 
 

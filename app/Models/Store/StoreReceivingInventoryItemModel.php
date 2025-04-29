@@ -27,6 +27,7 @@ class StoreReceivingInventoryItemModel extends Model
         'order_date',
         'item_code',
         'item_description',
+        'item_category_name',
         'order_quantity',
         'allocated_quantity',
         'received_quantity',
