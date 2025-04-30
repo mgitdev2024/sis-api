@@ -23,8 +23,8 @@ class StockTransferController extends Controller
             'transfer_to_store_code' => 'required_if:type,store',
             'transfer_to_store_name' => 'required_if:type,store',
             'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
-            'transportation_type' => 'required_if:type,store|in:1,2', // 1: Logistics, 2: Third Party
-            'proof_of_booking' => 'required_if:transportation_type,2',
+            'transportation_type' => 'nullable|required_if:type,store|in:1,2', // 1: Logistics, 2: Third Party
+            'proof_of_booking' => 'nullable',
             'created_by_id' => 'required',
 
             // Store Details
@@ -32,6 +32,7 @@ class StockTransferController extends Controller
             'store_sub_unit_short_name' => 'required|string'
         ]);
         try {
+
             DB::beginTransaction();
             $transferItems = $fields['transfer_items'];
             $pickupDate = $fields['pickup_date'];

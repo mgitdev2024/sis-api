@@ -19,10 +19,10 @@ return new class extends Migration {
             $table->tinyInteger('transfer_type'); // 0 = Store Transfer, 1 = Pull Out
             $table->tinyInteger('transportation_type')->nullable(); // 1: Logistics, 2: Third Party
             $table->date('pickup_date');
-            $table->string('location_code'); // C001, BK-BREADS, BK
-            $table->string('location_name'); // Arcovia, Bakery, etc
+            $table->string('location_code')->nullable(); // C001, BK-BREADS, BK
+            $table->string('location_name')->nullable(); // Arcovia, Bakery, etc
             $table->string('location_sub_unit')->nullable(); // C001
-            $table->string('remarks');
+            $table->string('remarks')->nullable();
             $table->text('attachment')->nullable();
             SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Receive, 2 = Received
         });
