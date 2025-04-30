@@ -65,7 +65,11 @@ class StockTransferModel extends Model
     }
     public function getTransportationTypeLabelAttribute()
     {
-        return $this->transportation_type == 1 ? 'Logistics' : 'Third Party';
+        $transportationTypeArr = [
+            1 => 'Logistics',
+            2 => 'Third Party',
+        ];
+        return $transportationTypeArr[$this->transportation_type] ?? null;
     }
     public function getStatusLabelAttribute()
     {
