@@ -46,7 +46,7 @@ class StockTransferController extends Controller
             $transportationType = $fields['transportation_type'] ?? null;
             $filepath = null;
 
-            if ($fields['proof_of_booking'] != null) {
+            if (isset($fields['proof_of_booking']) && $fields['proof_of_booking'] != null) {
                 $attachmentPath = $request->file('proof_of_booking')->store('public/attachments/stock_transfer');
                 $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
             }
@@ -82,7 +82,10 @@ class StockTransferController extends Controller
             ]);
             $stockTransferItemController->onCreate($stockTransferItemRequest);
 
-            $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+            if ($type == 'store') {
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+
+            }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
 
