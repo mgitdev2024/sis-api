@@ -82,7 +82,10 @@ class StockTransferController extends Controller
             ]);
             $stockTransferItemController->onCreate($stockTransferItemRequest);
 
-            $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+            if ($type == 'store') {
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+
+            }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
 
