@@ -12,7 +12,7 @@ class StockInventoryController extends Controller
 {
     use ResponseTrait;
 
-    public function onGet($store_code, $sub_unit = null)
+    public function onGet($is_group, $store_code, $sub_unit = null)
     {
         try {
             $stockInventoryModel = StockInventoryModel::where('store_code', $store_code);
@@ -21,6 +21,9 @@ class StockInventoryController extends Controller
             }
             $stockInventoryModel = $stockInventoryModel->orderBy('status', 'DESC')->orderBy('item_code', 'ASC')->get();
 
+            if ($is_group == 1) {
+                $stockInventoryModel = $stockInventoryModel->groupBy('item_category_name');
+            }
             if (count($stockInventoryModel) <= 0) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
             }

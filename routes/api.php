@@ -21,7 +21,7 @@ Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessMana
 // Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
 
 
-Route::post('v1/store/receive-inventory', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
+Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
@@ -66,22 +66,30 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Store Receiving Inventory Item
-    Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{status?}/{order_session_id?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
+    Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
     Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
     #endregion
 
     #region Store Receiving Inventory Item Cache
     Route::post('v1/store/receive-inventory-item-cache/create/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onCreate']);
-    Route::get('v1/store/receive-inventory-item-cache/current/get/{order_session_id}/{receive_type}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
-    Route::post('v1/store/receive-inventory-item-cache/delete/{order_session_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
+    Route::get('v1/store/receive-inventory-item-cache/current/get/{reference_number}/{receive_type}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
+    Route::post('v1/store/receive-inventory-item-cache/delete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
     #endregion
 
     #region Stock Inventory
-    Route::get('v1/store/stock-inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    Route::get('v1/stock/inventory/get/{is_group}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     #endregion
 
     #region Stock Log
-    Route::get('v1/store/stock-log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    Route::get('v1/stock/log/get/{store_code}/{item_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGet']);
+    Route::get('v1/stock/log/details/get/{item_code}', [App\Http\Controllers\v1\Stock\StockLogController::class, 'onGetStockDetails']);
+    #endregion
+
+    #region Stock Transfer
+    Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCreate']);
+    Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCancel']);
+    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
+    Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
     #endregion
 });

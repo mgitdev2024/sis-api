@@ -16,15 +16,15 @@ class StoreReceivingInventoryItemController extends Controller
 {
     use ResponseTrait, StockTrait;
 
-    public function onGetCurrent($store_code, $status = null, $order_session_id = null)
+    public function onGetCurrent($store_code, $status = null, $reference_number = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
             }
-            if ($order_session_id != null) {
-                $storeInventoryItemModel = $storeInventoryItemModel->where('order_session_id', $order_session_id);
+            if ($reference_number != null) {
+                $storeInventoryItemModel = $storeInventoryItemModel->where('reference_number', $reference_number);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->orderBy('id', 'DESC')->get();
 
@@ -37,11 +37,11 @@ class StoreReceivingInventoryItemController extends Controller
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
                     'estimated_delivery_date' => $item->delivery_date,
-                    'reference_number' => $order_session_id
+                    'reference_number' => $reference_number
                 ];
 
                 $data['requested_items'][] = [
-                    'reference_number' => $order_session_id,
+                    'reference_number' => $reference_number,
                     'item_code' => trim($item->item_code),
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
@@ -72,17 +72,17 @@ class StoreReceivingInventoryItemController extends Controller
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::select([
-                'order_session_id',
+                'reference_number',
                 'delivery_date',
                 'status',
-                DB::raw('COUNT(order_session_id) as session_count'),
+                DB::raw('COUNT(reference_number) as session_count'),
             ])
                 ->where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->groupBy([
-                'order_session_id',
+                'reference_number',
                 'delivery_date',
                 'status'
             ])
@@ -98,7 +98,7 @@ class StoreReceivingInventoryItemController extends Controller
     public function onScanItems(Request $request, $store_code)
     {
         $fields = $request->validate([
-            'order_session_id' => 'required',
+            'reference_number' => 'required',
             'scanned_items' => 'required|json', // ["2":{"bid":1,"q":1,"item_code":"TAS WH"},"3":{"bid":1,"q":1}]
             'created_by_id' => 'required',
             'receive_type' => 'required|in:scan,manual'
@@ -107,7 +107,7 @@ class StoreReceivingInventoryItemController extends Controller
             $receiveType = $fields['receive_type']; // Stock In, Stock Out
             DB::beginTransaction();
             $scannedItems = json_decode($fields['scanned_items'], true);
-            $orderSessionId = $fields['order_session_id'];
+            $referenceNumber = $fields['reference_number'];
             $createdById = $fields['created_by_id'];
             $wrongDroppedItems = [];
             $wrongDroppedData = [];
@@ -116,12 +116,12 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $itemCode = $items['ic']; // item code
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code)
-                    ->where('order_session_id', $orderSessionId)
+                    ->where('reference_number', $referenceNumber)
                     ->where('item_code', $itemCode)
                     ->first();
                 if ($storeInventoryItemModel) {
-                    if (!isset($orderSessionData["$store_code:$orderSessionId:$itemCode"])) {
-                        $orderSessionData["$store_code:$orderSessionId:$itemCode"] = [
+                    if (!isset($orderSessionData["$store_code:$referenceNumber:$itemCode"])) {
+                        $orderSessionData["$store_code:$referenceNumber:$itemCode"] = [
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
@@ -129,13 +129,13 @@ class StoreReceivingInventoryItemController extends Controller
 
                     $receivedQuantity = 0;
                     if ($receiveType == 'scan') {
-                        $receivedQuantity = ++$orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_quantity'];
+                        $receivedQuantity = ++$orderSessionData["$store_code:$referenceNumber:$itemCode"]['received_quantity'];
 
                     } else {
                         $receivedQuantity += $items['q'] ?? 0;
                     }
-                    $orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_quantity'] = $receivedQuantity;
-                    $orderSessionData["$store_code:$orderSessionId:$itemCode"]['received_items'][] = $items;
+                    $orderSessionData["$store_code:$referenceNumber:$itemCode"]['received_quantity'] = $receivedQuantity;
+                    $orderSessionData["$store_code:$referenceNumber:$itemCode"]['received_items'][] = $items;
 
                 } else {
                     $wrongDroppedItems[] = $items;
@@ -144,26 +144,27 @@ class StoreReceivingInventoryItemController extends Controller
 
             foreach ($wrongDroppedItems as $items) {
                 $itemCode = $items['ic']; // item code
-                if (!isset($wrongDroppedData["$store_code:$orderSessionId:$itemCode"])) {
-                    $wrongDroppedData["$store_code:$orderSessionId:$itemCode"] = [
+                if (!isset($wrongDroppedData["$store_code:$referenceNumber:$itemCode"])) {
+                    $wrongDroppedData["$store_code:$referenceNumber:$itemCode"] = [
                         'received_quantity' => 0,
                         'received_items' => []
                     ];
                 }
                 $wrongQuantity = 0;
                 if ($receiveType == 'scan') {
-                    $wrongQuantity = ++$wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_quantity'];
+                    $wrongQuantity = ++$wrongDroppedData["$store_code:$referenceNumber:$itemCode"]['received_quantity'];
 
                 } else {
                     $wrongQuantity += $items['q'] ?? 0;
                 }
-                $wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_quantity'] = $wrongQuantity;
-                $wrongDroppedData["$store_code:$orderSessionId:$itemCode"]['received_items'][] = $items;
+                $wrongDroppedData["$store_code:$referenceNumber:$itemCode"]['received_quantity'] = $wrongQuantity;
+                $wrongDroppedData["$store_code:$referenceNumber:$itemCode"]['received_items'][] = $items;
 
             }
 
-            $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType);
+            $this->onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $referenceNumber, $receiveType);
             DB::commit();
+
             return $this->dataResponse('success', 200, __('msg.update_success'));
 
         } catch (Exception $exception) {
@@ -172,7 +173,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $orderSessionId, $receiveType)
+    private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $referenceNumber, $receiveType)
     {
         try {
 
@@ -183,7 +184,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $itemCode = $key[2];
 
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $storeCode)
-                    ->where('order_session_id', $orderSessionId)
+                    ->where('reference_number', $referenceNumber)
                     ->where('item_code', $itemCode)
                     ->first();
                 if ($storeInventoryItemModel) {
@@ -199,20 +200,22 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
                     $storeInventoryItemId = $storeInventoryItemModel->id;
                     $itemDescription = $storeInventoryItemModel->item_description;
-                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber, $itemDescription);
+                    $itemCategoryName = $storeInventoryItemModel->item_category_name;
+                    $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemId, $orderSessionValue['received_items'], $referenceNumber, $itemDescription, $itemCategoryName);
                 }
 
             }
 
-            $storeInventoryReceivingItem = StoreReceivingInventoryItemModel::where('order_session_id', $orderSessionId)->first();
+            $storeInventoryReceivingItem = StoreReceivingInventoryItemModel::where('reference_number', $referenceNumber)->first();
             $storeReceivingInventoryId = $storeInventoryReceivingItem->store_receiving_inventory_id ?? null;
             $storeName = $storeInventoryReceivingItem->store_name ?? null;
             $deliveryType = $storeInventoryReceivingItem->delivery_type ?? null;
             $deliveryDate = $storeInventoryReceivingItem->delivery_date ?? null;
             $orderDate = $storeInventoryReceivingItem->order_date ?? null;
-            $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
+            // $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
+
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
                 $key = explode(':', $wrongDroppedKey);
@@ -234,37 +237,39 @@ class StoreReceivingInventoryItemController extends Controller
                     'is_special' => false,
                     'store_name' => $storeName,
                     'store_code' => $storeCode,
-                    'order_session_id' => $orderSessionId,
+                    'reference_number' => $referenceNumber,
                     'delivery_date' => $deliveryDate,
                     'delivery_type' => $deliveryType,
+                    'receive_type' => 1,
+                    'type' => 0, // Order
                     'order_date' => $orderDate,
                     'order_quantity' => 0,
                     'allocated_quantity' => 0,
-                    'store_sub_unit_id' => $storeSubUnitId,
+                    // 'store_sub_unit_id' => $storeSubUnitId,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'store_sub_unit_long_name' => $storeSubUnitLongName,
                     'is_wrong_drop' => true,
                     'item_code' => trim($itemCode),
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
+                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? null,
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 1,
                 ]);
-
-                $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name']);
+                $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name'], $itemData['item_base']['item_category']['category_name']);
             }
- 
+
 
             // Deletion of cache
-            $cacheQuery = StoreReceivingInventoryItemCacheModel::where('order_session_id', $orderSessionId);
+            $cacheQuery = StoreReceivingInventoryItemCacheModel::where('reference_number', $referenceNumber);
 
             if ($cacheQuery->exists()) {
                 $cacheQuery->delete();
             }
 
-        } catch (Exception $exception) { 
+        } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }

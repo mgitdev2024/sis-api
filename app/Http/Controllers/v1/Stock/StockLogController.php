@@ -35,12 +35,28 @@ class StockLogController extends Controller
                 });
 
             if (count($stockLogModel) <= 0) {
-                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+                return $this->dataResponse('error', 200, __('msg.record_not_found'));
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $stockLogModel);
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    public function onGetStockDetails($item_code)
+    {
+        try {
+            $response = \Http::get(env('MGIOS_URL') . '/item-details/get/' . $item_code);
+            if ($response->failed()) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
+
+            }
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+
     }
 }
