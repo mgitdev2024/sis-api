@@ -212,7 +212,7 @@ class StoreReceivingInventoryItemController extends Controller
             $deliveryType = $storeInventoryReceivingItem->delivery_type ?? null;
             $deliveryDate = $storeInventoryReceivingItem->delivery_date ?? null;
             $orderDate = $storeInventoryReceivingItem->order_date ?? null;
-            $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
+            // $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
 
@@ -245,7 +245,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => $orderDate,
                     'order_quantity' => 0,
                     'allocated_quantity' => 0,
-                    'store_sub_unit_id' => $storeSubUnitId,
+                    // 'store_sub_unit_id' => $storeSubUnitId,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'store_sub_unit_long_name' => $storeSubUnitLongName,
                     'is_wrong_drop' => true,

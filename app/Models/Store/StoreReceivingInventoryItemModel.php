@@ -21,7 +21,7 @@ class StoreReceivingInventoryItemModel extends Model
         'store_name',
         'delivery_date',
         'delivery_type',
-        'store_sub_unit_id',
+        // 'store_sub_unit_id',
         'store_sub_unit_short_name',
         'store_sub_unit_long_name',
         'order_date',

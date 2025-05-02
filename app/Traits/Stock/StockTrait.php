@@ -230,10 +230,13 @@ trait StockTrait
                 'item_code' => $itemCode,
             ])->first();
 
-            $stockInventoryModel->stock_count -= $itemQuantityCount;
-            $stockInventoryModel->updated_by_id = $createdById;
-            $stockInventoryModel->updated_at = now();
-            $stockInventoryModel->save();
+            if ($stockInventoryModel) {
+                $stockInventoryModel->stock_count -= $itemQuantityCount;
+                $stockInventoryModel->updated_by_id = $createdById;
+                $stockInventoryModel->updated_at = now();
+                $stockInventoryModel->save();
+            }
+
 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());

@@ -21,7 +21,7 @@ Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessMana
 // Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
 
 
-Route::post('v1/store/receive-inventory', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
+Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout

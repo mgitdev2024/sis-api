@@ -14,7 +14,7 @@ return new class extends Migration {
     {
         Schema::create('store_receiving_inventory', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('consolidated_order_id')->nullable(); // Check MGIOS for consolidated_order_table
+            $table->string('consolidated_order_id')->nullable(); // Check MGIOS for consolidated_order_table
             $table->string('reference_number');
             $table->date('delivery_date')->nullable();
             $table->string('delivery_type')->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('store_receiving_inventory_id'); // FK to store_receiving_inventory
             $table->string('store_code'); // C001
             $table->string('store_name');
-            $table->integer('store_sub_unit_id');
+            // $table->integer('store_sub_unit_id');
             $table->string('store_sub_unit_short_name');
             $table->string('store_sub_unit_long_name');
             $table->date('delivery_date')->nullable();

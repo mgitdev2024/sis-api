@@ -13,7 +13,7 @@ use DB;
 class StoreReceivingInventoryController extends Controller
 {
     use ResponseTrait;
-    public function onCreate(Request $request)
+    public function onCreate(Request $request, $is_internal = false)
     {
         $fields = $request->validate([
             'created_by_name' => 'required',
@@ -23,10 +23,12 @@ class StoreReceivingInventoryController extends Controller
         try {
             $createdByName = $fields['created_by_name'];
             $createdById = $fields['created_by_id'];
-            $response = Http::withToken($request->bearerToken())
-                ->get(env('MGIOS_URL') . '/check-token');
-            if (!$response->successful()) {
-                return $this->dataResponse('error', 404, 'Unauthorized Access');
+            if (!$is_internal) {
+                $response = Http::withToken($request->bearerToken())
+                    ->get(env('MGIOS_URL') . '/check-token');
+                if (!$response->successful()) {
+                    return $this->dataResponse('error', 404, 'Unauthorized Access');
+                }
             }
 
             // Decode consolidated data and insert them into the store_receiving_inventory table
@@ -54,16 +56,16 @@ class StoreReceivingInventoryController extends Controller
                 $deliveryDate = $storeOrders['delivery_date'];
                 $deliveryType = $storeOrders['delivery_type'];
                 $orderDate = $storeOrders['order_date'];
-                $storeSubUnitId = $storeOrders['store_sub_unit_id'];
+                // $storeSubUnitId = $storeOrders['store_sub_unit_id'];
                 $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'];
                 $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'];
-
+                $orderReferenceNumber = isset($storeOrders['order_session_id']) ? 'CO-' . $storeOrders['order_session_id'] : $storeOrders['reference_number'];
                 if (isset($storeOrders['ordered_items'])) {
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
                         $insertData[] = [
                             'store_receiving_inventory_id' => $storeReceivingInventory->id,
                             'is_special' => $orderedItems['is_special'] ?? false,
-                            'reference_number' => 'CO-' . $storeOrders['order_session_id'],
+                            'reference_number' => $orderReferenceNumber,
                             'store_code' => $storeCode,
                             'store_name' => $storeName,
                             'delivery_date' => $deliveryDate,
@@ -74,7 +76,7 @@ class StoreReceivingInventoryController extends Controller
                             'item_category_name' => $orderedItems['item_category_name'],
                             'order_quantity' => $orderedItems['order_quantity'],
                             'allocated_quantity' => $orderedItems['allocated_quantity'],
-                            'store_sub_unit_id' => $storeSubUnitId,
+                            // 'store_sub_unit_id' => $storeSubUnitId,
                             'store_sub_unit_short_name' => $storeSubUnitShortName,
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
                             'received_quantity' => 0,
@@ -96,7 +98,7 @@ class StoreReceivingInventoryController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
-            \Log::info($exception->getMessage());
+            dd($exception);
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
