@@ -224,6 +224,7 @@ trait CrudOperationsTrait
             }
             return $this->dataResponse('error', 200, $modelName . ' ' . __('msg.record_not_found'));
         } catch (Exception $exception) {
+            dd($exception);
             return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }

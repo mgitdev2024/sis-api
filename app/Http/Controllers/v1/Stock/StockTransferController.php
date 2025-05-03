@@ -54,7 +54,7 @@ class StockTransferController extends Controller
 
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
-            $referenceNumber = StockTransferModel::generateReferenceNumber($type);
+            $referenceNumber = StockTransferModel::onGenerateReferenceNumber($type);
 
             $stockTransferModel = StockTransferModel::create([
                 'reference_number' => $referenceNumber,

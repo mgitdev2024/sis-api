@@ -98,7 +98,7 @@ class StoreReceivingInventoryController extends Controller
 
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
-            dd($exception);
+
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }

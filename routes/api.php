@@ -92,4 +92,15 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
     Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
     #endregion
+
+    #region Stock Inventory Count
+    Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
+    Route::get('v1/stock/inventory-count/current/get/{status}/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onGet']);
+    #endregion
+
+    #region Stock Inventory Count
+    Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);
+    Route::post('v1/stock/inventory-item-count/update/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onUpdate']);
+    #endregion
+
 });
