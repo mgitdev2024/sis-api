@@ -4,6 +4,8 @@ namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stock\StockInventoryItemCountModel;
+use App\Models\Stock\StockInventoryModel;
+use App\Models\Stock\StockLogModel;
 use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
@@ -28,6 +30,8 @@ class StockInventoryItemCountController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'store_code' => 'required',
+            'store_sub_unit_short_name' => 'required',
             'stock_inventory_count_data' => 'required' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
         ]);
 
@@ -52,6 +56,41 @@ class StockInventoryItemCountController extends Controller
                         'discrepancy_quantity' => $discrepancyQuantity,
                         'updated_by_id' => $createdById,
                     ]);
+
+                    // Update the stock inventory
+                    $stockInventoryModel = StockInventoryModel::where([
+                        'store_code' => $fields['store_code'],
+                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                        'item_code' => $itemCode,
+                    ])->first();
+
+                    if ($stockInventoryModel) {
+                        $stockInventoryModel->update([
+                            'stock_count' => $countedQuantity,
+                            'updated_by_id' => $createdById,
+                        ]);
+                    }
+
+                    $stockLogModel = StockLogModel::where([
+                        'store_code' => $fields['store_code'],
+                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                        'item_code' => $itemCode,
+                    ])->orderBy('id', 'DESC')->first();
+                    if ($stockLogModel) {
+                        $stockLogModel->create([
+                            'reference_number' => $stockInventoryItemCount->stockInventoryCount->id,
+                            'store_code' => $fields['store_code'],
+                            'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                            'item_code' => $stockLogModel->item_code,
+                            'item_description' => $stockLogModel->item_description,
+                            'item_category_name' => $stockLogModel->item_category_name,
+                            'quantity' => 0,
+                            'initial_stock' => $stockLogModel->final_stock,
+                            'final_stock' => $countedQuantity,
+                            'transaction_type' => 'adjustment',
+                            'created_by_id' => $createdById,
+                        ]);
+                    }
                 }
             }
             DB::commit();
