@@ -56,41 +56,66 @@ class StockInventoryItemCountController extends Controller
                         'discrepancy_quantity' => $discrepancyQuantity,
                         'updated_by_id' => $createdById,
                     ]);
+                }
+            }
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, __('msg.update_failed'), $exception->getMessage());
+        }
+    }
 
-                    // Update the stock inventory
-                    $stockInventoryModel = StockInventoryModel::where([
+    public function onPost(Request $request, $store_inventory_count_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'store_code' => 'required',
+            'store_sub_unit_short_name' => 'required',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
+                'stock_inventory_count_id' => $store_inventory_count_id,
+            ])->where('discrepancy_quantity', '!=', 0)->get();
+
+            foreach ($stockInventoryItemCountModel as $item) {
+                $countedQuantity = $item->counted_quantity;
+                // Update the stock inventory
+                $stockInventoryModel = StockInventoryModel::where([
+                    'store_code' => $fields['store_code'],
+                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    'item_code' => $item->item_code,
+                ])->first();
+
+                if ($stockInventoryModel) {
+                    $stockInventoryModel->update([
+                        'stock_count' => $countedQuantity,
+                        'updated_by_id' => $createdById,
+                    ]);
+                }
+
+                $stockLogModel = StockLogModel::where([
+                    'store_code' => $fields['store_code'],
+                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    'item_code' => $item->item_code,
+                ])->orderBy('id', 'DESC')->first();
+                if ($stockLogModel) {
+                    $stockLogModel->create([
+                        'reference_number' => $item->stockInventoryCount->reference_number,
                         'store_code' => $fields['store_code'],
                         'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $itemCode,
-                    ])->first();
-
-                    if ($stockInventoryModel) {
-                        $stockInventoryModel->update([
-                            'stock_count' => $countedQuantity,
-                            'updated_by_id' => $createdById,
-                        ]);
-                    }
-
-                    $stockLogModel = StockLogModel::where([
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $itemCode,
-                    ])->orderBy('id', 'DESC')->first();
-                    if ($stockLogModel) {
-                        $stockLogModel->create([
-                            'reference_number' => $stockInventoryItemCount->stockInventoryCount->id,
-                            'store_code' => $fields['store_code'],
-                            'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                            'item_code' => $stockLogModel->item_code,
-                            'item_description' => $stockLogModel->item_description,
-                            'item_category_name' => $stockLogModel->item_category_name,
-                            'quantity' => 0,
-                            'initial_stock' => $stockLogModel->final_stock,
-                            'final_stock' => $countedQuantity,
-                            'transaction_type' => 'adjustment',
-                            'created_by_id' => $createdById,
-                        ]);
-                    }
+                        'item_code' => $stockLogModel->item_code,
+                        'item_description' => $stockLogModel->item_description,
+                        'item_category_name' => $stockLogModel->item_category_name,
+                        'quantity' => 0,
+                        'initial_stock' => $stockLogModel->final_stock,
+                        'final_stock' => $countedQuantity,
+                        'transaction_type' => 'adjustment',
+                        'created_by_id' => $createdById,
+                    ]);
                 }
             }
             DB::commit();
