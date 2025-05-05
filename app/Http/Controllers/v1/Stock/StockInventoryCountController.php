@@ -20,7 +20,7 @@ class StockInventoryCountController extends Controller
         $fields = $request->validate([
             'created_by_id' => 'required',
             'store_code' => 'required',
-            'store_sub_unit_short_name' => 'required',
+            'store_sub_unit_short_name' => 'required',  
         ]);
         try {
             DB::beginTransaction();
@@ -35,7 +35,7 @@ class StockInventoryCountController extends Controller
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
-                'status' => 1, // For Receive
+                'status' => 0,
             ]);
             $stockInventoryCount->save();
 
