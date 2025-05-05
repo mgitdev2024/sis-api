@@ -54,6 +54,7 @@ class StockInventoryItemCountController extends Controller
                     $stockInventoryItemCount->update([
                         'counted_quantity' => $countedQuantity,
                         'discrepancy_quantity' => $discrepancyQuantity,
+                        'status' => 1, // For Review
                         'updated_by_id' => $createdById,
                     ]);
                 }
@@ -81,6 +82,13 @@ class StockInventoryItemCountController extends Controller
                 'stock_inventory_count_id' => $store_inventory_count_id,
             ])->where('discrepancy_quantity', '!=', 0)->get();
 
+            $stockInventoryCount = $stockInventoryItemCountModel->first()->stockInventoryCount;
+            if ($stockInventoryCount) {
+                $stockInventoryCount->update([
+                    'status' => 2, // Posted
+                    'updated_by_id' => $createdById,
+                ]);
+            }
             foreach ($stockInventoryItemCountModel as $item) {
                 $countedQuantity = $item->counted_quantity;
                 // Update the stock inventory
