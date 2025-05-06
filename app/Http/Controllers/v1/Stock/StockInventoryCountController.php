@@ -95,7 +95,7 @@ class StockInventoryCountController extends Controller
             ];
             $array = $this->readCurrentRecord(StockInventoryCountModel::class, null, $whereFields, null, $orderFields, 'Stock Inventory Count', false, null, null);
 
-            if ($array->getOriginalContent()['success']['data']->isEmpty()) {
+            if (!isset($array->getOriginalContent()['success'])) {
                 return $this->dataResponse('error', 200, __('msg.record_not_found'));
             }
             $formatted = collect($array->getOriginalContent()['success']['data']->toArray())->map(function ($item) {
