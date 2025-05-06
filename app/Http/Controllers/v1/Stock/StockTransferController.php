@@ -173,7 +173,11 @@ class StockTransferController extends Controller
     public function onGetById($id)
     {
         try {
-            $stockTransfer = StockTransferModel::with('StockTransferItems')->findOrFail($id);
+            $stockTransfer = StockTransferModel::with('StockTransferItems')->find($id);
+            if ($stockTransfer == null) {
+                return $this->dataResponse('error', 200, __('msg.record_not_found'));
+
+            }
             return $this->dataResponse('success', 200, __('msg.record_found'), $stockTransfer);
 
         } catch (Exception $exception) {

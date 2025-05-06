@@ -20,7 +20,7 @@ class StockInventoryCountController extends Controller
         $fields = $request->validate([
             'created_by_id' => 'required',
             'store_code' => 'required',
-            'store_sub_unit_short_name' => 'required',  
+            'store_sub_unit_short_name' => 'required',
         ]);
         try {
             DB::beginTransaction();
@@ -95,7 +95,9 @@ class StockInventoryCountController extends Controller
             ];
             $array = $this->readCurrentRecord(StockInventoryCountModel::class, null, $whereFields, null, $orderFields, 'Stock Inventory Count', false, null, null);
 
-
+            if ($array->getOriginalContent()['success']['data']->isEmpty()) {
+                return $this->dataResponse('error', 200, __('msg.record_not_found'));
+            }
             $formatted = collect($array->getOriginalContent()['success']['data']->toArray())->map(function ($item) {
                 if (isset($item['created_at'])) {
                     $item['created_at'] = Carbon::parse($item['created_at'])->format('Y-m-d H:i:s');
