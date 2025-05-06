@@ -86,9 +86,6 @@ class StockInventoryItemCountController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
-                'stock_inventory_count_id' => $store_inventory_count_id,
-            ])->where('discrepancy_quantity', '!=', 0)->get();
 
             $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
             if ($stockInventoryCountModel) {
@@ -97,6 +94,9 @@ class StockInventoryItemCountController extends Controller
                     'updated_by_id' => $createdById,
                 ]);
             }
+            $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
+                'stock_inventory_count_id' => $store_inventory_count_id,
+            ])->where('discrepancy_quantity', '!=', 0)->get();
 
             foreach ($stockInventoryItemCountModel as $item) {
                 $countedQuantity = $item->counted_quantity;
