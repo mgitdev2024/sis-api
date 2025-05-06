@@ -119,21 +119,19 @@ class StockInventoryItemCountController extends Controller
                     'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
                     'item_code' => $item->item_code,
                 ])->orderBy('id', 'DESC')->first();
-                if ($stockLogModel) {
-                    $stockLogModel->create([
-                        'reference_number' => $item->stockInventoryCount->reference_number,
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $stockLogModel->item_code,
-                        'item_description' => $stockLogModel->item_description,
-                        'item_category_name' => $stockLogModel->item_category_name,
-                        'quantity' => 0,
-                        'initial_stock' => $stockLogModel->final_stock,
-                        'final_stock' => $countedQuantity,
-                        'transaction_type' => 'adjustment',
-                        'created_by_id' => $createdById,
-                    ]);
-                }
+                $stockLogModel->create([
+                    'reference_number' => $item->stockInventoryCount->reference_number,
+                    'store_code' => $fields['store_code'],
+                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    'item_code' => $stockLogModel->item_code,
+                    'item_description' => $stockLogModel->item_description,
+                    'item_category_name' => $stockLogModel->item_category_name,
+                    'quantity' => 0,
+                    'initial_stock' => $stockLogModel->final_stock,
+                    'final_stock' => $countedQuantity,
+                    'transaction_type' => 'adjustment',
+                    'created_by_id' => $createdById,
+                ]);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
