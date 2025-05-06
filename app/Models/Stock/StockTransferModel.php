@@ -36,7 +36,7 @@ class StockTransferModel extends Model
         return $this->hasMany(StockTransferItemModel::class, 'stock_transfer_id', 'id');
     }
 
-    public static function generateReferenceNumber($type)
+    public static function onGenerateReferenceNumber($type)
     {
         $prefix = match (strtolower($type)) {
             'pullout' => 'PT-',
