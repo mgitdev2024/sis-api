@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockInventoryCountModel;
 use App\Models\Stock\StockInventoryItemCountModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
@@ -40,6 +41,13 @@ class StockInventoryItemCountController extends Controller
             $createdById = $fields['created_by_id'];
             $stockInventoryCountData = json_decode($fields['stock_inventory_count_data'], true);
 
+            $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
+            if ($stockInventoryCountModel) {
+                $stockInventoryCountModel->update([
+                    'status' => 1, // For Review
+                    'updated_by_id' => $createdById,
+                ]);
+            }
             foreach ($stockInventoryCountData as $item) {
                 $itemCode = $item['ic']; // Item Code
                 $countedQuantity = $item['cq']; // Counted Quantity
@@ -82,13 +90,14 @@ class StockInventoryItemCountController extends Controller
                 'stock_inventory_count_id' => $store_inventory_count_id,
             ])->where('discrepancy_quantity', '!=', 0)->get();
 
-            $stockInventoryCount = $stockInventoryItemCountModel->first()->stockInventoryCount;
-            if ($stockInventoryCount) {
-                $stockInventoryCount->update([
-                    'status' => 2, // Posted
+            $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
+            if ($stockInventoryCountModel) {
+                $stockInventoryCountModel->update([
+                    'status' => 2, // For Review
                     'updated_by_id' => $createdById,
                 ]);
             }
+
             foreach ($stockInventoryItemCountModel as $item) {
                 $countedQuantity = $item->counted_quantity;
                 // Update the stock inventory
