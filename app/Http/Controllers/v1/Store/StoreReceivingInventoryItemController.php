@@ -43,6 +43,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $data['requested_items'][] = [
                     'reference_number' => $reference_number,
                     'item_code' => trim($item->item_code),
+                    'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
