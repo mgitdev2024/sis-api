@@ -34,6 +34,7 @@ class StoreReceivingInventoryItemModel extends Model
         'received_items',
         'receive_type',
         'type',
+        'is_received',
         'created_by_name',
         'created_by_id',
         'updated_by_id',

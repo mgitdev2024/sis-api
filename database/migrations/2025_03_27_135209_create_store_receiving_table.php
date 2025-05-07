@@ -46,7 +46,8 @@ return new class extends Migration {
             $table->boolean('is_special')->default(false); // 0 = Regular, 1 = Special
             $table->string('reference_number')->nullable();
             $table->boolean('is_wrong_drop')->default(false); // 0 = No, 1 = Yes
-            $table->tinyInteger('type'); // receiving, store transfer, pull out
+            $table->tinyInteger('type'); // 0 = order 1 = receiving, 2 = store transfer, 3 = pull out
+            $table->tinyInteger('is_received')->default(0); // 0 = No, 1 = Yes
 
             $table->string('created_by_name');
             SchemaHelper::addCommonColumns($table, 0);

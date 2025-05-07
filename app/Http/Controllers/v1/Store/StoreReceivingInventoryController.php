@@ -21,6 +21,7 @@ class StoreReceivingInventoryController extends Controller
             'consolidated_data' => 'required'
         ]);
         try {
+            DB::beginTransaction();
             $createdByName = $fields['created_by_name'];
             $createdById = $fields['created_by_id'];
             if (!$is_internal) {
@@ -60,6 +61,12 @@ class StoreReceivingInventoryController extends Controller
                 $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'];
                 $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'];
                 $orderReferenceNumber = isset($storeOrders['order_session_id']) ? 'CO-' . $storeOrders['order_session_id'] : $storeOrders['reference_number'];
+
+                $exists = StoreReceivingInventoryItemModel::where('reference_number', $orderReferenceNumber)->exists();
+
+                if ($exists) {
+                    throw new Exception('Reference number already exists: ' . $orderReferenceNumber);
+                }
                 if (isset($storeOrders['ordered_items'])) {
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
                         $insertData[] = [
@@ -96,9 +103,10 @@ class StoreReceivingInventoryController extends Controller
                 StoreReceivingInventoryItemModel::insert($insertData);
             }
 
+            DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
-
+            DB::rollBack();
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }

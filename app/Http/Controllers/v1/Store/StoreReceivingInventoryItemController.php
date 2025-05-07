@@ -33,7 +33,13 @@ class StoreReceivingInventoryItemController extends Controller
                 'requested_items' => [],
                 'request_details' => [],
             ];
+
+            $isReceived = true;
             foreach ($storeInventoryItemModel as $item) {
+                if ($item->is_received == 0) {
+                    $isReceived = false;
+                }
+
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
                     'estimated_delivery_date' => $item->delivery_date,
@@ -63,6 +69,67 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
             }
 
+            $data['reservation_request']['is_received'] = $isReceived;
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+
+    public function onGetCheckedManual(Request $request, $reference_number)
+    {
+        $fields = $request->validate([
+            'checked_item_codes' => 'required'
+        ]);
+        try {
+            $itemCodes = json_decode($fields['checked_item_codes'], true);
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)
+                ->whereIn('item_code', $itemCodes)
+                ->orderBy('id', 'DESC')
+                ->get();
+
+            $data = [
+                'reservation_request' => [],
+                'requested_items' => [],
+                'request_details' => [],
+            ];
+
+            $isReceived = true;
+            foreach ($storeInventoryItemModel as $item) {
+                if ($item->is_received == 0) {
+                    $isReceived = false;
+                }
+
+                $data['reservation_request'] = [
+                    'delivery_location' => $item->store_name,
+                    'estimated_delivery_date' => $item->delivery_date,
+                    'reference_number' => $reference_number
+                ];
+
+                $data['requested_items'][] = [
+                    'reference_number' => $reference_number,
+                    'item_code' => trim($item->item_code),
+                    'item_description' => $item->item_description,
+                    'order_quantity' => $item->order_quantity,
+                    'allocated_quantity' => $item->allocated_quantity,
+                    'received_quantity' => $item->received_quantity,
+                    'received_items' => json_decode($item->received_items),
+                    'is_special' => $item->is_special,
+                    'is_wrong_drop' => $item->is_wrong_drop,
+                    'created_by_name' => $item->created_by_name,
+                    'status' => $item->status,
+                ];
+
+                $data['request_details'] = [
+                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                    'delivery_location' => $item->delivery_date,
+                    'delivery_scheme' => $item->delivery_type,
+                    'requested_by' => $item->created_by_name,
+                    'status' => $item->status,
+                ];
+            }
+
+            $data['reservation_request']['is_received'] = $isReceived;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
@@ -76,6 +143,7 @@ class StoreReceivingInventoryItemController extends Controller
                 'reference_number',
                 'delivery_date',
                 'status',
+                DB::raw('MAX(type) as type'),
                 DB::raw('COUNT(reference_number) as session_count'),
             ])
                 ->where('store_code', $store_code);
@@ -194,7 +262,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->receive_type = $receiveType == 'scan' ? 0 : 1;
                     $storeInventoryItemModel->updated_by_id = $createdById;
                     $storeInventoryItemModel->updated_at = now();
-                    $storeInventoryItemModel->status = 1;
+                    $storeInventoryItemModel->status = 0;
+                    $storeInventoryItemModel->is_received = 1;
                     $storeInventoryItemModel->save();
 
                     // Stock In
@@ -255,9 +324,10 @@ class StoreReceivingInventoryItemController extends Controller
                     'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? null,
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
+                    'is_received' => 1,
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
-                    'status' => 1,
+                    'status' => 0,
                 ]);
                 $this->onCreateStockLogs('stock_in', $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $storeInventoryItemModel->id, $wrongDroppedValue['received_items'], $referenceNumber, $itemData['long_name'], $itemData['item_base']['item_category']['category_name']);
             }
@@ -272,6 +342,31 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onComplete(Request $request, $reference_number)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)->get();
+            if (count($storeInventoryItemModel) > 0) {
+                foreach ($storeInventoryItemModel as $item) {
+                    $item->status = 1;
+                    $item->updated_by_id = $fields['created_by_id'];
+                    $item->updated_at = now();
+                    $item->save();
+                }
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'));
+            }
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
 }
