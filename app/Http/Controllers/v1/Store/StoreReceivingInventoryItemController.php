@@ -35,6 +35,7 @@ class StoreReceivingInventoryItemController extends Controller
             ];
 
             $isReceived = true;
+            $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
                 if ($item->is_received == 0) {
                     $isReceived = false;
@@ -47,6 +48,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
+                    'unique_key' => "$item->item_code-$counter",
                     'reference_number' => $reference_number,
                     'item_code' => trim($item->item_code),
                     'item_description' => $item->item_description,
@@ -55,6 +57,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
                     'order_type' => $item->order_type,
+                    'fan_out_category' => $item->fan_out_category,
                     'is_wrong_drop' => $item->is_wrong_drop,
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
@@ -67,6 +70,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'requested_by' => $item->created_by_name,
                     'status' => $item->status,
                 ];
+
+                $counter++;
             }
 
             $data['reservation_request']['is_received'] = $isReceived;
@@ -95,6 +100,8 @@ class StoreReceivingInventoryItemController extends Controller
             ];
 
             $isReceived = true;
+
+            $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
                 if ($item->is_received == 0) {
                     $isReceived = false;
@@ -107,10 +114,12 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
+                    'unique_key' => "$item->item_code-$counter",
                     'reference_number' => $reference_number,
                     'item_code' => trim($item->item_code),
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
+                    'fan_out_category' => $item->fan_out_category,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
@@ -127,6 +136,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'requested_by' => $item->created_by_name,
                     'status' => $item->status,
                 ];
+
+                $counter++;
             }
 
             $data['reservation_request']['is_received'] = $isReceived;
