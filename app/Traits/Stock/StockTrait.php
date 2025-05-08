@@ -104,7 +104,7 @@ trait StockTrait
                 $this->onStockOutInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber);
             }
 
-        } catch (Exception $exception) {
+        } catch (Exception $exception) { 
             throw new Exception($exception->getMessage());
         }
     }
@@ -146,6 +146,7 @@ trait StockTrait
         $stockLogCreateModel->final_stock = $stockQuantity;
         $stockLogCreateModel->created_by_id = $createdById;
         $stockLogCreateModel->save();
+
     }
     private function onStockInInventory($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $receiveType, $itemDescription, $itemCategoryName)
     {
@@ -168,6 +169,7 @@ trait StockTrait
             $stockInventoryModel->updated_by_id = $createdById;
             $stockInventoryModel->updated_at = now();
             $stockInventoryModel->save();
+
         } else {
             $stockInventoryCreateModel = new StockInventoryModel();
             $stockInventoryCreateModel->store_code = $storeCode;
@@ -178,7 +180,9 @@ trait StockTrait
             $stockInventoryCreateModel->stock_count = $itemQuantityCount;
             $stockInventoryCreateModel->created_by_id = $createdById;
             $stockInventoryCreateModel->save();
+
         }
+
     }
 
     private function onStockOutLog($transactionItems, $storeCode, $storeSubUnitShortName, $createdById, $referenceNumber, $receiveType)
