@@ -212,7 +212,7 @@ class StockTransferController extends Controller
                     'item_category_name' => $item['ict'],
                     'order_quantity' => $item['q'],
                     'allocated_quantity' => $item['q'],
-                    'is_special' => 0,
+                    'order_type' => 0,
                 ];
             }
             $storeReceivingInventoryController = new StoreReceivingInventoryController();
