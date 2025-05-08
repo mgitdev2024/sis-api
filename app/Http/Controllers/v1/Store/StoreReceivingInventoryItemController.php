@@ -39,8 +39,12 @@ class StoreReceivingInventoryItemController extends Controller
             foreach ($storeInventoryItemModel as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
+                $fanOutCategory = $item->fan_out_category;
+                $uniqueKey = "$itemCode:$fanOutCategory";
                 if ($item->is_received == 0) {
                     $isReceived = false;
+                } else {
+                    $uniqueKey .= "-$fanOutCategory";
                 }
 
                 $data['reservation_request'] = [
@@ -50,7 +54,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
-                    'unique_key' => "$item->item_code-$orderType",
+                    'unique_key' => "$uniqueKey",
                     'reference_number' => $reference_number,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
@@ -58,8 +62,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
-                    'order_type' => $item->order_type,
-                    'fan_out_category' => $item->fan_out_category,
+                    'order_type' => $orderType,
+                    'fan_out_category' => $fanOutCategory,
                     'is_wrong_drop' => $item->is_wrong_drop,
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
@@ -87,13 +91,23 @@ class StoreReceivingInventoryItemController extends Controller
     {
         try {
             $itemCodes = json_decode($selected_item_codes, true);
-            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
-                'reference_number' => $reference_number,
-                'order_type' => $order_type
-            ])
-                ->whereIn('item_code', $itemCodes)
-                ->orderBy('id', 'DESC')
-                ->get();
+            $storeInventoryItemArr = [];
+            foreach ($itemCodes as $selectedItemCode) {
+                $explodedItemCodes = explode(':', $selectedItemCode);
+                $itemCode = $explodedItemCodes[0];
+                $fanOutCategory = $explodedItemCodes[1] ?? null;
+                $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
+                    'reference_number' => $reference_number,
+                    'order_type' => $order_type,
+                    'item_code' => $itemCode
+                ]);
+
+                if ($fanOutCategory != null) {
+                    $storeInventoryItemModel->where('fan_out_category', $fanOutCategory);
+                }
+                $storeInventoryItemModel = $storeInventoryItemModel->first();
+                $storeInventoryItemArr[] = $storeInventoryItemModel;
+            }
 
             $data = [
                 'reservation_request' => [],
@@ -104,12 +118,18 @@ class StoreReceivingInventoryItemController extends Controller
             $isReceived = true;
 
             $counter = 0;
-            foreach ($storeInventoryItemModel as $item) {
+            foreach ($storeInventoryItemArr as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
+                $fanOutCategory = $item->fan_out_category;
+                $uniqueKey = "$itemCode:$fanOutCategory";
+
                 if ($item->is_received == 0) {
                     $isReceived = false;
+                } else {
+                    $uniqueKey .= "-$fanOutCategory";
                 }
+
 
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
@@ -118,12 +138,12 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
-                    'unique_key' => "$item->item_code-$orderType",
+                    'unique_key' => "$uniqueKey",
                     'reference_number' => $reference_number,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
-                    'fan_out_category' => $item->fan_out_category,
+                    'fan_out_category' => $fanOutCategory,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
