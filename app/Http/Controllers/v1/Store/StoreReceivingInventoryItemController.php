@@ -76,11 +76,14 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    public function onGetCheckedManual(Request $request, $reference_number, $selected_item_codes)
+    public function onGetCheckedManual($reference_number, $order_type, $selected_item_codes)
     {
         try {
             $itemCodes = json_decode($selected_item_codes, true);
-            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
+                'reference_number' => $reference_number,
+                'order_type' => $order_type
+            ])
                 ->whereIn('item_code', $itemCodes)
                 ->orderBy('id', 'DESC')
                 ->get();
