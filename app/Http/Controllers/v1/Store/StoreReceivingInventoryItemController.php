@@ -37,6 +37,8 @@ class StoreReceivingInventoryItemController extends Controller
             $isReceived = true;
             $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
+                $itemCode = trim($item->item_code);
+                $orderType = $item->order_type;
                 if ($item->is_received == 0) {
                     $isReceived = false;
                 }
@@ -48,9 +50,9 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
-                    'unique_key' => "$item->item_code-$counter",
+                    'unique_key' => "$item->item_code-$orderType",
                     'reference_number' => $reference_number,
-                    'item_code' => trim($item->item_code),
+                    'item_code' => $itemCode,
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
@@ -103,6 +105,8 @@ class StoreReceivingInventoryItemController extends Controller
 
             $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
+                $itemCode = trim($item->item_code);
+                $orderType = $item->order_type;
                 if ($item->is_received == 0) {
                     $isReceived = false;
                 }
@@ -114,16 +118,16 @@ class StoreReceivingInventoryItemController extends Controller
                 ];
 
                 $data['requested_items'][] = [
-                    'unique_key' => "$item->item_code-$counter",
+                    'unique_key' => "$item->item_code-$orderType",
                     'reference_number' => $reference_number,
-                    'item_code' => trim($item->item_code),
+                    'item_code' => $itemCode,
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
                     'fan_out_category' => $item->fan_out_category,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
-                    'order_type' => $item->order_type,
+                    'order_type' => $orderType,
                     'is_wrong_drop' => $item->is_wrong_drop,
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
