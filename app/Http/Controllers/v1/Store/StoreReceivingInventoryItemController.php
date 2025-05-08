@@ -305,7 +305,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $referenceNumber = $key[1];
                 $itemCode = $key[2];
                 $fanOutCategory = $key[3] != '>' ? $key[3] : null;
-                $orderType = $orderSessionValue['order_type'];
+                $orderType = $orderSessionValue['order_type'] ?? null;
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
                     'store_code' => $storeCode,
                     'reference_number' => $referenceNumber,
