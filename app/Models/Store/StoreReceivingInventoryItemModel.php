@@ -11,7 +11,7 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type'];
+    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type_label'];
     protected $fillable = [
         'store_receiving_inventory_id',
         'reference_number',
@@ -73,6 +73,7 @@ class StoreReceivingInventoryItemModel extends Model
             1 => 'Special Order',
             2 => 'Fan-Out',
         ];
-        return $orderTypeArr[$this->order_type] ?? 'Unknown';
+
+        return $orderTypeArr[$this->order_type] ?? null;
     }
 }
