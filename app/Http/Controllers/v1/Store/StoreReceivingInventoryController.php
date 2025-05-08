@@ -71,7 +71,7 @@ class StoreReceivingInventoryController extends Controller
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
                         $insertData[] = [
                             'store_receiving_inventory_id' => $storeReceivingInventory->id,
-                            'is_special' => $orderedItems['is_special'] ?? false,
+                            'order_type' => $orderedItems['order_type'] ?? 0,
                             'reference_number' => $orderReferenceNumber,
                             'store_code' => $storeCode,
                             'store_name' => $storeName,
@@ -83,6 +83,7 @@ class StoreReceivingInventoryController extends Controller
                             'item_category_name' => $orderedItems['item_category_name'],
                             'order_quantity' => $orderedItems['order_quantity'],
                             'allocated_quantity' => $orderedItems['allocated_quantity'],
+                            'fan_out_category' => $orderedItems['fan_out_category'],
                             // 'store_sub_unit_id' => $storeSubUnitId,
                             'store_sub_unit_short_name' => $storeSubUnitShortName,
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
@@ -107,6 +108,7 @@ class StoreReceivingInventoryController extends Controller
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
+            \Log::info($exception);
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }

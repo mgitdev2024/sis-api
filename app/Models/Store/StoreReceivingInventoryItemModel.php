@@ -11,11 +11,12 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label', 'type_label', 'receive_type_label'];
+    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type'];
     protected $fillable = [
         'store_receiving_inventory_id',
         'reference_number',
-        'is_special',
+        'order_type',
+        'fan_out_category',
         'is_wrong_drop',
         'store_code',
         'store_name',
@@ -63,5 +64,15 @@ class StoreReceivingInventoryItemModel extends Model
             2 => 'Store Transfer',
         ];
         return $typeArr[$this->type] ?? 'Unknown';
+    }
+
+    public function getOrderTypeLabelAttribute()
+    {
+        $orderTypeArr = [
+            0 => 'Regular Order',
+            1 => 'Special Order',
+            2 => 'Fan-Out',
+        ];
+        return $orderTypeArr[$this->order_type] ?? 'Unknown';
     }
 }

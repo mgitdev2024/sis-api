@@ -54,7 +54,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
-                    'is_special' => $item->is_special,
+                    'order_type' => $item->order_type,
                     'is_wrong_drop' => $item->is_wrong_drop,
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
@@ -111,7 +111,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
                     'received_items' => json_decode($item->received_items),
-                    'is_special' => $item->is_special,
+                    'order_type' => $item->order_type,
                     'is_wrong_drop' => $item->is_wrong_drop,
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
@@ -301,7 +301,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $lastName = $userModel->last_name ?? '';
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::create([
                     'store_receiving_inventory_id' => $storeReceivingInventoryId,
-                    'is_special' => false,
+                    'order_type' => 0,
                     'store_name' => $storeName,
                     'store_code' => $storeCode,
                     'reference_number' => $referenceNumber,

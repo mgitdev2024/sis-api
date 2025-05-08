@@ -80,7 +80,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/store/receive-inventory-item-cache/delete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
     #endregion
 
-    #region Stock Inventory
+    #region Stock Inventory0
     Route::get('v1/stock/inventory/get/{is_group}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     #endregion
 
