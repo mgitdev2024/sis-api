@@ -16,10 +16,16 @@ class StoreReceivingInventoryItemController extends Controller
 {
     use ResponseTrait, StockTrait;
 
-    public function onGetCurrent($store_code, $status = null, $reference_number = null)
+    public function onGetCurrent($store_code, $order_type,$is_received,$status = null, $reference_number = null)
     {
         try {
-            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('store_code', $store_code);
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
+                'store_code'=> $store_code,
+                'order_type' => $order_type,
+            ]);
+            if($is_received != 'all'){
+                $storeInventoryItemModel = $storeInventoryItemModel->where('is_received', $is_received);
+            }
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
             }
@@ -206,7 +212,7 @@ class StoreReceivingInventoryItemController extends Controller
             'scanned_items' => 'required|json', // ["2":{"bid":1,"q":1,"item_code":"TAS WH"},"3":{"bid":1,"q":1}]
             'created_by_id' => 'required',
             'receive_type' => 'required|in:scan,manual',
-            'order_type' => 'required|in:0,1,2', // 0 = Order, 1 = Manual, 2 = Fan Out Category
+            'order_type' => 'nullable|in:0,1,2', // 0 = Order, 1 = Manual, 2 = Fan Out Category
         ]);
         try {
             $receiveType = $fields['receive_type']; // Stock In, Stock Out
@@ -214,6 +220,7 @@ class StoreReceivingInventoryItemController extends Controller
             $scannedItems = json_decode($fields['scanned_items'], true);
             $referenceNumber = $fields['reference_number'];
             $createdById = $fields['created_by_id'];
+            $orderType = $fields['order_type'] ?? null;
             $wrongDroppedItems = [];
             $wrongDroppedData = [];
             $orderSessionData = [];
@@ -223,21 +230,26 @@ class StoreReceivingInventoryItemController extends Controller
                 $fanOutCategory = $items['foc'] ?? '>';
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
                     'store_code' => $store_code,
-                    'order_type' => $fields['order_type'],
                     'reference_number' => $referenceNumber,
                     'item_code' => $itemCode
                 ]);
-                if ($fanOutCategory != null) {
+                if ($orderType != null) {
+                    $storeInventoryItemModel->where('order_type', $orderType);
+                }
+                if ($fanOutCategory != '>') {
                     $storeInventoryItemModel->where('fan_out_category', $fanOutCategory);
                 }
-                $storeInventoryItemModel = $storeInventoryItemModel->first(); 
+                $storeInventoryItemModel = $storeInventoryItemModel->first();  
                 if ($storeInventoryItemModel) {
                     if (!isset($orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"])) {
                         $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"] = [
-                            'order_type' => $storeInventoryItemModel->order_type,
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
+
+                        if ($orderType != null) {
+                            $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $storeInventoryItemModel->order_type;
+                        }
                     }
 
                     $receivedQuantity = 0;
@@ -249,20 +261,23 @@ class StoreReceivingInventoryItemController extends Controller
                     }
                     $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['received_quantity'] = $receivedQuantity;
                     $items['fan_out_category'] = $storeInventoryItemModel->fan_out_category;
-                    $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['received_items'][] = $items; 
+                    $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['received_items'][] = $items;
                 } else {
                     $wrongDroppedItems[] = $items;
                 }
             }
 
-            foreach ($wrongDroppedItems as $items) {
+            foreach ($wrongDroppedItems as $items) { 
                 $itemCode = $items['ic']; // item code
                 if (!isset($wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"])) {
                     $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"] = [
-                        'order_type' => $storeInventoryItemModel->order_type,
                         'received_quantity' => 0,
                         'received_items' => []
                     ];
+               
+                    if ($orderType != null) { 
+                        $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $orderType;
+                    }
                 }
                 $wrongQuantity = 0;
                 if ($receiveType == 'scan') {
@@ -283,27 +298,32 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
 
     private function onUpdateOrderSessions($orderSessionData, $wrongDroppedData, $createdById, $referenceNumber, $receiveType)
     {
-        try { 
+        try {
             foreach ($orderSessionData as $orderSessionKey => $orderSessionValue) {
                 $key = explode(':', $orderSessionKey);
                 $storeCode = $key[0];
                 $referenceNumber = $key[1];
                 $itemCode = $key[2];
-                $fanOutCategory = $key[3] != '>'? $key[3] : null; 
+                $fanOutCategory = $key[3] != '>' ? $key[3] : null;
+                $orderType = $orderSessionValue['order_type'] ?? null;
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
                     'store_code' => $storeCode,
-                    'order_type' => $orderSessionValue['order_type'],
                     'reference_number' => $referenceNumber,
-                    'item_code'=> $itemCode
+                    'item_code' => $itemCode
                 ]);
-                if($fanOutCategory != null) {
-                    $storeInventoryItemModel->where('fan_out_category', $fanOutCategory); 
+
+                if ($orderType != null) {
+                    $storeInventoryItemModel->where('order_type', $orderType);
+                }
+                if ($fanOutCategory != null) {
+                    $storeInventoryItemModel->where('fan_out_category', $fanOutCategory);
                 }
                 $storeInventoryItemModel = $storeInventoryItemModel->first();
                 if ($storeInventoryItemModel) {
@@ -316,7 +336,6 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->is_received = 1;
                     $storeInventoryItemModel->save();
 
-                    \Log::info($storeInventoryItemModel->toArray());
                     // Stock In
                     $storeSubUnitShortName = $storeInventoryItemModel->store_sub_unit_short_name;
                     $storeInventoryItemId = $storeInventoryItemModel->id;
