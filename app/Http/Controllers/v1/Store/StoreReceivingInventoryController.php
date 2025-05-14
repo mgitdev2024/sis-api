@@ -83,7 +83,7 @@ class StoreReceivingInventoryController extends Controller
                             'item_category_name' => $orderedItems['item_category_name'],
                             'order_quantity' => $orderedItems['order_quantity'],
                             'allocated_quantity' => $orderedItems['allocated_quantity'],
-                            'fan_out_category' => $orderedItems['fan_out_category'],
+                            'fan_out_category' => $orderedItems['fan_out_category'] ?? null,
                             // 'store_sub_unit_id' => $storeSubUnitId,
                             'store_sub_unit_short_name' => $storeSubUnitShortName,
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
