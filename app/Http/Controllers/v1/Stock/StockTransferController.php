@@ -69,6 +69,7 @@ class StockTransferController extends Controller
                 'remarks' => $remarks,
                 'attachment' => $filepath,
                 'created_by_id' => $createdById,
+                'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
             ]);
 
             $stockTransferItemController = new StockTransferItemController();
