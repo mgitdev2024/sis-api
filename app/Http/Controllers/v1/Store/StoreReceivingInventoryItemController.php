@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Store;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockTransferItemModel;
 use App\Models\Stock\StockTransferModel;
 use App\Models\Store\StoreReceivingInventoryItemCacheModel;
@@ -99,7 +100,6 @@ class StoreReceivingInventoryItemController extends Controller
     {
         $referenceExplode = explode('-', $referenceNumber);
         $referenceKey = $referenceExplode[0] ?? null;
-        $referenceValue = $referenceExplode[1] ?? null;
         $referenceNumberCollection = [
             // 'CO',
             'ST' => StockTransferModel::class
@@ -319,7 +319,6 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
@@ -451,6 +450,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $item->updated_at = now();
                     $item->save();
                 }
+
+                $this->onCheckReferenceNumberCompletion($reference_number);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
             }
@@ -458,6 +459,21 @@ class StoreReceivingInventoryItemController extends Controller
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    private function onCheckReferenceNumberCompletion($referenceNumber)
+    {
+        $referenceExplode = explode('-', $referenceNumber);
+        $referenceKey = $referenceExplode[0];
+        $referenceNumberCollection = [
+            'ST' => StockTransferModel::class
+        ];
+
+        if (array_key_exists($referenceKey, $referenceNumberCollection)) {
+            $referenceNumberCollection[$referenceKey]::where('reference_number', $referenceNumber)->update([
+                'status' => 1
+            ]);
         }
     }
 }
