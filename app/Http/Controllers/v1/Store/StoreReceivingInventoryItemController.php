@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\v1\Store;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockTransferItemModel;
+use App\Models\Stock\StockTransferModel;
 use App\Models\Store\StoreReceivingInventoryItemCacheModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
@@ -16,14 +18,14 @@ class StoreReceivingInventoryItemController extends Controller
 {
     use ResponseTrait, StockTrait;
 
-    public function onGetCurrent($store_code, $order_type,$is_received,$status = null, $reference_number = null)
+    public function onGetCurrent($store_code, $order_type, $is_received, $status = null, $reference_number = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
-                'store_code'=> $store_code,
+                'store_code' => $store_code,
                 'order_type' => $order_type,
             ]);
-            if($is_received != 'all'){
+            if ($is_received != 'all') {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('is_received', $is_received);
             }
             if ($status != null) {
@@ -82,7 +84,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'requested_by' => $item->created_by_name,
                     'status' => $item->status,
                 ];
-
+                $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
                 $counter++;
             }
 
@@ -91,6 +93,25 @@ class StoreReceivingInventoryItemController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    private function onCheckReferenceNumber($referenceNumber)
+    {
+        $referenceExplode = explode('-', $referenceNumber);
+        $referenceKey = $referenceExplode[0] ?? null;
+        $referenceValue = $referenceExplode[1] ?? null;
+        $referenceNumberCollection = [
+            // 'CO',
+            'ST' => StockTransferModel::class
+        ];
+
+        $model = null;
+
+        if (array_key_exists($referenceKey, $referenceNumberCollection)) {
+            $model = $referenceNumberCollection[$referenceKey]::where('reference_number', $referenceNumber)->first();
+        }
+
+        return $model;
     }
 
     public function onGetCheckedManual($reference_number, $order_type, $selected_item_codes)
@@ -239,7 +260,7 @@ class StoreReceivingInventoryItemController extends Controller
                 if ($fanOutCategory != '>') {
                     $storeInventoryItemModel->where('fan_out_category', $fanOutCategory);
                 }
-                $storeInventoryItemModel = $storeInventoryItemModel->first();  
+                $storeInventoryItemModel = $storeInventoryItemModel->first();
                 if ($storeInventoryItemModel) {
                     if (!isset($orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"])) {
                         $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"] = [
@@ -267,15 +288,15 @@ class StoreReceivingInventoryItemController extends Controller
                 }
             }
 
-            foreach ($wrongDroppedItems as $items) { 
+            foreach ($wrongDroppedItems as $items) {
                 $itemCode = $items['ic']; // item code
                 if (!isset($wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"])) {
                     $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"] = [
                         'received_quantity' => 0,
                         'received_items' => []
                     ];
-               
-                    if ($orderType != null) { 
+
+                    if ($orderType != null) {
                         $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $orderType;
                     }
                 }
