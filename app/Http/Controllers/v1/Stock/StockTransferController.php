@@ -69,7 +69,7 @@ class StockTransferController extends Controller
                 'remarks' => $remarks,
                 'attachment' => $filepath,
                 'created_by_id' => $createdById,
-                'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
+                // 'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
             ]);
 
             $stockTransferItemController = new StockTransferItemController();
@@ -85,7 +85,8 @@ class StockTransferController extends Controller
 
             if ($type == 'store') {
                 $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
-
+            } else if ($type == 'pullout') {
+                $this->onCreateTransmittalPullout($transferItems, $referenceNumber, $createdById);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -96,6 +97,85 @@ class StockTransferController extends Controller
         }
     }
 
+    public function onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById)
+    {
+        try {
+            $userModel = User::where('employee_id', $createdById)->first();
+
+            $consolidatedData = [
+                'consolidated_order_id' => $referenceNumber,
+                'warehouse_code' => $transferToStoreCode,
+                'warehouse_name' => $transferToStoreName,
+                'reference_number' => $referenceNumber,
+                'delivery_date' => $pickupDate,
+                'delivery_type' => '1D',
+                'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
+                'created_by_id' => $createdById,
+                'updated_by_id' => $createdById,
+                'sessions' => []
+
+            ];
+            $transferItems = json_decode($transferItems, true);
+            $orderedItems = [];
+            foreach ($transferItems as $item) {
+                $orderedItems[] = [
+                    'item_code' => $item['ic'],
+                    'item_description' => $item['icd'],
+                    'item_category_name' => $item['ict'],
+                    'order_quantity' => $item['q'],
+                    'allocated_quantity' => $item['q'],
+                    'order_type' => 0,
+                ];
+            }
+            $storeReceivingInventoryController = new StoreReceivingInventoryController();
+            $sessions = [
+                'store_code' => $transferToStoreCode,
+                'store_name' => $transferToStoreName,
+                'date_created' => now(),
+                'delivery_date' => $pickupDate,
+                'delivery_type' => '1D',
+                'order_date' => $pickupDate,
+                'reference_number' => $referenceNumber,
+                'store_sub_unit_short_name' => $transferToStoreSubUnitShortName,
+                'store_sub_unit_long_name' => $transferToStoreSubUnitShortName == 'BOH' ? 'Back of the House' : 'Front of the House',
+                'ordered_items' => $orderedItems,
+            ];
+
+            $consolidatedData['sessions'][] = $sessions;
+            $storeReceivingInventoryRequest = new Request([
+                'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
+                'created_by_id' => $createdById,
+                'consolidated_data' => json_encode($consolidatedData)
+            ]);
+            $storeReceivingInventoryController->onCreate($storeReceivingInventoryRequest, true);
+
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+            // return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onCreateTransmittalPullout($transferItems, $referenceNumber, $createdById)
+    {
+
+        try {
+            $data = [
+                'transfer_items' => $transferItems,
+                'reference_number' => $referenceNumber,
+                'created_by_id' => $createdById,
+                'created_at' => now()->format('Y-m-d H:i:s')
+            ];
+
+            // api call for transmittal
+            $response = \Http::post(env('MGIOS_URL') . '/transmittal/create', $data);
+            if (!$response->successful()) {
+                return $this->dataResponse('error', 404, 'Unauthorized Access');
+            }
+            dd('stipo');
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
     public function onCancel($id)
     {
         $fields = request()->validate([
@@ -183,63 +263,6 @@ class StockTransferController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
-        }
-    }
-
-    public function onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById)
-    {
-        try {
-            $userModel = User::where('employee_id', $createdById)->first();
-
-            $consolidatedData = [
-                'consolidated_order_id' => $referenceNumber,
-                'warehouse_code' => $transferToStoreCode,
-                'warehouse_name' => $transferToStoreName,
-                'reference_number' => $referenceNumber,
-                'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
-                'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
-                'created_by_id' => $createdById,
-                'updated_by_id' => $createdById,
-                'sessions' => []
-
-            ];
-            $transferItems = json_decode($transferItems, true);
-            $orderedItems = [];
-            foreach ($transferItems as $item) {
-                $orderedItems[] = [
-                    'item_code' => $item['ic'],
-                    'item_description' => $item['icd'],
-                    'item_category_name' => $item['ict'],
-                    'order_quantity' => $item['q'],
-                    'allocated_quantity' => $item['q'],
-                    'order_type' => 0,
-                ];
-            }
-            $storeReceivingInventoryController = new StoreReceivingInventoryController();
-            $sessions = [
-                'store_code' => $transferToStoreCode,
-                'store_name' => $transferToStoreName,
-                'date_created' => now(),
-                'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
-                'order_date' => $pickupDate,
-                'reference_number' => $referenceNumber,
-                'store_sub_unit_short_name' => $transferToStoreSubUnitShortName,
-                'store_sub_unit_long_name' => $transferToStoreSubUnitShortName == 'BOH' ? 'Back of the House' : 'Front of the House',
-                'ordered_items' => $orderedItems,
-            ];
-
-            $consolidatedData['sessions'][] = $sessions;
-            $storeReceivingInventoryRequest = new Request([
-                'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
-                'created_by_id' => $createdById,
-                'consolidated_data' => json_encode($consolidatedData)
-            ]);
-            $storeReceivingInventoryController->onCreate($storeReceivingInventoryRequest, true);
-
-        } catch (Exception $exception) {
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
 }
