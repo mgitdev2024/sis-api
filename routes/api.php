@@ -115,4 +115,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #region Customer Returns Item
     Route::get('v1/customer/return/item/get/{customer_return_form_id}', [App\Http\Controllers\v1\Customer\CustomerReturnItemController::class, 'onGetById']);
     #endregion
+
+    #region Purchase Orders
+    Route::get('v1/purchase/order/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Customer\CustomerReturnItemController::class, 'onGetById']);
+
+    #endregion
 });

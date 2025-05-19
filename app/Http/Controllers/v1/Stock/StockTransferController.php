@@ -86,7 +86,7 @@ class StockTransferController extends Controller
             if ($type == 'store') {
                 $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             } else if ($type == 'pullout') {
-                $this->onCreateTransmittalPullout($transferItems, $referenceNumber, $createdById);
+                $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -155,15 +155,19 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onCreateTransmittalPullout($transferItems, $referenceNumber, $createdById)
+    public function onCreateTransmittalPullout($transferItems, $createdById, $remarks)
     {
 
         try {
+            $userModel = User::where('employee_id', $createdById)->first();
+            $firstName = $userModel->first_name;
+            $lastName = $userModel->last_name;
+            $fullName = "$firstName $lastName";
             $data = [
-                'transfer_items' => $transferItems,
-                'reference_number' => $referenceNumber,
-                'created_by_id' => $createdById,
-                'created_at' => now()->format('Y-m-d H:i:s')
+                'pullout_items' => $transferItems,
+                'created_by_name' => $fullName,
+                'created_at' => now()->format('Y-m-d H:i:s'),
+                'remarks' => $remarks
             ];
 
             // api call for transmittal
