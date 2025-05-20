@@ -31,7 +31,7 @@ class StockTransferController extends Controller
 
             // Store Details
             'store_code' => 'required|string',
-            'store_sub_unit_short_name' => 'required|string'
+            'store_sub_unit_short_name' => 'nullable|string'
         ]);
         try {
 
@@ -53,7 +53,7 @@ class StockTransferController extends Controller
             $createdById = $fields['created_by_id'];
 
             $storeCode = $fields['store_code'];
-            $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
+            $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
             $referenceNumber = StockTransferModel::onGenerateReferenceNumber($type);
 
             $stockTransferModel = StockTransferModel::create([

@@ -117,7 +117,11 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Purchase Orders
-    Route::get('v1/purchase/order/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Customer\CustomerReturnItemController::class, 'onGetById']);
+    Route::get('v1/purchase/order/current/get/{status}/{enable_with_function}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onGetCurrent']);
+    Route::post('v1/purchase/order/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onCreate']);
+    #endregion
 
+    #region Purchase Orders Handled Items
+    Route::post('v1/purchase/order/handled-items/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onCreate']);
     #endregion
 });

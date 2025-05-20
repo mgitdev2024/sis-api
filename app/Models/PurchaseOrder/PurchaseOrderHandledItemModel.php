@@ -21,6 +21,7 @@ class PurchaseOrderHandledItemModel extends Model
         'remarks',
         'type',   // 0 = rejected, 1 = received
         'status',
+        'expiration_date',
         'created_by_id',
         'updated_by_id',
     ];

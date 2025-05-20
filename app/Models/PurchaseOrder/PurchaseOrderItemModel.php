@@ -15,7 +15,7 @@ class PurchaseOrderItemModel extends Model
         'item_code',
         'item_description',
         'item_category_name',
-        'total_quantity_received',
+        'total_received_quantity',
         'requested_quantity',
         'status',
         'created_by_id',
@@ -27,8 +27,8 @@ class PurchaseOrderItemModel extends Model
         return $this->belongsTo(PurchaseOrderModel::class);
     }
 
-    public function handledItems()
+    public function purchaseOrderHandledItems()
     {
-        return $this->hasMany(PurchaseOrderHandledItemModel::class);
+        return $this->hasMany(PurchaseOrderHandledItemModel::class, 'purchase_order_item_id');
     }
 }

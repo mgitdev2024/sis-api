@@ -17,6 +17,7 @@ class PurchaseOrderModel extends Model
         'reference_number',
         'store_code',
         'store_sub_unit_short_name',
+        'supplier_code',
         'supplier_name',
         'purchase_order_date',
         'expected_delivery_date',
@@ -27,7 +28,7 @@ class PurchaseOrderModel extends Model
 
     public function purchaseOrderItems()
     {
-        return $this->hasMany(PurchaseOrderItemController::class);
+        return $this->hasMany(PurchaseOrderItemModel::class, 'purchase_order_id');
     }
 
 
