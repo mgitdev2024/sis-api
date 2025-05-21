@@ -17,7 +17,7 @@ class StockTransferItemController extends Controller
         $fields = $request->validate([
             'stock_transfer_id' => 'required|integer',
             'store_code' => 'required|string',
-            'store_sub_unit_short_name' => 'required|string',
+            'store_sub_unit_short_name' => 'nullable|string',
             'reference_number' => 'required|string',
             'transfer_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'created_by_id' => 'required',
@@ -29,7 +29,7 @@ class StockTransferItemController extends Controller
             $transferItems = json_decode($fields['transfer_items'], true);
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
-            $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
+            $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
             $referenceNumber = $fields['reference_number'];
             foreach ($transferItems as $item) {
                 $itemCode = $item['ic'];

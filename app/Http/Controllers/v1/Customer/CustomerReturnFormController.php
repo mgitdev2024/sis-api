@@ -43,7 +43,6 @@ class CustomerReturnFormController extends Controller
                 'updated_by_id' => $fields['created_by_id'],
             ]);
 
-            $customerReturnFormId = $customerReturnFormModel->id;
             $this->onCreateCustomerReturnItems($customerReturnFormModel, $fields['returned_items'], $fields['created_by_id']);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -117,7 +116,9 @@ class CustomerReturnFormController extends Controller
             'store_sub_unit_short_name' => $storeSubUnitShortName,
             'item_code' => $itemCode,
         ])->orderBy('id', 'DESC')->first();
-        $stockLogModel->create([
+
+        $stockLogModelNew = new StockLogModel();
+        $stockLogModelNew->create([
             'reference_number' => $referenceNumber,
             'store_code' => $storeCode,
             'store_sub_unit_short_name' => $storeSubUnitShortName,

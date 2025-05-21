@@ -38,6 +38,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('customer_returns');
+        Schema::dropIfExists('customer_return_forms');
+        Schema::dropIfExists('customer_return_items');
+
     }
 };
