@@ -19,6 +19,7 @@ class PurchaseOrderHandledItemController extends Controller
             'type' => 'required|in:0,1', // 0 = rejected, 1 = received
             'purchase_order_item_id' => 'required|exists:purchase_order_items,id',
             'delivery_receipt_number' => 'required',
+            'received_date' => 'required',
             'quantity' => 'required|integer',
             'remarks' => 'nullable',
             'created_by_id' => 'required'
@@ -32,6 +33,8 @@ class PurchaseOrderHandledItemController extends Controller
             $quantity = $fields['quantity'];
             $remarks = $fields['remarks'] ?? null;
             $createdByid = $fields['created_by_id'];
+            $receivedDate = $fields['received_date'];
+
             $purchaseOrderItemModel = PurchaseOrderItemModel::find($purchaseOrderItemId);
             $requestedQuantity = $purchaseOrderItemModel->requested_quantity;
             $totalReceivedQuantity = $purchaseOrderItemModel->total_received_quantity;
@@ -44,6 +47,7 @@ class PurchaseOrderHandledItemController extends Controller
                 'type' => $type,
                 'purchase_order_item_id' => $purchaseOrderItemId,
                 'delivery_receipt_number' => $deliveryReceiptNumber,
+                'received_date' => $receivedDate,
                 'quantity' => $quantity,
                 'remarks' => $remarks,
                 'storage' => 'default',
@@ -82,6 +86,24 @@ class PurchaseOrderHandledItemController extends Controller
         ]);
         try {
 
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onDelete($purchase_order_handled_item_id)
+    {
+        try {
+            DB::beginTransaction();
+            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
+            if ($purchaseOrderHandledItemModel) {
+                $purchaseOrderHandledItemModel->delete();
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.delete_success'));
+            } else {
+                return $this->dataResponse('error', 404, __('msg.delete_failed'));
+            }
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());

@@ -11,7 +11,7 @@ class PurchaseOrderHandledItemModel extends Model
 
     protected $table = 'purchase_order_handled_items';
 
-    protected $appends = ['type_label', 'formatted_created_at_label', 'formatted_updated_at_label'];
+    protected $appends = ['type_label', 'formatted_created_at_label', 'formatted_updated_at_label', 'formatted_received_date_label'];
 
     protected $fillable = [
         'purchase_order_item_id',
@@ -50,6 +50,13 @@ class PurchaseOrderHandledItemModel extends Model
     {
         return $this->updated_at
             ? Carbon::parse($this->updated_at)->format('F d, Y h:i A')
+            : null;
+    }
+
+    public function getFormattedReceivedDateLabelAttribute()
+    {
+        return $this->received_date
+            ? Carbon::parse($this->received_date)->format('F d, Y')
             : null;
     }
 }
