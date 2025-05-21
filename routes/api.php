@@ -117,11 +117,14 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Purchase Orders
-    Route::get('v1/purchase/order/current/get/{status}/{enable_with_function}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onGetCurrent']);
+    Route::get('v1/purchase/order/current/get/{status}/{purchase_order_id}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onGetCurrent']);
     Route::post('v1/purchase/order/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onCreate']);
     #endregion
 
     #region Purchase Orders Handled Items
     Route::post('v1/purchase/order/handled-items/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onCreate']);
+    Route::post('v1/purchase/order/handled-items/delete/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onDelete']);
+    Route::post('v1/purchase/order/handled-items/update/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onUpdate']);
+
     #endregion
 });

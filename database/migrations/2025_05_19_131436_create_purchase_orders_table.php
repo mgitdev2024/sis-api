@@ -44,6 +44,7 @@ return new class extends Migration {
             $table->string('remarks')->nullable();
             $table->tinyInteger('type'); // 0 = rejected, 1 = received
             $table->date('expiration_date')->nullable();
+            $table->date('received_date');
 
             SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = posted
 

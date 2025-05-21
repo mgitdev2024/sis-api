@@ -73,4 +73,18 @@ class PurchaseOrderHandledItemController extends Controller
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
+
+    public function onUpdate(Request $request, $purchase_order_handled_item_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'updated_quantity' => 'required'
+        ]);
+        try {
+
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
+        }
+    }
 }

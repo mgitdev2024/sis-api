@@ -78,7 +78,7 @@ class PurchaseOrderController extends Controller
                 $itemDescription = $items['icd'];
                 $quantity = $items['q'];
 
-                PurchaseOrderItemModel::insert([
+                PurchaseOrderItemModel::create([
                     'purchase_order_id' => $purchaseOrderId,
                     'item_code' => $itemCode,
                     'item_description' => $itemCategoryName,
@@ -105,7 +105,7 @@ class PurchaseOrderController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
-    public function onGetCurrent($status, $enable_with_function = 0, $store_code, $sub_unit = null)
+    public function onGetCurrent($status, $purchase_order_id = 0, $store_code, $sub_unit = null)
     {
         $whereFields = [
             'status' => $status,
@@ -117,63 +117,64 @@ class PurchaseOrderController extends Controller
         }
 
         $withFunction = null;
-        if ($enable_with_function == 1) {
+        if ($purchase_order_id != 0) {
+            $whereFields['id'] = $purchase_order_id;
             $withFunction = 'purchaseOrderItems.purchaseOrderHandledItems';
         }
 
         return $this->readCurrentRecord(PurchaseOrderModel::class, null, $whereFields, $withFunction, ['id' => 'DESC'], 'Purchase Order');
     }
 
-    public function onUpdateStockInventory($itemCode, $itemDescription, $itemCategoryName, $storeCode, $storeSubUnitShortName, $quantity, $createdById)
-    {
-        try {
-            $stockInventoryModel = StockInventoryModel::where([
-                'item_code' => $itemCode,
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName,
-            ])->first();
+    // public function onUpdateStockInventory($itemCode, $itemDescription, $itemCategoryName, $storeCode, $storeSubUnitShortName, $quantity, $createdById)
+    // {
+    //     try {
+    //         $stockInventoryModel = StockInventoryModel::where([
+    //             'item_code' => $itemCode,
+    //             'store_code' => $storeCode,
+    //             'store_sub_unit_short_name' => $storeSubUnitShortName,
+    //         ])->first();
 
-            if ($stockInventoryModel) {
-                $stockInventoryModel->stock_count -= $quantity;
-                $stockInventoryModel->updated_by_id = $createdById;
-                $stockInventoryModel->save();
-            } else {
-                StockInventoryModel::create([
-                    'item_code' => $itemCode,
-                    'item_description' => $itemDescription,
-                    'item_category_name' => $itemCategoryName,
-                    'store_code' => $storeCode,
-                    'store_sub_unit_short_name' => $storeSubUnitShortName,
-                    'stock_count' => $quantity,
-                    'created_by_id' => $createdById,
-                ]);
-            }
-        } catch (Exception $exception) {
-            throw new Exception('Failed to update stock inventory');
-        }
-    }
+    //         if ($stockInventoryModel) {
+    //             $stockInventoryModel->stock_count -= $quantity;
+    //             $stockInventoryModel->updated_by_id = $createdById;
+    //             $stockInventoryModel->save();
+    //         } else {
+    //             StockInventoryModel::create([
+    //                 'item_code' => $itemCode,
+    //                 'item_description' => $itemDescription,
+    //                 'item_category_name' => $itemCategoryName,
+    //                 'store_code' => $storeCode,
+    //                 'store_sub_unit_short_name' => $storeSubUnitShortName,
+    //                 'stock_count' => $quantity,
+    //                 'created_by_id' => $createdById,
+    //             ]);
+    //         }
+    //     } catch (Exception $exception) {
+    //         throw new Exception('Failed to update stock inventory');
+    //     }
+    // }
 
-    public function onUpdateStockLog($storeCode, $storeSubUnitShortName, $itemCode, $itemDescription, $itemCategoryName, $quantity, $createdById, $referenceNumber)
-    {
-        $stockLogModel = StockLogModel::where([
-            'store_code' => $storeCode,
-            'store_sub_unit_short_name' => $storeSubUnitShortName,
-            'item_code' => $itemCode,
-        ])->orderBy('id', 'DESC')->first();
+    // public function onUpdateStockLog($storeCode, $storeSubUnitShortName, $itemCode, $itemDescription, $itemCategoryName, $quantity, $createdById, $referenceNumber)
+    // {
+    //     $stockLogModel = StockLogModel::where([
+    //         'store_code' => $storeCode,
+    //         'store_sub_unit_short_name' => $storeSubUnitShortName,
+    //         'item_code' => $itemCode,
+    //     ])->orderBy('id', 'DESC')->first();
 
-        $stockLogModelNew = new StockLogModel();
-        $stockLogModelNew->create([
-            'reference_number' => $referenceNumber,
-            'store_code' => $storeCode,
-            'store_sub_unit_short_name' => $storeSubUnitShortName,
-            'item_code' => $itemCode,
-            'item_description' => $itemDescription,
-            'item_category_name' => $itemCategoryName,
-            'quantity' => $quantity,
-            'initial_stock' => $stockLogModel->final_stock ?? 0,
-            'final_stock' => $quantity + ($stockLogModel->final_stock ?? 0),
-            'transaction_type' => 'in',
-            'created_by_id' => $createdById,
-        ]);
-    }
+    //     $stockLogModelNew = new StockLogModel();
+    //     $stockLogModelNew->create([
+    //         'reference_number' => $referenceNumber,
+    //         'store_code' => $storeCode,
+    //         'store_sub_unit_short_name' => $storeSubUnitShortName,
+    //         'item_code' => $itemCode,
+    //         'item_description' => $itemDescription,
+    //         'item_category_name' => $itemCategoryName,
+    //         'quantity' => $quantity,
+    //         'initial_stock' => $stockLogModel->final_stock ?? 0,
+    //         'final_stock' => $quantity + ($stockLogModel->final_stock ?? 0),
+    //         'transaction_type' => 'in',
+    //         'created_by_id' => $createdById,
+    //     ]);
+    // }
 }
