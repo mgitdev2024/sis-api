@@ -90,7 +90,7 @@ class CustomerReturnFormController extends Controller
             ])->first();
 
             if ($stockInventoryModel) {
-                $stockInventoryModel->stock_count -= $quantity;
+                $stockInventoryModel->stock_count += $quantity;
                 $stockInventoryModel->updated_by_id = $createdById;
                 $stockInventoryModel->save();
             } else {
