@@ -46,7 +46,7 @@ return new class extends Migration {
             $table->date('expiration_date')->nullable();
             $table->date('received_date');
 
-            SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = posted
+            SchemaHelper::addCommonColumns($table, 0); // 0 = pending, 1 = posted, 2 = deleted
 
             $table->foreign('purchase_order_item_id')->references('id')->on('purchase_order_items');
         });

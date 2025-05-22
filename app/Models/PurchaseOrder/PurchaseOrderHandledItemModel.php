@@ -20,7 +20,7 @@ class PurchaseOrderHandledItemModel extends Model
         'storage',
         'remarks',
         'type',   // 0 = rejected, 1 = received
-        'status',
+        'status', // 0 = pending, 1 = posted, 2 = deleted
         'expiration_date',
         'received_date',
         'created_at',
