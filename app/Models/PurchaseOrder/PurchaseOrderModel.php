@@ -14,8 +14,8 @@ class PurchaseOrderModel extends Model
 
     protected $appends = [
         'status_label',
-        'formatted_purchase_order_date',
-        'formatted_expected_delivery_date',
+        'formatted_purchase_order_date_label',
+        'formatted_expected_delivery_date_label',
         'formatted_created_at_label',
         'formatted_updated_at_label'
     ];
