@@ -14,7 +14,7 @@ return new class extends Migration {
         Schema::create('stock_inventories', function (Blueprint $table) {
             $table->id();
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('item_code');
             $table->string('item_description');
             $table->string('item_category_name');
@@ -26,7 +26,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number'); // RE-807231987321
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('item_code');
             $table->string('item_description');
             $table->string('item_category_name');
@@ -43,7 +43,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('store_receiving_inventory_item_id');
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('item_code');
             $table->string('item_description');
             $table->string('item_category_name');

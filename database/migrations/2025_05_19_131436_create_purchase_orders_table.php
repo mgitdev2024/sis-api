@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number'); // MG-0800-4382-2331 PO Number
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('supplier_code'); // ABMARAC Corp
             $table->string('supplier_name'); // ABMARAC Corp
             $table->date('purchase_order_date');
