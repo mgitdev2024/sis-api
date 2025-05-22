@@ -52,7 +52,7 @@ class PurchaseOrderHandledItemController extends Controller
                 'purchase_order_item_id' => $purchaseOrderItemId,
                 'delivery_receipt_number' => $deliveryReceiptNumber,
                 'received_date' => $receivedDate,
-                'expiration_date'->$expirationDate,
+                'expiration_date'=>$expirationDate,
                 'quantity' => $quantity,
                 'remarks' => $remarks,
                 'storage' => 'default',
