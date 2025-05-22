@@ -12,7 +12,13 @@ class PurchaseOrderModel extends Model
 
     protected $table = 'purchase_orders';
 
-    protected $appends = ['status_label', 'formatted_created_at_label', 'formatted_updated_at_label'];
+    protected $appends = [
+        'status_label',
+        'formatted_purchase_order_date',
+        'formatted_expected_delivery_date',
+        'formatted_created_at_label',
+        'formatted_updated_at_label'
+    ];
     protected $fillable = [
         'reference_number',
         'store_code',
@@ -50,6 +56,20 @@ class PurchaseOrderModel extends Model
     {
         return $this->updated_at
             ? Carbon::parse($this->updated_at)->format('F d, Y h:i A')
+            : null;
+    }
+
+    public function getFormattedPurchaseOrderDateLabelAttribute()
+    {
+        return $this->purchase_order_date
+            ? Carbon::parse($this->purchase_order_date)->format('F d, Y')
+            : null;
+    }
+
+    public function getFormattedExpectedDeliveryDateLabelAttribute()
+    {
+        return $this->expected_delivery_date
+            ? Carbon::parse($this->expected_delivery_date)->format('F d, Y')
             : null;
     }
 }
