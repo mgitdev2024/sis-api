@@ -111,7 +111,7 @@ class PurchaseOrderHandledItemController extends Controller
                     $purchaseOrderItemModel->save();
                 }
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'));
+                return $this->dataResponse('success', 200, __('msg.update_success'), $purchaseOrderHandledItemModel);
             } else {
                 return $this->dataResponse('error', 404, __('msg.update_failed'));
             }
