@@ -125,6 +125,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/purchase/order/handled-items/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onCreate']);
     Route::post('v1/purchase/order/handled-items/delete/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onDelete']);
     Route::post('v1/purchase/order/handled-items/update/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onUpdate']);
+    Route::post('v1/purchase/order/handled-items/post/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onPost']);
+
 
     #endregion
 });
