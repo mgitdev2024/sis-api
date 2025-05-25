@@ -111,7 +111,7 @@ class PurchaseOrderHandledItemController extends Controller
                     $purchaseOrderItemModel->save();
                 }
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), $purchaseOrderHandledItemModel);
+                return $this->dataResponse('success', 200, __('msg.update_success'));
             } else {
                 return $this->dataResponse('error', 404, __('msg.update_failed'));
             }
@@ -253,5 +253,19 @@ class PurchaseOrderHandledItemController extends Controller
             'transaction_type' => 'in',
             'created_by_id' => $createdById,
         ]);
+    }
+
+    public function onGetById($purchase_order_handled_item_id)
+    {
+        try {
+            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
+            if ($purchaseOrderHandledItemModel) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $purchaseOrderHandledItemModel);
+            } else {
+                return $this->dataResponse('error', 404, __('msg.record_failed'));
+            }
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_failed'), $exception->getMessage());
+        }
     }
 }
