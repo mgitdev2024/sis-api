@@ -212,4 +212,29 @@ class DirectPurchaseController extends Controller
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
+
+    public function onCancel(Request $request, $direct_purchase_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required'
+        ]);
+        try {
+            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
+            if ($directPurchaseModel) {
+                DB::beginTransaction();
+                $directPurchaseModel->status = 2; // cancelled
+                $directPurchaseModel->updated_by_id = $fields['created_by_id'];
+                $directPurchaseModel->updated_at = now();
+                $directPurchaseModel->save();
+
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'), $directPurchaseModel);
+
+            }
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+        }
+    }
 }

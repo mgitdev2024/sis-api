@@ -121,6 +121,8 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/direct/purchase/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCreate']);
     Route::post('v1/direct/purchase/close/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onClose']);
     Route::post('v1/direct/purchase/update/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onUpdateDirectPurchaseDetails']);
+    Route::post('v1/direct/purchase/cancel/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCancel']);
+
     #endregion
 
     #region Direct Purchase Items

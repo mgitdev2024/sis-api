@@ -44,7 +44,16 @@ class DirectPurchaseModel extends Model
 
     public function getStatusLabelAttribute()
     {
-        return $this->status == 1 ? 'Pending' : 'Closed';
+        switch ($this->status) {
+            case 0:
+                return 'Pending';
+            case 1:
+                return 'Closed / Complete';
+            case 2:
+                return 'Cancelled';
+            default:
+                return 'Unknown Status';
+        }
     }
 
     public function getFormattedCreatedAtLabelAttribute()
