@@ -20,7 +20,7 @@ class DirectPurchaseHandledItemController extends Controller
         $fields = $request->validate([
             'type' => 'required|in:0,1', // 0 = rejected, 1 = received
             'direct_purchase_item_id' => 'required|exists:direct_purchase_items,id',
-            'delivery_receipt_number' => 'required',
+            'delivery_receipt_number' => 'nullable',
             'received_date' => 'required',
             'expiration_date' => 'nullable',
             'quantity' => 'required|integer',
@@ -32,7 +32,7 @@ class DirectPurchaseHandledItemController extends Controller
             DB::beginTransaction();
             $type = $fields['type'];
             $directPurchaseItemId = $fields['direct_purchase_item_id'];
-            $deliveryReceiptNumber = $fields['delivery_receipt_number'];
+            $deliveryReceiptNumber = $fields['delivery_receipt_number'] ?? null;
             $quantity = $fields['quantity'];
             $remarks = $fields['remarks'] ?? null;
             $createdByid = $fields['created_by_id'];

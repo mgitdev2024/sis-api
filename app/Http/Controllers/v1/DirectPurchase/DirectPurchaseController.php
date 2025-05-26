@@ -19,6 +19,7 @@ class DirectPurchaseController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
+            'type' => 'required|in:0,1', // 0 = DR, 1 = PO
             'direct_purchase_number' => 'required',
             'supplier_code' => 'required',
             'supplier_name' => 'required',
@@ -43,6 +44,7 @@ class DirectPurchaseController extends Controller
 
             $directPurchaseModel = DirectPurchaseModel::create([
                 'reference_number' => $directPurchaseNumber,
+                'type' => $fields['type'],
                 'supplier_code' => $supplierCode,
                 'supplier_name' => $supplierName,
                 'direct_purchase_date' => $directPurchaseDate,
@@ -144,6 +146,67 @@ class DirectPurchaseController extends Controller
 
             }
             return $this->dataResponse('error', 404, __('msg.record_not_found'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onUpdateDirectPurchaseDetails(Request $request, $direct_purchase_id)
+    {
+        $fields = $request->validate([
+            'direct_purchase_number' => 'required|unique:direct_purchases,reference_number,' . $direct_purchase_id,
+            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12","u":1}] u = 1 if updated, 0 if not, -1 if deleted
+            'supplier_code' => 'required',
+            'supplier_name' => 'required',
+            'direct_purchase_date' => 'required|date',
+            'expected_delivery_date' => 'required|date',
+            'created_by_id' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
+            if (!$directPurchaseModel) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            }
+            $directPurchaseModel->update([
+                'reference_number' => $fields['direct_purchase_number'],
+                'supplier_code' => $fields['supplier_code'],
+                'supplier_name' => $fields['supplier_name'],
+                'direct_purchase_date' => $fields['direct_purchase_date'],
+                'expected_delivery_date' => $fields['expected_delivery_date'],
+                'updated_by_id' => $fields['created_by_id'],
+                'updated_at' => now()
+            ]);
+
+            $directPurchaseItems = json_decode($fields['direct_purchase_items'], true);
+            foreach ($directPurchaseItems as $item) {
+                $isUpdated = isset($item['u']) && $item['u'] == 1;
+                $isDeleted = isset($item['u']) && $item['u'] == -1;
+                if ($isUpdated) {
+                    $directPurchaseItemModel = DirectPurchaseItemModel::where([
+                        'direct_purchase_id' => $direct_purchase_id,
+                        'item_code' => $item['ic']
+                    ])->first();
+                    if ($directPurchaseItemModel) {
+                        $directPurchaseItemModel->update([
+                            'requested_quantity' => $item['q'],
+                            'updated_by_id' => $fields['created_by_id'],
+                            'updated_at' => now()
+                        ]);
+                    }
+                } else if ($isDeleted) {
+                    $directPurchaseItemModel = DirectPurchaseItemModel::where([
+                        'direct_purchase_id' => $direct_purchase_id,
+                        'item_code' => $item['ic']
+                    ])->first();
+                    if ($directPurchaseItemModel) {
+                        $directPurchaseItemModel->delete();
+                    }
+                }
+            }
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());

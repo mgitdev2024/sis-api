@@ -9,7 +9,7 @@ class DirectPurchaseItemModel extends Model
 {
     use HasFactory;
     protected $table = 'direct_purchase_items';
-    protected $appends = ['formatted_created_at_label', 'formatted_updated_at_label'];
+    protected $appends = ['formatted_created_at_label', 'formatted_updated_at_label', 'total_received_quantity_label'];
 
     protected $fillable = [
         'direct_purchase_id',
@@ -47,5 +47,18 @@ class DirectPurchaseItemModel extends Model
         return $this->updated_at
             ? Carbon::parse($this->updated_at)->format('F d, Y h:i A')
             : null;
+    }
+    public function getTotalReceivedQuantityLabelAttribute()
+    {
+        $directPurchaseHandledItems = $this->directPurchaseHandledItems;
+        $totalReceivedQuantity = 0;
+
+        foreach ($directPurchaseHandledItems as $item) {
+            if ($item->type == 1) { // Only count received items
+                $totalReceivedQuantity += $item->quantity;
+            }
+        }
+
+        return $totalReceivedQuantity;
     }
 }

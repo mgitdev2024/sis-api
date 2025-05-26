@@ -2,7 +2,6 @@
 
 namespace App\Models\DirectPurchase;
 
-use App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -14,6 +13,7 @@ class DirectPurchaseModel extends Model
 
     protected $appends = [
         'status_label',
+        'type_label',
         'formatted_direct_purchase_date_label',
         'formatted_expected_delivery_date_label',
         'formatted_created_at_label',
@@ -23,6 +23,7 @@ class DirectPurchaseModel extends Model
     ];
     protected $fillable = [
         'reference_number',
+        'type', // 0 = DR, 1 = PO
         'store_code',
         'store_sub_unit_short_name',
         'supplier_code',
@@ -40,7 +41,6 @@ class DirectPurchaseModel extends Model
     {
         return $this->hasMany(DirectPurchaseItemModel::class, 'direct_purchase_id');
     }
-
 
     public function getStatusLabelAttribute()
     {
@@ -90,5 +90,17 @@ class DirectPurchaseModel extends Model
             return $userModel->first_name . ' ' . $userModel->last_name;
         }
         return null;
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        switch ($this->type) {
+            case 0:
+                return 'Delivery Receipt';
+            case 1:
+                return 'Purchase Order';
+            default:
+                return 'Unknown Type';
+        }
     }
 }
