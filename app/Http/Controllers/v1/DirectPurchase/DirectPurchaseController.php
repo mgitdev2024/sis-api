@@ -125,7 +125,7 @@ class DirectPurchaseController extends Controller
         return $this->readCurrentRecord(DirectPurchaseModel::class, null, $whereFields, $withFunction, ['id' => 'DESC'], 'Purchase Order');
     }
 
-    public function onUpdate(Request $request, $direct_purchase_id)
+    public function onClose(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
