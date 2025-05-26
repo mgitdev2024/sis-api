@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\v1\PurchaseOrder;
+namespace App\Http\Controllers\v1\DirectPurchase;
 
 use App\Http\Controllers\Controller;
-use App\Models\PurchaseOrder\PurchaseOrderHandledItemModel;
-use App\Models\PurchaseOrder\PurchaseOrderItemModel;
+use App\Models\DirectPurchase\DirectPurchaseHandledItemModel;
+use App\Models\DirectPurchase\DirectPurchaseItemModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
 use DB;
-class PurchaseOrderHandledItemController extends Controller
+class DirectPurchaseHandledItemController extends Controller
 {
     use ResponseTrait;
 
@@ -19,7 +19,7 @@ class PurchaseOrderHandledItemController extends Controller
     {
         $fields = $request->validate([
             'type' => 'required|in:0,1', // 0 = rejected, 1 = received
-            'purchase_order_item_id' => 'required|exists:purchase_order_items,id',
+            'direct_purchase_item_id' => 'required|exists:direct_purchase_items,id',
             'delivery_receipt_number' => 'required',
             'received_date' => 'required',
             'expiration_date' => 'nullable',
@@ -31,7 +31,7 @@ class PurchaseOrderHandledItemController extends Controller
         try {
             DB::beginTransaction();
             $type = $fields['type'];
-            $purchaseOrderItemId = $fields['purchase_order_item_id'];
+            $directPurchaseItemId = $fields['direct_purchase_item_id'];
             $deliveryReceiptNumber = $fields['delivery_receipt_number'];
             $quantity = $fields['quantity'];
             $remarks = $fields['remarks'] ?? null;
@@ -39,20 +39,20 @@ class PurchaseOrderHandledItemController extends Controller
             $receivedDate = $fields['received_date'];
             $expirationDate = $fields['expiration_date'] ?? null;
 
-            $purchaseOrderItemModel = PurchaseOrderItemModel::find($purchaseOrderItemId);
-            $requestedQuantity = $purchaseOrderItemModel->requested_quantity;
-            $totalReceivedQuantity = $purchaseOrderItemModel->total_received_quantity;
+            $directPurchaseItemModel = DirectPurchaseItemModel::find($directPurchaseItemId);
+            $requestedQuantity = $directPurchaseItemModel->requested_quantity;
+            $totalReceivedQuantity = $directPurchaseItemModel->total_received_quantity;
             $remainingQuantity = $requestedQuantity - $totalReceivedQuantity;
 
             if ($quantity > $remainingQuantity) {
                 throw new Exception('Total Quantity cannot exceed to the requested quantity');
             }
-            PurchaseOrderHandledItemModel::create([
+            DirectPurchaseHandledItemModel::create([
                 'type' => $type,
-                'purchase_order_item_id' => $purchaseOrderItemId,
+                'direct_purchase_item_id' => $directPurchaseItemId,
                 'delivery_receipt_number' => $deliveryReceiptNumber,
                 'received_date' => $receivedDate,
-                'expiration_date'->$expirationDate,
+                'expiration_date' => $expirationDate,
                 'quantity' => $quantity,
                 'remarks' => $remarks,
                 'storage' => 'default',
@@ -60,8 +60,8 @@ class PurchaseOrderHandledItemController extends Controller
             ]);
 
             if ($type == 1) {
-                $purchaseOrderItemModel->total_received_quantity += $quantity;
-                $purchaseOrderItemModel->save();
+                $directPurchaseItemModel->total_received_quantity += $quantity;
+                $directPurchaseItemModel->save();
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
@@ -71,7 +71,7 @@ class PurchaseOrderHandledItemController extends Controller
         }
     }
 
-    public function onUpdate(Request $request, $purchase_order_handled_item_id)
+    public function onUpdate(Request $request, $direct_purchase_handled_item_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
@@ -89,12 +89,12 @@ class PurchaseOrderHandledItemController extends Controller
             $receivedDate = $fields['received_date'];
             $remarks = $fields['remarks'] ?? null;
             $expirationDate = $fields['expiration_date'] ?? null;
-            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
-            if ($purchaseOrderHandledItemModel) {
+            $directPurchaseHandledItemModel = DirectPurchaseHandledItemModel::find($direct_purchase_handled_item_id);
+            if ($directPurchaseHandledItemModel) {
 
-                $toBeDeducted = $purchaseOrderHandledItemModel->quantity;
+                $toBeDeducted = $directPurchaseHandledItemModel->quantity;
 
-                $purchaseOrderHandledItemModel->update([
+                $directPurchaseHandledItemModel->update([
                     'delivery_receipt_number' => $deliveryReceiptNumber,
                     'received_date' => $receivedDate,
                     'quantity' => $updatedQuantity,
@@ -104,11 +104,11 @@ class PurchaseOrderHandledItemController extends Controller
                     'updated_at' => now()
                 ]);
 
-                if ($purchaseOrderHandledItemModel->type == 1) {
-                    $purchaseOrderItemModel = $purchaseOrderHandledItemModel->purchaseOrderItem;
-                    $totalReceivedQuantity = ($purchaseOrderItemModel->total_received_quantity - $toBeDeducted) + $updatedQuantity;
-                    $purchaseOrderItemModel->total_received_quantity = $totalReceivedQuantity;
-                    $purchaseOrderItemModel->save();
+                if ($directPurchaseHandledItemModel->type == 1) {
+                    $directPurchaseItemModel = $directPurchaseHandledItemModel->directPurchaseItem;
+                    $totalReceivedQuantity = ($directPurchaseItemModel->total_received_quantity - $toBeDeducted) + $updatedQuantity;
+                    $directPurchaseItemModel->total_received_quantity = $totalReceivedQuantity;
+                    $directPurchaseItemModel->save();
                 }
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
@@ -121,18 +121,18 @@ class PurchaseOrderHandledItemController extends Controller
         }
     }
 
-    public function onDelete($purchase_order_handled_item_id)
+    public function onDelete($direct_purchase_handled_item_id)
     {
         try {
             DB::beginTransaction();
-            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
-            if ($purchaseOrderHandledItemModel) {
-                if ($purchaseOrderHandledItemModel->type == 1) {
-                    $purchaseOrderItemModel = $purchaseOrderHandledItemModel->purchaseOrderItem;
-                    $purchaseOrderItemModel->total_received_quantity -= $purchaseOrderHandledItemModel->quantity;
-                    $purchaseOrderItemModel->save();
+            $directPurchaseHandledItemModel = DirectPurchaseHandledItemModel::find($direct_purchase_handled_item_id);
+            if ($directPurchaseHandledItemModel) {
+                if ($directPurchaseHandledItemModel->type == 1) {
+                    $directPurchaseItemModel = $directPurchaseHandledItemModel->directPurchaseItem;
+                    $directPurchaseItemModel->total_received_quantity -= $directPurchaseHandledItemModel->quantity;
+                    $directPurchaseItemModel->save();
                 }
-                $purchaseOrderHandledItemModel->delete();
+                $directPurchaseHandledItemModel->delete();
                 DB::commit();
 
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
@@ -145,7 +145,7 @@ class PurchaseOrderHandledItemController extends Controller
         }
     }
 
-    public function onPost(Request $request, $purchase_order_handled_item_id)
+    public function onPost(Request $request, $direct_purchase_handled_item_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
@@ -153,22 +153,22 @@ class PurchaseOrderHandledItemController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
-            if ($purchaseOrderHandledItemModel) {
-                $purchaseOrderHandledItemModel->status = 1;
-                $purchaseOrderHandledItemModel->updated_by_id = $createdById;
-                $purchaseOrderHandledItemModel->save();
+            $directPurchaseHandledItemModel = DirectPurchaseHandledItemModel::find($direct_purchase_handled_item_id);
+            if ($directPurchaseHandledItemModel) {
+                $directPurchaseHandledItemModel->status = 1;
+                $directPurchaseHandledItemModel->updated_by_id = $createdById;
+                $directPurchaseHandledItemModel->save();
 
-                $purchaseOrderItemModel = $purchaseOrderHandledItemModel->purchaseOrderItem;
-                $purchaseOrderModel = $purchaseOrderItemModel->purchaseOrder;
+                $directPurchaseItemModel = $directPurchaseHandledItemModel->directPurchaseItem;
+                $directPurchaseModel = $directPurchaseItemModel->directPurchase;
 
-                $referenceNumber = $purchaseOrderModel->reference_number;
-                $storeCode = $purchaseOrderModel->store_code;
-                $storeSubUnitShortName = $purchaseOrderModel->store_sub_unit_short_name;
-                $itemCode = $purchaseOrderItemModel->item_code;
-                $itemDescription = $purchaseOrderItemModel->item_description;
-                $itemCategoryName = $purchaseOrderItemModel->item_category_name;
-                $quantity = $purchaseOrderHandledItemModel->quantity;
+                $referenceNumber = $directPurchaseModel->reference_number;
+                $storeCode = $directPurchaseModel->store_code;
+                $storeSubUnitShortName = $directPurchaseModel->store_sub_unit_short_name;
+                $itemCode = $directPurchaseItemModel->item_code;
+                $itemDescription = $directPurchaseItemModel->item_description;
+                $itemCategoryName = $directPurchaseItemModel->item_category_name;
+                $quantity = $directPurchaseHandledItemModel->quantity;
 
 
                 $this->onUpdateStockInventory(
@@ -255,12 +255,12 @@ class PurchaseOrderHandledItemController extends Controller
         ]);
     }
 
-    public function onGetById($purchase_order_handled_item_id)
+    public function onGetById($direct_purchase_handled_item_id)
     {
         try {
-            $purchaseOrderHandledItemModel = PurchaseOrderHandledItemModel::find($purchase_order_handled_item_id);
-            if ($purchaseOrderHandledItemModel) {
-                return $this->dataResponse('success', 200, __('msg.record_found'), $purchaseOrderHandledItemModel);
+            $directPurchaseHandledItemModel = DirectPurchaseHandledItemModel::find($direct_purchase_handled_item_id);
+            if ($directPurchaseHandledItemModel) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), $directPurchaseHandledItemModel);
             } else {
                 return $this->dataResponse('error', 404, __('msg.record_failed'));
             }

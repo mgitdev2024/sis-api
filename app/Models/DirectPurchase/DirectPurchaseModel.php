@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Models\PurchaseOrder;
+namespace App\Models\DirectPurchase;
 
-use App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderItemController;
+use App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-class PurchaseOrderModel extends Model
+class DirectPurchaseModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'purchase_orders';
+    protected $table = 'direct_purchases';
 
     protected $appends = [
         'status_label',
-        'formatted_purchase_order_date_label',
+        'formatted_direct_purchase_date_label',
         'formatted_expected_delivery_date_label',
         'formatted_created_at_label',
         'formatted_updated_at_label',
@@ -27,7 +27,7 @@ class PurchaseOrderModel extends Model
         'store_sub_unit_short_name',
         'supplier_code',
         'supplier_name',
-        'purchase_order_date',
+        'direct_purchase_date',
         'expected_delivery_date',
         'status',
         'created_at',
@@ -36,9 +36,9 @@ class PurchaseOrderModel extends Model
         'updated_by_id',
     ];
 
-    public function purchaseOrderItems()
+    public function directPurchaseItems()
     {
-        return $this->hasMany(PurchaseOrderItemModel::class, 'purchase_order_id');
+        return $this->hasMany(DirectPurchaseItemModel::class, 'direct_purchase_id');
     }
 
 
@@ -61,10 +61,10 @@ class PurchaseOrderModel extends Model
             : null;
     }
 
-    public function getFormattedPurchaseOrderDateLabelAttribute()
+    public function getFormattedDirectPurchaseDateLabelAttribute()
     {
-        return $this->purchase_order_date
-            ? Carbon::parse($this->purchase_order_date)->format('F d, Y')
+        return $this->direct_purchase_date
+            ? Carbon::parse($this->direct_purchase_date)->format('F d, Y')
             : null;
     }
 

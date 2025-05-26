@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Models\PurchaseOrder;
+namespace App\Models\DirectPurchase;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-class PurchaseOrderHandledItemModel extends Model
+class DirectPurchaseHandledItemModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'purchase_order_handled_items';
+    protected $table = 'direct_purchase_handled_items';
 
     protected $appends = ['type_label', 'formatted_created_at_label', 'formatted_updated_at_label', 'formatted_received_date_label'];
 
     protected $fillable = [
-        'purchase_order_item_id',
+        'direct_purchase_item_id',
         'delivery_receipt_number',
         'quantity',
         'storage',
@@ -29,9 +29,9 @@ class PurchaseOrderHandledItemModel extends Model
         'updated_by_id',
     ];
 
-    public function purchaseOrderItem()
+    public function directPurchaseItem()
     {
-        return $this->belongsTo(PurchaseOrderItemModel::class);
+        return $this->belongsTo(DirectPurchaseItemModel::class);
     }
 
     public function getTypeLabelAttribute()

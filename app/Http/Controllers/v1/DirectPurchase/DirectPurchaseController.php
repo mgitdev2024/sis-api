@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\v1\PurchaseOrder;
+namespace App\Http\Controllers\v1\DirectPurchase;
 
 use App\Http\Controllers\Controller;
-use App\Models\PurchaseOrder\PurchaseOrderItemModel;
-use App\Models\PurchaseOrder\PurchaseOrderModel;
+use App\Models\DirectPurchase\DirectPurchaseItemModel;
+use App\Models\DirectPurchase\DirectPurchaseModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
@@ -12,51 +12,51 @@ use Illuminate\Http\Request;
 use Exception;
 use DB;
 
-class PurchaseOrderController extends Controller
+class DirectPurchaseController extends Controller
 {
     use ResponseTrait, CrudOperationsTrait;
 
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
-            'purchase_order_number' => 'required',
+            'direct_purchase_number' => 'required',
             'supplier_code' => 'required',
             'supplier_name' => 'required',
-            'purchase_order_date' => 'required|date',
+            'direct_purchase_date' => 'required|date',
             'expected_delivery_date' => 'required|date',
-            'purchase_order_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
+            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'created_by_id' => 'required',
             'store_code' => 'required|string',
             'store_sub_unit_short_name' => 'nullable|string',
         ]);
         try {
             DB::beginTransaction();
-            $purchaseOrderNumber = $fields['purchase_order_number'];
+            $directPurchaseNumber = $fields['direct_purchase_number'];
             $supplierCode = $fields['supplier_code'];
             $supplierName = $fields['supplier_name'];
-            $purchaseOrderDate = $fields['purchase_order_date'];
+            $directPurchaseDate = $fields['direct_purchase_date'];
             $expectedDeliveryDate = $fields['expected_delivery_date'];
-            $purchaseOrderItems = $fields['purchase_order_items'];
+            $directPurchaseItems = $fields['direct_purchase_items'];
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
 
-            $purchaseOrderModel = PurchaseOrderModel::create([
-                'reference_number' => $purchaseOrderNumber,
+            $directPurchaseModel = DirectPurchaseModel::create([
+                'reference_number' => $directPurchaseNumber,
                 'supplier_code' => $supplierCode,
                 'supplier_name' => $supplierName,
-                'purchase_order_date' => $purchaseOrderDate,
+                'direct_purchase_date' => $directPurchaseDate,
                 'expected_delivery_date' => $expectedDeliveryDate,
                 'created_by_id' => $createdById,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
             ]);
 
-            $purchaseOrderItemsArr = $this->onCreatePurchaseOrderItems($purchaseOrderModel->id, $purchaseOrderItems, $createdById);
+            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($directPurchaseModel->id, $directPurchaseItems, $createdById);
 
             $data = [
-                'purchase_order_details' => $purchaseOrderModel,
-                'purchase_order_items' => $purchaseOrderItemsArr
+                'direct_purchase_details' => $directPurchaseModel,
+                'direct_purchase_items' => $directPurchaseItemsArr
             ];
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'), $data);
@@ -66,20 +66,20 @@ class PurchaseOrderController extends Controller
         }
     }
 
-    private function onCreatePurchaseOrderItems($purchaseOrderId, $purchaseOrderItems, $createdById)
+    private function onCreateDirectPurchaseItems($directPurchaseId, $directPurchaseItems, $createdById)
     {
         try {
-            $purchaseOrderItems = json_decode($purchaseOrderItems, true);
+            $directPurchaseItems = json_decode($directPurchaseItems, true);
 
             $data = [];
-            foreach ($purchaseOrderItems as $items) {
+            foreach ($directPurchaseItems as $items) {
                 $itemCode = $items['ic'];
                 $itemCategoryName = $items['ict'];
                 $itemDescription = $items['icd'];
                 $quantity = $items['q'];
 
-                PurchaseOrderItemModel::create([
-                    'purchase_order_id' => $purchaseOrderId,
+                DirectPurchaseItemModel::create([
+                    'direct_purchase_id' => $directPurchaseId,
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
                     'item_category_name' => $itemCategoryName,
@@ -89,7 +89,7 @@ class PurchaseOrderController extends Controller
                 ]);
 
                 $data[] = [
-                    'purchase_order_id' => $purchaseOrderId,
+                    'direct_purchase_id' => $directPurchaseId,
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
                     'item_category_name' => $itemCategoryName,
@@ -105,7 +105,7 @@ class PurchaseOrderController extends Controller
             throw new Exception($exception->getMessage());
         }
     }
-    public function onGetCurrent($status, $purchase_order_id = 0, $store_code, $sub_unit = null)
+    public function onGetCurrent($status, $direct_purchase_id = 0, $store_code, $sub_unit = null)
     {
         $whereFields = [
             'status' => $status,
@@ -117,30 +117,30 @@ class PurchaseOrderController extends Controller
         }
 
         $withFunction = null;
-        if ($purchase_order_id != 0) {
-            $whereFields['id'] = $purchase_order_id;
-            $withFunction = 'purchaseOrderItems.purchaseOrderHandledItems';
+        if ($direct_purchase_id != 0) {
+            $whereFields['id'] = $direct_purchase_id;
+            $withFunction = 'directPurchaseItems.directPurchaseHandledItems';
         }
 
-        return $this->readCurrentRecord(PurchaseOrderModel::class, null, $whereFields, $withFunction, ['id' => 'DESC'], 'Purchase Order');
+        return $this->readCurrentRecord(DirectPurchaseModel::class, null, $whereFields, $withFunction, ['id' => 'DESC'], 'Purchase Order');
     }
 
-    public function onUpdate(Request $request, $purchase_order_id)
+    public function onUpdate(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required'
         ]);
         try {
-            $purchaseOrderModel = PurchaseOrderModel::find($purchase_order_id);
-            if ($purchaseOrderModel) {
+            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
+            if ($directPurchaseModel) {
                 DB::beginTransaction();
-                $purchaseOrderModel->status = 1;
-                $purchaseOrderModel->updated_by_id = $fields['created_by_id'];
-                $purchaseOrderModel->updated_at = now();
-                $purchaseOrderModel->save();
+                $directPurchaseModel->status = 1;
+                $directPurchaseModel->updated_by_id = $fields['created_by_id'];
+                $directPurchaseModel->updated_at = now();
+                $directPurchaseModel->save();
 
                 DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), $purchaseOrderModel);
+                return $this->dataResponse('success', 200, __('msg.update_success'), $directPurchaseModel);
 
             }
             return $this->dataResponse('error', 404, __('msg.record_not_found'));

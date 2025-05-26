@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Models\PurchaseOrder;
+namespace App\Models\DirectPurchase;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-class PurchaseOrderItemModel extends Model
+class DirectPurchaseItemModel extends Model
 {
     use HasFactory;
-    protected $table = 'purchase_order_items';
+    protected $table = 'direct_purchase_items';
     protected $appends = ['formatted_created_at_label', 'formatted_updated_at_label'];
 
     protected $fillable = [
-        'purchase_order_id',
+        'direct_purchase_id',
         'item_code',
         'item_description',
         'item_category_name',
@@ -25,14 +25,14 @@ class PurchaseOrderItemModel extends Model
         'updated_by_id',
     ];
 
-    public function purchaseOrder()
+    public function directPurchase()
     {
-        return $this->belongsTo(PurchaseOrderModel::class);
+        return $this->belongsTo(DirectPurchaseModel::class);
     }
 
-    public function purchaseOrderHandledItems()
+    public function directPurchaseHandledItems()
     {
-        return $this->hasMany(PurchaseOrderHandledItemModel::class, 'purchase_order_item_id');
+        return $this->hasMany(DirectPurchaseHandledItemModel::class, 'direct_purchase_item_id');
     }
 
     public function getFormattedCreatedAtLabelAttribute()
