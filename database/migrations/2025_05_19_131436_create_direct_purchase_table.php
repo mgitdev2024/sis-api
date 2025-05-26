@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('direct_purchases', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number'); // MG-0800-4382-2331 PO Number
+            $table->tinyInteger('type'); // 0 = DR, 1 = PO
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('supplier_code'); // ABMARAC Corp
@@ -38,7 +39,7 @@ return new class extends Migration {
         Schema::create('direct_purchase_handled_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('direct_purchase_item_id'); // FK to direct_purchase_items
-            $table->string('delivery_receipt_number'); // 9843
+            $table->string('delivery_receipt_number')->nullable(); // 9843
             $table->integer('quantity');
             $table->string('storage'); // default
             $table->string('remarks')->nullable();
