@@ -194,6 +194,15 @@ class DirectPurchaseController extends Controller
                             'updated_by_id' => $fields['created_by_id'],
                             'updated_at' => now()
                         ]);
+                    } else {
+                        $directPurchaseItemModel = DirectPurchaseItemModel::create([
+                            'direct_purchase_id' => $direct_purchase_id,
+                            'item_code' => $item['ic'],
+                            'item_description' => $item['icd'],
+                            'item_category_name' => $item['ict'],
+                            'requested_quantity' => $item['q'],
+                            'created_by_id' => $fields['created_by_id']
+                        ]);
                     }
                 } else if ($isDeleted) {
                     $directPurchaseItemModel = DirectPurchaseItemModel::where([
