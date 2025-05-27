@@ -209,8 +209,11 @@ class DirectPurchaseController extends Controller
                     ]);
                 }
             }
+                 $data = [
+                'direct_purchase_details' => $directPurchaseModel,
+            ];
             DB::commit();
-            return $this->dataResponse('success', 200, __('msg.update_success'));
+            return $this->dataResponse('success', 200, __('msg.update_success'), $data);
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
