@@ -156,7 +156,7 @@ class DirectPurchaseController extends Controller
     {
         $fields = $request->validate([
             'direct_purchase_number' => 'required|unique:direct_purchases,reference_number,' . $direct_purchase_id,
-            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12","u":1}] u = 1 if updated, 0 if not, -1 if deleted
+            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'supplier_code' => 'required',
             'supplier_name' => 'required',
             'direct_purchase_date' => 'required|date',
@@ -181,37 +181,32 @@ class DirectPurchaseController extends Controller
 
             $directPurchaseItems = json_decode($fields['direct_purchase_items'], true);
             foreach ($directPurchaseItems as $item) {
-                $isUpdated = isset($item['u']) && $item['u'] == 1;
-                $isDeleted = isset($item['u']) && $item['u'] == -1;
-                if ($isUpdated) {
-                    $directPurchaseItemModel = DirectPurchaseItemModel::where([
+                $itemCode = $item['ic'];
+                $itemCategoryName = $item['ict'];
+                $itemDescription = $item['icd'];
+                $quantity = $item['q'];
+
+                $directPurchaseItemModel = DirectPurchaseItemModel::where([
+                    'direct_purchase_id' => $direct_purchase_id,
+                    'item_code' => $item['ic']
+                ])->first();
+
+                if ($directPurchaseItemModel && $directPurchaseItemModel->requested_quantity != $quantity) {
+                    $directPurchaseItemModel->requested_quantity = $quantity;
+                    $directPurchaseItemModel->item_description = $itemDescription;
+                    $directPurchaseItemModel->item_category_name = $itemCategoryName;
+                    $directPurchaseItemModel->updated_by_id = $fields['created_by_id'];
+                    $directPurchaseItemModel->updated_at = now();
+                    $directPurchaseItemModel->save();
+                } else if (!$directPurchaseItemModel) {
+                    DirectPurchaseItemModel::create([
                         'direct_purchase_id' => $direct_purchase_id,
-                        'item_code' => $item['ic']
-                    ])->first();
-                    if ($directPurchaseItemModel) {
-                        $directPurchaseItemModel->update([
-                            'requested_quantity' => $item['q'],
-                            'updated_by_id' => $fields['created_by_id'],
-                            'updated_at' => now()
-                        ]);
-                    } else {
-                        $directPurchaseItemModel = DirectPurchaseItemModel::create([
-                            'direct_purchase_id' => $direct_purchase_id,
-                            'item_code' => $item['ic'],
-                            'item_description' => $item['icd'],
-                            'item_category_name' => $item['ict'],
-                            'requested_quantity' => $item['q'],
-                            'created_by_id' => $fields['created_by_id']
-                        ]);
-                    }
-                } else if ($isDeleted) {
-                    $directPurchaseItemModel = DirectPurchaseItemModel::where([
-                        'direct_purchase_id' => $direct_purchase_id,
-                        'item_code' => $item['ic']
-                    ])->first();
-                    if ($directPurchaseItemModel) {
-                        $directPurchaseItemModel->delete();
-                    }
+                        'item_code' => $itemCode,
+                        'item_description' => $itemDescription,
+                        'item_category_name' => $itemCategoryName,
+                        'requested_quantity' => $quantity,
+                        'created_by_id' => $fields['created_by_id']
+                    ]);
                 }
             }
             DB::commit();
