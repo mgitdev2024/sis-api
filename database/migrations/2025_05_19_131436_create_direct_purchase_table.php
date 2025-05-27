@@ -29,7 +29,7 @@ return new class extends Migration {
             $table->string('item_code'); // CR 12
             $table->string('item_description'); // Cheeseroll Box of 12
             $table->string('item_category_name');
-            $table->integer('total_received_quantity');
+            $table->integer('total_received_quantity')->default(0);
             $table->integer('requested_quantity');
             SchemaHelper::addCommonColumns($table);
 
