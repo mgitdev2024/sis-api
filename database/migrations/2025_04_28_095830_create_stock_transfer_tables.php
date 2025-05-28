@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('reference_number'); // ST-807231987321, PT-807231987321
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
-            $table->tinyInteger('transfer_type'); // 0 = Store Transfer, 1 = Pull Out
+            $table->tinyInteger('transfer_type'); // 0 = Store Transfer, 1 = Pull Out, 2 = Store warehouse Store
             $table->tinyInteger('transportation_type')->nullable(); // 1: Logistics, 2: Third Party
             $table->date('pickup_date');
             $table->string('location_code')->nullable(); // C001, BK-BREADS, BK
@@ -24,7 +24,11 @@ return new class extends Migration {
             $table->string('location_sub_unit')->nullable(); // C001
             $table->string('remarks')->nullable();
             $table->text('attachment')->nullable();
-            SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Receive, 2 = Received
+            $table->date('logistics_picked_up_at')->nullable(); // Juan Dela Cruz
+            $table->string('logistics_confirmed_by_id')->nullable(); // Juan Dela Cruz
+            $table->string('warehouse_received_by_name')->nullable(); // Juan Dela Cruz
+
+            SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Receive, 1.1 = In warehouse, 2 = Received
         });
 
         Schema::create('stock_transfer_items', function (Blueprint $table) {

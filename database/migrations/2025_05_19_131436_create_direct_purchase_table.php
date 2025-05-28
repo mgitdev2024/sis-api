@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('supplier_code'); // ABMARAC Corp
             $table->string('supplier_name'); // ABMARAC Corp
             $table->date('direct_purchase_date');
-            $table->date('expected_delivery_date');
+            $table->date('expected_delivery_date')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = Closed / Complete
         });
 
@@ -29,7 +29,7 @@ return new class extends Migration {
             $table->string('item_code'); // CR 12
             $table->string('item_description'); // Cheeseroll Box of 12
             $table->string('item_category_name');
-            $table->integer('total_received_quantity');
+            $table->integer('total_received_quantity')->default(0);
             $table->integer('requested_quantity');
             SchemaHelper::addCommonColumns($table);
 

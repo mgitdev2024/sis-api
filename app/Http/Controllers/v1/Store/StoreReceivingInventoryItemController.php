@@ -467,12 +467,15 @@ class StoreReceivingInventoryItemController extends Controller
         $referenceExplode = explode('-', $referenceNumber);
         $referenceKey = $referenceExplode[0];
         $referenceNumberCollection = [
-            'ST' => StockTransferModel::class
+            'ST' => [
+                'model' => StockTransferModel::class,
+                'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
+            ]
         ];
 
         if (array_key_exists($referenceKey, $referenceNumberCollection)) {
-            $referenceNumberCollection[$referenceKey]::where('reference_number', $referenceNumber)->update([
-                'status' => 1
+            $referenceNumberCollection[$referenceKey]['model']::where('reference_number', $referenceNumber)->update([
+                'status' => $referenceNumberCollection[$referenceKey]['status'],
             ]);
         }
     }

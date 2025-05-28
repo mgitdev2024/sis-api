@@ -21,7 +21,7 @@ class StockTransferController extends Controller
             'transfer_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'pickup_date' => 'required|date',
             'remarks' => 'nullable|string',
-            'type' => 'required|in:pullout,store',
+            'type' => 'required|in:pullout,store,store_warehouse_store', // pullout, store, store_warehouse_store
             'transfer_to_store_code' => 'required_if:type,store',
             'transfer_to_store_name' => 'required_if:type,store',
             'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
@@ -56,11 +56,16 @@ class StockTransferController extends Controller
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
             $referenceNumber = StockTransferModel::onGenerateReferenceNumber($type);
 
+            $transferTypeArr = [
+                'store' => 0, // 0 = Store Transfer
+                'pullout' => 1, // 1 = Pull Out
+                'store_warehouse_store' => 2 // 2 = Store Warehouse Store
+            ];
             $stockTransferModel = StockTransferModel::create([
                 'reference_number' => $referenceNumber,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
-                'transfer_type' => ($type == 'pullout') ? 1 : 0, // 0 = Store Transfer, 1 = Pull Out
+                'transfer_type' => $transferTypeArr[$type],
                 'transportation_type' => $transportationType,
                 'pickup_date' => $pickupDate,
                 'location_code' => $transferToStoreCode,
@@ -83,11 +88,7 @@ class StockTransferController extends Controller
             ]);
             $stockTransferItemController->onCreate($stockTransferItemRequest);
 
-            if ($type == 'store') {
-                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
-            } else if ($type == 'pullout') {
-                $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks);
-            }
+
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
 
@@ -119,11 +120,11 @@ class StockTransferController extends Controller
             $orderedItems = [];
             foreach ($transferItems as $item) {
                 $orderedItems[] = [
-                    'item_code' => $item['ic'],
-                    'item_description' => $item['icd'],
-                    'item_category_name' => $item['ict'],
-                    'order_quantity' => $item['q'],
-                    'allocated_quantity' => $item['q'],
+                    'item_code' => $item['item_code'],
+                    'item_description' => $item['item_description'],
+                    'item_category_name' => $item['item_category_name'],
+                    'order_quantity' => $item['quantity'],
+                    'allocated_quantity' => $item['quantity'],
                     'order_type' => 0,
                 ];
             }
@@ -155,6 +156,37 @@ class StockTransferController extends Controller
         }
     }
 
+    public function onPickUpTransfer(Request $request, $id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+
+            $stockTransferModel = StockTransferModel::findOrFail($id);
+            $type = $stockTransferModel->transfer_type; // 0 = Store Transfer, 1 = Pull Out, 2 = Store Warehouse Store
+            $transferItems = json_encode($stockTransferModel->StockTransferItems);
+            $transferToStoreCode = $stockTransferModel->location_code;
+            $transferToStoreName = $stockTransferModel->location_name;
+            $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+            $pickupDate = $stockTransferModel->pickup_date;
+            $referenceNumber = $stockTransferModel->reference_number;
+            $remarks = $stockTransferModel->remarks;
+            $createdById = $fields['created_by_id'];
+            if ($type == 0) {
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+            } else if ($type == 1) {
+                $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks);
+            } else if ($type == 2) {
+                $this->onCreateStoreWarehouseStoreReceivingInventory($stockTransferModel, $transferItems, $createdById);
+            }
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+
+        }
+    }
+
     public function onCreateTransmittalPullout($transferItems, $createdById, $remarks)
     {
 
@@ -175,7 +207,50 @@ class StockTransferController extends Controller
             if (!$response->successful()) {
                 return $this->dataResponse('error', 404, 'Unauthorized Access');
             }
-            dd('stipo');
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCreateStoreWarehouseStoreReceivingInventory($stockTransferModel, $transferItems, $createdById)
+    {
+        try {
+            $userModel = User::where('employee_id', $createdById)->first();
+            $firstName = $userModel->first_name;
+            $lastName = $userModel->last_name;
+            $fullName = "$firstName $lastName";
+
+            $referenceNumber = $stockTransferModel->reference_number;
+            $storeCode = $stockTransferModel->store_code;
+            $storeSubUnitShortName = $stockTransferModel->store_sub_unit_short_name;
+            $pickupDate = $stockTransferModel->pickup_date;
+            $transferToStoreCode = $stockTransferModel->location_code;
+            $transferToStoreName = $stockTransferModel->location_name;
+            $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+            $remarks = $stockTransferModel->remarks;
+            $transferType = $stockTransferModel->transfer_type;
+            $transportationType = $stockTransferModel->transportation_type;
+            $data = [
+                'sis_stock_transfer_id' => $stockTransferModel->id,
+                'reference_number' => $referenceNumber,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'transfer_items' => $transferItems,
+                'transfer_type' => $transferType,
+                'pickup_date' => $pickupDate,
+                'location_code' => $transferToStoreCode,
+                'location_name' => $transferToStoreName,
+                'location_sub_unit' => $transferToStoreSubUnitShortName ?? null,
+                'transportation_type' => $transportationType,
+                'created_by_name' => $fullName,
+                'remarks' => $remarks
+            ];
+
+            // api call for transmittal
+            $response = \Http::post(env('MGIOS_URL') . '/receiving/stock-transfer/create', $data);
+            if (!$response->successful()) {
+                return $this->dataResponse('error', 404, 'Unauthorized Access');
+            }
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
@@ -267,6 +342,38 @@ class StockTransferController extends Controller
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+
+    public function onUpdate(Request $request, $id)
+    {
+        $fields = $request->validate([
+            'warehouse_received_by_name' => 'required|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $stockTransferModel = StockTransferModel::findOrFail($id);
+            $stockTransferModel->warehouse_received_by_name = $fields['warehouse_received_by_name'];
+            $stockTransferModel->status = 1.1; // in warehouse
+            $stockTransferModel->updated_at = now();
+            $stockTransferModel->save();
+
+            $referenceNumber = $stockTransferModel->reference_number;
+            $pickupDate = $stockTransferModel->pickup_date;
+            $transferToStoreCode = $stockTransferModel->location_code;
+            $transferToStoreName = $stockTransferModel->location_name;
+            $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+            $createdById = $stockTransferModel->created_by_id;
+            $transferItems = json_encode($stockTransferModel->StockTransferItems);
+            // Create Store Receiving Inventory
+            $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+
         }
     }
 }
