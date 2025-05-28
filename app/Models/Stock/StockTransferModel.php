@@ -15,7 +15,7 @@ class StockTransferModel extends Model
         'reference_number',
         'store_code',
         'store_sub_unit_short_name',
-        'transfer_type',  // 0 = Store Transfer, 1 = Pull Out
+        'transfer_type',  // 0 = Store Transfer, 1 = Pull Out, 2 = store warehouse store
         'transportation_type', // 1: Logistics, 2: Third Party
         'logistics_picked_up_at',
         'logistics_confirmed_by_id',
