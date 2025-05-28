@@ -173,6 +173,12 @@ class StockTransferController extends Controller
             $referenceNumber = $stockTransferModel->reference_number;
             $remarks = $stockTransferModel->remarks;
             $createdById = $fields['created_by_id'];
+
+            DB::beginTransaction();
+            $stockTransferModel->logistics_picked_up_at = now();
+            $stockTransferModel->logistics_confirmed_by_id = $createdById;
+            $stockTransferModel->save();
+
             if ($type == 0) {
                 $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             } else if ($type == 1) {
@@ -180,8 +186,11 @@ class StockTransferController extends Controller
             } else if ($type == 2) {
                 $this->onCreateStoreWarehouseStoreReceivingInventory($stockTransferModel, $transferItems, $createdById);
             }
+
+            DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
+            DB::rollBack();
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
 
         }
