@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number'); // SC00001
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = For Review, 2 = Posted
         });
 

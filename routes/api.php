@@ -116,15 +116,26 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::get('v1/customer/return/item/get/{customer_return_form_id}', [App\Http\Controllers\v1\Customer\CustomerReturnItemController::class, 'onGetById']);
     #endregion
 
-    #region Purchase Orders
-    Route::get('v1/purchase/order/current/get/{status}/{purchase_order_id}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onGetCurrent']);
-    Route::post('v1/purchase/order/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderController::class, 'onCreate']);
+    #region Direct Purchase
+    Route::get('v1/direct/purchase/current/get/{status}/{direct_purchase_id}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onGetCurrent']);
+    Route::post('v1/direct/purchase/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCreate']);
+    Route::post('v1/direct/purchase/close/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onClose']);
+    Route::post('v1/direct/purchase/update/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onUpdateDirectPurchaseDetails']);
+    Route::post('v1/direct/purchase/cancel/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCancel']);
+
     #endregion
 
-    #region Purchase Orders Handled Items
-    Route::post('v1/purchase/order/handled-items/create', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onCreate']);
-    Route::post('v1/purchase/order/handled-items/delete/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onDelete']);
-    Route::post('v1/purchase/order/handled-items/update/{purchase_order_handled_item_id}', [App\Http\Controllers\v1\PurchaseOrder\PurchaseOrderHandledItemController::class, 'onUpdate']);
+    #region Direct Purchase Items
+    Route::post('v1/direct/purchase/items/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController::class, 'onCreate']);
+    Route::post('v1/direct/purchase/items/update/{direct_purchase_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController::class, 'onUpdate']);
+    Route::post('v1/direct/purchase/items/delete/{direct_purchase_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController::class, 'onDelete']);
+    #endregion
 
+    #region Direct Purchase Handled Items
+    Route::post('v1/direct/purchase/handled-items/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onCreate']);
+    Route::post('v1/direct/purchase/handled-items/delete/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onDelete']);
+    Route::post('v1/direct/purchase/handled-items/update/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onUpdate']);
+    Route::post('v1/direct/purchase/handled-items/post/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onPost']);
+    Route::get('v1/direct/purchase/handled-items/get/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onGetById']);
     #endregion
 });

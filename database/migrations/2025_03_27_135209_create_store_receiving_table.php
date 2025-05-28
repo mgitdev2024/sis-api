@@ -30,8 +30,8 @@ return new class extends Migration {
             $table->string('store_code'); // C001
             $table->string('store_name');
             // $table->integer('store_sub_unit_id');
-            $table->string('store_sub_unit_short_name');
-            $table->string('store_sub_unit_long_name');
+            $table->string('store_sub_unit_short_name')->nullable();
+            $table->string('store_sub_unit_long_name')->nullable();
             $table->date('delivery_date')->nullable();
             $table->string('delivery_type')->nullable();
             $table->date('order_date')->nullable();

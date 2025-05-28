@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number'); // CR00001
             $table->string('store_code'); // C001
-            $table->string('store_sub_unit_short_name'); // FOH BOH
+            $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('official_receipt_number'); // OR Number
             $table->text('attachment');
             $table->string('remarks')->nullable();
