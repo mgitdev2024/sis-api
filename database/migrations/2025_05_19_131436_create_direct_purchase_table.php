@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('supplier_code'); // ABMARAC Corp
             $table->string('supplier_name'); // ABMARAC Corp
             $table->date('direct_purchase_date');
-            $table->date('expected_delivery_date');
+            $table->date('expected_delivery_date')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = Closed / Complete
         });
 

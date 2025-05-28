@@ -22,6 +22,8 @@ Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessMana
 
 
 Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
+Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onUpdate']);
+
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
@@ -94,6 +96,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCancel']);
     Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
     Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
+    Route::post('v1/stock/transfer/pickup/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onPickupTransfer']);
     #endregion
 
     #region Stock Inventory Count
