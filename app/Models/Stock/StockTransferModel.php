@@ -41,6 +41,7 @@ class StockTransferModel extends Model
         $prefix = match (strtolower($type)) {
             'pullout' => 'PT-',
             'store' => 'ST-',
+            'store_warehouse_store' => 'SWS-',
         };
 
         $latestReference = static::where('reference_number', 'like', $prefix . '%')
@@ -61,7 +62,12 @@ class StockTransferModel extends Model
 
     public function getTransferTypeLabelAttribute()
     {
-        return $this->transfer_type == 0 ? 'Store Transfer' : 'Pull Out';
+        $transferType = [
+            0 => 'Store',
+            1 => 'Pullout',
+            2 => 'Store Warehouse Store',
+        ];
+        return $transferType[$this->transfer_type] ?? 'Unknown';
     }
     public function getTransportationTypeLabelAttribute()
     {
