@@ -23,7 +23,7 @@ class DirectPurchaseController extends Controller
             'direct_reference_number' => 'required',
             'supplier_code' => 'nullable',
             'supplier_name' => 'required',
-            'direct_purchase_date' => 'required|date',
+            'direct_purchase_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date',
             'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'created_by_id' => 'required',
