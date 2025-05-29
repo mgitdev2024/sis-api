@@ -95,7 +95,7 @@ class DirectPurchaseController extends Controller
                     $directPurchaseHandledItemController = new DirectPurchaseHandledItemController();
                     $directPurchaseHandledItemRequest = new Request([
                         'direct_purchase_item_id' => $directPurchaseItemModel->id,
-                        'type' => $type, // 0 = rejected, 1 = received
+                        'type' => 1, // 0 = rejected, 1 = received
                         'received_date' => now()->format('Y-m-d'),
                         'quantity' => $quantity,
                         'created_by_id' => $createdById
