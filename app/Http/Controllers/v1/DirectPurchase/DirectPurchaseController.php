@@ -20,11 +20,11 @@ class DirectPurchaseController extends Controller
     {
         $fields = $request->validate([
             'type' => 'required|in:0,1', // 0 = DR, 1 = PO
-            'direct_purchase_number' => 'required',
-            'supplier_code' => 'required',
+            'direct_reference_number' => 'required',
+            'supplier_code' => 'nullable',
             'supplier_name' => 'required',
             'direct_purchase_date' => 'required|date',
-            'expected_delivery_date' => 'required|date',
+            'expected_delivery_date' => 'nullable|date',
             'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'created_by_id' => 'required',
             'store_code' => 'required|string',
@@ -32,7 +32,7 @@ class DirectPurchaseController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $directPurchaseNumber = $fields['direct_purchase_number'];
+            $directPurchaseNumber = $fields['direct_reference_number'];
             $supplierCode = $fields['supplier_code'];
             $supplierName = $fields['supplier_name'];
             $directPurchaseDate = $fields['direct_purchase_date'];
@@ -41,10 +41,11 @@ class DirectPurchaseController extends Controller
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
-
+            $type = $fields['type'];
             $directPurchaseModel = DirectPurchaseModel::create([
-                'reference_number' => $directPurchaseNumber,
-                'type' => $fields['type'],
+                'reference_number' => DirectPurchaseModel::onGenerateReferenceNumber(),
+                'direct_reference_number' => $directPurchaseNumber,
+                'type' => $type,
                 'supplier_code' => $supplierCode,
                 'supplier_name' => $supplierName,
                 'direct_purchase_date' => $directPurchaseDate,
@@ -54,7 +55,7 @@ class DirectPurchaseController extends Controller
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
             ]);
 
-            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($directPurchaseModel->id, $directPurchaseItems, $createdById);
+            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($type, $directPurchaseModel->id, $directPurchaseItems, $createdById);
 
             $data = [
                 'direct_purchase_details' => $directPurchaseModel,
@@ -68,7 +69,7 @@ class DirectPurchaseController extends Controller
         }
     }
 
-    private function onCreateDirectPurchaseItems($directPurchaseId, $directPurchaseItems, $createdById)
+    private function onCreateDirectPurchaseItems($type, $directPurchaseId, $directPurchaseItems, $createdById)
     {
         try {
             $directPurchaseItems = json_decode($directPurchaseItems, true);
@@ -80,7 +81,7 @@ class DirectPurchaseController extends Controller
                 $itemDescription = $items['icd'];
                 $quantity = $items['q'];
 
-                DirectPurchaseItemModel::create([
+                $directPurchaseItemModel = DirectPurchaseItemModel::create([
                     'direct_purchase_id' => $directPurchaseId,
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
@@ -90,6 +91,17 @@ class DirectPurchaseController extends Controller
                     'created_by_id' => $createdById
                 ]);
 
+                if ($type == 0) {
+                    $directPurchaseHandledItemController = new DirectPurchaseHandledItemController();
+                    $directPurchaseHandledItemRequest = new Request([
+                        'direct_purchase_item_id' => $directPurchaseItemModel->id,
+                        'type' => $type, // 0 = rejected, 1 = received
+                        'received_date' => now()->format('Y-m-d'),
+                        'quantity' => $quantity,
+                        'created_by_id' => $createdById
+                    ]);
+                    $directPurchaseHandledItemController->onCreate($directPurchaseHandledItemRequest);
+                }
                 $data[] = [
                     'direct_purchase_id' => $directPurchaseId,
                     'item_code' => $itemCode,
@@ -155,7 +167,7 @@ class DirectPurchaseController extends Controller
     public function onUpdateDirectPurchaseDetails(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
-            'direct_purchase_number' => 'required|unique:direct_purchases,reference_number,' . $direct_purchase_id,
+            'direct_reference_number' => 'required|unique:direct_purchases,direct_reference_number,' . $direct_purchase_id,
             'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
             'supplier_code' => 'required',
             'supplier_name' => 'required',
@@ -170,7 +182,7 @@ class DirectPurchaseController extends Controller
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }
             $directPurchaseModel->update([
-                'reference_number' => $fields['direct_purchase_number'],
+                'direct_reference_number' => $fields['direct_reference_number'],
                 'supplier_code' => $fields['supplier_code'],
                 'supplier_name' => $fields['supplier_name'],
                 'direct_purchase_date' => $fields['direct_purchase_date'],

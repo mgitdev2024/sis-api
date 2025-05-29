@@ -71,7 +71,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{order_type}/{is_received}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
     Route::get('v1/store/receive-inventory-item/manual/get/{reference_number}/{order_type}/{selected_item_codes}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
 
-    Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
+    Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
     Route::post('v1/store/receive-inventory-item/complete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onComplete']);
     #endregion

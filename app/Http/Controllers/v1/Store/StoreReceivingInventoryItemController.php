@@ -198,7 +198,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    public function onGetCategory($store_code, $status = null)
+    public function onGetCategory($store_code, $status = null, $sub_unit = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::select([
@@ -211,6 +211,9 @@ class StoreReceivingInventoryItemController extends Controller
                 ->where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
+            }
+            if ($sub_unit != null) {
+                $storeInventoryItemModel = $storeInventoryItemModel->where('store_sub_unit_short_name', $sub_unit);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->groupBy([
                 'reference_number',
