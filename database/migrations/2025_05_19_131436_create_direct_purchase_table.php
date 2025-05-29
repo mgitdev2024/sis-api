@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             $table->string('supplier_code')->nullable(); // ABMARAC Corp
             $table->string('supplier_name'); // ABMARAC Corp
-            $table->date('direct_purchase_date');
+            $table->date('direct_purchase_date')->nullable();
             $table->date('expected_delivery_date')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = Closed / Complete
         });
