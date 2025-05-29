@@ -32,7 +32,7 @@ class DirectPurchaseController extends Controller
         ]);
         try {
             DB::beginTransaction();
-            $directPurchaseNumber = $fields['direct_reference_number'];
+            $directReferenceNumber = $fields['direct_reference_number'];
             $supplierCode = $fields['supplier_code'];
             $supplierName = $fields['supplier_name'];
             $directPurchaseDate = $fields['direct_purchase_date'];
@@ -44,7 +44,7 @@ class DirectPurchaseController extends Controller
             $type = $fields['type'];
             $directPurchaseModel = DirectPurchaseModel::create([
                 'reference_number' => DirectPurchaseModel::onGenerateReferenceNumber(),
-                'direct_reference_number' => $directPurchaseNumber,
+                'direct_reference_number' => $directReferenceNumber,
                 'type' => $type,
                 'supplier_code' => $supplierCode,
                 'supplier_name' => $supplierName,
@@ -55,7 +55,7 @@ class DirectPurchaseController extends Controller
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
             ]);
 
-            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($type, $directPurchaseModel->id, $directPurchaseItems, $createdById);
+            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($type, $directReferenceNumber, $directPurchaseModel->id, $directPurchaseItems, $createdById);
 
             $data = [
                 'direct_purchase_details' => $directPurchaseModel,
@@ -69,7 +69,7 @@ class DirectPurchaseController extends Controller
         }
     }
 
-    private function onCreateDirectPurchaseItems($type, $directPurchaseId, $directPurchaseItems, $createdById)
+    private function onCreateDirectPurchaseItems($type, $directReferenceNumber, $directPurchaseId, $directPurchaseItems, $createdById)
     {
         try {
             $directPurchaseItems = json_decode($directPurchaseItems, true);
@@ -95,6 +95,7 @@ class DirectPurchaseController extends Controller
                     $directPurchaseHandledItemController = new DirectPurchaseHandledItemController();
                     $directPurchaseHandledItemRequest = new Request([
                         'direct_purchase_item_id' => $directPurchaseItemModel->id,
+                        'delivery_receipt_number' => $directReferenceNumber,
                         'type' => 1, // 0 = rejected, 1 = received
                         'received_date' => now()->format('Y-m-d'),
                         'quantity' => $quantity,
