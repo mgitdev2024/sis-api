@@ -170,10 +170,10 @@ class DirectPurchaseController extends Controller
         $fields = $request->validate([
             'direct_reference_number' => 'required|unique:direct_purchases,direct_reference_number,' . $direct_purchase_id,
             'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
-            'supplier_code' => 'required',
+            'supplier_code' => 'nullable',
             'supplier_name' => 'required',
-            'direct_purchase_date' => 'required|date',
-            'expected_delivery_date' => 'required|date',
+            'direct_purchase_date' => 'nullable|date',
+            'expected_delivery_date' => 'nullable|date',
             'created_by_id' => 'required',
         ]);
         try {
@@ -222,7 +222,7 @@ class DirectPurchaseController extends Controller
                     ]);
                 }
             }
-                 $data = [
+            $data = [
                 'direct_purchase_details' => $directPurchaseModel,
             ];
             DB::commit();
