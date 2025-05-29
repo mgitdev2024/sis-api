@@ -17,6 +17,9 @@ class StockTransferModel extends Model
         'store_sub_unit_short_name',
         'transfer_type',  // 0 = Store Transfer, 1 = Pull Out
         'transportation_type', // 1: Logistics, 2: Third Party
+        'logistics_picked_up_at',
+        'logistics_confirmed_by_id',
+        'warehouse_received_by_name',
         'pickup_date',
         'location_code',
         'location_name',
@@ -25,7 +28,7 @@ class StockTransferModel extends Model
         'attachment',
         'created_by_id',
         'updated_by_id',
-        'status'
+        'status' // 0 = Cancelled, 1 = For Receive, 1.1 = In warehouse, 2 = Received
     ];
 
     /**
@@ -82,6 +85,7 @@ class StockTransferModel extends Model
         $statusArr = [
             0 => 'Cancelled',
             1 => 'For Receive',
+            1.1 => 'In Warehouse',
             2 => 'Received',
         ];
         return $statusArr[$this->status] ?? 'Unknown';

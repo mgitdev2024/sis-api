@@ -12,14 +12,15 @@ return new class extends Migration {
     {
         Schema::create('direct_purchases', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number'); // MG-0800-4382-2331 PO Number
+            $table->string('reference_number'); // DP-0000001
+            $table->string('direct_reference_number'); // MG-0800-4382-2331 PO Number
             $table->tinyInteger('type'); // 0 = DR, 1 = PO
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
-            $table->string('supplier_code'); // ABMARAC Corp
+            $table->string('supplier_code')->nullable(); // ABMARAC Corp
             $table->string('supplier_name'); // ABMARAC Corp
-            $table->date('direct_purchase_date');
-            $table->date('expected_delivery_date');
+            $table->date('direct_purchase_date')->nullable();
+            $table->date('expected_delivery_date')->nullable();
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = Closed / Complete
         });
 

@@ -23,6 +23,7 @@ class DirectPurchaseModel extends Model
     ];
     protected $fillable = [
         'reference_number',
+        'direct_reference_number', // MG-0800-4382-2331 PO Number
         'type', // 0 = DR, 1 = PO
         'store_code',
         'store_sub_unit_short_name',
@@ -36,6 +37,15 @@ class DirectPurchaseModel extends Model
         'created_by_id',
         'updated_by_id',
     ];
+
+    public static function onGenerateReferenceNumber()
+    {
+        $latestDirectPurchaseId = static::latest()->value('id');
+        $nextDirectPurchaseId = $latestDirectPurchaseId + 1;
+        $referenceNumber = 'DP' . str_pad($nextDirectPurchaseId, 6, '0', STR_PAD_LEFT);
+
+        return $referenceNumber;
+    }
 
     public function directPurchaseItems()
     {

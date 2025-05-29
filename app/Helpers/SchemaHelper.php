@@ -8,7 +8,7 @@ class SchemaHelper
 {
     public static function addCommonColumns(Blueprint $table, $status = 1)
     {
-        $table->tinyInteger('status')->default($status);
+        $table->float('status')->default($status);
         $table->string('created_by_id');
         $table->string('updated_by_id')->nullable();
         $table->timestamps();

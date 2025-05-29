@@ -22,7 +22,6 @@ class DirectPurchaseHandledItemController extends Controller
             'direct_purchase_item_id' => 'required|exists:direct_purchase_items,id',
             'delivery_receipt_number' => 'nullable',
             'received_date' => 'required',
-            'expiration_date' => 'nullable',
             'quantity' => 'required|integer',
             'remarks' => 'nullable',
             'created_by_id' => 'required'
@@ -37,16 +36,24 @@ class DirectPurchaseHandledItemController extends Controller
             $remarks = $fields['remarks'] ?? null;
             $createdByid = $fields['created_by_id'];
             $receivedDate = $fields['received_date'];
-            $expirationDate = $fields['expiration_date'] ?? null;
+            $expirationDate = null;
 
             $directPurchaseItemModel = DirectPurchaseItemModel::find($directPurchaseItemId);
             $requestedQuantity = $directPurchaseItemModel->requested_quantity;
             $totalReceivedQuantity = $directPurchaseItemModel->total_received_quantity;
             $remainingQuantity = $requestedQuantity - $totalReceivedQuantity;
-
+            $itemCode = $directPurchaseItemModel->item_code;
             if ($quantity > $remainingQuantity) {
                 throw new Exception('Total Quantity cannot exceed to the requested quantity');
             }
+
+            // Get Expiration Date check-item-code/
+            $response = \Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
+            if ($response->successful()) {
+                $shelfLifeDays = $response->json()['item_base']['shelf_life_days'] ?? 0;
+                $expirationDate = date('Y-m-d', strtotime("+$shelfLifeDays days", strtotime($receivedDate)));
+            }
+
             DirectPurchaseHandledItemModel::create([
                 'type' => $type,
                 'direct_purchase_item_id' => $directPurchaseItemId,

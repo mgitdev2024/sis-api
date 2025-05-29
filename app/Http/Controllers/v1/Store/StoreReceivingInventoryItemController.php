@@ -198,7 +198,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    public function onGetCategory($store_code, $status = null)
+    public function onGetCategory($store_code, $status = null, $sub_unit = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::select([
@@ -211,6 +211,9 @@ class StoreReceivingInventoryItemController extends Controller
                 ->where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
+            }
+            if ($sub_unit != null) {
+                $storeInventoryItemModel = $storeInventoryItemModel->where('store_sub_unit_short_name', $sub_unit);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->groupBy([
                 'reference_number',
@@ -467,12 +470,15 @@ class StoreReceivingInventoryItemController extends Controller
         $referenceExplode = explode('-', $referenceNumber);
         $referenceKey = $referenceExplode[0];
         $referenceNumberCollection = [
-            'ST' => StockTransferModel::class
+            'ST' => [
+                'model' => StockTransferModel::class,
+                'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
+            ]
         ];
 
         if (array_key_exists($referenceKey, $referenceNumberCollection)) {
-            $referenceNumberCollection[$referenceKey]::where('reference_number', $referenceNumber)->update([
-                'status' => 1
+            $referenceNumberCollection[$referenceKey]['model']::where('reference_number', $referenceNumber)->update([
+                'status' => $referenceNumberCollection[$referenceKey]['status'],
             ]);
         }
     }
