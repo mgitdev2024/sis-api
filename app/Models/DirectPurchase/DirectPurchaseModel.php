@@ -42,7 +42,7 @@ class DirectPurchaseModel extends Model
     {
         $latestDirectPurchaseId = static::latest()->value('id');
         $nextDirectPurchaseId = $latestDirectPurchaseId + 1;
-        $referenceNumber = 'DP' . str_pad($nextDirectPurchaseId, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'DP-' . str_pad($nextDirectPurchaseId, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }
