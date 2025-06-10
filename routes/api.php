@@ -113,7 +113,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Stock Conversion
-    Route::post('v1/stock/conversion/create', [App\Http\Controllers\v1\Stock\StockConversionController::class, 'onCreate']);
+    Route::post('v1/stock/conversion/create/{stock_inventory_id}', [App\Http\Controllers\v1\Stock\StockConversionController::class, 'onCreate']);
     #endregion
 
     #region Customer Returns
