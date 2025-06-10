@@ -30,7 +30,7 @@ class StockConversionController extends Controller
             $storeSubUnitShortName = $stockInventoryModel->store_sub_unit_short_name ?? null;
             $itemCode = $stockInventoryModel->item_code;
             $conversionItems = json_decode($fields['conversion_items'], true);
-            $convertedQuantity = $fields['converted_quantity'];
+            $convertedQuantity = $fields['total_converted_quantity'];
 
             $referenceNumber = StockConversionModel::onGenerateReferenceNumber();
             $stockConversionModel = StockConversionModel::create([
