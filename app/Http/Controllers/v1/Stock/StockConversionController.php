@@ -15,7 +15,7 @@ class StockConversionController extends Controller
 {
     use ResponseTrait;
 
-    public function onCreate(Request $request, $stockInventoryId)
+    public function onCreate(Request $request, $stock_inventory_id)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
@@ -25,7 +25,7 @@ class StockConversionController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $stockInventoryModel = StockInventoryModel::findOrFail($stockInventoryId);
+            $stockInventoryModel = StockInventoryModel::findOrFail($stock_inventory_id);
             $storeCode = $stockInventoryModel->store_code;
             $storeSubUnitShortName = $stockInventoryModel->store_sub_unit_short_name ?? null;
             $itemCode = $stockInventoryModel->item_code;
