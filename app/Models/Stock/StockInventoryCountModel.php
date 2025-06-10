@@ -29,7 +29,7 @@ class StockInventoryCountModel extends Model
     {
         $latestStoreInventoryCount = static::latest()->value('id');
         $nextStoreInventoryCount = $latestStoreInventoryCount + 1;
-        $referenceNumber = 'SC' . str_pad($nextStoreInventoryCount, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'SC-' . str_pad($nextStoreInventoryCount, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }

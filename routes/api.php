@@ -112,6 +112,10 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/stock/inventory-item-count/post/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onPost']);
     #endregion
 
+    #region Stock Conversion
+    Route::post('v1/stock/conversion/create', [App\Http\Controllers\v1\Stock\StockConversionController::class, 'onCreate']);
+    #endregion
+
     #region Customer Returns
     Route::post('v1/customer/return/form/create', [App\Http\Controllers\v1\Customer\CustomerReturnFormController::class, 'onCreate']);
     Route::get('v1/customer/return/form/current/get/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Customer\CustomerReturnFormController::class, 'onGetCurrent']);
