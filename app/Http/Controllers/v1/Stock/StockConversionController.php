@@ -75,8 +75,7 @@ class StockConversionController extends Controller
                 }
                 $itemMasterData = $itemMasterData->json()['success']['data'] ?? [];
                 $itemDescription = $itemMasterData['description'] ?? '';
-                $itemCategoryName = $itemMasterData['category_name'] ?? '';
-
+                $itemCategoryName = $itemMasterData['item_category_label'] ?? ''; 
 
                 StockConversionItemModel::insert([
                     'stock_conversion_id' => $stockConversionId,
