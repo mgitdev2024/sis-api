@@ -90,7 +90,7 @@ class StockConversionController extends Controller
                 $this->onAdjustInventory($storeCode, $storeSubUnitShortName, $convertedItemCode, $quantity, $itemDescription, $itemCategoryName, $referenceNumber, $createdById);
             }
             DB::commit();
-            return $this->dataResponse('error', 400, __('msg.update_success'));
+            return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.update_failed'), $exception->getMessage());
