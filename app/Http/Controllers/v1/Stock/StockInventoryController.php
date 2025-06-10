@@ -54,6 +54,8 @@ class StockInventoryController extends Controller
             foreach ($stockConversionItem as $conversionItem) {
                 $itemCode = $conversionItem['item_code_label'];
                 $itemDescription = $conversionItem['item_masterdata']['description'] ?? '';
+                $itemVariant = $conversionItem['item_masterdata']['uom_label']['long_name'] ?? '';
+
                 $quantity = $conversionItem['quantity'] ?? 0;
                 $isDod = $conversionItem['is_dod'] ?? 0;
 
@@ -61,6 +63,7 @@ class StockInventoryController extends Controller
                     'item_label' => $isDod == 1 ? "$itemCode (DOD)" : $itemCode,
                     'item_code' => $itemCode,
                     'item_description' => $isDod == 1 ? "$itemDescription (DOD)" : $itemDescription,
+                    'item_variant' => $itemVariant,
                     'quantity' => $quantity,
                     'is_dod' => $isDod
                 ];
