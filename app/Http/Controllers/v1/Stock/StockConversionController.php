@@ -15,7 +15,7 @@ class StockConversionController extends Controller
 {
     use ResponseTrait;
 
-    public function onConvert(Request $request, $stockInventoryId)
+    public function onCreate(Request $request, $stockInventoryId)
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
