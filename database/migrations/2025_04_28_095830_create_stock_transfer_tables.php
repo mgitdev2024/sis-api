@@ -23,7 +23,6 @@ return new class extends Migration {
             $table->string('location_name')->nullable(); // Arcovia, Bakery, etc
             $table->string('location_sub_unit')->nullable(); // C001
             $table->string('remarks')->nullable();
-            $table->string('sws_remarks')->nullable();
             $table->text('attachment')->nullable();
             $table->string('store_received_by_id')->nullable();
             $table->date('store_received_at')->nullable(); // Juan Dela Cruz
