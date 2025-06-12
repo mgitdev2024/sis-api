@@ -14,6 +14,7 @@ class StockConversionModel extends Model
         'reference_number',
         'store_code',
         'store_sub_unit_short_name',
+        'batch_code',
         'item_code',
         'item_description',
         'item_category_name',

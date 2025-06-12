@@ -11,8 +11,10 @@ class StockInventoryCountModel extends Model
 
     protected $table = 'stock_inventory_count';
 
+    protected $appends = ['type_label'];
     protected $fillable = [
         'reference_number',
+        'type', // 1 = Hourly, 2 = EOD, 3 = Month-End
         'store_code',
         'store_sub_unit_short_name',
         'created_by_id',
@@ -32,5 +34,15 @@ class StockInventoryCountModel extends Model
         $referenceNumber = 'SC-' . str_pad($nextStoreInventoryCount, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        $type = [
+            1 => 'Hourly',
+            2 => 'End of Day',
+            3 => 'Month-End',
+        ];
+        return $type[$this->type] ?? 'Unknown';
     }
 }

@@ -19,6 +19,7 @@ class StockInventoryCountController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'type' => 'required|in:1,2,3', // 1 = Hourly, 2 = EOD, 3 = Month-End
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
         ]);
@@ -28,9 +29,10 @@ class StockInventoryCountController extends Controller
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
-
+            $type = $fields['type'];
             $stockInventoryCount = StockInventoryCountModel::create([
                 'reference_number' => $referenceNumber,
+                'type' => $type, // 1 = Hourly, 2 = EOD, 3 = Month-End
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'created_by_id' => $createdById,

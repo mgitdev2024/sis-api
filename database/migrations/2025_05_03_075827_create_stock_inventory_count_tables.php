@@ -14,6 +14,7 @@ return new class extends Migration {
         Schema::create('stock_inventory_count', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number'); // SC00001
+            $table->tinyInteger('type'); // 1 = Hourly, 2 = EOD, 3 = Month-End
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
             SchemaHelper::addCommonColumns($table, 0); // 0 = Pending, 1 = For Review, 2 = Posted
