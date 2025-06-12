@@ -27,7 +27,6 @@ class StockTransferController extends Controller
             'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
             'sws_remarks' => 'required_if:type,store_warehouse_store', // They need help etc...
             'transportation_type' => 'nullable|required_if:type,store|in:1,2,3', // 1: Logistics, 2: Third Party, 3 Store Staff
-            'proof_of_booking' => 'nullable',
             'created_by_id' => 'required',
 
             // Store Details
@@ -46,12 +45,7 @@ class StockTransferController extends Controller
             $transferToStoreName = $fields['transfer_to_store_name'] ?? null;
             $transferToStoreSubUnitShortName = $fields['transfer_to_store_sub_unit_short_name'] ?? null;
             $transportationType = $fields['transportation_type'] ?? null;
-            $filepath = null;
 
-            if (isset($fields['proof_of_booking']) && $fields['proof_of_booking'] != null) {
-                $attachmentPath = $request->file('proof_of_booking')->store('public/attachments/stock_transfer');
-                $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
-            }
             $createdById = $fields['created_by_id'];
 
             $storeCode = $fields['store_code'];
@@ -75,7 +69,6 @@ class StockTransferController extends Controller
                 'location_sub_unit' => $transferToStoreSubUnitShortName,
                 'remarks' => $remarks,
                 'sws_remarks' => $swsRemarks,
-                'attachment' => $filepath,
                 'created_by_id' => $createdById,
                 // 'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
             ]);
@@ -163,9 +156,10 @@ class StockTransferController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'attachment' => 'required',
         ]);
         try {
-
+            $filepath = null;
             $stockTransferModel = StockTransferModel::findOrFail($id);
             $type = $stockTransferModel->transfer_type; // 0 = Store Transfer, 1 = Pull Out, 2 = Store Warehouse Store
             $transferItems = json_encode($stockTransferModel->StockTransferItems);
@@ -178,6 +172,11 @@ class StockTransferController extends Controller
             $createdById = $fields['created_by_id'];
 
             DB::beginTransaction();
+            if (isset($fields['attachment']) && $fields['attachment'] != null) {
+                $attachmentPath = $request->file('attachment')->store('public/attachments/stock_transfer');
+                $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
+                $stockTransferModel->attachment = $filepath;
+            }
             $stockTransferModel->logistics_picked_up_at = now();
             $stockTransferModel->logistics_confirmed_by_id = $createdById;
             $stockTransferModel->save();
