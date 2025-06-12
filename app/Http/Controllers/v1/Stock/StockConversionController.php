@@ -19,12 +19,14 @@ class StockConversionController extends Controller
     {
         $fields = $request->validate([
             'created_by_id' => 'required',
+            'batch_code' => 'nullable', // 'E6-CR12-1D-001'
             'total_converted_quantity' => 'required|numeric|min:1',
             'conversion_items' => 'required|json', // [{"ic":"CR PC","q":1,"cq":5},{"ic":"CR 6","q":2,"cq":5}]
         ]);
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
+            $batchCode = $fields['batch_code'] ?? null;
             $stockInventoryModel = StockInventoryModel::findOrFail($stock_inventory_id);
             $storeCode = $stockInventoryModel->store_code;
             $storeSubUnitShortName = $stockInventoryModel->store_sub_unit_short_name ?? null;
@@ -37,6 +39,7 @@ class StockConversionController extends Controller
                 'reference_number' => $referenceNumber,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'batch_code' => $batchCode,
                 'item_code' => $itemCode,
                 'item_description' => $stockInventoryModel->item_description,
                 'item_category_name' => $stockInventoryModel->item_category_name,
@@ -59,7 +62,6 @@ class StockConversionController extends Controller
                 'updated_by_id' => $createdById,
                 'updated_at' => now(),
             ]);
-
             foreach ($conversionItems as $items) {
                 $convertedItemCode = $items['ic'];
                 $quantity = $items['q'];
@@ -75,7 +77,7 @@ class StockConversionController extends Controller
                 }
                 $itemMasterData = $itemMasterData->json()['success']['data'] ?? [];
                 $itemDescription = $itemMasterData['description'] ?? '';
-                $itemCategoryName = $itemMasterData['item_category_label'] ?? ''; 
+                $itemCategoryName = $itemMasterData['category_name'] ?? '';
 
                 StockConversionItemModel::insert([
                     'stock_conversion_id' => $stockConversionId,

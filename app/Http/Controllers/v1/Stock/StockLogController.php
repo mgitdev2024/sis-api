@@ -13,6 +13,7 @@ use Carbon\Carbon;
 class StockLogController extends Controller
 {
     use ResponseTrait;
+    // Create get by id to call prod order and exp date per transaction items
     public function onGet($store_code, $item_code, $sub_unit = null)
     {
         try {

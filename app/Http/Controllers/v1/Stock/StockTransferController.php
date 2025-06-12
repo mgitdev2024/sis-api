@@ -25,7 +25,8 @@ class StockTransferController extends Controller
             'transfer_to_store_code' => 'required_if:type,store',
             'transfer_to_store_name' => 'required_if:type,store',
             'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
-            'transportation_type' => 'nullable|required_if:type,store|in:1,2', // 1: Logistics, 2: Third Party
+            'sws_remarks' => 'required_if:type,store_warehouse_store', // They need help etc...
+            'transportation_type' => 'nullable|required_if:type,store|in:1,2,3', // 1: Logistics, 2: Third Party, 3 Store Staff
             'proof_of_booking' => 'nullable',
             'created_by_id' => 'required',
 
@@ -39,6 +40,7 @@ class StockTransferController extends Controller
             $transferItems = $fields['transfer_items'];
             $pickupDate = $fields['pickup_date'];
             $remarks = $fields['remarks'] ?? '';
+            $swsRemarks = $fields['sws_remarks'] ?? null; // For Store Warehouse Store
             $type = $fields['type'];
             $transferToStoreCode = $fields['transfer_to_store_code'] ?? null;
             $transferToStoreName = $fields['transfer_to_store_name'] ?? null;
@@ -72,6 +74,7 @@ class StockTransferController extends Controller
                 'location_name' => $transferToStoreName,
                 'location_sub_unit' => $transferToStoreSubUnitShortName,
                 'remarks' => $remarks,
+                'sws_remarks' => $swsRemarks,
                 'attachment' => $filepath,
                 'created_by_id' => $createdById,
                 // 'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
