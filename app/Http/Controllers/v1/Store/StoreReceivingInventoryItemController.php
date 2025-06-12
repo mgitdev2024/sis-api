@@ -474,6 +474,10 @@ class StoreReceivingInventoryItemController extends Controller
             'ST' => [
                 'model' => StockTransferModel::class,
                 'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
+            ],
+            'SWS' => [
+                'model' => StockTransferModel::class,
+                'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
             ]
         ];
 

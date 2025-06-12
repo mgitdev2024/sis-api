@@ -11,7 +11,14 @@ class StockTransferModel extends Model
     use HasFactory;
     protected $table = 'stock_transfers';
 
-    protected $appends = ['transfer_type_label', 'transportation_type_label', 'status_label', 'formatted_store_received_at_label', 'formatted_received_by_label'];
+    protected $appends = [
+        'transfer_type_label',
+        'transportation_type_label',
+        'status_label',
+        'formatted_store_received_at_label',
+        'formatted_store_received_by_label',
+        'formatted_warehouse_received_at_label',
+    ];
     protected $fillable = [
         'reference_number',
         'store_code',
@@ -23,6 +30,7 @@ class StockTransferModel extends Model
         'logistics_picked_up_at',
         'logistics_confirmed_by_id',
         'warehouse_received_by_name',
+        'warehouse_received_at',
         'pickup_date',
         'location_code',
         'location_name',
@@ -97,12 +105,18 @@ class StockTransferModel extends Model
 
     public function getFormattedStoreReceivedAtLabelAttribute()
     {
-        return $this->store_received_at ? date('F j, Y', strtotime($this->store_received_at)) : null;
+        return $this->store_received_at ? date('F j, Y h:i A', strtotime($this->store_received_at)) : null;
     }
-    public function getFormattedReceivedByLabelAttribute()
+
+    public function getFormattedStoreReceivedByLabelAttribute()
     {
         $userModel = User::where('employee_id', $this->store_received_by_id)->first();
 
         return $userModel ? "$userModel->first_name $userModel->last_name" : 'Unknown';
+    }
+
+    public function getFormattedWarehouseReceivedAtLabelAttribute()
+    {
+        return $this->warehouse_received_at ? date('F j, Y h:i A', strtotime($this->warehouse_received_at)) : null;
     }
 }
