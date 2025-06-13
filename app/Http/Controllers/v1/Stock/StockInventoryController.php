@@ -43,7 +43,7 @@ class StockInventoryController extends Controller
             $response = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get/' . $itemCode);
             $apiResponse = $response->json()['success']['data'] ?? [];
 
-            $stockConversionItem = $apiResponse['stock_conversion_items'] ?? null;
+            $stockConversionItem = $apiResponse['stock_conversion_items'] ?? [];
 
             $data = [
                 'stock_inventory' => $stockInventoryModel,
