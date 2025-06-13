@@ -111,5 +111,29 @@ class StockInventoryCountController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception->getMessage());
         }
+
+    }
+    public function onCancel(Request $request, $store_inventory_count_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $stockInventoryCountModel = StockInventoryCountModel::where('status', 0)->find($store_inventory_count_id);
+            if (!$stockInventoryCountModel) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            }
+            $stockInventoryCountModel->status = 3; // Set status to Cancelled
+            $stockInventoryCountModel->updated_by_id = $createdById;
+            $stockInventoryCountModel->save();
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.cancel_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, __('msg.cancel_failed'), $exception->getMessage());
+        }
     }
 }
+
