@@ -174,6 +174,7 @@ class StockTransferController extends Controller
                 $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
                 $stockTransferModel->attachment = $filepath;
             }
+            $stockTransferModel->status = 1.1; // For Receive
             $stockTransferModel->logistics_picked_up_at = now();
             $stockTransferModel->logistics_confirmed_by_id = $createdById;
 
@@ -257,10 +258,11 @@ class StockTransferController extends Controller
 
             // api call for transmittal
             $response = \Http::post(env('MGIOS_URL') . '/receiving/stock-transfer/create', $data);
-            if (!$response->successful()) {
-                return $this->dataResponse('error', 404, 'Unauthorized Access');
+        
+            if (!$response->successful()) { 
+                  throw new Exception('API Call failed');
             }
-        } catch (Exception $exception) {
+        } catch (Exception $exception) { 
             throw new Exception($exception->getMessage());
         }
     }
@@ -325,8 +327,10 @@ class StockTransferController extends Controller
             $query = StockTransferModel::query();
             if ($status == 'all') {
                 $query->where('store_code', $store_code);
-            } else {
+            } else if ($status != 1) {
                 $query->where('store_code', $store_code)->where('status', $status);
+            } else{
+                $query->where('store_code', $store_code)->whereIn('status', [1, 1.1]);
             }
             if ($sub_unit) {
                 $query->where('store_sub_unit_short_name', $sub_unit);

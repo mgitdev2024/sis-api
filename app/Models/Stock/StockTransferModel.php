@@ -97,7 +97,7 @@ class StockTransferModel extends Model
         $statusArr = [
             0 => 'Cancelled',
             1 => 'For Pickup',
-            '1.1' => 'In Warehouse',
+            1.1 => 'In Transit',
             2 => 'Received',
         ];
         return $statusArr[$this->status] ?? 'Unknown';
