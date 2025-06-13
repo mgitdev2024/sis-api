@@ -181,8 +181,7 @@ class StockTransferController extends Controller
             if ($type == 0) {
                 $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             } else if ($type == 1) {
-                $stockTransferModel->status = 2; // Received
-                $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks);
+                $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks, $id);
             } else if ($type == 2) {
                 $this->onCreateStoreWarehouseStoreReceivingInventory($stockTransferModel, $transferItems, $createdById);
             }
@@ -197,7 +196,7 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onCreateTransmittalPullout($transferItems, $createdById, $remarks)
+    public function onCreateTransmittalPullout($transferItems, $createdById, $remarks, $stockTransferId)
     {
 
         try {
@@ -206,12 +205,12 @@ class StockTransferController extends Controller
             $lastName = $userModel->last_name;
             $fullName = "$firstName $lastName";
             $data = [
+                'stock_transfer_id' => $stockTransferId, 
                 'pullout_items' => $transferItems,
                 'created_by_name' => $fullName,
                 'created_at' => now()->format('Y-m-d H:i:s'),
                 'remarks' => $remarks
-            ];
-
+            ]; 
             // api call for stock adjustment
             $response = \Http::post(env('MGIOS_URL') . '/stock-adjustment/create', $data);
             if (!$response->successful()) {
@@ -330,7 +329,7 @@ class StockTransferController extends Controller
             } else if ($status != 1) {
                 $query->where('store_code', $store_code)->where('status', $status);
             } else{
-                $query->where('store_code', $store_code)->whereIn('status', [1, 1.1]);
+                $query->where('store_code', $store_code)->whereIn('status', [1, 1.1, 1.2]);
             }
             if ($sub_unit) {
                 $query->where('store_sub_unit_short_name', $sub_unit);
@@ -371,10 +370,10 @@ class StockTransferController extends Controller
             $stockTransferModel = StockTransferModel::findOrFail($id);
             $stockTransferModel->warehouse_received_by_name = $fields['warehouse_received_by_name'];
             $stockTransferModel->warehouse_received_at = now();
-            $stockTransferModel->status = 2; // Receive
+            $stockTransferModel->status = $type == 'store_warehouse_store' ? 1.2 : 2; // For Store Receive : Received
             $stockTransferModel->updated_at = now();
             $stockTransferModel->save();
-
+ 
             if ($type == 'store_warehouse_store') {
                 $referenceNumber = $stockTransferModel->reference_number;
                 $pickupDate = $stockTransferModel->pickup_date;
