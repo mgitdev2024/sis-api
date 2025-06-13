@@ -97,10 +97,11 @@ class StockTransferModel extends Model
         $statusArr = [
             0 => 'Cancelled',
             1 => 'For Pickup',
-            '1.1' => 'In Warehouse',
+            '1.1' => 'In Transit',
+            '1.2' => 'For Store Receive',
             2 => 'Received',
         ];
-        return $statusArr[$this->status] ?? 'Unknown';
+        return $statusArr[(string) $this->status] ?? 'Unknown';
     }
 
     public function getFormattedStoreReceivedAtLabelAttribute()
