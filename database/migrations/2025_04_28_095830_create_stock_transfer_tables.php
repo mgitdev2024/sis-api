@@ -24,10 +24,12 @@ return new class extends Migration {
             $table->string('location_sub_unit')->nullable(); // C001
             $table->string('remarks')->nullable();
             $table->text('attachment')->nullable();
-            $table->date('logistics_picked_up_at')->nullable(); // Juan Dela Cruz
-            $table->string('logistics_confirmed_by_id')->nullable(); // Juan Dela Cruz
+            $table->string('store_received_by_id')->nullable();
+            $table->timestamp('store_received_at')->nullable();
+            $table->timestamp('logistics_picked_up_at')->nullable();
+            $table->string('logistics_confirmed_by_id')->nullable(); // the user logged in SIS
             $table->string('warehouse_received_by_name')->nullable(); // Juan Dela Cruz
-
+            $table->timestamp('warehouse_received_at')->nullable();
             SchemaHelper::addCommonColumns($table); // 0 = Cancelled, 1 = For Receive, 1.1 = In warehouse, 2 = Received
         });
 

@@ -13,6 +13,7 @@ use Carbon\Carbon;
 class StockLogController extends Controller
 {
     use ResponseTrait;
+    // Create get by id to call prod order and exp date per transaction items
     public function onGet($store_code, $item_code, $sub_unit = null)
     {
         try {
@@ -52,7 +53,7 @@ class StockLogController extends Controller
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
 
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response->json());
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());

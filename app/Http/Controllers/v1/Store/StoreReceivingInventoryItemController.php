@@ -447,14 +447,15 @@ class StoreReceivingInventoryItemController extends Controller
             DB::beginTransaction();
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)->get();
             if (count($storeInventoryItemModel) > 0) {
+                $createdById = $fields['created_by_id'];
                 foreach ($storeInventoryItemModel as $item) {
                     $item->status = 1;
-                    $item->updated_by_id = $fields['created_by_id'];
+                    $item->updated_by_id = $createdById;
                     $item->updated_at = now();
                     $item->save();
                 }
 
-                $this->onCheckReferenceNumberCompletion($reference_number);
+                $this->onCheckReferenceNumberCompletion($reference_number, $createdById);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
             }
@@ -465,12 +466,16 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    private function onCheckReferenceNumberCompletion($referenceNumber)
+    private function onCheckReferenceNumberCompletion($referenceNumber, $createdById)
     {
         $referenceExplode = explode('-', $referenceNumber);
         $referenceKey = $referenceExplode[0];
         $referenceNumberCollection = [
             'ST' => [
+                'model' => StockTransferModel::class,
+                'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
+            ],
+            'SWS' => [
                 'model' => StockTransferModel::class,
                 'status' => 2 // 1 = For Receive, 1.1 = In warehouse, 2 = Received
             ]
@@ -479,6 +484,8 @@ class StoreReceivingInventoryItemController extends Controller
         if (array_key_exists($referenceKey, $referenceNumberCollection)) {
             $referenceNumberCollection[$referenceKey]['model']::where('reference_number', $referenceNumber)->update([
                 'status' => $referenceNumberCollection[$referenceKey]['status'],
+                'store_received_by_id' => $createdById,
+                'store_received_at' => now(),
             ]);
         }
     }

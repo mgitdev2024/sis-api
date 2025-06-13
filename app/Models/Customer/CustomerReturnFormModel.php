@@ -32,7 +32,7 @@ class CustomerReturnFormModel extends Model
     {
         $latestCustomerReturnId = static::latest()->value('id');
         $nextCustomerReturnId = $latestCustomerReturnId + 1;
-        $referenceNumber = 'CR' . str_pad($nextCustomerReturnId, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'CR-' . str_pad($nextCustomerReturnId, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }

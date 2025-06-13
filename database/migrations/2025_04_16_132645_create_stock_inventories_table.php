@@ -35,7 +35,7 @@ return new class extends Migration {
             $table->integer('final_stock');
             $table->longText('transaction_items')->nullable();
             $table->string('transaction_type'); // IN OUT
-            $table->string('transaction_sub_type')->nullable(); // RECEIVED RETURNED
+            $table->string('transaction_sub_type')->nullable(); // RECEIVED RETURNED TRANSFERRED CONVERTED
             SchemaHelper::addCommonColumns($table);
         });
 
