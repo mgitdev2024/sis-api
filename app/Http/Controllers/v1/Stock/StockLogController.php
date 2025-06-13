@@ -53,7 +53,7 @@ class StockLogController extends Controller
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
 
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $response);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $response->json());
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
