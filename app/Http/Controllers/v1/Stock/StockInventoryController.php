@@ -41,12 +41,9 @@ class StockInventoryController extends Controller
             $itemCode = $stockInventoryModel->item_code;
 
             $response = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get/' . $itemCode);
-            if ($response->status() != 200) {
-                return $this->dataResponse('error', 404, __('msg.record_not_found'));
-            }
             $apiResponse = $response->json()['success']['data'] ?? [];
 
-            $stockConversionItem = $apiResponse['stock_conversion_items'];
+            $stockConversionItem = $apiResponse['stock_conversion_items'] ?? null;
 
             $data = [
                 'stock_inventory' => $stockInventoryModel,
