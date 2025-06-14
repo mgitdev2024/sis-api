@@ -118,7 +118,7 @@ class StockConversionController extends Controller
                     'created_by_id' => $createdById,
                 ]);
 
-                $this->onAdjustInventory($storeCode, $storeSubUnitShortName, $convertedItemCode, $quantity, $itemDescription, $itemCategoryName, $referenceNumber, $createdById);
+                $this->onAdjustInventory($storeCode, $storeSubUnitShortName, $convertedItemCode, $convertedQuantity, $itemDescription, $itemCategoryName, $referenceNumber, $createdById);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
