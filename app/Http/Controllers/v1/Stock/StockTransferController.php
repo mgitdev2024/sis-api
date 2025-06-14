@@ -187,6 +187,9 @@ class StockTransferController extends Controller
             }
             $stockTransferModel->save();
 
+            // Update Stock Log and Inventory
+            $stockTransferItemController = new StockTransferItemController();
+            $stockTransferItemController->onUpdateStocks($stockTransferModel, $id, $createdById);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
