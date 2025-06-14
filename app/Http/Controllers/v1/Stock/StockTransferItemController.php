@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockTransferItemModel;
 use App\Traits\Stock\StockTrait;
 use Illuminate\Http\Request;
@@ -28,9 +29,9 @@ class StockTransferItemController extends Controller
             $stockTransferId = $fields['stock_transfer_id'];
             $transferItems = json_decode($fields['transfer_items'], true);
             $createdById = $fields['created_by_id'];
-            $storeCode = $fields['store_code'];
-            $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
-            $referenceNumber = $fields['reference_number'];
+            // $storeCode = $fields['store_code'];
+            // $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
+            // $referenceNumber = $fields['reference_number'];
             foreach ($transferItems as $item) {
                 $itemCode = $item['ic'];
                 $itemDescription = $item['icd'];
@@ -46,9 +47,6 @@ class StockTransferItemController extends Controller
                     'created_by_id' => $createdById,
                     'created_at' => now(),
                 ]);
-
-                // Update the Stock Log and Inventory
-                $this->onCreateStockLogs('stock_out', $storeCode, $storeSubUnitShortName, $createdById, 'manual', null, $item, $referenceNumber, $itemDescription, $itemCategoryName);
             }
 
             DB::commit();
@@ -58,5 +56,50 @@ class StockTransferItemController extends Controller
             return $this->dataResponse('error', 500, __('msg.create_failed'), $exception->getMessage());
 
         }
+    }
+
+    public function onUpdateStocks($storeTransferModel, $storeTransferId, $createdById)
+    {
+        try {
+            DB::beginTransaction();
+            $stockTransferItemModel = StockTransferItemModel::where('stock_transfer_id', $storeTransferId)->get();
+            $storeCode = $storeTransferModel->store_code;
+            $storeSubUnitShortName = $storeTransferModel->store_sub_unit_short_name;
+            $referenceNumber = $storeTransferModel->reference_number;
+            foreach ($stockTransferItemModel as $transactionItems) {
+                // Receive Type is temporary
+                $itemCode = $transactionItems['item_code'];
+                $itemQuantityCount = $transactionItems['quantity'];
+                $itemCategoryName = $transactionItems['item_category_name'];
+                $itemDescription = $transactionItems['item_description'];
+                $stockLogModel = StockLogModel::where([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'item_code' => $itemCode,
+                ])->orderBy('id', 'DESC')->first();
+
+                $currentFinalStock = $stockLogModel->final_stock ?? 0;
+                $newStockLogModel = new StockLogModel();
+                $newStockLogModel->reference_number = $referenceNumber;
+                $newStockLogModel->store_code = $storeCode;
+                $newStockLogModel->store_sub_unit_short_name = $storeSubUnitShortName;
+                $newStockLogModel->item_code = $itemCode;
+                $newStockLogModel->item_description = $itemDescription;
+                $newStockLogModel->item_category_name = $itemCategoryName;
+                $newStockLogModel->quantity = $itemQuantityCount;
+                $newStockLogModel->initial_stock = $currentFinalStock;
+                $newStockLogModel->final_stock = $currentFinalStock - $itemQuantityCount;
+                $newStockLogModel->transaction_type = 'out';
+                $newStockLogModel->transaction_sub_type = 'transferred';
+                $newStockLogModel->created_by_id = $createdById;
+                $newStockLogModel->save();
+            }
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 500, __('msg.update_failed'), $exception->getMessage());
+        }
+
     }
 }

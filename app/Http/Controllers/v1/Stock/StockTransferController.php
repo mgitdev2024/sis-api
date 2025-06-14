@@ -187,6 +187,9 @@ class StockTransferController extends Controller
             }
             $stockTransferModel->save();
 
+            // Update Stock Log and Inventory
+            $stockTransferItemController = new StockTransferItemController();
+            $stockTransferItemController->onUpdateStocks($stockTransferModel, $id, $createdById);
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
@@ -205,12 +208,12 @@ class StockTransferController extends Controller
             $lastName = $userModel->last_name;
             $fullName = "$firstName $lastName";
             $data = [
-                'stock_transfer_id' => $stockTransferId, 
+                'stock_transfer_id' => $stockTransferId,
                 'pullout_items' => $transferItems,
                 'created_by_name' => $fullName,
                 'created_at' => now()->format('Y-m-d H:i:s'),
                 'remarks' => $remarks
-            ]; 
+            ];
             // api call for stock adjustment
             $response = \Http::post(env('MGIOS_URL') . '/stock-adjustment/create', $data);
             if (!$response->successful()) {
@@ -257,11 +260,11 @@ class StockTransferController extends Controller
 
             // api call for transmittal
             $response = \Http::post(env('MGIOS_URL') . '/receiving/stock-transfer/create', $data);
-        
-            if (!$response->successful()) { 
-                  throw new Exception('API Call failed');
+
+            if (!$response->successful()) {
+                throw new Exception('API Call failed');
             }
-        } catch (Exception $exception) { 
+        } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
@@ -273,7 +276,9 @@ class StockTransferController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $stockTransfer = StockTransferModel::findOrFail($id);
+            $stockTransfer = StockTransferModel::where('id', $id)
+                ->where('status', '!=', 0) // Ensure it is not already cancelled
+                ->firstOrFail();
             $stockTransfer->status = 0; // 0 = Cancelled
             $stockTransfer->save();
 
@@ -328,7 +333,7 @@ class StockTransferController extends Controller
                 $query->where('store_code', $store_code);
             } else if ($status != 1) {
                 $query->where('store_code', $store_code)->where('status', $status);
-            } else{
+            } else {
                 $query->where('store_code', $store_code)->whereIn('status', [1, 1.1, 1.2]);
             }
             if ($sub_unit) {
@@ -373,7 +378,7 @@ class StockTransferController extends Controller
             $stockTransferModel->status = $type == 'store_warehouse_store' ? 1.2 : 2; // For Store Receive : Received
             $stockTransferModel->updated_at = now();
             $stockTransferModel->save();
- 
+
             if ($type == 'store_warehouse_store') {
                 $referenceNumber = $stockTransferModel->reference_number;
                 $pickupDate = $stockTransferModel->pickup_date;

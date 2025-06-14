@@ -104,6 +104,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
     Route::get('v1/stock/inventory-count/current/get/{status}/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onGet']);
+    Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
     #endregion
 
     #region Stock Inventory Count
