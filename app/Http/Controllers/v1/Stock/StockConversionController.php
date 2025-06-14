@@ -62,6 +62,36 @@ class StockConversionController extends Controller
                 'updated_by_id' => $createdById,
                 'updated_at' => now(),
             ]);
+
+            $convertedItemStockLogModel = StockLogModel::where([
+                'store_code' => $storeCode,
+                'item_code' => $itemCode,
+            ]);
+            if ($storeSubUnitShortName != null) {
+                $convertedItemStockLogModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $convertedItemStockLogModel = $convertedItemStockLogModel->first();
+
+            $initialStock = 0;
+            if ($convertedItemStockLogModel) {
+                $initialStock = $convertedItemStockLogModel->final_stock;
+            }
+            $finalStock = $initialStock - $convertedQuantity;
+
+            StockLogModel::create([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'item_code' => $itemCode,
+                'item_description' => $stockInventoryModel->item_description,
+                'item_category_name' => $stockInventoryModel->item_category_name,
+                'reference_number' => $referenceNumber,
+                'initial_stock' => $initialStock,
+                'final_stock' => $finalStock,
+                'quantity' => $convertedQuantity,
+                'transaction_type' => 'out',
+                'transaction_sub_type' => 'converted',
+                'created_by_id' => $createdById,
+            ]);
             foreach ($conversionItems as $items) {
                 $convertedItemCode = $items['ic'];
                 $quantity = $items['q'];
@@ -76,7 +106,7 @@ class StockConversionController extends Controller
                 }
                 $itemMasterData = $itemMasterData->json()['success']['data'] ?? [];
                 $itemDescription = $itemMasterData['description'] ?? '';
-                $itemCategoryName = $itemMasterData['category_name'] ?? '';
+                $itemCategoryName = $itemMasterData['item_category_label'] ?? '';
 
                 StockConversionItemModel::insert([
                     'stock_conversion_id' => $stockConversionId,
