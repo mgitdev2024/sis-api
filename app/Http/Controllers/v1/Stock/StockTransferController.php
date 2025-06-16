@@ -24,7 +24,7 @@ class StockTransferController extends Controller
             'type' => 'required|in:pullout,store,store_warehouse_store', // pullout, store, store_warehouse_store
             'transfer_to_store_code' => 'required_if:type,store',
             'transfer_to_store_name' => 'required_if:type,store',
-            'transfer_to_store_sub_unit_short_name' => 'required_if:type,store',
+            'transfer_to_store_sub_unit_short_name' => 'nullable',
             'transportation_type' => 'nullable|required_if:type,store|in:1,2,3', // 1: Logistics, 2: Third Party, 3 Store Staff
             'created_by_id' => 'required',
 
@@ -282,7 +282,7 @@ class StockTransferController extends Controller
             $stockTransfer->status = 0; // 0 = Cancelled
             $stockTransfer->save();
 
-            $stockTransferItems = $stockTransfer->StockTransferItems;
+            // $stockTransferItems = $stockTransfer->StockTransferItems;
             // foreach ($stockTransferItems as $item) {
             //     // Return Stock Quantity if cancelled
             //     $currentStockLogModel = StockLogModel::where([
