@@ -283,39 +283,39 @@ class StockTransferController extends Controller
             $stockTransfer->save();
 
             $stockTransferItems = $stockTransfer->StockTransferItems;
-            foreach ($stockTransferItems as $item) {
-                // Return Stock Quantity if cancelled
-                $currentStockLogModel = StockLogModel::where([
-                    'store_code' => $stockTransfer->store_code,
-                    'store_sub_unit_short_name' => $stockTransfer->store_sub_unit_short_name,
-                    'item_code' => $item->item_code,
-                ])
-                    ->orderBy('id', 'DESC')->first();
-                $stockLogModel = new StockLogModel();
-                $stockLogModel->item_code = $currentStockLogModel->item_code;
-                $stockLogModel->item_description = $currentStockLogModel->item_description;
-                $stockLogModel->item_category_name = $currentStockLogModel->item_category_name;
-                $stockLogModel->quantity = $currentStockLogModel->quantity;
-                $stockLogModel->store_code = $currentStockLogModel->store_code;
-                $stockLogModel->store_sub_unit_short_name = $currentStockLogModel->store_sub_unit_short_name;
-                $stockLogModel->reference_number = $currentStockLogModel->reference_number;
-                $stockLogModel->transaction_type = 'in';
-                $stockLogModel->transaction_sub_type = 'returned';
-                $stockLogModel->initial_stock = $currentStockLogModel->final_stock;
-                $stockLogModel->final_stock = $currentStockLogModel->final_stock + $currentStockLogModel->quantity;
-                $stockLogModel->created_by_id = $createdById;
-                $stockLogModel->created_at = now();
-                $stockLogModel->save();
+            // foreach ($stockTransferItems as $item) {
+            //     // Return Stock Quantity if cancelled
+            //     $currentStockLogModel = StockLogModel::where([
+            //         'store_code' => $stockTransfer->store_code,
+            //         'store_sub_unit_short_name' => $stockTransfer->store_sub_unit_short_name,
+            //         'item_code' => $item->item_code,
+            //     ])
+            //         ->orderBy('id', 'DESC')->first();
+            //     $stockLogModel = new StockLogModel();
+            //     $stockLogModel->item_code = $currentStockLogModel->item_code;
+            //     $stockLogModel->item_description = $currentStockLogModel->item_description;
+            //     $stockLogModel->item_category_name = $currentStockLogModel->item_category_name;
+            //     $stockLogModel->quantity = $currentStockLogModel->quantity;
+            //     $stockLogModel->store_code = $currentStockLogModel->store_code;
+            //     $stockLogModel->store_sub_unit_short_name = $currentStockLogModel->store_sub_unit_short_name;
+            //     $stockLogModel->reference_number = $currentStockLogModel->reference_number;
+            //     $stockLogModel->transaction_type = 'in';
+            //     $stockLogModel->transaction_sub_type = 'returned';
+            //     $stockLogModel->initial_stock = $currentStockLogModel->final_stock;
+            //     $stockLogModel->final_stock = $currentStockLogModel->final_stock + $currentStockLogModel->quantity;
+            //     $stockLogModel->created_by_id = $createdById;
+            //     $stockLogModel->created_at = now();
+            //     $stockLogModel->save();
 
-                $stockInventoryModel = StockInventoryModel::where('store_code', $stockTransfer->store_code)
-                    ->where('store_sub_unit_short_name', $stockTransfer->store_sub_unit_short_name)
-                    ->where('item_code', $currentStockLogModel->item_code)
-                    ->first();
-                $stockInventoryModel->stock_count += $currentStockLogModel->quantity;
-                $stockInventoryModel->updated_by_id = $createdById;
-                $stockInventoryModel->updated_at = now();
-                $stockInventoryModel->save();
-            }
+            //     $stockInventoryModel = StockInventoryModel::where('store_code', $stockTransfer->store_code)
+            //         ->where('store_sub_unit_short_name', $stockTransfer->store_sub_unit_short_name)
+            //         ->where('item_code', $currentStockLogModel->item_code)
+            //         ->first();
+            //     $stockInventoryModel->stock_count += $currentStockLogModel->quantity;
+            //     $stockInventoryModel->updated_by_id = $createdById;
+            //     $stockInventoryModel->updated_at = now();
+            //     $stockInventoryModel->save();
+            // }
 
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
