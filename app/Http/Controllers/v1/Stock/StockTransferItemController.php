@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockTransferItemModel;
 use App\Traits\Stock\StockTrait;
@@ -93,6 +94,16 @@ class StockTransferItemController extends Controller
                 $newStockLogModel->transaction_sub_type = 'transferred';
                 $newStockLogModel->created_by_id = $createdById;
                 $newStockLogModel->save();
+
+                $stockInventoryModel = StockInventoryModel::where([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'item_code' => $itemCode,
+                ])->first();
+                if($stockInventoryModel) {
+                    $stockInventoryModel->stock_count -= $itemQuantityCount;
+                    $stockInventoryModel->save();
+                }
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
