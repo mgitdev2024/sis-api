@@ -51,7 +51,7 @@ class StockOutController extends Controller
             $stockOutId = $stockOutModel->id;
             $stockOutItems = json_decode($fields['stock_out_items'], true);
             $stockOutItemController = new StockOutItemController();
-            $stockOutItemController->onCreateStockOutItem($stockOutItems, $referenceNumber, $stockOutId, $createdById, $storeCode, $storeSubUnitShortName);
+            $stockOutItemController->onCreateStockOutItem($stockOutItems, $stockOutId, $createdById, $referenceNumber, $storeCode, $storeSubUnitShortName);
             DB::commit();
             return $this->dataResponse('success', 201, __('msg.create_success'));
         } catch (Exception $exception) {
