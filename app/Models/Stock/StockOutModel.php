@@ -11,7 +11,6 @@ class StockOutModel extends Model
     protected $table = 'stock_outs';
     protected $fillable = [
         'reference_number',
-        'or_number',
         'store_code',
         'store_sub_unit_short_name',
         'stock_out_date',

@@ -16,7 +16,6 @@ class StockOutController extends Controller
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
-            'or_number' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'nullable',
             'stock_out_date' => 'required|date',
@@ -27,7 +26,6 @@ class StockOutController extends Controller
         try {
             DB::beginTransaction();
             $referenceNumber = StockOutModel::onGenerateReferenceNumber();
-            $orNumber = $fields['or_number'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
             $stockOutDate = $fields['stock_out_date'];
@@ -40,7 +38,6 @@ class StockOutController extends Controller
             }
             $stockOutModel = StockOutModel::create([
                 'reference_number' => $referenceNumber,
-                'or_number' => $orNumber,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'stock_out_date' => $stockOutDate,
