@@ -148,4 +148,14 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/direct/purchase/handled-items/post/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onPost']);
     Route::get('v1/direct/purchase/handled-items/get/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onGetById']);
     #endregion
+
+    #region Stock Out
+    Route::post('v1/stock/out/create', [App\Http\Controllers\v1\Stock\StockOutController::class, 'onCreate']);
+    Route::get('v1/stock/out/get', [App\Http\Controllers\v1\Stock\StockOutController::class, 'onGet']);
+    #endregion
+
+    #region Stock Out Item
+    // Route::post('v1/stock/out-item/create', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onCreate']);
+    // Route::get('v1/stock/out-item/current/get', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onGet']);
+    #endregion
 });
