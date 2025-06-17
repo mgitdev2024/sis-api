@@ -105,7 +105,6 @@ class StockTransferItemController extends Controller
                     $stockInventoryModel->save();
                 }
             }
-            Putang ina mo 
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
