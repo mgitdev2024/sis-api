@@ -28,8 +28,6 @@ return new class extends Migration {
             $table->string('item_code'); // CR 12
             $table->string('item_description'); // Cheeseroll Box of 12
             $table->string('item_category_name');
-            $table->string('unit_of_measure'); // Box
-            $table->string('item_variant_name'); // Whole
             $table->integer('quantity'); // 12
             SchemaHelper::addCommonColumns($table);
 

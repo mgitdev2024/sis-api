@@ -22,8 +22,8 @@ class StockOutItemController extends Controller
                 $itemCode = $item['ic'];
                 $itemDescription = $item['idc'];
                 $itemCategoryName = $item['icn'];
-                $itemVariantName = $item['icv'];
-                $unitOfMeasure = $item['uom'];
+                // $itemVariantName = $item['icv'];
+                // $unitOfMeasure = $item['uom'];
                 $quantity = $item['q'] ?? 0;
 
                 StockOutItemModel::insert([
@@ -32,8 +32,8 @@ class StockOutItemController extends Controller
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
                     'item_category_name' => $itemCategoryName,
-                    'item_variant_name' => $itemVariantName,
-                    'unit_of_measure' => $unitOfMeasure,
+                    // 'item_variant_name' => $itemVariantName,
+                    // 'unit_of_measure' => $unitOfMeasure,
                     'quantity' => $quantity,
                     'created_at' => now(),
                 ]);
