@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockOutItemModel;
+use App\Models\Stock\StockOutModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use DB;
@@ -13,6 +14,7 @@ use Exception;
 
 class StockOutItemController extends Controller
 {
+    use ResponseTrait;
     public function onCreateStockOutItem($stockOutItems, $stockOutId, $createdById, $referenceNumber, $storeCode, $storeSubUnitShortName = null)
     {
         // [{"ic":"CR 12","idc":"Cheeseroll Box of 12","icn":"BREADS","icv":"Mini","uom":"Box","q":1}]
@@ -76,6 +78,17 @@ class StockOutItemController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             throw new Exception(__('msg.create_failed'), 400, $exception);
+        }
+    }
+
+    public function onGet($stock_out_id)
+    {
+        try {
+            $stockOutModel = StockOutModel::with(['stockOutItems'])->where('id', $stock_out_id)->firstOrFail();
+            return $this->dataResponse('success', 200, __('msg.record_found'), $stockOutModel);
+        } catch (Exception $exception) {
+            dd($exception);
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
     }
 }

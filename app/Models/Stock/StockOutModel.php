@@ -11,7 +11,6 @@ class StockOutModel extends Model
     protected $table = 'stock_outs';
     protected $fillable = [
         'reference_number',
-        'or_number',
         'store_code',
         'store_sub_unit_short_name',
         'stock_out_date',
@@ -23,7 +22,7 @@ class StockOutModel extends Model
 
     public function stockOutItems()
     {
-        return $this->hasMany(StockOutItemModel::class);
+        return $this->hasMany(StockOutItemModel::class, 'stock_out_id', 'id');
     }
 
     public static function onGenerateReferenceNumber()
