@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('reference_number'); // SO-6000001
             $table->string('store_code'); // C001
             $table->string('store_sub_unit_short_name')->nullable(); // FOH BOH
-            $table->date('stock_out_date'); // 2025-06-17
+            $table->timestamp('stock_out_date'); // 2025-06-17
             $table->text('attachment')->nullable();
             SchemaHelper::addCommonColumns($table);
         });
