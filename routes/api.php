@@ -148,4 +148,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/direct/purchase/handled-items/post/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onPost']);
     Route::get('v1/direct/purchase/handled-items/get/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onGetById']);
     #endregion
+
+    #region Manual Stock Out
+    // Route::post('v1/direct/purchase/handled-items/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onCreate']);
+
+    #endregion
 });
