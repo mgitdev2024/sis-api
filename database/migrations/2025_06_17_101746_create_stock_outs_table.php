@@ -24,7 +24,7 @@ return new class extends Migration {
 
         Schema::create('stock_out_items', function (Blueprint $table) {
             $table->id();
-            $table->string('stock_out_id');
+            $table->unsignedBigInteger('stock_out_id');
             $table->string('item_code'); // CR 12
             $table->string('item_description'); // Cheeseroll Box of 12
             $table->string('item_category_name');
@@ -33,7 +33,7 @@ return new class extends Migration {
             $table->integer('quantity'); // 12
             SchemaHelper::addCommonColumns($table);
 
-            $table->foreign('stock_out_id')->references('id')->on('stock_outs')->onDelete('cascade');
+            $table->foreign('stock_out_id')->references('id')->on('stock_outs');
         });
     }
 

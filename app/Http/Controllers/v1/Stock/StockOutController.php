@@ -31,23 +31,27 @@ class StockOutController extends Controller
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
             $stockOutDate = $fields['stock_out_date'];
-            $attachment = $fields['attachment'] ?? null;
             $createdById = $fields['created_by_id'];
 
+            $attachmentPath = null;
+            if (isset($fields['attachment']) && $fields['attachment'] != null) {
+                $attachmentPath = $request->file('attachment')->store('public/attachments/stock_out');
+                $attachmentPath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
+            }
             $stockOutModel = StockOutModel::create([
                 'reference_number' => $referenceNumber,
                 'or_number' => $orNumber,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'stock_out_date' => $stockOutDate,
-                'attachment' => $attachment,
+                'attachment' => $attachmentPath,
                 'created_by_id' => $createdById,
             ]);
 
             $stockOutId = $stockOutModel->id;
             $stockOutItems = json_decode($fields['stock_out_items'], true);
             $stockOutItemController = new StockOutItemController();
-            $stockOutItemController->onCreateStockOutItem($stockOutItems, $stockOutId, $createdById);
+            $stockOutItemController->onCreateStockOutItem($stockOutItems, $referenceNumber, $stockOutId, $createdById, $storeCode, $storeSubUnitShortName);
             DB::commit();
             return $this->dataResponse('success', 201, __('msg.create_success'));
         } catch (Exception $exception) {
@@ -59,7 +63,8 @@ class StockOutController extends Controller
     public function onGet()
     {
         $orderFields = [
-            'id' => 'DESC'
+            'key' => 'id',
+            'value' => 'DESC'
         ];
         return $this->readRecord(StockOutModel::class, 'stock_outs', null, $orderFields);
     }

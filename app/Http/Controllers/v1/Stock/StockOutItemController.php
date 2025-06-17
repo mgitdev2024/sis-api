@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
+use App\Models\Stock\StockInventoryModel;
+use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockOutItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
@@ -11,7 +13,7 @@ use Exception;
 
 class StockOutItemController extends Controller
 {
-    public function onCreateStockOutItem($stockOutItems, $stockOutId, $createdById)
+    public function onCreateStockOutItem($stockOutItems, $stockOutId, $createdById, $referenceNumber, $storeCode, $storeSubUnitShortName = null)
     {
         // [{"ic":"CR 12","idc":"Cheeseroll Box of 12","icn":"BREADS","icv":"Mini","uom":"Box","q":1}]
         try {
@@ -35,6 +37,40 @@ class StockOutItemController extends Controller
                     'quantity' => $quantity,
                     'created_at' => now(),
                 ]);
+
+                // Update Stock Count
+
+                $stockLogModel = StockLogModel::where([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'item_code' => $itemCode,
+                ])->orderBy('id', 'DESC')->first();
+
+                $currentFinalStock = $stockLogModel->final_stock ?? 0;
+                $newStockLogModel = new StockLogModel();
+                $newStockLogModel->reference_number = $referenceNumber;
+                $newStockLogModel->store_code = $storeCode;
+                $newStockLogModel->store_sub_unit_short_name = $storeSubUnitShortName;
+                $newStockLogModel->item_code = $itemCode;
+                $newStockLogModel->item_description = $itemDescription;
+                $newStockLogModel->item_category_name = $itemCategoryName;
+                $newStockLogModel->quantity = $quantity;
+                $newStockLogModel->initial_stock = $currentFinalStock;
+                $newStockLogModel->final_stock = $currentFinalStock - $quantity;
+                $newStockLogModel->transaction_type = 'out';
+                $newStockLogModel->transaction_sub_type = 'stock_out';
+                $newStockLogModel->created_by_id = $createdById;
+                $newStockLogModel->save();
+
+                $stockInventoryModel = StockInventoryModel::where([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'item_code' => $itemCode,
+                ])->first();
+                if ($stockInventoryModel) {
+                    $stockInventoryModel->stock_count -= $quantity;
+                    $stockInventoryModel->save();
+                }
             }
             DB::commit();
         } catch (Exception $exception) {
