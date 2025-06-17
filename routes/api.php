@@ -155,7 +155,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Stock Out Item
-    // Route::post('v1/stock/out-item/create', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onCreate']);
-    // Route::get('v1/stock/out-item/current/get', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onGet']);
+    Route::get('v1/stock/out-item/get/{stock_out_id}', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onGet']);
     #endregion
 });

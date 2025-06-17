@@ -22,7 +22,7 @@ class StockOutModel extends Model
 
     public function stockOutItems()
     {
-        return $this->hasMany(StockOutItemModel::class);
+        return $this->hasMany(StockOutItemModel::class, 'stock_out_id', 'id');
     }
 
     public static function onGenerateReferenceNumber()
