@@ -78,7 +78,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
 
     #region Store Receiving Inventory Item Cache
     Route::post('v1/store/receive-inventory-item-cache/create/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onCreate']);
-    Route::get('v1/store/receive-inventory-item-cache/current/get/{reference_number}/{receive_type}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
+    Route::get('v1/store/receive-inventory-item-cache/current/get/{reference_number}/{receive_type}/{selected_item_codes}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
     Route::post('v1/store/receive-inventory-item-cache/delete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
     #endregion
 
