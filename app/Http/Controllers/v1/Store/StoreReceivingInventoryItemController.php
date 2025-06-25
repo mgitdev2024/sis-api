@@ -247,7 +247,6 @@ class StoreReceivingInventoryItemController extends Controller
             $wrongDroppedData = [];
             $orderSessionData = [];
             foreach ($scannedItems as $items) {
-
                 $itemCode = $items['ic']; // item code
                 $fanOutCategory = $items['foc'] ?? '>';
                 $storeInventoryItemModel = StoreReceivingInventoryItemModel::where([
