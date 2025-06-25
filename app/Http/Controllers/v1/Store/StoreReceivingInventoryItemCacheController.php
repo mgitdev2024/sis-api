@@ -44,9 +44,9 @@ class StoreReceivingInventoryItemCacheController extends Controller
             if ($storeReceivingInventoryItemCacheModel) {
                 $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
 
-                // Filter only items whose 'ic' exists in $selected_item_codes
-                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($selected_item_codes) {
-                    return in_array($item['ic'], $selected_item_codes);
+                $itemCodes = json_decode($selected_item_codes, true);
+                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) {
+                    return in_array($item['ic'], $itemCodes);
                 }));
 
                 $storeReceivingInventoryItemCacheModel->scanned_items = $filteredItems;
