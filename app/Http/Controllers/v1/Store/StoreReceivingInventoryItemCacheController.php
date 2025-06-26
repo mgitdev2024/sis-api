@@ -33,18 +33,33 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-    public function onGetCurrent($reference_number, $receive_type)
+    public function onGetCurrent($reference_number, $receive_type, $selected_item_codes)
     {
         try {
-            $whereFields = [
+            $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where([
                 'reference_number' => $reference_number,
-                'receive_type' => $receive_type,
-            ];
-            return $this->readCurrentRecord(StoreReceivingInventoryItemCacheModel::class, null, $whereFields, null, ['id' => 'DESC'], 'Store Receiving Inventory Item Cache', false, null, 1);
+                'receive_type' => $receive_type
+            ])->first();
+
+            if ($storeReceivingInventoryItemCacheModel) {
+                $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
+
+                $itemCodes = json_decode($selected_item_codes, true);
+                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) {
+                    return in_array($item['ic'], $itemCodes);
+                }));
+
+                $storeReceivingInventoryItemCacheModel->scanned_items = $filteredItems;
+
+                return $this->dataResponse('success', 200, __('msg.record_found'), $storeReceivingInventoryItemCacheModel);
+            }
+
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
     }
+
 
     public function onDelete($reference_number)
     {
