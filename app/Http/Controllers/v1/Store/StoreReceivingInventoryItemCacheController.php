@@ -36,15 +36,16 @@ class StoreReceivingInventoryItemCacheController extends Controller
     public function onGetCurrent($reference_number, $receive_type, $selected_item_codes)
     {
         try {
+            $selected_item_codes = str_replace(":", "", $selected_item_codes);
             $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where([
                 'reference_number' => $reference_number,
                 'receive_type' => $receive_type
-            ])->first();
+            ])->orderBy('id','DESC')->first();
 
             if ($storeReceivingInventoryItemCacheModel) {
                 $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
 
-                $itemCodes = json_decode($selected_item_codes, true);
+                $itemCodes = json_decode($selected_item_codes, true); 
                 $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) {
                     return in_array($item['ic'], $itemCodes);
                 }));
