@@ -23,6 +23,9 @@ class StockInventoryController extends Controller
 
             if ($is_group == 1) {
                 $stockInventoryModel = $stockInventoryModel->groupBy('item_category_name');
+                $this->getUomByGroup($stockInventoryModel);
+            } else {
+                $this->getUom($stockInventoryModel);
             }
             if (count($stockInventoryModel) <= 0) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
@@ -32,6 +35,45 @@ class StockInventoryController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    public function getUomByGroup($stockInventoryData)
+    {
+        $itemCodes = $stockInventoryData
+            ->flatMap(function ($items) {
+                return collect($items)->pluck('item_code');
+            })
+            ->values()
+            ->all();
+
+        $response = \Http::get(env('MGIOS_URL') . '/item-uom/get/' . json_encode($itemCodes));
+        $uomData = collect($response->json()); // make uomData a collection for easier lookup
+
+        $stockInventoryData = $stockInventoryData->map(function ($items) use ($uomData) {
+            return collect($items)->map(function ($item) use ($uomData) {
+                $itemCode = $item['item_code'];
+                $uom = $uomData[$itemCode] ?? null;
+                $item['uom'] = $uom;
+                return $item;
+            });
+        });
+    }
+
+    public function getUom($stockInventoryData)
+    {
+        $itemCodes = collect($stockInventoryData)
+            ->pluck('item_code')
+            ->unique()
+            ->values()
+            ->all();
+        $response = \Http::get(env('MGIOS_URL') . '/item-uom/get/' . json_encode($itemCodes));
+        $uomData = collect($response->json()); // make uomData a collection for easier lookup
+
+        $stockInventoryData = collect($stockInventoryData)->map(function ($item) use ($uomData) {
+            $itemCode = $item['item_code'];
+            $item['uom'] = $uomData[$itemCode] ?? null;
+            return $item;
+        });
     }
 
     public function onGetById($stockInventoryId)
