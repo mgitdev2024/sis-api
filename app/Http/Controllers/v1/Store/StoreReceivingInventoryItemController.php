@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
+use Carbon\Carbon;
 class StoreReceivingInventoryItemController extends Controller
 {
     use ResponseTrait, StockTrait;
@@ -56,7 +57,7 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => $item->delivery_date,
+                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
                     'reference_number' => $reference_number
                 ];
 
@@ -78,12 +79,12 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $data['request_details'] = [
                     'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => $item->delivery_date,
+                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
                     'delivery_scheme' => $item->delivery_type,
-                    'order_date' => $item->order_date,
+                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
                     'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => $item->completed_at ?? null,
+                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
                     'status' => $item->status,
                 ];
                 $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
