@@ -57,6 +57,7 @@ class StoreReceivingInventoryController extends Controller
                 $deliveryDate = $storeOrders['delivery_date'];
                 $deliveryType = $storeOrders['delivery_type'];
                 $orderDate = $storeOrders['order_date'];
+                $orderSessionId = $storeOrders['order_session_id'] ?? null;
                 // $storeSubUnitId = $storeOrders['store_sub_unit_id'];
                 $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'];
                 $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'];
@@ -84,6 +85,7 @@ class StoreReceivingInventoryController extends Controller
                             'order_quantity' => $orderedItems['order_quantity'],
                             'allocated_quantity' => $orderedItems['allocated_quantity'],
                             'fan_out_category' => $orderedItems['fan_out_category'] ?? null,
+                            'order_session_id' => $orderSessionId,
                             // 'store_sub_unit_id' => $storeSubUnitId,
                             'store_sub_unit_short_name' => $storeSubUnitShortName,
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
