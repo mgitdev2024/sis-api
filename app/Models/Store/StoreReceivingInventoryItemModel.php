@@ -4,7 +4,7 @@ namespace App\Models\Store;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Carbon\Carbon;
 class StoreReceivingInventoryItemModel extends Model
 {
     use HasFactory;
