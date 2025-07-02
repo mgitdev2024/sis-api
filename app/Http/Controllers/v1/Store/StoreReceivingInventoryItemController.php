@@ -203,7 +203,7 @@ class StoreReceivingInventoryItemController extends Controller
     public function onGetCategory($store_code, $status = null, $sub_unit = null)
     {
         try {
-            $storeInventoryItemModel = DB::table('store_receiving_inventory_items as srt')->select([
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::from('store_receiving_inventory_items as srt')->select([
                 'srt.reference_number',
                 'srt.delivery_date',
                 'sri.delivery_type',
@@ -228,7 +228,10 @@ class StoreReceivingInventoryItemController extends Controller
                 'srt.status',
             ])
                 ->orderBy('srt.delivery_date', 'DESC')
-                ->get();
+                ->get()->map(function ($item) {
+                    $item->delivery_date = Carbon::parse($item->delivery_date)->format('F d, Y');
+                    return $item;
+                });
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
         } catch (Exception $exception) {
