@@ -11,7 +11,7 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type_label', 'formatted_delivery_date'];
+    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type_label'];
     protected $fillable = [
         'store_receiving_inventory_id',
         'reference_number',
@@ -75,12 +75,5 @@ class StoreReceivingInventoryItemModel extends Model
         ];
 
         return $orderTypeArr[$this->order_type] ?? null;
-    }
-
-    public function getFormattedDeliveryDateLabelAttribute()
-    {
-        return $this->delivery_date
-            ? Carbon::parse($this->delivery_date)->format('F d, Y')
-            : null;
     }
 }
