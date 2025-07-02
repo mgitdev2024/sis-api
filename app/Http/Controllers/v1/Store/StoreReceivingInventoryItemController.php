@@ -80,7 +80,10 @@ class StoreReceivingInventoryItemController extends Controller
                     'supply_hub' => $item->storeReceivingInventory->warehouse_name,
                     'delivery_location' => $item->delivery_date,
                     'delivery_scheme' => $item->delivery_type,
+                    'order_date' => $item->order_date,
                     'requested_by' => $item->created_by_name,
+                    'completed_by' => $item->completed_by_name ?? null,
+                    'completed_at' => $item->completed_at ?? null,
                     'status' => $item->status,
                 ];
                 $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
@@ -199,26 +202,31 @@ class StoreReceivingInventoryItemController extends Controller
     public function onGetCategory($store_code, $status = null, $sub_unit = null)
     {
         try {
-            $storeInventoryItemModel = StoreReceivingInventoryItemModel::select([
-                'reference_number',
-                'delivery_date',
-                'status',
-                DB::raw('MAX(type) as type'),
-                DB::raw('COUNT(reference_number) as session_count'),
+            $storeInventoryItemModel = DB::table('store_receiving_inventory_items as srt')->select([
+                'srt.reference_number',
+                'srt.delivery_date',
+                'sri.delivery_type',
+                'sri.warehouse_name',
+                'srt.status',
+                DB::raw('MAX(srt.type) as type'),
+                DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
+                ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
                 ->where('store_code', $store_code);
             if ($status != null) {
-                $storeInventoryItemModel = $storeInventoryItemModel->where('status', $status);
+                $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
             }
             if ($sub_unit != null) {
-                $storeInventoryItemModel = $storeInventoryItemModel->where('store_sub_unit_short_name', $sub_unit);
+                $storeInventoryItemModel = $storeInventoryItemModel->where('srt.store_sub_unit_short_name', $sub_unit);
             }
             $storeInventoryItemModel = $storeInventoryItemModel->groupBy([
-                'reference_number',
-                'delivery_date',
-                'status'
+                'srt.reference_number',
+                'srt.delivery_date',
+                'sri.delivery_type',
+                'sri.warehouse_name',
+                'srt.status',
             ])
-                ->orderBy('delivery_date', 'DESC')
+                ->orderBy('srt.delivery_date', 'DESC')
                 ->get();
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
@@ -449,6 +457,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $item->status = 1;
                     $item->updated_by_id = $createdById;
                     $item->updated_at = now();
+                    $item->completed_by_id = $createdById;
+                    $item->completed_at = now();
                     $item->save();
                 }
 
