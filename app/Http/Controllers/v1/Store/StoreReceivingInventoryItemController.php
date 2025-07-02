@@ -58,7 +58,8 @@ class StoreReceivingInventoryItemController extends Controller
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
                     'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'reference_number' => $reference_number
+                    'reference_number' => $reference_number,
+                    'order_session_id' => $item->order_session_id ?? null,
                 ];
 
                 $data['requested_items'][] = [
@@ -162,8 +163,9 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $data['reservation_request'] = [
                     'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => $item->delivery_date,
-                    'reference_number' => $reference_number
+                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                    'reference_number' => $reference_number,
+                    'order_session_id' => $item->order_session_id ?? null,
                 ];
 
                 $data['requested_items'][] = [
@@ -184,10 +186,14 @@ class StoreReceivingInventoryItemController extends Controller
 
                 $data['request_details'] = [
                     'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => $item->delivery_date,
+                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
                     'delivery_scheme' => $item->delivery_type,
+                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
+                    'completed_by' => $item->completed_by_name ?? null,
+                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
                     'status' => $item->status,
+
                 ];
 
                 $counter++;
@@ -205,6 +211,7 @@ class StoreReceivingInventoryItemController extends Controller
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::from('store_receiving_inventory_items as srt')->select([
                 'srt.reference_number',
+                'srt.order_session_id',
                 'srt.delivery_date',
                 'sri.delivery_type',
                 'sri.warehouse_name',
@@ -222,6 +229,7 @@ class StoreReceivingInventoryItemController extends Controller
             }
             $storeInventoryItemModel = $storeInventoryItemModel->groupBy([
                 'srt.reference_number',
+                'srt.order_session_id',
                 'srt.delivery_date',
                 'sri.delivery_type',
                 'sri.warehouse_name',

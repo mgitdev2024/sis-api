@@ -11,6 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('store_receiving_inventory_items', function (Blueprint $table) {
+            $table->string('order_session_id')->nullable();
             $table->string('completed_by_id')->nullable();
             $table->timestamp('completed_at')->nullable();
         });
@@ -22,6 +23,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('store_receiving_inventory_items', function (Blueprint $table) {
+            $table->string('order_session_id')->nullable();
             $table->dropColumn('completed_by_id');
             $table->dropColumn('completed_at');
         });
