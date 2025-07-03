@@ -85,7 +85,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
                     'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
+                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
                     'status' => $item->status,
                 ];
                 $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
@@ -191,7 +191,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
                     'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
+                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
                     'status' => $item->status,
 
                 ];
@@ -395,7 +395,7 @@ class StoreReceivingInventoryItemController extends Controller
             // $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
-
+            $orderSessionId = $storeInventoryReceivingItem->order_session_id ?? null;
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
                 $key = explode(':', $wrongDroppedKey);
@@ -425,6 +425,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => $orderDate,
                     'order_quantity' => 0,
                     'allocated_quantity' => 0,
+                    'order_session_id' => $orderSessionId,
                     // 'store_sub_unit_id' => $storeSubUnitId,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'store_sub_unit_long_name' => $storeSubUnitLongName,
