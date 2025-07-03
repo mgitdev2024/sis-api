@@ -85,7 +85,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
                     'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
+                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
                     'status' => $item->status,
                 ];
                 $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
@@ -191,7 +191,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
                     'requested_by' => $item->created_by_name,
                     'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => Carbon::parse($item->completed_at)->format('F d, Y') ?? null,
+                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
                     'status' => $item->status,
 
                 ];
