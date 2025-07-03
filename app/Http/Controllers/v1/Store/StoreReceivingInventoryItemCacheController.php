@@ -47,8 +47,8 @@ class StoreReceivingInventoryItemCacheController extends Controller
 
                 $itemCodes = json_decode($selected_item_codes, true);
 
-                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) {
-                    return in_array($item['ic'], $itemCodes) && strtolower($item['source']) === 'new';
+                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) { // Return items that are selected from the store receiving and also return the new or wrong dropped items
+                    return in_array($item['ic'], $itemCodes) || strtolower($item['source']) === 'new';
                 }));
 
                 $storeReceivingInventoryItemCacheModel->scanned_items = $filteredItems;
