@@ -395,7 +395,7 @@ class StoreReceivingInventoryItemController extends Controller
             // $storeSubUnitId = $storeInventoryReceivingItem->store_sub_unit_id ?? null;
             $storeSubUnitShortName = $storeInventoryReceivingItem->store_sub_unit_short_name ?? null;
             $storeSubUnitLongName = $storeInventoryReceivingItem->store_sub_unit_long_name ?? null;
-
+            $orderSessionId = $storeInventoryReceivingItem->order_session_id ?? null;
 
             foreach ($wrongDroppedData as $wrongDroppedKey => $wrongDroppedValue) {
                 $key = explode(':', $wrongDroppedKey);
@@ -425,6 +425,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'order_date' => $orderDate,
                     'order_quantity' => 0,
                     'allocated_quantity' => 0,
+                    'order_session_id' => $orderSessionId,
                     // 'store_sub_unit_id' => $storeSubUnitId,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'store_sub_unit_long_name' => $storeSubUnitLongName,
