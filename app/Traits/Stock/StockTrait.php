@@ -122,7 +122,7 @@ trait StockTrait
         $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
-            $smallestUnitQty = $apiResponse['quantity'] ?? [];
+            $smallestUnitQty = $apiResponse['quantity'] ?? 0;
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
