@@ -122,7 +122,7 @@ trait StockTrait
         $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
-            $smallestUnitQty = $apiResponse['quantity'] ?? [];
+            $smallestUnitQty = $apiResponse['quantity'] ?? 0;
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
@@ -169,6 +169,19 @@ trait StockTrait
             $itemQuantityCount = count($transactionItems);
         } else {
             $itemQuantityCount = $transactionItems[0]['q'];
+        }
+
+        $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
+        if ($checkIfAutoConvert->successful()) {
+            $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
+            $smallestUnitQty = $apiResponse['quantity'] ?? 0;
+            if ($smallestUnitQty > 0) {
+                $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
+            }
+
+            $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
+            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
+            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
         }
 
         $stockInventoryModel = StockInventoryModel::where([

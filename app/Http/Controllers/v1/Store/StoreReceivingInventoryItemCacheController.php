@@ -44,12 +44,11 @@ class StoreReceivingInventoryItemCacheController extends Controller
 
             if ($storeReceivingInventoryItemCacheModel) {
                 $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
-
                 $itemCodes = json_decode($selected_item_codes, true);
-
+ 
                 $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) { // Return items that are selected from the store receiving and also return the new or wrong dropped items
                     return in_array($item['ic'], $itemCodes) || strtolower($item['source']) === 'new';
-                }));
+                })); 
 
                 $storeReceivingInventoryItemCacheModel->scanned_items = $filteredItems;
 
@@ -61,7 +60,6 @@ class StoreReceivingInventoryItemCacheController extends Controller
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
     }
-
     public function onGetCurrentScanning($reference_number, $receive_type)
     {
         try {
