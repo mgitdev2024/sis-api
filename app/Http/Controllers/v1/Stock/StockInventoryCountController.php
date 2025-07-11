@@ -77,8 +77,14 @@ class StockInventoryCountController extends Controller
                 ];
             }
 
-            $response = \Http::post(env('SCM_URL') . '/item/masterdata-collection/get/1', [
-                'item_code_collection' => json_encode($existingItemCodes)
+            $endpoint = '/item/masterdata-collection/get/1';
+            if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
+                $endpoint = '/item/masterdata-collection/get/2';
+            }
+            $response = \Http::post(env('SCM_URL') . $endpoint, [
+                'item_code_collection' => json_encode($existingItemCodes),
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'exception_item_code_collection' => json_encode(['FG0053', 'FG0055', 'FG0056', 'FG0057', 'FG0084']),
             ]);
 
             $data = $response->json()['success']['data'] ?? [];
