@@ -77,7 +77,7 @@ class StockInventoryCountController extends Controller
                 ];
             }
 
-            $response = \Http::post(env('SCM_URL') . '/item/masterdata-collection/get', [
+            $response = \Http::post(env('SCM_URL') . '/item/masterdata-collection/get/1', [
                 'item_code_collection' => json_encode($existingItemCodes)
             ]);
 
