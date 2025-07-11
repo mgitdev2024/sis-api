@@ -22,7 +22,7 @@ class StockInventoryItemCountController extends Controller
             'stock_inventory_count_id' => $store_inventory_count_id,
         ];
         $orderFields = [
-            'item_category_name' => 'ASC',
+            'system_quantity' => 'DESC',
         ];
         return $this->readCurrentRecord(StockInventoryItemCountModel::class, null, $whereFields, null, $orderFields, 'Store Inventory Item Count');
     }
