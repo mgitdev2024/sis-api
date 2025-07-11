@@ -22,7 +22,7 @@ class StockInventoryItemCountController extends Controller
             'stock_inventory_count_id' => $store_inventory_count_id,
         ];
         $orderFields = [
-            'item_category_name' => 'ASC',
+            'system_quantity' => 'DESC',
         ];
         return $this->readCurrentRecord(StockInventoryItemCountModel::class, null, $whereFields, null, $orderFields, 'Store Inventory Item Count');
     }
@@ -112,6 +112,18 @@ class StockInventoryItemCountController extends Controller
                         'stock_count' => $countedQuantity,
                         'updated_by_id' => $createdById,
                     ]);
+                } else {
+                    // If the stock inventory does not exist, create a new one
+                    StockInventoryModel::create([
+                        'store_code' => $fields['store_code'],
+                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                        'item_code' => $item->item_code,
+                        'item_description' => $item->item_description,
+                        'item_category_name' => $item->item_category_name,
+                        'stock_count' => $countedQuantity,
+                        'created_by_id' => $createdById,
+                        'updated_by_id' => $createdById,
+                    ]);
                 }
 
                 $stockLogModel = StockLogModel::where([
@@ -119,19 +131,37 @@ class StockInventoryItemCountController extends Controller
                     'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
                     'item_code' => $item->item_code,
                 ])->orderBy('id', 'DESC')->first();
-                $stockLogModel->create([
-                    'reference_number' => $item->stockInventoryCount->reference_number,
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $stockLogModel->item_code,
-                    'item_description' => $stockLogModel->item_description,
-                    'item_category_name' => $stockLogModel->item_category_name,
-                    'quantity' => 0,
-                    'initial_stock' => $stockLogModel->final_stock,
-                    'final_stock' => $countedQuantity,
-                    'transaction_type' => 'adjustment',
-                    'created_by_id' => $createdById,
-                ]);
+
+                if ($stockLogModel) {
+                    $stockLogModel->create([
+                        'reference_number' => $item->stockInventoryCount->reference_number,
+                        'store_code' => $fields['store_code'],
+                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                        'item_code' => $stockLogModel->item_code,
+                        'item_description' => $stockLogModel->item_description,
+                        'item_category_name' => $stockLogModel->item_category_name,
+                        'quantity' => 0,
+                        'initial_stock' => $stockLogModel->final_stock,
+                        'final_stock' => $countedQuantity,
+                        'transaction_type' => 'adjustment',
+                        'created_by_id' => $createdById,
+                    ]);
+                } else {
+                    StockLogModel::create([
+                        'reference_number' => $item->stockInventoryCount->reference_number,
+                        'store_code' => $fields['store_code'],
+                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                        'item_code' => $item->item_code,
+                        'item_description' => $item->item_description,
+                        'item_category_name' => $item->item_category_name,
+                        'quantity' => 0,
+                        'initial_stock' => 0,
+                        'final_stock' => $countedQuantity,
+                        'transaction_type' => 'adjustment',
+                        'created_by_id' => $createdById,
+                    ]);
+                }
+
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));

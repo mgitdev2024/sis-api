@@ -53,6 +53,7 @@ class StockInventoryCountController extends Controller
     public function onCreateStockInventoryItemsCount($stockInventoryCountId, $storeCode, $storeSubUnitShortName, $createdById)
     {
         try {
+            $existingItemCodes = [];
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
@@ -60,6 +61,7 @@ class StockInventoryCountController extends Controller
 
             $stockInventoryItemsCount = [];
             foreach ($stockInventoryModel as $item) {
+                $existingItemCodes[] = $item->item_code;
                 $stockInventoryItemsCount[] = [
                     'stock_inventory_count_id' => $stockInventoryCountId,
                     'item_code' => $item->item_code,
@@ -68,11 +70,40 @@ class StockInventoryCountController extends Controller
                     'system_quantity' => $item->stock_count,
                     'counted_quantity' => 0,
                     'discrepancy_quantity' => 0,
-                    'created_at' => Carbon::now(),
+                    'created_at' => now(),
                     'created_by_id' => $createdById,
                     'updated_by_id' => $createdById,
                     'status' => 1, // For Receive
                 ];
+            }
+
+            $endpoint = '/item/masterdata-collection/get/1';
+            if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
+                $endpoint = '/item/masterdata-collection/get/2';
+            }
+            $response = \Http::post(env('SCM_URL') . $endpoint, [
+                'item_code_collection' => json_encode($existingItemCodes),
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'exception_item_code_collection' => json_encode(['FG0053', 'FG0055', 'FG0056', 'FG0057', 'FG0084']),
+            ]);
+
+            $data = $response->json()['success']['data'] ?? [];
+            if (!empty($data)) {
+                foreach ($data as $item) {
+                    $stockInventoryItemsCount[] = [
+                        'stock_inventory_count_id' => $stockInventoryCountId,
+                        'item_code' => $item['item_code'],
+                        'item_description' => $item['description'],
+                        'item_category_name' => $item['item_category_label'],
+                        'system_quantity' => 0,
+                        'counted_quantity' => 0,
+                        'discrepancy_quantity' => 0,
+                        'created_at' => now(),
+                        'created_by_id' => $createdById,
+                        'updated_by_id' => $createdById,
+                        'status' => 1, // For Receive
+                    ];
+                }
             }
             StockInventoryItemCountModel::insert($stockInventoryItemsCount);
 
@@ -129,10 +160,10 @@ class StockInventoryCountController extends Controller
             $stockInventoryCountModel->updated_by_id = $createdById;
             $stockInventoryCountModel->save();
             DB::commit();
-            return $this->dataResponse('success', 200, __('msg.cancel_success'));
+            return $this->dataResponse('success', 200, 'Cancelled Successfully');
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, __('msg.cancel_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 400, 'Cancel Failed', $exception->getMessage());
         }
     }
 }
