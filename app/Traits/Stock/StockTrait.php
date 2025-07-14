@@ -171,6 +171,19 @@ trait StockTrait
             $itemQuantityCount = $transactionItems[0]['q'];
         }
 
+        $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
+        if ($checkIfAutoConvert->successful()) {
+            $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
+            $smallestUnitQty = $apiResponse['quantity'] ?? 0;
+            if ($smallestUnitQty > 0) {
+                $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
+            }
+
+            $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
+            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
+            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+        }
+
         $stockInventoryModel = StockInventoryModel::where([
             'store_code' => $storeCode,
             'store_sub_unit_short_name' => $storeSubUnitShortName,
