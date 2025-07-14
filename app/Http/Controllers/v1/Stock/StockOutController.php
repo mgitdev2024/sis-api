@@ -59,8 +59,7 @@ class StockOutController extends Controller
     public function onGet($storeCode, $storeSubUnitShortName = null)
     {
         $orderFields = [
-            'key' => 'id',
-            'value' => 'DESC'
+            'id' => 'DESC',
         ];
 
         $whereFields = [
