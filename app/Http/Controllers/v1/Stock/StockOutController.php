@@ -56,12 +56,20 @@ class StockOutController extends Controller
         }
     }
 
-    public function onGet()
+    public function onGet($storeCode, $storeSubUnitShortName = null)
     {
         $orderFields = [
             'key' => 'id',
             'value' => 'DESC'
         ];
-        return $this->readRecord(StockOutModel::class, 'stock_outs', null, $orderFields);
+
+        $whereFields = [
+            'store_code' => $storeCode,
+        ];
+
+        if ($storeSubUnitShortName) {
+            $whereFields['store_sub_unit_short_name'] = $storeSubUnitShortName;
+        }
+        return $this->readCurrentRecord(StockOutModel::class, null, $whereFields, null, $orderFields, 'Stock Out');
     }
 }
