@@ -19,10 +19,14 @@ use Illuminate\Support\Facades\Route;
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 // Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
-
-
 Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onUpdate']);
+
+Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
+    Route::post('/reports/store/receive-inventory/delivery-receiving', [App\Http\Controllers\v1\Report\StoreReceivingReportController::class, 'onGenerateDeliveryReceivingReport']);
+    Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StoreInventoryReportController::class, 'onGenerateDailyMovementReport']);
+
+});
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {

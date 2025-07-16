@@ -4,7 +4,6 @@ namespace App\Models\Stock;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 class StockInventoryModel extends Model
 {
     use HasFactory;
@@ -22,4 +21,5 @@ class StockInventoryModel extends Model
         'created_by_id',
         'updated_by_id',
     ];
+
 }
