@@ -2,6 +2,7 @@
 
 namespace App\Models\Store;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -11,7 +12,15 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type_label'];
+    protected $appends = [
+        'status_label',
+        'type_label',
+        'receive_type_label',
+        'order_type_label',
+        'completed_by_label',
+        'completed_at_label',
+        'delivery_date_label',
+    ];
     protected $fillable = [
         'store_receiving_inventory_id',
         'reference_number',
@@ -39,7 +48,12 @@ class StoreReceivingInventoryItemModel extends Model
         'created_by_name',
         'created_by_id',
         'updated_by_id',
-        'status'
+        'status',
+
+        // Added Fields
+        'order_session_id',
+        'completed_by_id',
+        'completed_at',
     ];
 
     public function storeReceivingInventory()
@@ -69,11 +83,30 @@ class StoreReceivingInventoryItemModel extends Model
     public function getOrderTypeLabelAttribute()
     {
         $orderTypeArr = [
-            0 => 'Regular Order',
-            1 => 'Special Order',
+            0 => 'Regular',
+            1 => 'Special',
             2 => 'Fan-Out',
         ];
 
         return $orderTypeArr[$this->order_type] ?? null;
+    }
+
+    public function getCompletedByLabelAttribute()
+    {
+        if ($this->completed_by_id) {
+            $user = User::where('employee_id', $this->completed_by_id)->first();
+            return $user ? "$user->first_name $user->last_name" : 'Unknown';
+        }
+        return 'Not Completed';
+    }
+
+    public function getCompletedAtLabelAttribute()
+    {
+        return $this->completed_at ? Carbon::parse($this->completed_at)->format('M d, Y h:i A') : 'Not Completed';
+    }
+
+    public function getDeliveryDateLabelAttribute()
+    {
+        return $this->delivery_date ? Carbon::parse($this->delivery_date)->format('M d, Y') : 'Not Set';
     }
 }

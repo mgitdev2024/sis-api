@@ -24,13 +24,13 @@ class StoreReceivingInventoryController extends Controller
             DB::beginTransaction();
             $createdByName = $fields['created_by_name'];
             $createdById = $fields['created_by_id'];
-            if (!$is_internal) {
-                $response = Http::withToken($request->bearerToken())
-                    ->get(env('MGIOS_URL') . '/check-token');
-                if (!$response->successful()) {
-                    return $this->dataResponse('error', 404, 'Unauthorized Access');
-                }
-            }
+            // if (!$is_internal) {
+            //     $response = Http::withToken($request->bearerToken())
+            //         ->get(env('MGIOS_URL') . '/check-token');
+            //     if (!$response->successful()) {
+            //         return $this->dataResponse('error', 404, 'Unauthorized Access');
+            //     }
+            // }
 
             // Decode consolidated data and insert them into the store_receiving_inventory table
             $consolidatedData = json_decode($fields['consolidated_data'], true);
@@ -104,13 +104,13 @@ class StoreReceivingInventoryController extends Controller
             // Bulk insert to speed up
             if (!empty($insertData)) {
                 StoreReceivingInventoryItemModel::insert($insertData);
+                Http::post(env('MGIOS_URL') . '/store-inventory-data/update/' . $consolidatedOrderId);
             }
 
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
             DB::rollBack();
-            \Log::info($exception);
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
