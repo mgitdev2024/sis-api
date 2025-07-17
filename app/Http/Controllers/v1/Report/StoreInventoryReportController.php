@@ -45,7 +45,7 @@ class StoreInventoryReportController extends Controller
                 $itemCode = $inventory->item_code;
                 $storeCode = $inventory->store_code;
                 $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
-                $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode);
+                $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
                 $deliveryTransferCount = $this->onGetDeliveryTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $firstDelivery = $deliveryTransferCount['1D'] ?? 0;

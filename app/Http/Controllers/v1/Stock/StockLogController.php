@@ -27,13 +27,13 @@ class StockLogController extends Controller
 
             }
             $stockLogModel = $stockLogModel->orderBy('id', 'DESC')
-                ->get()
-                ->map(function ($log) {
-                    $log->formatted_created_at = Carbon::parse($log->created_at)
-                        ->timezone('Asia/Manila')
-                        ->format('Y-m-d h:i:a');
-                    return $log;
-                });
+                ->get();
+            // ->map(function ($log) {
+            //     $log->formatted_created_at = Carbon::parse($log->created_at)
+            //         ->timezone('Asia/Manila')
+            //         ->format('Y-m-d h:i:a');
+            //     return $log;
+            // });
 
             if (count($stockLogModel) <= 0) {
                 return $this->dataResponse('error', 200, __('msg.record_not_found'));
