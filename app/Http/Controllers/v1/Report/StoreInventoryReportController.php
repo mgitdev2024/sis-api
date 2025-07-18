@@ -1,0 +1,263 @@
+<?php
+
+namespace App\Http\Controllers\v1\Report;
+
+use App\Http\Controllers\Controller;
+use App\Models\Stock\StockConversionModel;
+use App\Models\Stock\StockInventoryModel;
+use App\Models\Stock\StockLogModel;
+use App\Models\Stock\StockOutModel;
+use App\Models\Stock\StockTransferModel;
+use App\Models\Store\StoreReceivingInventoryItemModel;
+use App\Traits\ResponseTrait;
+use Illuminate\Http\Request;
+use Exception;
+
+class StoreInventoryReportController extends Controller
+{
+    use ResponseTrait;
+    public function onGenerateDailyMovementReport(Request $request)
+    {
+        try {
+            $storeCode = $request->store_code ?? null;
+            $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
+            $transactionDate = $request->transaction_date ?? null; // Expected format: 'YYYY-MM-DD'
+            $isReceived = $request->is_received ?? null; // Expected values: 0 (Pending), 1 (Received) For store receiving
+
+            $storeInventoryModel = StockInventoryModel::select([
+                'store_code',
+                'store_sub_unit_short_name',
+                'item_code',
+                'item_description',
+                'item_category_name',
+            ]);
+            if ($storeCode) {
+                $storeInventoryModel->where('store_code', $storeCode);
+            }
+            if ($storeSubUnitShortName) {
+                $storeInventoryModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+
+            $storeInventoryModel = $storeInventoryModel->get();
+
+            $reportData = [];
+            $convertInData = [];
+            foreach ($storeInventoryModel as $inventory) {
+                $itemCode = $inventory->item_code;
+                $storeCode = $inventory->store_code;
+                $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
+                $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+
+                $deliveryTransferCount = $this->onGetDeliveryTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $firstDelivery = $deliveryTransferCount['1D'] ?? 0;
+                $secondDelivery = $deliveryTransferCount['2D'] ?? 0;
+                $thirdDelivery = $deliveryTransferCount['3D'] ?? 0;
+                $transactionIn = $deliveryTransferCount['store_transfer_in'] ?? 0;
+
+                $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $transactionOut = $storeTransferOutCount['store_transfer_out'] ?? 0;
+                $pulledOut = $storeTransferOutCount['pullout'] ?? 0;
+
+                $stockConversionCount = $this->onGetConvertedStockCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $convertOut = $stockConversionCount['convert_out'] ?? 0;
+                $convertIn = $stockConversionCount['convert_in'] ?? [];
+                if (count($convertIn) > 0) {
+                    $convertInData = array_merge($convertInData, $convertIn);
+                }
+
+                $stockOutCount = $this->onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+
+                $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
+                $actualCount = StockLogModel::onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'item_code' => $itemCode,
+                    'item_description' => $inventory->item_description,
+                    'item_category_name' => $inventory->item_category_name,
+                    'beginning_stock' => $beginningStock,
+                    'first_delivery' => $firstDelivery,
+                    'second_delivery' => $secondDelivery,
+                    'third_delivery' => $thirdDelivery,
+                    't1' => $t1,
+                    'transaction_in' => $transactionIn,
+                    'transaction_out' => $transactionOut,
+                    'pulled_out' => $pulledOut,
+                    'convert_out' => $convertOut,
+                    'convert_in' => 0,
+                    'sold' => $stockOutCount,
+                    'food_charge' => 0,
+                    'running_balance' => 0,
+                    'actual_count' => $actualCount,
+                    'variance' => 0,
+                ];
+            }
+
+            foreach ($reportData as $key => &$data) {
+                $data['convert_in'] += $convertInData[$key]['quantity'] ?? 0;
+
+                $t2 = $data['t1'] + $data['transaction_in'] - $data['transaction_out'] - $data['pulled_out'] - $data['convert_out'] + $data['convert_in'];
+                $data['t2'] = $t2;
+
+                $runningBalance = $t2 - $data['sold'] - $data['food_charge'];
+                $data['running_balance'] = $runningBalance;
+                $data['variance'] = $data['actual_count'] - $data['running_balance'];
+            }
+            unset($data);
+            return $this->dataResponse('success', 200, __('msg.record_found'), array_values($reportData));
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+
+    public function onGetDeliveryTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $deliveryTransferCount = [
+                '1D' => 0,
+                '2D' => 0,
+                '3D' => 0,
+                'store_transfer_in' => 0,
+            ];
+
+            $storeReceivingInventoryItemModel = StoreReceivingInventoryItemModel::select([
+                'delivery_type',
+                'reference_number',
+                'is_received',
+                'received_quantity'
+            ])->where([
+                        'item_code' => $itemCode,
+                        'store_code' => $storeCode,
+                    ])->whereDate('created_at', $transactionDate);
+            if ($storeSubUnitShortName) {
+                $storeReceivingInventoryItemModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $storeReceivingInventoryItemModel = $storeReceivingInventoryItemModel->get();
+
+            $referenceCodeArray = ['ST', 'SWS'];
+            foreach ($storeReceivingInventoryItemModel as $delivery) {
+                switch ($delivery->delivery_type) {
+                    case '1D':
+                        $deliveryTransferCount['1D'] += $delivery->received_quantity;
+                        break;
+                    case '2D':
+                        $deliveryTransferCount['2D'] += $delivery->received_quantity;
+                        break;
+                    case '3D':
+                        $deliveryTransferCount['3D'] += $delivery->received_quantity;
+                        break;
+                }
+                $referenceNumber = explode('-', $delivery->reference_number);
+                $referenceCode = $referenceNumber[0] ?? null;
+                if (in_array($referenceCode, $referenceCodeArray) && $delivery->is_received) {
+                    $deliveryTransferCount['store_transfer_in'] += $delivery->received_quantity;
+                }
+            }
+
+            return $deliveryTransferCount;
+        } catch (Exception $e) {
+            throw new Exception('Error fetching delivery count: ' . $e->getMessage());
+        }
+
+    }
+
+    public function onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $stockTransferCount = [
+                'store_transfer_out' => 0,
+                'pullout' => 0,
+            ];
+
+            $stockTransferModel = StockTransferModel::where([
+                'store_code' => $storeCode,
+            ])
+                ->whereNotIn('status', [0, 1]) // Exclude cancelled transfers
+                ->whereDate('created_at', $transactionDate);
+            if ($storeSubUnitShortName) {
+                $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockTransferModel = $stockTransferModel->get();
+
+            foreach ($stockTransferModel as $transfer) {
+                $filteredItems = $transfer->stockTransferItems->where('item_code', $itemCode);
+                if ($filteredItems->isEmpty()) {
+                    continue; // Skip if no items match the item code
+                }
+
+                switch ($transfer->transfer_type) {
+                    case 0: // Store Transfer
+                        $stockTransferCount['store_transfer_out'] += $filteredItems->sum('quantity');
+                        break;
+                    case 1: // Pull Out
+                        $stockTransferCount['pullout'] += $filteredItems->sum('quantity');
+                        break;
+                }
+            }
+            return $stockTransferCount;
+        } catch (Exception $e) {
+            throw new Exception('Error fetching stock transfer count: ' . $e->getMessage());
+        }
+    }
+
+    public function onGetConvertedStockCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $convertedStockCount = [
+                'convert_in' => [],
+                'convert_out' => 0,
+            ];
+
+            $stockConversionModel = StockConversionModel::where([
+                'item_code' => $itemCode,
+                'store_code' => $storeCode,
+            ])->whereDate('created_at', $transactionDate);
+            if ($storeSubUnitShortName) {
+                $stockConversionModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockConversionModel = $stockConversionModel->get();
+
+            foreach ($stockConversionModel as $conversion) {
+                $convertedStockCount['convert_out'] += $conversion->quantity;
+                foreach ($conversion->stockConversionItems as $conversionItem) {
+                    if (!isset($convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"])) {
+                        $convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"] = [];
+                    }
+
+                    $convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"] = [
+                        'item_code' => $conversionItem->item_code,
+                        'quantity' => $conversionItem->converted_quantity,
+                    ];
+
+                }
+            }
+            return $convertedStockCount;
+        } catch (Exception $e) {
+            throw new Exception('Error fetching converted stock count: ' . $e->getMessage());
+        }
+    }
+
+    public function onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $stockOutCount = 0;
+            $stockOutModel = StockOutModel::where([
+                'store_code' => $storeCode,
+            ])->whereDate('created_at', $transactionDate);
+            if ($storeSubUnitShortName) {
+                $stockOutModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockOutModel = $stockOutModel->get();
+
+            foreach ($stockOutModel as $stockOut) {
+                $stockOut->stockOutItems->where('item_code', $itemCode)->each(function ($stockOutItem) use (&$stockOutCount) {
+                    $stockOutCount += $stockOutItem->quantity;
+                });
+            }
+
+            return $stockOutCount;
+        } catch (Exception $e) {
+            throw new Exception('Error fetching stock out count: ' . $e->getMessage());
+        }
+    }
+}

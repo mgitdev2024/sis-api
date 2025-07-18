@@ -2,6 +2,7 @@
 
 namespace App\Models\Stock;
 
+use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,9 +16,13 @@ class StockTransferModel extends Model
         'transfer_type_label',
         'transportation_type_label',
         'status_label',
+        'created_by_name_label',
+        'formatted_store_name_label',
         'formatted_store_received_at_label',
         'formatted_store_received_by_label',
         'formatted_warehouse_received_at_label',
+        'formatted_created_at_report_label',
+        'formatted_logistics_picked_up_at_report_label',
     ];
     protected $fillable = [
         'reference_number',
@@ -45,7 +50,7 @@ class StockTransferModel extends Model
     /**
      * Relationships
      */
-    public function StockTransferItems()
+    public function stockTransferItems()
     {
         return $this->hasMany(StockTransferItemModel::class, 'stock_transfer_id', 'id');
     }
@@ -119,5 +124,30 @@ class StockTransferModel extends Model
     public function getFormattedWarehouseReceivedAtLabelAttribute()
     {
         return $this->warehouse_received_at ? date('F j, Y h:i A', strtotime($this->warehouse_received_at)) : null;
+    }
+
+    public function getFormattedCreatedAtReportLabelAttribute()
+    {
+        return $this->created_at ? date('Y-m-d h:i A', strtotime($this->created_at)) : null;
+    }
+
+    public function getCreatedByNameLabelAttribute()
+    {
+        $userModel = User::where('employee_id', $this->created_by_id)->first();
+
+        return $userModel ? "$userModel->first_name $userModel->last_name" : 'Unknown';
+    }
+
+    public function getFormattedStoreNameLabelAttribute()
+    {
+        $storeReceivingInventoryModel = StoreReceivingInventoryItemModel::select('store_name')->where('store_code', $this->store_code)
+            ->orderBy('id', 'DESC')
+            ->first();
+        return $storeReceivingInventoryModel ? $storeReceivingInventoryModel->store_name : null;
+    }
+
+    public function getFormattedLogisticsPickedUpAtReportLabelAttribute()
+    {
+        return $this->logistics_picked_up_at ? date('Y-m-d h:i A', strtotime($this->logistics_picked_up_at)) : null;
     }
 }

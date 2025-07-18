@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Traits\Stock;
+use App\Models\Stock\StockConversionItemModel;
+use App\Models\Stock\StockConversionModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockReceivedItemModel;
@@ -178,10 +180,24 @@ trait StockTrait
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
-
+            $this->onCreateAutoConversion(
+                $storeCode,
+                $storeSubUnitShortName,
+                $itemCode,
+                $itemDescription,
+                $itemCategoryName,
+                $apiResponse['converted_item_code'] ?? '',
+                $apiResponse['converted_item_description'] ?? '',
+                $apiResponse['converted_item_category_name'] ?? '',
+                $itemQuantityCount,
+                $apiResponse['converted_quantity'] ?? 0,
+                $createdById
+            );
             $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
             $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
             $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+
+
         }
 
         $stockInventoryModel = StockInventoryModel::where([
@@ -268,6 +284,49 @@ trait StockTrait
             }
 
 
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCreateAutoConversion(
+        $storeCode,
+        $storeSubUnitShortName,
+        $baseItemCode,
+        $baseItemDescription,
+        $baseItemCategoryName,
+        $convertedItemCode,
+        $convertedItemDescription,
+        $convertedItemCategoryName,
+        $quantity,
+        $convertedQuantity,
+        $createdById
+    ) {
+        try {
+            $referenceNumber = StockConversionModel::onGenerateReferenceNumber();
+            $stockConversionModel = StockConversionModel::create([
+                'reference_number' => $referenceNumber,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'batch_code' => null,
+                'item_code' => $baseItemCode,
+                'item_description' => $baseItemDescription,
+                'item_category_name' => $baseItemCategoryName,
+                'quantity' => $convertedQuantity,
+                'type' => 0, // 0 = Automatic, 1 = Manual
+                'created_by_id' => $createdById,
+            ]);
+            $stockConversionId = $stockConversionModel->id;
+
+            StockConversionItemModel::insert([
+                'stock_conversion_id' => $stockConversionId,
+                'item_code' => $convertedItemCode,
+                'item_description' => $convertedItemDescription,
+                'item_category_name' => $convertedItemCategoryName,
+                'quantity' => $quantity,
+                'converted_quantity' => $convertedQuantity,
+                'created_by_id' => $createdById,
+            ]);
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }

@@ -2,6 +2,7 @@
 
 namespace App\Models\Stock;
 
+use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,9 @@ class StockOutModel extends Model
     use HasFactory;
     protected $table = 'stock_outs';
     protected $appends = [
+        'formatted_store_name_label',
         'formatted_stock_out_date_label',
+        'formatted_stock_out_date_report_label',
         'formatted_created_by_label'
     ];
 
@@ -53,5 +56,20 @@ class StockOutModel extends Model
             return $userModel->first_name . ' ' . $userModel->last_name;
         }
         return null;
+    }
+
+    public function getFormattedStockOutDateReportLabelAttribute()
+    {
+        return $this->stock_out_date
+            ? \Carbon\Carbon::parse($this->stock_out_date)->format('Y-m-d h:i A')
+            : null;
+    }
+
+    public function getFormattedStoreNameLabelAttribute()
+    {
+        $storeReceivingInventoryModel = StoreReceivingInventoryItemModel::select('store_name')->where('store_code', $this->store_code)
+            ->orderBy('id', 'DESC')
+            ->first();
+        return $storeReceivingInventoryModel ? $storeReceivingInventoryModel->store_name : null;
     }
 }
