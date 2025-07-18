@@ -12,7 +12,7 @@ class StockConversionModel extends Model
     protected $table = 'stock_conversions';
 
     protected $appends = [
-        'store_name_label',
+        'formatted_store_name_label',
         'created_by_name_label',
         'formatted_created_at_label',
     ];
@@ -46,7 +46,7 @@ class StockConversionModel extends Model
         return $this->hasMany(StockConversionItemModel::class, 'stock_conversion_id');
     }
 
-    public function getStoreNameLabelAttribute()
+    public function getFormattedStoreNameLabelAttribute()
     {
         $storeReceivingInventoryModel = StoreReceivingInventoryItemModel::select('store_name')->where('store_code', $this->store_code)
             ->orderBy('id', 'DESC')
