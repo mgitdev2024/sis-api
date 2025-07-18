@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Stock\StockConversionModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
+use App\Models\Stock\StockOutModel;
 use App\Models\Stock\StockTransferModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
@@ -61,10 +62,14 @@ class StoreInventoryReportController extends Controller
                 $convertOut = $stockConversionCount['convert_out'] ?? 0;
                 $convertIn = $stockConversionCount['convert_in'] ?? [];
                 if (count($convertIn) > 0) {
-                    array_merge($convertInData, $stockConversionCount['convert_in']);
+                    $convertInData = array_merge($convertInData, $convertIn);
                 }
 
-                $reportData[$itemCode] = [
+                $stockOutCount = $this->onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+
+                $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
+                $actualCount = StockLogModel::onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'store_code' => $storeCode,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
@@ -74,14 +79,32 @@ class StoreInventoryReportController extends Controller
                     'first_delivery' => $firstDelivery,
                     'second_delivery' => $secondDelivery,
                     'third_delivery' => $thirdDelivery,
+                    't1' => $t1,
                     'transaction_in' => $transactionIn,
                     'transaction_out' => $transactionOut,
                     'pulled_out' => $pulledOut,
                     'convert_out' => $convertOut,
                     'convert_in' => 0,
+                    'sold' => $stockOutCount,
+                    'food_charge' => 0,
+                    'running_balance' => 0,
+                    'actual_count' => $actualCount,
+                    'variance' => 0,
                 ];
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $reportData);
+
+            foreach ($reportData as $key => &$data) {
+                $data['convert_in'] += $convertInData[$key]['quantity'] ?? 0;
+
+                $t2 = $data['t1'] + $data['transaction_in'] - $data['transaction_out'] - $data['pulled_out'] - $data['convert_out'] + $data['convert_in'];
+                $data['t2'] = $t2;
+
+                $runningBalance = $t2 - $data['sold'] - $data['food_charge'];
+                $data['running_balance'] = $runningBalance;
+                $data['variance'] = $data['actual_count'] - $data['running_balance'];
+            }
+            unset($data);
+            return $this->dataResponse('success', 200, __('msg.record_found'), array_values($reportData));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
@@ -127,7 +150,7 @@ class StoreInventoryReportController extends Controller
                 $referenceNumber = explode('-', $delivery->reference_number);
                 $referenceCode = $referenceNumber[0] ?? null;
                 if (in_array($referenceCode, $referenceCodeArray) && $delivery->is_received) {
-                    $deliveryTransferCount['store_transfer_in']++;
+                    $deliveryTransferCount['store_transfer_in'] += $delivery->received_quantity;
                 }
             }
 
@@ -146,11 +169,9 @@ class StoreInventoryReportController extends Controller
                 'pullout' => 0,
             ];
 
-            $stockTransferModel = StockTransferModel::select([
-                'transfer_type',
-            ])->where([
-                        'store_code' => $storeCode,
-                    ])
+            $stockTransferModel = StockTransferModel::where([
+                'store_code' => $storeCode,
+            ])
                 ->whereNotIn('status', [0, 1]) // Exclude cancelled transfers
                 ->whereDate('created_at', $transactionDate);
             if ($storeSubUnitShortName) {
@@ -199,19 +220,44 @@ class StoreInventoryReportController extends Controller
             foreach ($stockConversionModel as $conversion) {
                 $convertedStockCount['convert_out'] += $conversion->quantity;
                 foreach ($conversion->stockConversionItems as $conversionItem) {
-                    if (!isset($convertedStockCount['convert_in'][$storeCode])) {
-                        $convertedStockCount['convert_in'][$storeCode] = [];
+                    if (!isset($convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"])) {
+                        $convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"] = [];
                     }
 
-                    $convertedStockCount['convert_in'][$storeCode][] = [
+                    $convertedStockCount['convert_in']["$conversionItem->item_code|$storeCode|$storeSubUnitShortName"] = [
                         'item_code' => $conversionItem->item_code,
-                        'quantity' => $conversionItem->quantity,
+                        'quantity' => $conversionItem->converted_quantity,
                     ];
+
                 }
             }
             return $convertedStockCount;
         } catch (Exception $e) {
             throw new Exception('Error fetching converted stock count: ' . $e->getMessage());
+        }
+    }
+
+    public function onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $stockOutCount = 0;
+            $stockOutModel = StockOutModel::where([
+                'store_code' => $storeCode,
+            ])->whereDate('created_at', $transactionDate);
+            if ($storeSubUnitShortName) {
+                $stockOutModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockOutModel = $stockOutModel->get();
+
+            foreach ($stockOutModel as $stockOut) {
+                $stockOut->stockOutItems->where('item_code', $itemCode)->each(function ($stockOutItem) use (&$stockOutCount) {
+                    $stockOutCount += $stockOutItem->quantity;
+                });
+            }
+
+            return $stockOutCount;
+        } catch (Exception $e) {
+            throw new Exception('Error fetching stock out count: ' . $e->getMessage());
         }
     }
 }

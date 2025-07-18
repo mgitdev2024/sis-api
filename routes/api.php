@@ -25,7 +25,7 @@ Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\Stoc
 Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/store/receive-inventory/delivery-receiving', [App\Http\Controllers\v1\Report\StoreReceivingReportController::class, 'onGenerateDeliveryReceivingReport']);
     Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StoreInventoryReportController::class, 'onGenerateDailyMovementReport']);
-
+    Route::post('/reports/stock/conversion/daily', [App\Http\Controllers\v1\Report\StockConversionReportController::class, 'onGenerateDailyReport']);
 });
 
 

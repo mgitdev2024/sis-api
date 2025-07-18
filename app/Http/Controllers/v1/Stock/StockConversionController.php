@@ -44,6 +44,7 @@ class StockConversionController extends Controller
                 'item_description' => $stockInventoryModel->item_description,
                 'item_category_name' => $stockInventoryModel->item_category_name,
                 'quantity' => $convertedQuantity,
+                'type' => 1, // 0 = Automatic, 1 = Manual
                 'created_by_id' => $createdById,
             ]);
             $stockConversionId = $stockConversionModel->id;
