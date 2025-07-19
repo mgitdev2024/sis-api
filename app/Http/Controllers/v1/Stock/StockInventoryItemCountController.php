@@ -90,7 +90,7 @@ class StockInventoryItemCountController extends Controller
             $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
             if ($stockInventoryCountModel) {
                 $stockInventoryCountModel->update([
-                    'status' => 2, // For Review
+                    'status' => 2, // Post
                     'updated_by_id' => $createdById,
                 ]);
             }

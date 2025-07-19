@@ -25,6 +25,7 @@ class StoreInventoryReportController extends Controller
             $isReceived = $request->is_received ?? null; // Expected values: 0 (Pending), 1 (Received) For store receiving
 
             $storeInventoryModel = StockInventoryModel::select([
+                'id',
                 'store_code',
                 'store_sub_unit_short_name',
                 'item_code',
@@ -70,6 +71,7 @@ class StoreInventoryReportController extends Controller
                 $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
                 $actualCount = StockLogModel::onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
+                    'id' => $inventory->id,
                     'store_code' => $storeCode,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
