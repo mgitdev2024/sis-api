@@ -40,7 +40,7 @@ class StockConversionReportController extends Controller
 
                 $item->stockConversionItems->each(function ($conversionItem) use (&$reportData, $item) {
                     $reportData[] = [
-                        'id' => $item->id,
+                        'id' => $conversionItem->id,
                         'reference_number' => $item['reference_number'],
                         'store_code' => $item['store_code'],
                         'store_name' => $item['formatted_store_name_label'],
