@@ -23,6 +23,7 @@ class StoreReceivingReportController extends Controller
             $status = $request->status ?? null; // Expected values: 0 (Pending), 1 (Complete)
 
             $storeReceivingInventoryItems = StoreReceivingInventoryItemModel::select([
+                'id',
                 'store_code',
                 'store_name',
                 'store_sub_unit_short_name',
@@ -86,6 +87,7 @@ class StoreReceivingReportController extends Controller
                 }
 
                 $reportData[] = [
+                    'id' => $item['id'],
                     'dr_no' => $orderSessionId,
                     'delivery_date' => $deliveryDate,
                     'store_code' => $storeCode,
