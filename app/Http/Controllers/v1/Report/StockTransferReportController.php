@@ -59,6 +59,7 @@ class StockTransferReportController extends Controller
             foreach ($stockTransferModel as $item) {
                 $item->stockTransferItems->each(function ($transferItem) use (&$reportData, $item) {
                     $reportData[] = [
+                        'id' => $item->id,
                         'reference_number' => $item['reference_number'],
                         'transferred_by' => $item['created_by_name_label'] ?? null,
                         'date_created' => $item['formatted_created_at_label'] ?? null,
