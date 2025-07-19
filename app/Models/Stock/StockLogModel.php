@@ -47,10 +47,27 @@ class StockLogModel extends Model
             }
             $stockLogModel = $stockLogModel->whereDate('created_at', $transactionDate)
                 ->orderBy('id', 'DESC')->first();
-            if ($itemCode == "CR PCS") {
-                dd($stockLogModel);
-
+            if ($stockLogModel) {
+                return $stockLogModel->final_stock;
             }
+            return 0;
+        } catch (Exception $exception) {
+            return 0;
+        }
+    }
+
+    public static function onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $stockLogModel = self::where([
+                'item_code' => $itemCode,
+                'store_code' => $storeCode,
+            ]);
+            if ($storeSubUnitShortName) {
+                $stockLogModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockLogModel = $stockLogModel->whereDate('created_at', $transactionDate)
+                ->orderBy('id', 'DESC')->first();
             if ($stockLogModel) {
                 return $stockLogModel->final_stock;
             }
