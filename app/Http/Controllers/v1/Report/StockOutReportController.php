@@ -29,9 +29,9 @@ class StockOutReportController extends Controller
                 $stockOutModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockOutModel->whereBetween('delivery_date', [$deliveryDateFrom, $deliveryDateTo]);
+                $stockOutModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
             } else if ($deliveryDateFrom) {
-                $stockOutModel->whereDate('delivery_date', $deliveryDateFrom);
+                $stockOutModel->whereDate('created_at', $deliveryDateFrom);
             }
             $stockOutModel = $stockOutModel->orderBy('reference_number', 'ASC')->get();
 

@@ -29,9 +29,9 @@ class StockConversionReportController extends Controller
                 $stockConversionModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockConversionModel->whereBetween('delivery_date', [$deliveryDateFrom, $deliveryDateTo]);
+                $stockConversionModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
             } else if ($deliveryDateFrom) {
-                $stockConversionModel->whereDate('delivery_date', $deliveryDateFrom);
+                $stockConversionModel->whereDate('created_at', $deliveryDateFrom);
             }
             $stockConversionModel = $stockConversionModel->orderBy('reference_number', 'ASC')->get();
 
