@@ -14,24 +14,29 @@ class StockOutReportController extends Controller
     public function onGenerateDailyReport(Request $request)
     {
         try {
-            $storeCode = $request->store_code ?? null;
+            $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
-            $deliveryDateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
-            $deliveryDateExplode = $deliveryDateRange != null ? explode('to', str_replace(' ', '', $deliveryDateRange)) : null;
-            $deliveryDateFrom = isset($deliveryDateExplode[0]) ? date('Y-m-d', strtotime($deliveryDateExplode[0])) : null;
-            $deliveryDateTo = isset($deliveryDateExplode[1]) ? date('Y-m-d', strtotime($deliveryDateExplode[1])) : null;
+            $stockOutDateRange = $request->stock_out_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $dateRangeExplode = $stockOutDateRange != null ? explode('to', str_replace(' ', '', $stockOutDateRange)) : null;
+            $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
+            $dateTo = isset($dateRangeExplode[1]) ? date('Y-m-d', strtotime($dateRangeExplode[1])) : null;
+            $referenceNumber = $request->reference_number ?? null;
 
             $stockOutModel = StockOutModel::query();
             if ($storeCode) {
-                $stockOutModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $stockOutModel->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $stockOutModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockOutModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
-            } else if ($deliveryDateFrom) {
-                $stockOutModel->whereDate('created_at', $deliveryDateFrom);
+            if ($dateFrom && $dateTo) {
+                $stockOutModel->whereBetween('created_at', [$dateFrom, $dateTo]);
+            } else if ($dateFrom) {
+                $stockOutModel->whereDate('created_at', $dateFrom);
+            }
+            if ($referenceNumber) {
+                $stockOutModel->where('reference_number', $referenceNumber);
             }
             $stockOutModel = $stockOutModel->orderBy('reference_number', 'ASC')->get();
 

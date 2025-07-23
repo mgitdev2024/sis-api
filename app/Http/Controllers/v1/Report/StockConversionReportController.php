@@ -14,24 +14,25 @@ class StockConversionReportController extends Controller
     public function onGenerateDailyReport(Request $request)
     {
         try {
-            $storeCode = $request->store_code ?? null;
+            $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
-            $deliveryDateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
-            $deliveryDateExplode = $deliveryDateRange != null ? explode('to', str_replace(' ', '', $deliveryDateRange)) : null;
-            $deliveryDateFrom = isset($deliveryDateExplode[0]) ? date('Y-m-d', strtotime($deliveryDateExplode[0])) : null;
-            $deliveryDateTo = isset($deliveryDateExplode[1]) ? date('Y-m-d', strtotime($deliveryDateExplode[1])) : null;
+            $conversionDateRange = $request->conversion_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $dateExplode = $conversionDateRange != null ? explode('to', str_replace(' ', '', $conversionDateRange)) : null;
+            $dateFrom = isset($dateExplode[0]) ? date('Y-m-d', strtotime($dateExplode[0])) : null;
+            $dateTo = isset($dateExplode[1]) ? date('Y-m-d', strtotime($dateExplode[1])) : null;
 
             $stockConversionModel = StockConversionModel::query();
             if ($storeCode) {
-                $stockConversionModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $stockConversionModel->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $stockConversionModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockConversionModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
-            } else if ($deliveryDateFrom) {
-                $stockConversionModel->whereDate('created_at', $deliveryDateFrom);
+            if ($dateFrom && $dateTo) {
+                $stockConversionModel->whereBetween('created_at', [$dateFrom, $dateTo]);
+            } else if ($dateFrom) {
+                $stockConversionModel->whereDate('created_at', $dateFrom);
             }
             $stockConversionModel = $stockConversionModel->orderBy('reference_number', 'ASC')->get();
 
