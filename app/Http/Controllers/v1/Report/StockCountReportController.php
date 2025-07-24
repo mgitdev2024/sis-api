@@ -40,9 +40,9 @@ class StockCountReportController extends Controller
                 $stockCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockCountModel->whereBetween('delivery_date', [$deliveryDateFrom, $deliveryDateTo]);
+                $stockCountModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
             } else if ($deliveryDateFrom) {
-                $stockCountModel->whereDate('delivery_date', $deliveryDateFrom);
+                $stockCountModel->whereDate('created_at', $deliveryDateFrom);
             }
             if ($status) {
                 $stockCountModel->where('status', $status);

@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +31,6 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/stock/out/daily', [App\Http\Controllers\v1\Report\StockOutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
-
 });
 
 

@@ -14,14 +14,16 @@ class StoreReceivingReportController extends Controller
     public function onGenerateDeliveryReceivingReport(Request $request)
     {
         try {
-            $storeCode = $request->store_code ?? null;
+            $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
-            $deliveryDateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
-            $deliveryDateExplode = $deliveryDateRange != null ? explode('to', str_replace(' ', '', $deliveryDateRange)) : null;
-            $deliveryDateFrom = isset($deliveryDateExplode[0]) ? date('Y-m-d', strtotime($deliveryDateExplode[0])) : null;
-            $deliveryDateTo = isset($deliveryDateExplode[1]) ? date('Y-m-d', strtotime($deliveryDateExplode[1])) : null;
-            $status = $request->status ?? null; // Expected values: 0 (Pending), 1 (Complete)
-
+            $receivedAtRange = $request->received_at_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $dateExplode = $receivedAtRange != null ? explode('to', str_replace(' ', '', $receivedAtRange)) : null;
+            $dateFrom = isset($dateExplode[0]) ? date('Y-m-d', strtotime($dateExplode[0])) : null;
+            $dateTo = isset($dateExplode[1]) ? date('Y-m-d', strtotime($dateExplode[1])) : null;
+            $drNumber = $request->dr_number ?? null;
+            $orderType = $request->order_type ?? null; // Expected values: 0 (Regular), 1 (Special), 2 (Fan-out) [0,1,2]
+            $receivingType = $request->receiving_type ?? null; // Expected values: 0 (Scan), 1 (Manual) [0,1]
+            $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null;
             $storeReceivingInventoryItems = StoreReceivingInventoryItemModel::select([
                 'id',
                 'store_code',
@@ -38,23 +40,32 @@ class StoreReceivingReportController extends Controller
                 'allocated_quantity',
                 'received_quantity',
                 'receive_type',
-                'completed_by_id',
-                'completed_at',
+                'received_by_id',
+                'received_at',
                 'status'
             ]);
             if ($storeCode) {
-                $storeReceivingInventoryItems->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $storeReceivingInventoryItems->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $storeReceivingInventoryItems->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($deliveryDateFrom && $deliveryDateTo) {
-                $storeReceivingInventoryItems->whereBetween('delivery_date', [$deliveryDateFrom, $deliveryDateTo]);
-            } else if ($deliveryDateFrom) {
-                $storeReceivingInventoryItems->whereDate('delivery_date', $deliveryDateFrom);
+            if ($dateFrom && $dateTo) {
+                $storeReceivingInventoryItems->whereBetween('received_at', [$dateFrom, $dateTo]);
+            } else if ($dateFrom) {
+                $storeReceivingInventoryItems->whereDate('received_at', $dateFrom);
             }
-            if ($status) {
-                $storeReceivingInventoryItems->where('status', $status);
+            if ($drNumber) {
+                $storeReceivingInventoryItems->where('order_session_id', $drNumber);
+            }
+            if ($orderType) {
+                $orderType = json_decode($orderType);
+                $storeReceivingInventoryItems->whereIn('order_type', $orderType);
+            }
+            if ($receivingType) {
+                $receivingType = json_decode($receivingType);
+                $storeReceivingInventoryItems->whereIn('receive_type', $receivingType);
             }
             $storeReceivingInventoryItems = $storeReceivingInventoryItems->orderBy('order_quantity', 'DESC')->get();
 
@@ -72,9 +83,9 @@ class StoreReceivingReportController extends Controller
                 $allocatedQuantity = $item['allocated_quantity'] ?? null;
                 $receivedQuantity = $item['received_quantity'] ?? null;
                 $receiveType = $item['receive_type_label'] ?? null;
-                $completedById = $item['completed_by_label'] ?? null;
-                $completedAt = $item['completed_at_label'] ?? null;
-                $deliveryDate = $item['delivery_date_label'] ?? null;
+                $receivedBy = $item['formatted_received_by_label'] ?? null;
+                $receivedAt = $item['formatted_received_at_label'] ?? null;
+                $deliveryDate = $item['formatted_delivery_date_label'] ?? null;
                 $remarks = null;
                 $variance = intval($receivedQuantity) - intval($allocatedQuantity);
 
@@ -82,10 +93,15 @@ class StoreReceivingReportController extends Controller
                     $remarks = 'Short';
                 } else if ($receivedQuantity > $allocatedQuantity) {
                     $remarks = 'Over';
+                } else if ($orderQuantity <= 0) {
+                    $remarks = 'Unallocated';
                 } else {
                     $remarks = 'Completed';
                 }
 
+                if ($isShowOnlyNonZeroVariance && $variance == 0) {
+                    continue; // Skip items with zero variance if the flag is set
+                }
                 $reportData[] = [
                     'id' => $item['id'],
                     'dr_no' => $orderSessionId,
@@ -101,8 +117,8 @@ class StoreReceivingReportController extends Controller
                     'allocated' => $allocatedQuantity,
                     'received' => $receivedQuantity,
                     'variance' => $variance,
-                    'received_by' => $completedById,
-                    'date_received' => $completedAt,
+                    'received_by' => $receivedBy,
+                    'date_received' => $receivedAt,
                     'receive_type' => $receiveType,
                     'remarks' => $remarks,
                 ];

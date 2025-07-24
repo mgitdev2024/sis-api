@@ -374,6 +374,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 0;
                     $storeInventoryItemModel->is_received = 1;
+                    $storeInventoryItemModel->received_at = now();
+                    $storeInventoryItemModel->received_by_id = $createdById;
                     $storeInventoryItemModel->save();
 
                     // Stock In
@@ -436,6 +438,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'is_received' => 1,
+                    'received_at' => now(),
+                    'received_by_id' => $createdById,
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 0,
@@ -472,6 +476,10 @@ class StoreReceivingInventoryItemController extends Controller
                     $item->updated_at = now();
                     $item->completed_by_id = $createdById;
                     $item->completed_at = now();
+                    if ($item->received_at === null) {
+                        $item->received_at = now();
+                        $item->received_by_id = $createdById;
+                    }
                     $item->save();
                 }
 

@@ -19,10 +19,11 @@ class StoreInventoryReportController extends Controller
     public function onGenerateDailyMovementReport(Request $request)
     {
         try {
-            $storeCode = $request->store_code ?? null;
+            $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
             $transactionDate = $request->transaction_date ?? null; // Expected format: 'YYYY-MM-DD'
-            $isReceived = $request->is_received ?? null; // Expected values: 0 (Pending), 1 (Received) For store receiving
+            $isGroupByItemCategory = $request->is_group_by_item_category ?? null; // Expected values: 0 (false), 1 (true) For store receiving
+            $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
@@ -33,7 +34,8 @@ class StoreInventoryReportController extends Controller
                 'item_category_name',
             ]);
             if ($storeCode) {
-                $storeInventoryModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $storeInventoryModel->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $storeInventoryModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
@@ -103,9 +105,20 @@ class StoreInventoryReportController extends Controller
 
                 $runningBalance = $t2 - $data['sold'] - $data['food_charge'];
                 $data['running_balance'] = $runningBalance;
-                $data['variance'] = $data['actual_count'] - $data['running_balance'];
+
+                $variance = $data['actual_count'] - $data['running_balance'];
+                $data['variance'] = $variance;
+
+                if ($isShowOnlyNonZeroVariance && $variance == 0) {
+                    unset($reportData[$key]);
+                }
             }
             unset($data);
+
+            if ($isGroupByItemCategory) {
+                $reportData = collect($reportData)->sortBy('item_category_name')->toArray();
+            }
+
             return $this->dataResponse('success', 200, __('msg.record_found'), array_values($reportData));
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
@@ -126,11 +139,12 @@ class StoreInventoryReportController extends Controller
                 'delivery_type',
                 'reference_number',
                 'is_received',
-                'received_quantity'
+                'received_quantity',
+                'received_at',
             ])->where([
                         'item_code' => $itemCode,
                         'store_code' => $storeCode,
-                    ])->whereDate('created_at', $transactionDate);
+                    ])->whereDate('received_at', $transactionDate);
             if ($storeSubUnitShortName) {
                 $storeReceivingInventoryItemModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
@@ -175,7 +189,7 @@ class StoreInventoryReportController extends Controller
                 'store_code' => $storeCode,
             ])
                 ->whereNotIn('status', [0, 1]) // Exclude cancelled transfers
-                ->whereDate('created_at', $transactionDate);
+                ->whereDate('logistics_picked_up_at', $transactionDate);
             if ($storeSubUnitShortName) {
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
