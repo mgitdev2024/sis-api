@@ -49,9 +49,9 @@ class StockTransferReportController extends Controller
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockTransferModel->whereBetween('delivery_date', [$deliveryDateFrom, $deliveryDateTo]);
+                $stockTransferModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
             } else if ($deliveryDateFrom) {
-                $stockTransferModel->whereDate('delivery_date', $deliveryDateFrom);
+                $stockTransferModel->whereDate('created_at', $deliveryDateFrom);
             }
             $stockTransferModel = $stockTransferModel->orderBy('id', 'ASC')->get();
 

@@ -17,9 +17,9 @@ class StoreReceivingInventoryItemModel extends Model
         'type_label',
         'receive_type_label',
         'order_type_label',
-        'completed_by_label',
-        'completed_at_label',
-        'delivery_date_label',
+        'formatted_delivery_date_label',
+        'received_by_label',
+        'received_at_label',
     ];
     protected $fillable = [
         'store_receiving_inventory_id',
@@ -54,6 +54,8 @@ class StoreReceivingInventoryItemModel extends Model
         'order_session_id',
         'completed_by_id',
         'completed_at',
+        'received_by_id',
+        'received_at',
     ];
 
     public function storeReceivingInventory()
@@ -91,22 +93,22 @@ class StoreReceivingInventoryItemModel extends Model
         return $orderTypeArr[$this->order_type] ?? null;
     }
 
-    public function getCompletedByLabelAttribute()
+    public function getFormattedReceivedByLabelAttribute()
     {
-        if ($this->completed_by_id) {
-            $user = User::where('employee_id', $this->completed_by_id)->first();
+        if ($this->received_by_id) {
+            $user = User::where('employee_id', $this->received_by_id)->first();
             return $user ? "$user->first_name $user->last_name" : 'Unknown';
         }
         return 'Not Completed';
     }
 
-    public function getCompletedAtLabelAttribute()
+    public function getFormattedReceivedAtLabelAttribute()
     {
-        return $this->completed_at ? Carbon::parse($this->completed_at)->format('M d, Y h:i A') : 'Not Completed';
+        return $this->received_at ? Carbon::parse($this->received_at)->format('Y-m-d h:i A') : 'Not Completed';
     }
 
-    public function getDeliveryDateLabelAttribute()
+    public function getFormattedDeliveryDateLabelAttribute()
     {
-        return $this->delivery_date ? Carbon::parse($this->delivery_date)->format('M d, Y') : 'Not Set';
+        return $this->delivery_date ? Carbon::parse($this->delivery_date)->format('Y-m-d') : 'Not Set';
     }
 }
