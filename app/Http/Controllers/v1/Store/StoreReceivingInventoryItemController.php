@@ -216,7 +216,7 @@ class StoreReceivingInventoryItemController extends Controller
                 'sri.delivery_type',
                 'sri.warehouse_name',
                 'srt.status',
-                DB::raw('MAX(srt.type) as type'),
+                DB::raw('MAX(srt.type) as receive_type'),
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
@@ -238,6 +238,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ->orderBy('srt.delivery_date', 'DESC')
                 ->get()->map(function ($item) {
                     $item->delivery_date = Carbon::parse($item->delivery_date)->format('F d, Y');
+                    $item->setAppends(array_diff($item->getAppends(), ['received_by_label', 'received_at_label']));
                     return $item;
                 });
 
