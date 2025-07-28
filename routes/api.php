@@ -1,5 +1,7 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,10 +21,17 @@ use Illuminate\Support\Facades\Route;
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
 Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 // Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
-
-
 Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onUpdate']);
+
+Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
+    Route::post('/reports/store/receive-inventory/delivery-receiving', [App\Http\Controllers\v1\Report\StoreReceivingReportController::class, 'onGenerateDeliveryReceivingReport']);
+    Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StoreInventoryReportController::class, 'onGenerateDailyMovementReport']);
+    Route::post('/reports/stock/conversion/daily', [App\Http\Controllers\v1\Report\StockConversionReportController::class, 'onGenerateDailyReport']);
+    Route::post('/reports/stock/out/daily', [App\Http\Controllers\v1\Report\StockOutReportController::class, 'onGenerateDailyReport']);
+    Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
+    Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
+});
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {

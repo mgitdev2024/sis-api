@@ -2,6 +2,7 @@
 
 namespace App\Models\Store;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -11,7 +12,15 @@ class StoreReceivingInventoryItemModel extends Model
 
     protected $table = "store_receiving_inventory_items";
 
-    protected $appends = ['status_label', 'type_label', 'receive_type_label', 'order_type_label'];
+    protected $appends = [
+        'status_label',
+        'type_label',
+        'receive_type_label',
+        'order_type_label',
+        'formatted_delivery_date_label',
+        'received_by_label',
+        'received_at_label',
+    ];
     protected $fillable = [
         'store_receiving_inventory_id',
         'reference_number',
@@ -39,7 +48,14 @@ class StoreReceivingInventoryItemModel extends Model
         'created_by_name',
         'created_by_id',
         'updated_by_id',
-        'status'
+        'status',
+
+        // Added Fields
+        'order_session_id',
+        'completed_by_id',
+        'completed_at',
+        'received_by_id',
+        'received_at',
     ];
 
     public function storeReceivingInventory()
@@ -69,11 +85,30 @@ class StoreReceivingInventoryItemModel extends Model
     public function getOrderTypeLabelAttribute()
     {
         $orderTypeArr = [
-            0 => 'Regular Order',
-            1 => 'Special Order',
+            0 => 'Regular',
+            1 => 'Special',
             2 => 'Fan-Out',
         ];
 
         return $orderTypeArr[$this->order_type] ?? null;
+    }
+
+    public function getFormattedReceivedByLabelAttribute()
+    {
+        if ($this->received_by_id) {
+            $user = User::where('employee_id', $this->received_by_id)->first();
+            return $user ? "$user->first_name $user->last_name" : 'Unknown';
+        }
+        return 'Not Completed';
+    }
+
+    public function getFormattedReceivedAtLabelAttribute()
+    {
+        return $this->received_at ? Carbon::parse($this->received_at)->format('Y-m-d h:i A') : 'Not Completed';
+    }
+
+    public function getFormattedDeliveryDateLabelAttribute()
+    {
+        return $this->delivery_date ? Carbon::parse($this->delivery_date)->format('Y-m-d') : 'Not Set';
     }
 }

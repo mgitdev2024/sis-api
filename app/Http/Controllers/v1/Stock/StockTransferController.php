@@ -159,7 +159,7 @@ class StockTransferController extends Controller
             $filepath = null;
             $stockTransferModel = StockTransferModel::findOrFail($id);
             $type = $stockTransferModel->transfer_type; // 0 = Store Transfer, 1 = Pull Out, 2 = Store Warehouse Store
-            $transferItems = json_encode($stockTransferModel->StockTransferItems);
+            $transferItems = json_encode($stockTransferModel->stockTransferItems);
             $transferToStoreCode = $stockTransferModel->location_code;
             $transferToStoreName = $stockTransferModel->location_name;
             $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
@@ -282,7 +282,7 @@ class StockTransferController extends Controller
             $stockTransfer->status = 0; // 0 = Cancelled
             $stockTransfer->save();
 
-            // $stockTransferItems = $stockTransfer->StockTransferItems;
+            // $stockTransferItems = $stockTransfer->stockTransferItems;
             // foreach ($stockTransferItems as $item) {
             //     // Return Stock Quantity if cancelled
             //     $currentStockLogModel = StockLogModel::where([
@@ -350,7 +350,7 @@ class StockTransferController extends Controller
     public function onGetById($id)
     {
         try {
-            $stockTransfer = StockTransferModel::with('StockTransferItems')->find($id);
+            $stockTransfer = StockTransferModel::with('stockTransferItems')->find($id);
             if ($stockTransfer == null) {
                 return $this->dataResponse('error', 200, __('msg.record_not_found'));
 
@@ -386,7 +386,7 @@ class StockTransferController extends Controller
                 $transferToStoreName = $stockTransferModel->location_name;
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
                 $createdById = $stockTransferModel->created_by_id;
-                $transferItems = json_encode($stockTransferModel->StockTransferItems);
+                $transferItems = json_encode($stockTransferModel->stockTransferItems);
                 // Create Store Receiving Inventory
                 $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             }

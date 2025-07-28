@@ -216,7 +216,7 @@ class StoreReceivingInventoryItemController extends Controller
                 'sri.delivery_type',
                 'sri.warehouse_name',
                 'srt.status',
-                DB::raw('MAX(srt.type) as type'),
+                DB::raw('MAX(srt.type) as receive_type'),
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
@@ -238,6 +238,7 @@ class StoreReceivingInventoryItemController extends Controller
                 ->orderBy('srt.delivery_date', 'DESC')
                 ->get()->map(function ($item) {
                     $item->delivery_date = Carbon::parse($item->delivery_date)->format('F d, Y');
+                    $item->setAppends(array_diff($item->getAppends(), ['received_by_label', 'received_at_label']));
                     return $item;
                 });
 
@@ -374,6 +375,8 @@ class StoreReceivingInventoryItemController extends Controller
                     $storeInventoryItemModel->updated_at = now();
                     $storeInventoryItemModel->status = 0;
                     $storeInventoryItemModel->is_received = 1;
+                    $storeInventoryItemModel->received_at = now();
+                    $storeInventoryItemModel->received_by_id = $createdById;
                     $storeInventoryItemModel->save();
 
                     // Stock In
@@ -436,6 +439,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'is_received' => 1,
+                    'received_at' => now(),
+                    'received_by_id' => $createdById,
                     'created_by_id' => $createdById,
                     'created_by_name' => "$firstName $lastName",
                     'status' => 0,
@@ -472,6 +477,10 @@ class StoreReceivingInventoryItemController extends Controller
                     $item->updated_at = now();
                     $item->completed_by_id = $createdById;
                     $item->completed_at = now();
+                    if ($item->received_at === null) {
+                        $item->received_at = now();
+                        $item->received_by_id = $createdById;
+                    }
                     $item->save();
                 }
 
