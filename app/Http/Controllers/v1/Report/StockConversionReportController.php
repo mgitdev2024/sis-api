@@ -17,6 +17,7 @@ class StockConversionReportController extends Controller
             $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
             $conversionDateRange = $request->conversion_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $conversionType = $request->conversion_type ?? null; // Expected format: [0,1] 0 = Automatic, 1 = Manual
             $dateExplode = $conversionDateRange != null ? explode('to', str_replace(' ', '', $conversionDateRange)) : null;
             $dateFrom = isset($dateExplode[0]) ? date('Y-m-d', strtotime($dateExplode[0])) : null;
             $dateTo = isset($dateExplode[1]) ? date('Y-m-d', strtotime($dateExplode[1])) : null;
@@ -33,6 +34,10 @@ class StockConversionReportController extends Controller
                 $stockConversionModel->whereBetween('created_at', [$dateFrom, $dateTo]);
             } else if ($dateFrom) {
                 $stockConversionModel->whereDate('created_at', $dateFrom);
+            }
+            if ($conversionType) {
+                $conversionType = json_decode($conversionType);
+                $stockConversionModel->whereIn('type', $conversionType);
             }
             $stockConversionModel = $stockConversionModel->orderBy('reference_number', 'ASC')->get();
 
