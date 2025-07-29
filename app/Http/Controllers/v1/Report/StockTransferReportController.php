@@ -37,7 +37,7 @@ class StockTransferReportController extends Controller
             $status = $request->status ?? null; // Assuming status is passed as a query parameter
             $referenceNumber = $request->reference_number ?? null;
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null;
-
+            $transportType = $request->transportation_type ?? null; // Expected format: 1, 2, 3 [1 = Logisitics, 2 = Third Party, 3 = Store]
             $stockTransferModel = StockTransferModel::select([
                 'id',
                 'reference_number',
@@ -77,6 +77,10 @@ class StockTransferReportController extends Controller
             }
             if ($referenceNumber) {
                 $stockTransferModel->where('reference_number', $referenceNumber);
+            }
+            if ($transportType) {
+                $transportType = json_decode($transportType);
+                $stockTransferModel->whereIn('transportation_type', $transportType);
             }
             $stockTransferModel = $stockTransferModel->orderBy('id', 'ASC')->get();
 
