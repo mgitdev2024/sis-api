@@ -143,8 +143,9 @@ class StockTransferReportController extends Controller
                         }
                     }
                     $data['received'] = $receivedQuantity;
-                    $data['variance'] = $variance;
                     $variance = $data['received'] - $data['warehouse_receive'];
+                    $data['variance'] = $variance;
+
                     if ($isShowOnlyNonZeroVariance && $variance == 0) {
                         unset($reportData[$key]);
                     }
