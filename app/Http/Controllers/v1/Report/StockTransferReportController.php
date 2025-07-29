@@ -14,13 +14,30 @@ class StockTransferReportController extends Controller
     public function onGenerateDailyReport(Request $request)
     {
         try {
+            // Store Filters
             $storeCode = $request->store_code ?? null;
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
-            $deliveryDateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
-            $deliveryDateExplode = $deliveryDateRange != null ? explode('to', str_replace(' ', '', $deliveryDateRange)) : null;
-            $deliveryDateFrom = isset($deliveryDateExplode[0]) ? date('Y-m-d', strtotime($deliveryDateExplode[0])) : null;
-            $deliveryDateTo = isset($deliveryDateExplode[1]) ? date('Y-m-d', strtotime($deliveryDateExplode[1])) : null;
+            $toStoreCode = $request->to_store_code ?? null;
+
+            // Date Ranges & Type Filters
+            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = scheduled_pickup_date, 2 = actual_pickup_date, 3 = date_receive]
+            $dateRangeArray = [
+                0 => 'created_at',
+                1 => 'pickup_date',
+                2 => 'logistics_picked_up_at',
+                3 => 'store_received_at'
+            ];
+            $dateRangeType = $dateRangeArray[$dateRangeTypeId];
+            $dateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $dateRangeExplode = $dateRange != null ? explode('to', str_replace(' ', '', $dateRange)) : null;
+            $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
+            $dateTo = isset($dateRangeExplode[1]) ? date('Y-m-d', strtotime($dateRangeExplode[1])) : null;
+
+            // Other Filters
             $status = $request->status ?? null; // Assuming status is passed as a query parameter
+            $referenceNumber = $request->reference_number ?? null;
+            $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null;
+
             $stockTransferModel = StockTransferModel::select([
                 'id',
                 'reference_number',
@@ -40,7 +57,12 @@ class StockTransferReportController extends Controller
                 'status'
             ])->whereIn('transfer_type', [0, 2]);
             if ($storeCode) {
-                $stockTransferModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $stockTransferModel->whereIn('store_code', $storeCode);
+            }
+            if ($toStoreCode) {
+                $toStoreCode = json_decode($toStoreCode);
+                $stockTransferModel->whereIn('location_code', $toStoreCode);
             }
             if ($status) {
                 $stockTransferModel->where('status', $status);
@@ -48,10 +70,13 @@ class StockTransferReportController extends Controller
             if ($storeSubUnitShortName) {
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockTransferModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
-            } else if ($deliveryDateFrom) {
-                $stockTransferModel->whereDate('created_at', $deliveryDateFrom);
+            if ($dateFrom && $dateTo) {
+                $stockTransferModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
+            } else if ($dateFrom) {
+                $stockTransferModel->whereDate($dateRangeType, $dateFrom);
+            }
+            if ($referenceNumber) {
+                $stockTransferModel->where('reference_number', $referenceNumber);
             }
             $stockTransferModel = $stockTransferModel->orderBy('id', 'ASC')->get();
 
@@ -88,7 +113,7 @@ class StockTransferReportController extends Controller
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }
 
-            foreach ($reportData as &$data) {
+            foreach ($reportData as $key => &$data) {
                 $referenceNumber = $data['reference_number'];
                 $storeCode = $data['from_store_code'];
                 $storeSubUnitShortName = $data['from_store_sub_unit'] ?? null;
@@ -114,7 +139,11 @@ class StockTransferReportController extends Controller
                         }
                     }
                     $data['received'] = $receivedQuantity;
-                    $data['variance'] = $data['received'] - $data['warehouse_receive'];
+                    $data['variance'] = $variance;
+                    $variance = $data['received'] - $data['warehouse_receive'];
+                    if ($isShowOnlyNonZeroVariance && $variance == 0) {
+                        unset($reportData[$key]);
+                    }
                 }
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $reportData);

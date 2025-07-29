@@ -46,6 +46,8 @@ class StockInventoryItemCountController extends Controller
                 $stockInventoryCountModel->update([
                     'status' => 1, // For Review
                     'updated_by_id' => $createdById,
+                    'reviewed_at' => now(),
+                    'reviewed_by_id' => $createdById
                 ]);
             }
             foreach ($stockInventoryCountData as $item) {
@@ -92,6 +94,8 @@ class StockInventoryItemCountController extends Controller
                 $stockInventoryCountModel->update([
                     'status' => 2, // Post
                     'updated_by_id' => $createdById,
+                    'posted_at' => now(),
+                    'posted_by_id' => $createdById
                 ]);
             }
             $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
