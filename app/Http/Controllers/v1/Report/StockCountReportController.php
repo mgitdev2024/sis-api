@@ -49,7 +49,8 @@ class StockCountReportController extends Controller
                 'status',
             ]);
             if ($storeCode) {
-                $stockCountModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $stockCountModel->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $stockCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
@@ -66,6 +67,7 @@ class StockCountReportController extends Controller
                 $stockCountModel->where('reference_number', $referenceNumber);
             }
             if ($countType) {
+                $countType = json_decode($countType);
                 $stockCountModel->whereIn('type', $countType);
             }
 
