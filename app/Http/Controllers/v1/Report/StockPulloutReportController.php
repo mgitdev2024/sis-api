@@ -20,7 +20,7 @@ class StockPulloutReportController extends Controller
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
 
             // Date Ranges & Type Filters
-            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = scheduled_pickup_date, 2 = actual_pickup_date, 3 = date_receive]
+            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = scheduled_pickup_date, 2 = actual_pickup_date]
             $dateRangeArray = [
                 0 => 'created_at',
                 1 => 'pickup_date',
@@ -79,7 +79,7 @@ class StockPulloutReportController extends Controller
                         'id' => $transferItem->id,
                         'reference_number' => $item['reference_number'],
                         'transferred_by' => $item['created_by_name_label'] ?? null,
-                        'date_created' => $item['formatted_created_at_label'] ?? null,
+                        'date_created' => $item['formatted_created_at_report_label'] ?? null,
                         'scheduled_pickup_date' => $item['pickup_date'],
                         'actual_pickup_date' => $item['formatted_logistics_picked_up_at_report_label'] ?? null,
                         'transport_type' => $item['transportation_type_label'] ?? null,
