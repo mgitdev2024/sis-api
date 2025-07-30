@@ -20,7 +20,7 @@ class StockPulloutReportController extends Controller
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
 
             // Date Ranges & Type Filters
-            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = scheduled_pickup_date, 2 = actual_pickup_date, 3 = date_receive]
+            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = scheduled_pickup_date, 2 = actual_pickup_date]
             $dateRangeArray = [
                 0 => 'created_at',
                 1 => 'pickup_date',
@@ -78,10 +78,11 @@ class StockPulloutReportController extends Controller
                     $reportData[] = [
                         'id' => $transferItem->id,
                         'reference_number' => $item['reference_number'],
-                        'transferred_by' => $item['created_by_name_label'] ?? null,
-                        'date_created' => $item['formatted_created_at_label'] ?? null,
+                        'pulled_out_by' => $item['created_by_name_label'] ?? null,
+                        'date_created' => $item['formatted_created_at_report_label'] ?? null,
                         'scheduled_pickup_date' => $item['pickup_date'],
                         'actual_pickup_date' => $item['formatted_logistics_picked_up_at_report_label'] ?? null,
+                        'reason' => $item['remarks'] ?? null,
                         'transport_type' => $item['transportation_type_label'] ?? null,
                         'store_code' => $item['store_code'],
                         'store_name' => $item['formatted_store_name_label'] ?? null,
@@ -90,9 +91,9 @@ class StockPulloutReportController extends Controller
                         'item_description' => $transferItem['item_description'],
                         'status' => $item['status_label'] ?? null,
                         'allocated' => $transferItem['quantity'] ?? 0,
+                        'pulled_out_quantity' => $transferItem['quantity'] ?? 0,
                         'warehouse_receive' => 0,
                         'variance' => 0,
-                        'received' => 0,
                         'received_by' => $item['formatted_store_received_by_label'] ?? null,
                         'received_at' => $item['formatted_store_received_at_label'] ?? null,
                     ];
@@ -115,7 +116,6 @@ class StockPulloutReportController extends Controller
                 ])->orderBy('id', 'DESC')->first();
 
                 if ($storeReceivingInventoryItemModel) {
-                    $receivedQuantity = $storeReceivingInventoryItemModel->received_quantity ?? 0;
                     $referenceNumberBase = explode('-', $data['reference_number'])[0];
 
                     if ($referenceNumberBase == "PT") {
@@ -128,8 +128,7 @@ class StockPulloutReportController extends Controller
                             $data['warehouse_receive'] = $warehouseReceived;
                         }
                     }
-                    $data['received'] = $receivedQuantity;
-                    $variance = $data['received'] - $data['warehouse_receive'];
+                    $variance = $data['pulled_out_quantity'] - $data['warehouse_receive'];
                     $data['variance'] = $variance;
 
                     if ($isShowOnlyNonZeroVariance && $variance == 0) {
