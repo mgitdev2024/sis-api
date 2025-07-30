@@ -78,7 +78,7 @@ class StockPulloutReportController extends Controller
                     $reportData[] = [
                         'id' => $transferItem->id,
                         'reference_number' => $item['reference_number'],
-                        'transferred_by' => $item['created_by_name_label'] ?? null,
+                        'pulled_out_by' => $item['created_by_name_label'] ?? null,
                         'date_created' => $item['formatted_created_at_report_label'] ?? null,
                         'scheduled_pickup_date' => $item['pickup_date'],
                         'actual_pickup_date' => $item['formatted_logistics_picked_up_at_report_label'] ?? null,
