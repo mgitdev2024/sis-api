@@ -24,7 +24,7 @@ class StockCountReportController extends Controller
                 1 => 'posted_at',
                 2 => 'reviewed_at',
             ];
-            $dateRangeType = $dateRangeArray[$dateRangeTypeId];
+            $dateRangeType = $dateRangeArray[$dateRangeTypeId] ?? null;
             $dateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
             $dateRangeExplode = $dateRange != null ? explode('to', str_replace(' ', '', $dateRange)) : null;
             $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
@@ -55,9 +55,9 @@ class StockCountReportController extends Controller
             if ($storeSubUnitShortName) {
                 $stockCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($dateFrom && $dateTo) {
+            if (($dateFrom && $dateTo) && $dateRangeType) {
                 $stockCountModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
-            } else if ($dateFrom) {
+            } else if ($dateFrom && $dateRangeType) {
                 $stockCountModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($status) {
