@@ -25,6 +25,15 @@ class StoreInventoryReportController extends Controller
             $isGroupByItemCategory = $request->is_group_by_item_category ?? null; // Expected values: 0 (false), 1 (true) For store receiving
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
+            $response = \Http::withHeaders([
+                'x-api-key' => env('SCM_API_KEY'),
+            ])->get(env('SCM_URL') . "/public/reason-list/current/get/1");
+
+            $foodChargeReasonList = [];
+            if ($response->successful()) {
+                $foodChargeReasonList = $response->json()['success']['data'] ?? [];
+            }
+
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
                 'store_code',
@@ -57,7 +66,7 @@ class StoreInventoryReportController extends Controller
                 $thirdDelivery = $deliveryTransferCount['3D'] ?? 0;
                 $transactionIn = $deliveryTransferCount['store_transfer_in'] ?? 0;
 
-                $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName, $foodChargeReasonList);
                 $transactionOut = $storeTransferOutCount['store_transfer_out'] ?? 0;
                 $pulledOut = $storeTransferOutCount['pullout'] ?? 0;
 
@@ -177,12 +186,13 @@ class StoreInventoryReportController extends Controller
 
     }
 
-    public function onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    public function onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName, $foodChargeReasonList)
     {
         try {
             $stockTransferCount = [
                 'store_transfer_out' => 0,
                 'pullout' => 0,
+                'food_charge' => 0,
             ];
 
             $stockTransferModel = StockTransferModel::where([
@@ -201,12 +211,17 @@ class StoreInventoryReportController extends Controller
                     continue; // Skip if no items match the item code
                 }
 
+
                 switch ($transfer->transfer_type) {
                     case 0: // Store Transfer
                         $stockTransferCount['store_transfer_out'] += $filteredItems->sum('quantity');
                         break;
                     case 1: // Pull Out
-                        $stockTransferCount['pullout'] += $filteredItems->sum('quantity');
+                        if (in_array($transfer['remarks'], $foodChargeReasonList)) {
+                            $stockTransferCount['food_charge'] += $filteredItems->sum('quantity');
+                        } else {
+                            $stockTransferCount['pullout'] += $filteredItems->sum('quantity');
+                        }
                         break;
                 }
             }
