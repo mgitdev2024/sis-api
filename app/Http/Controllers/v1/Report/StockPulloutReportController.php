@@ -116,7 +116,6 @@ class StockPulloutReportController extends Controller
                 ])->orderBy('id', 'DESC')->first();
 
                 if ($storeReceivingInventoryItemModel) {
-                    $receivedQuantity = $storeReceivingInventoryItemModel->received_quantity ?? 0;
                     $referenceNumberBase = explode('-', $data['reference_number'])[0];
 
                     if ($referenceNumberBase == "PT") {
