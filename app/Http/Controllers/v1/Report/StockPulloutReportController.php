@@ -82,6 +82,7 @@ class StockPulloutReportController extends Controller
                         'date_created' => $item['formatted_created_at_report_label'] ?? null,
                         'scheduled_pickup_date' => $item['pickup_date'],
                         'actual_pickup_date' => $item['formatted_logistics_picked_up_at_report_label'] ?? null,
+                        'reason' => $item['remarks'] ?? null,
                         'transport_type' => $item['transportation_type_label'] ?? null,
                         'store_code' => $item['store_code'],
                         'store_name' => $item['formatted_store_name_label'] ?? null,
@@ -90,9 +91,9 @@ class StockPulloutReportController extends Controller
                         'item_description' => $transferItem['item_description'],
                         'status' => $item['status_label'] ?? null,
                         'allocated' => $transferItem['quantity'] ?? 0,
+                        'pulled_out_quantity' => $transferItem['quantity'] ?? 0,
                         'warehouse_receive' => 0,
                         'variance' => 0,
-                        'received' => 0,
                         'received_by' => $item['formatted_store_received_by_label'] ?? null,
                         'received_at' => $item['formatted_store_received_at_label'] ?? null,
                     ];
@@ -128,8 +129,7 @@ class StockPulloutReportController extends Controller
                             $data['warehouse_receive'] = $warehouseReceived;
                         }
                     }
-                    $data['received'] = $receivedQuantity;
-                    $variance = $data['received'] - $data['warehouse_receive'];
+                    $variance = $data['pulled_out_quantity'] - $data['warehouse_receive'];
                     $data['variance'] = $variance;
 
                     if ($isShowOnlyNonZeroVariance && $variance == 0) {
