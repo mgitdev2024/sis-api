@@ -26,7 +26,7 @@ class StockPulloutReportController extends Controller
                 1 => 'pickup_date',
                 2 => 'logistics_picked_up_at',
             ];
-            $dateRangeType = $dateRangeArray[$dateRangeTypeId];
+            $dateRangeType = $dateRangeArray[$dateRangeTypeId] ?? null;
             $dateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
             $dateRangeExplode = $dateRange != null ? explode('to', str_replace(' ', '', $dateRange)) : null;
             $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
@@ -50,6 +50,7 @@ class StockPulloutReportController extends Controller
                 'created_at',
                 'pickup_date',
                 'logistics_picked_up_at',
+                'remarks',
                 'status'
             ])->whereIn('transfer_type', [1]);
             if ($storeCode) {
@@ -62,9 +63,9 @@ class StockPulloutReportController extends Controller
             if ($storeSubUnitShortName) {
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($dateFrom && $dateTo) {
+            if (($dateFrom && $dateTo) && $dateRangeType) {
                 $stockTransferModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
-            } else if ($dateFrom) {
+            } else if ($dateFrom && $dateRangeType) {
                 $stockTransferModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($referenceNumber) {
