@@ -91,7 +91,7 @@ class StockTransferReportController extends Controller
                         'id' => $transferItem->id,
                         'reference_number' => $item['reference_number'],
                         'transferred_by' => $item['created_by_name_label'] ?? null,
-                        'date_created' => $item['formatted_created_at_label'] ?? null,
+                        'date_created' => $item['formatted_created_at_report_label'] ?? null,
                         'scheduled_pickup_date' => $item['pickup_date'],
                         'actual_pickup_date' => $item['formatted_logistics_picked_up_at_report_label'] ?? null,
                         'transport_type' => $item['transportation_type_label'] ?? null,
@@ -143,8 +143,9 @@ class StockTransferReportController extends Controller
                         }
                     }
                     $data['received'] = $receivedQuantity;
-                    $data['variance'] = $variance;
                     $variance = $data['received'] - $data['warehouse_receive'];
+                    $data['variance'] = $variance;
+
                     if ($isShowOnlyNonZeroVariance && $variance == 0) {
                         unset($reportData[$key]);
                     }
