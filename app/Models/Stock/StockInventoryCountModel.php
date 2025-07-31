@@ -138,4 +138,28 @@ class StockInventoryCountModel extends Model
         }
         return null;
     }
+
+    public function onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $stockInventoryCountModel = self::where([
+                'store_code' => $storeCode,
+                'type' => 2, // EOD type
+            ]);
+            if ($storeSubUnitShortName) {
+                $stockInventoryCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockInventoryCountModel = $stockInventoryCountModel->whereDate('created_at', $transactionDate)
+                ->orderBy('id', 'DESC')->first();
+            if ($stockInventoryCountModel) {
+                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount->where('item_code', $itemCode)->first();
+                if ($stockInventoryItemCountModel) {
+                    return $stockInventoryItemCountModel->counted_quantity;
+                }
+            }
+            return 0;
+        } catch (\Exception $exception) {
+            return 0;
+        }
+    }
 }
