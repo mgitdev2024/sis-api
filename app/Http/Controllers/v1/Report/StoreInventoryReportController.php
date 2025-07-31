@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Report;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stock\StockConversionModel;
+use App\Models\Stock\StockInventoryCountModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockOutModel;
@@ -80,7 +81,7 @@ class StoreInventoryReportController extends Controller
                 $stockOutCount = $this->onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
                 $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
-                $actualCount = StockLogModel::onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $actualCount = StockInventoryCountModel::onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'id' => $inventory->id,
                     'store_code' => $storeCode,
