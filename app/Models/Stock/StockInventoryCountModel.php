@@ -145,6 +145,7 @@ class StockInventoryCountModel extends Model
             $stockInventoryCountModel = self::where([
                 'store_code' => $storeCode,
                 'type' => 2, // EOD type
+                'status' => 2, // Posted status
             ]);
             if ($storeSubUnitShortName) {
                 $stockInventoryCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
