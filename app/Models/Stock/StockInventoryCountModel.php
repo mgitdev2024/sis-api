@@ -139,7 +139,7 @@ class StockInventoryCountModel extends Model
         return null;
     }
 
-    public function onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    public static function onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
     {
         try {
             $stockInventoryCountModel = self::where([
