@@ -8,6 +8,7 @@ use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 class StockTransferReportController extends Controller
 {
     use ResponseTrait;
@@ -71,7 +72,8 @@ class StockTransferReportController extends Controller
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if (($dateFrom && $dateTo) && $dateRangeType) {
-                $stockTransferModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
+                $stockTransferModel->where($dateRangeType, '>=', $dateFrom)
+                    ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
             } else if ($dateFrom && $dateRangeType) {
                 $stockTransferModel->whereDate($dateRangeType, $dateFrom);
             }
