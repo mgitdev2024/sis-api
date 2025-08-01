@@ -7,6 +7,7 @@ use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 
 class StoreReceivingReportController extends Controller
 {
@@ -52,7 +53,9 @@ class StoreReceivingReportController extends Controller
                 $storeReceivingInventoryItems->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($dateFrom && $dateTo) {
-                $storeReceivingInventoryItems->whereBetween('received_at', [$dateFrom, $dateTo]);
+                $storeReceivingInventoryItems
+                    ->where('received_at', '>=', $dateFrom)
+                    ->where('received_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
             } else if ($dateFrom) {
                 $storeReceivingInventoryItems->whereDate('received_at', $dateFrom);
             }

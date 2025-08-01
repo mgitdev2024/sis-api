@@ -7,6 +7,7 @@ use App\Models\Stock\StockInventoryCountModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 class StockCountReportController extends Controller
 {
     use ResponseTrait;
@@ -56,7 +57,8 @@ class StockCountReportController extends Controller
                 $stockCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if (($dateFrom && $dateTo) && $dateRangeType) {
-                $stockCountModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
+                $stockCountModel->where($dateRangeType, '>=', $dateFrom)
+                    ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
             } else if ($dateFrom && $dateRangeType) {
                 $stockCountModel->whereDate($dateRangeType, $dateFrom);
             }
