@@ -69,7 +69,7 @@ class StoreReceivingInventoryItemModel extends Model
 
     public function getReceiveTypeLabelAttribute()
     {
-        return $this->status == 0 ? 'Manual' : 'Scan';
+        return $this->type == 0 ? 'Scan' : 'Manual';
     }
 
     public function getTypeLabelAttribute()
