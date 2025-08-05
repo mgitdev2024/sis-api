@@ -34,7 +34,6 @@ class StoreInventoryReportController extends Controller
             if ($response->successful()) {
                 $foodChargeReasonList = $response->json()['success']['data'] ?? [];
             }
-
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
                 'store_code',
@@ -58,6 +57,7 @@ class StoreInventoryReportController extends Controller
             foreach ($storeInventoryModel as $inventory) {
                 $itemCode = $inventory->item_code;
                 $storeCode = $inventory->store_code;
+                $storeName = $inventory->store_name;
                 $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
                 $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
@@ -70,6 +70,7 @@ class StoreInventoryReportController extends Controller
                 $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName, $foodChargeReasonList);
                 $transactionOut = $storeTransferOutCount['store_transfer_out'] ?? 0;
                 $pulledOut = $storeTransferOutCount['pullout'] ?? 0;
+                $foodCharge = $storeTransferOutCount['food_charge'] ?? 0;
 
                 $stockConversionCount = $this->onGetConvertedStockCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $convertOut = $stockConversionCount['convert_out'] ?? 0;
@@ -85,6 +86,7 @@ class StoreInventoryReportController extends Controller
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'id' => $inventory->id,
                     'store_code' => $storeCode,
+                    'store_name' => $storeName,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
                     'item_description' => $inventory->item_description,
@@ -100,7 +102,7 @@ class StoreInventoryReportController extends Controller
                     'convert_out' => $convertOut,
                     'convert_in' => 0,
                     'sold' => $stockOutCount,
-                    'food_charge' => 0,
+                    'food_charge' => $foodCharge,
                     'running_balance' => 0,
                     'actual_count' => $actualCount,
                     'variance' => 0,
