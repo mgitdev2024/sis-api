@@ -60,7 +60,7 @@ class StockTransferController extends Controller
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'transfer_type' => $transferTypeArr[$type],
-                'transportation_type' => $transportationType,
+                'transportation_type' => $type == 1 ? 1 : $transportationType,
                 'pickup_date' => $pickupDate,
                 'location_code' => $transferToStoreCode,
                 'location_name' => $transferToStoreName,
