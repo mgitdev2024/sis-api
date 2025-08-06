@@ -69,7 +69,7 @@ class StoreReceivingInventoryItemModel extends Model
 
     public function getReceiveTypeLabelAttribute()
     {
-        return $this->status == 0 ? 'Scan' : 'Manual';
+        return $this->receive_type == 0 ? 'Scan' : 'Manual';
     }
 
     public function getTypeLabelAttribute()
@@ -97,9 +97,9 @@ class StoreReceivingInventoryItemModel extends Model
     {
         if ($this->received_by_id) {
             $user = User::where('employee_id', $this->received_by_id)->first();
-            return $user ? "$user->first_name $user->last_name" : 'Unknown';
+            return $user ? "$user->first_name $user->last_name" : null;
         }
-        return 'Not Completed';
+        return null;
     }
 
     public function getFormattedReceivedAtLabelAttribute()

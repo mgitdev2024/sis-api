@@ -57,7 +57,7 @@ class StockInventoryCountController extends Controller
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
-            ])->orderBy('item_code', 'ASC')->get();
+            ])->orderBy('item_code', 'DESC')->get();
 
             $stockInventoryItemsCount = [];
             foreach ($stockInventoryModel as $item) {

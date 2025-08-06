@@ -7,7 +7,7 @@ use App\Models\Stock\StockConversionModel;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
-
+use Carbon\Carbon;
 class StockConversionReportController extends Controller
 {
     use ResponseTrait;
@@ -31,7 +31,8 @@ class StockConversionReportController extends Controller
                 $stockConversionModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($dateFrom && $dateTo) {
-                $stockConversionModel->whereBetween('created_at', [$dateFrom, $dateTo]);
+                $stockConversionModel->where('created_at', '>=', $dateFrom)
+                    ->where('created_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
             } else if ($dateFrom) {
                 $stockConversionModel->whereDate('created_at', $dateFrom);
             }

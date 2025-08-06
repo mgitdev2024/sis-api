@@ -8,6 +8,7 @@ use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 class StockTransferReportController extends Controller
 {
     use ResponseTrait;
@@ -27,7 +28,7 @@ class StockTransferReportController extends Controller
                 2 => 'logistics_picked_up_at',
                 3 => 'store_received_at'
             ];
-            $dateRangeType = $dateRangeArray[$dateRangeTypeId];
+            $dateRangeType = $dateRangeArray[$dateRangeTypeId] ?? null;
             $dateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
             $dateRangeExplode = $dateRange != null ? explode('to', str_replace(' ', '', $dateRange)) : null;
             $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
@@ -70,9 +71,10 @@ class StockTransferReportController extends Controller
             if ($storeSubUnitShortName) {
                 $stockTransferModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($dateFrom && $dateTo) {
-                $stockTransferModel->whereBetween($dateRangeType, [$dateFrom, $dateTo]);
-            } else if ($dateFrom) {
+            if (($dateFrom && $dateTo) && $dateRangeType) {
+                $stockTransferModel->where($dateRangeType, '>=', $dateFrom)
+                    ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
+            } else if ($dateFrom && $dateRangeType) {
                 $stockTransferModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($referenceNumber) {

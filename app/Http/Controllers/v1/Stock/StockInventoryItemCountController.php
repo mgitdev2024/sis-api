@@ -130,41 +130,27 @@ class StockInventoryItemCountController extends Controller
                     ]);
                 }
 
-                $stockLogModel = StockLogModel::where([
+                $latestLog = StockLogModel::where([
                     'store_code' => $fields['store_code'],
                     'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
                     'item_code' => $item->item_code,
                 ])->orderBy('id', 'DESC')->first();
 
-                if ($stockLogModel) {
-                    $stockLogModel->create([
-                        'reference_number' => $item->stockInventoryCount->reference_number,
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $stockLogModel->item_code,
-                        'item_description' => $stockLogModel->item_description,
-                        'item_category_name' => $stockLogModel->item_category_name,
-                        'quantity' => 0,
-                        'initial_stock' => $stockLogModel->final_stock,
-                        'final_stock' => $countedQuantity,
-                        'transaction_type' => 'adjustment',
-                        'created_by_id' => $createdById,
-                    ]);
-                } else {
-                    StockLogModel::create([
-                        'reference_number' => $item->stockInventoryCount->reference_number,
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $item->item_code,
-                        'item_description' => $item->item_description,
-                        'item_category_name' => $item->item_category_name,
-                        'quantity' => 0,
-                        'initial_stock' => 0,
-                        'final_stock' => $countedQuantity,
-                        'transaction_type' => 'adjustment',
-                        'created_by_id' => $createdById,
-                    ]);
-                }
+                $data = [
+                    'reference_number' => $item->stockInventoryCount->reference_number,
+                    'store_code' => $fields['store_code'],
+                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    'item_code' => $latestLog?->item_code ?? $item->item_code,
+                    'item_description' => $latestLog?->item_description ?? $item->item_description,
+                    'item_category_name' => $latestLog?->item_category_name ?? $item->item_category_name,
+                    'quantity' => 0,
+                    'initial_stock' => $latestLog?->final_stock ?? 0,
+                    'final_stock' => $countedQuantity,
+                    'transaction_type' => 'adjustment',
+                    'created_by_id' => $createdById,
+                ];
+
+                StockLogModel::create($data);
 
             }
             DB::commit();
