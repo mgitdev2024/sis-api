@@ -37,7 +37,6 @@ class StoreInventoryReportController extends Controller
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
                 'store_code',
-                'store_name',
                 'store_sub_unit_short_name',
                 'item_code',
                 'item_description',
@@ -58,7 +57,6 @@ class StoreInventoryReportController extends Controller
             foreach ($storeInventoryModel as $inventory) {
                 $itemCode = $inventory->item_code;
                 $storeCode = $inventory->store_code;
-                $storeName = $inventory->store_name;
                 $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
                 $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
@@ -87,7 +85,7 @@ class StoreInventoryReportController extends Controller
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'id' => $inventory->id,
                     'store_code' => $storeCode,
-                    'store_name' => $storeName,
+                    'store_name' => $inventory->formatted_store_name_label,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
                     'item_description' => $inventory->item_description,
