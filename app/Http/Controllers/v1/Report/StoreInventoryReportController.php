@@ -37,6 +37,7 @@ class StoreInventoryReportController extends Controller
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
                 'store_code',
+                'store_name',
                 'store_sub_unit_short_name',
                 'item_code',
                 'item_description',
