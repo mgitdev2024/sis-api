@@ -90,7 +90,7 @@ class StoreReceivingReportController extends Controller
                 $receivedAt = $item['formatted_received_at_label'] ?? null;
                 $deliveryDate = $item['formatted_delivery_date_label'] ?? null;
                 $remarks = null;
-                $variance = intval($receivedQuantity) - intval($allocatedQuantity);
+                $variance = floatval($receivedQuantity) - floatval($allocatedQuantity);
 
                 if ($receivedQuantity < $allocatedQuantity) {
                     $remarks = 'Short';
