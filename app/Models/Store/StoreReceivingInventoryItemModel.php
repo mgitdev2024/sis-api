@@ -56,6 +56,7 @@ class StoreReceivingInventoryItemModel extends Model
         'completed_at',
         'received_by_id',
         'received_at',
+        'remarks',
     ];
 
     public function storeReceivingInventory()

@@ -216,11 +216,12 @@ class StoreReceivingInventoryItemController extends Controller
                 'sri.delivery_type',
                 'sri.warehouse_name',
                 'srt.status',
-                DB::raw('MAX(srt.type) as receive_type'),
+                DB::raw('MAX(srt.type) as type'),
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
-                ->where('store_code', $store_code);
+                ->where('store_code', $store_code)
+                ->whereDate('srt.delivery_date', now());
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
             }
@@ -516,6 +517,38 @@ class StoreReceivingInventoryItemController extends Controller
                 'store_received_by_id' => $createdById,
                 'store_received_at' => now(),
             ]);
+        }
+    }
+
+    // ------------- Added New Function
+
+    public function onAddRemarks(Request $request, $reference_number)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'store_inventory_item_data' => 'required' // [{"id":1,"re":"Naiwan"},{"id":2,"re":"Nahulog"}]
+        ]);
+        try {
+            DB::beginTransaction();
+
+            $storeInventoryItemData = json_decode($fields['store_inventory_item_data'], true);
+            foreach ($storeInventoryItemData as $item) {
+                $storeInventoryItem = StoreReceivingInventoryItemModel::find($item['id']);
+                if ($storeInventoryItem) {
+                    $storeInventoryItem->remarks = $item['remarks'];
+                    $storeInventoryItem->save();
+                }
+            }
+
+            $onCompleteRequestForm = new Request([
+                'created_by_id' => $fields['created_by_id']
+            ]);
+            $this->onComplete($onCompleteRequestForm, $reference_number);
+
+            DB::commit();
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
 }
