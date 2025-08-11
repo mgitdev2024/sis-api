@@ -33,7 +33,7 @@ class StockInventoryItemCountController extends Controller
             'created_by_id' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
-            'stock_inventory_count_data' => 'required' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
+            'stock_inventory_count_data' => 'required' // [{"ic":"CR 12","cq":12,"re":"Naiwan"},{"ic":"TAS WH","cq":1}]
         ]);
 
         try {
@@ -53,7 +53,7 @@ class StockInventoryItemCountController extends Controller
             foreach ($stockInventoryCountData as $item) {
                 $itemCode = $item['ic']; // Item Code
                 $countedQuantity = $item['cq']; // Counted Quantity
-
+                $itemRemarks = $item['re'] ?? null; // Item Remarks (optional)
                 $stockInventoryItemCount = StockInventoryItemCountModel::where([
                     'stock_inventory_count_id' => $store_inventory_count_id,
                     'item_code' => $itemCode,
@@ -66,6 +66,7 @@ class StockInventoryItemCountController extends Controller
                         'discrepancy_quantity' => $discrepancyQuantity,
                         'status' => 1, // For Review
                         'updated_by_id' => $createdById,
+                        'remarks' => $itemRemarks,
                     ]);
                 }
             }

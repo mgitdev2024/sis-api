@@ -13,6 +13,7 @@ use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Throwable;
 
 class StoreInventoryReportController extends Controller
 {
@@ -58,7 +59,7 @@ class StoreInventoryReportController extends Controller
                 $itemCode = $inventory->item_code;
                 $storeCode = $inventory->store_code;
                 $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
-                $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $beginningStock = $this->onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
                 $deliveryTransferCount = $this->onGetDeliveryTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $firstDelivery = $deliveryTransferCount['1D'] ?? 0;
@@ -293,4 +294,38 @@ class StoreInventoryReportController extends Controller
             throw new Exception('Error fetching stock out count: ' . $e->getMessage());
         }
     }
+
+    public function onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $subTractedTransactionDate = \Carbon\Carbon::parse($transactionDate)->subDay()->toDateString();
+
+            $stockInventoryCountModel = StockInventoryCountModel::whereDate('created_at', $subTractedTransactionDate)
+                ->where('store_code', $storeCode);
+
+            if ($storeSubUnitShortName) {
+                $stockInventoryCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+
+            $stockInventoryCountModel = $stockInventoryCountModel->orderBy('id', 'DESC')->first();
+
+            if ($stockInventoryCountModel) {
+                $stockInventoryItemCount = $stockInventoryCountModel
+                    ->stockInventoryItemsCount()
+                    ->select('counted_quantity')
+                    ->where('item_code', $itemCode)
+                    ->first();
+
+                if ($stockInventoryItemCount) {
+                    return $stockInventoryItemCount->counted_quantity;
+                }
+            }
+
+            $stockLogBeginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+            return $stockLogBeginningStock;
+        } catch (Throwable $e) {
+            throw new Exception("Error fetching beginning stock: {$e->getMessage()}", 0, $e);
+        }
+    }
 }
+

@@ -107,7 +107,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #region Stock Transfer
     Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCreate']);
     Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCancel']);
-    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
+    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetCurrent']);
     Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
     Route::post('v1/stock/transfer/pickup/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onPickupTransfer']);
     #endregion

@@ -325,7 +325,7 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onGet($status, $store_code, $sub_unit = null)
+    public function onGetCurrent($status, $store_code, $sub_unit = null)
     {
         try {
             $query = StockTransferModel::query();
@@ -339,7 +339,8 @@ class StockTransferController extends Controller
             if ($sub_unit) {
                 $query->where('store_sub_unit_short_name', $sub_unit);
             }
-            $stockTransfers = $query->get();
+            $stockTransfers = $query->orderBy('id', 'DESC')
+                ->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $stockTransfers);
 
         } catch (Exception $exception) {
