@@ -102,7 +102,7 @@ class StockTransferController extends Controller
                 'warehouse_name' => $transferToStoreName,
                 'reference_number' => $referenceNumber,
                 'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
+                'delivery_type' => null,
                 'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,

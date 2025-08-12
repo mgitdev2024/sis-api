@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::table('store_receiving_inventory_items', function (Blueprint $table) {
             $table->string('remarks')->nullable();
         });
-        Schema::table('stock_inventory_count', function (Blueprint $table) {
+        Schema::table('stock_inventory_items_count', function (Blueprint $table) {
             $table->string('remarks')->nullable();
         });
     }
@@ -26,7 +26,7 @@ return new class extends Migration {
         Schema::table('store_receiving_inventory_items', function (Blueprint $table) {
             $table->dropColumn('remarks');
         });
-        Schema::table('stock_inventory_count', function (Blueprint $table) {
+        Schema::table('stock_inventory_items_count', function (Blueprint $table) {
             $table->dropColumn('remarks');
         });
     }
