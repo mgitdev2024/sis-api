@@ -104,6 +104,8 @@ class StockInventoryItemCountController extends Controller
 
             foreach ($stockInventoryItemCountModel as $item) {
                 $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'], true);
+                $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
+                $item->save();
 
                 $countedQuantity = $item->counted_quantity;
                 // Update the stock inventory
