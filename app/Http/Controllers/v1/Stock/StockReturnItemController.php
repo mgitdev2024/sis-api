@@ -92,6 +92,7 @@ class StockReturnItemController extends Controller
 
             return $this->dataResponse('success', 201, __('msg.create_success'), $stockReturnItem);
         } catch (Exception $e) {
+            DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.create_failed'), $e->getMessage());
         }
     }
