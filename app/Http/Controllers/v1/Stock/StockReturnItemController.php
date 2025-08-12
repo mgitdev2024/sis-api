@@ -69,7 +69,7 @@ class StockReturnItemController extends Controller
                 'initial_stock' => $initialStock,
                 'final_stock' => $finalStock,
                 'quantity' => $quantity,
-                'transaction_type' => 'out',
+                'transaction_type' => 'in',
                 'transaction_sub_type' => 'converted',
                 'created_by_id' => $createdById,
             ]);
