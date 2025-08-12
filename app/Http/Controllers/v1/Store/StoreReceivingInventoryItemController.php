@@ -65,6 +65,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
                     'reference_number' => $reference_number,
+                    'id' => $item->id,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
