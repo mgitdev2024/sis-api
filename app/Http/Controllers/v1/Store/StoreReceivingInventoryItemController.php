@@ -536,7 +536,7 @@ class StoreReceivingInventoryItemController extends Controller
             foreach ($storeInventoryItemData as $item) {
                 $storeInventoryItem = StoreReceivingInventoryItemModel::find($item['id']);
                 if ($storeInventoryItem) {
-                    $storeInventoryItem->remarks = $item['remarks'];
+                    $storeInventoryItem->remarks = $item['re'];
                     $storeInventoryItem->save();
                 }
             }
@@ -547,9 +547,10 @@ class StoreReceivingInventoryItemController extends Controller
             $this->onComplete($onCompleteRequestForm, $reference_number);
 
             DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 404, __('msg.update_failed'));
         }
     }
 }
