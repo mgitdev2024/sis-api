@@ -43,7 +43,6 @@ class StoreReceivingInventoryItemController extends Controller
             ];
 
             $isReceived = true;
-            $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
@@ -55,12 +54,32 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
-                $data['reservation_request'] = [
-                    'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'reference_number' => $reference_number,
-                    'order_session_id' => $item->order_session_id ?? null,
-                ];
+                if (count($data['reservation_request']) > 0) {
+                    $data['reservation_request'] = [
+                        'delivery_location' => $item->store_name,
+                        'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'reference_number' => $reference_number,
+                        'order_session_id' => $item->order_session_id ?? null,
+                    ];
+
+                    $data['reservation_request']['is_received'] = $isReceived;
+                }
+
+                if (count($data['request_details']) > 0) {
+                    $data['request_details'] = [
+                        'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                        'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'delivery_scheme' => $item->delivery_type,
+                        'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
+                        'requested_by' => $item->created_by_name,
+                        'completed_by' => $item->completed_by_name ?? null,
+                        'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
+                        'status' => $item->status,
+                    ];
+
+                    $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
+                }
+
 
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
@@ -79,21 +98,9 @@ class StoreReceivingInventoryItemController extends Controller
                     'status' => $item->status,
                 ];
 
-                $data['request_details'] = [
-                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'delivery_scheme' => $item->delivery_type,
-                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
-                    'requested_by' => $item->created_by_name,
-                    'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
-                    'status' => $item->status,
-                ];
-                $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
-                $counter++;
+
             }
 
-            $data['reservation_request']['is_received'] = $isReceived;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
@@ -148,7 +155,6 @@ class StoreReceivingInventoryItemController extends Controller
 
             $isReceived = true;
 
-            $counter = 0;
             foreach ($storeInventoryItemArr as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
@@ -161,13 +167,29 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
+                if (count($data['reservation_request']) > 0) {
+                    $data['reservation_request'] = [
+                        'delivery_location' => $item->store_name,
+                        'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'reference_number' => $reference_number,
+                        'order_session_id' => $item->order_session_id ?? null,
+                    ];
+                    $data['reservation_request']['is_received'] = $isReceived;
 
-                $data['reservation_request'] = [
-                    'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'reference_number' => $reference_number,
-                    'order_session_id' => $item->order_session_id ?? null,
-                ];
+                }
+                if (count($data['request_details']) > 0) {
+                    $data['request_details'] = [
+                        'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                        'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'delivery_scheme' => $item->delivery_type,
+                        'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
+                        'requested_by' => $item->created_by_name,
+                        'completed_by' => $item->completed_by_name ?? null,
+                        'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
+                        'status' => $item->status,
+                    ];
+                    $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
+                }
 
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
@@ -184,23 +206,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
                 ];
-
-                $data['request_details'] = [
-                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'delivery_scheme' => $item->delivery_type,
-                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
-                    'requested_by' => $item->created_by_name,
-                    'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
-                    'status' => $item->status,
-
-                ];
-
-                $counter++;
             }
 
-            $data['reservation_request']['is_received'] = $isReceived;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
