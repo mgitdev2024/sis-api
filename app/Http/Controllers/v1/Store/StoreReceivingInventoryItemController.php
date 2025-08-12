@@ -54,7 +54,7 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
-                if (count($data['reservation_request']) > 0) {
+                if (count($data['reservation_request']) === 0) {
                     $data['reservation_request'] = [
                         'delivery_location' => $item->store_name,
                         'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
@@ -65,7 +65,7 @@ class StoreReceivingInventoryItemController extends Controller
                     $data['reservation_request']['is_received'] = $isReceived;
                 }
 
-                if (count($data['request_details']) > 0) {
+                if (count($data['request_details']) === 0) {
                     $data['request_details'] = [
                         'supply_hub' => $item->storeReceivingInventory->warehouse_name,
                         'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
@@ -167,7 +167,7 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
-                if (count($data['reservation_request']) > 0) {
+                if (count($data['reservation_request']) === 0) {
                     $data['reservation_request'] = [
                         'delivery_location' => $item->store_name,
                         'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
@@ -177,7 +177,7 @@ class StoreReceivingInventoryItemController extends Controller
                     $data['reservation_request']['is_received'] = $isReceived;
 
                 }
-                if (count($data['request_details']) > 0) {
+                if (count($data['request_details']) === 0) {
                     $data['request_details'] = [
                         'supply_hub' => $item->storeReceivingInventory->warehouse_name,
                         'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
