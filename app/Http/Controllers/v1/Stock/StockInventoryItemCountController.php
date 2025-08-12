@@ -18,13 +18,13 @@ class StockInventoryItemCountController extends Controller
     use ResponseTrait, CrudOperationsTrait;
     public function onGetById($store_inventory_count_id)
     {
-        $whereFields = [
-            'stock_inventory_count_id' => $store_inventory_count_id,
-        ];
-        $orderFields = [
-            'system_quantity' => 'DESC',
-        ];
-        return $this->readCurrentRecord(StockInventoryItemCountModel::class, null, $whereFields, null, $orderFields, 'Store Inventory Item Count');
+        try {
+            $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
+            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemCount()->orderBy('system_quantity', 'DESC')->get();
+            return $this->dataResponse('success', 200, __('msg.record_found'), $stockInventoryItemCountModel);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
     }
 
     public function onUpdate(Request $request, $store_inventory_count_id)
