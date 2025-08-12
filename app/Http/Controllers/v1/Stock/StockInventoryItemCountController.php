@@ -20,8 +20,13 @@ class StockInventoryItemCountController extends Controller
     {
         try {
             $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
-            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemCount()->orderBy('system_quantity', 'DESC')->get();
-            return $this->dataResponse('success', 200, __('msg.record_found'), $stockInventoryItemCountModel);
+            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
+
+            $data = [
+                'stock_inventory_count_id' => $store_inventory_count_id,
+                'stock_inventory_items_count' => $stockInventoryItemCountModel
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
