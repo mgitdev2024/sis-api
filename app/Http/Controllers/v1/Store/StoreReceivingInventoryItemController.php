@@ -568,7 +568,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'reference_number' => $reference_number
                 ]);
             if ($sub_unit) {
-                $storeInventoryItemModel->where('sub_unit', $sub_unit);
+                $storeInventoryItemModel->where('store_sub_unit_short_name', $sub_unit);
             }
             $storeInventoryItemModel = $storeInventoryItemModel
                 ->groupBy('order_type')
