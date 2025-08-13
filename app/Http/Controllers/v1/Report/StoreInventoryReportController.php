@@ -83,6 +83,8 @@ class StoreInventoryReportController extends Controller
 
                 $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
                 $actualCount = StockInventoryCountModel::onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $countedQuantity = $actualCount['counted_quantity'];
+                $countedRemarks = $actualCount['remarks'];
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'id' => $inventory->id,
                     'store_code' => $storeCode,
@@ -104,7 +106,8 @@ class StoreInventoryReportController extends Controller
                     'sold' => $stockOutCount,
                     'food_charge' => $foodCharge,
                     'running_balance' => 0,
-                    'actual_count' => $actualCount,
+                    'actual_count' => $countedQuantity,
+                    'remarks' => $countedRemarks,
                     'variance' => 0,
                 ];
             }

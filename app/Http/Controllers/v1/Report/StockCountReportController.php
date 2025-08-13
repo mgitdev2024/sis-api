@@ -78,6 +78,7 @@ class StockCountReportController extends Controller
             $reportData = [];
             foreach ($stockCountModel as $item) {
                 $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item, $isShowOnlyNonZeroVariance) {
+                    $remarks = $countItem['remarks'];
                     $systemQuantity = $countItem['system_quantity'];
                     $actualQuantity = $countItem['counted_quantity'];
                     $variance = $systemQuantity - $actualQuantity;
@@ -107,7 +108,8 @@ class StockCountReportController extends Controller
                         'actual_qty' => $actualQuantity,
                         'variance' => $variance,
                         'posted_by' => $postedBy,
-                        'date_posted' => $postedAt
+                        'date_posted' => $postedAt,
+                        'remarks' => $remarks,
                     ];
                 });
             }

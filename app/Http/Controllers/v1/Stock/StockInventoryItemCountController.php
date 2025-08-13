@@ -87,7 +87,7 @@ class StockInventoryItemCountController extends Controller
             'created_by_id' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
-            'stock_inventory_item_count_data' => 'required' // {"CR 12":"Nahulog","TAS WH":"Nawala"}
+            'stock_inventory_item_count_data' => 'nullable' // {"CR 12":"Nahulog","TAS WH":"Nawala"}
         ]);
 
         try {
@@ -108,7 +108,7 @@ class StockInventoryItemCountController extends Controller
             ])->where('discrepancy_quantity', '!=', 0)->get();
 
             foreach ($stockInventoryItemCountModel as $item) {
-                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'], true);
+                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
                 $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
                 $item->save();
 
