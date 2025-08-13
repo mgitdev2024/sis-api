@@ -43,6 +43,7 @@ class StoreReceivingReportController extends Controller
                 'receive_type',
                 'received_by_id',
                 'received_at',
+                'remarks',
                 'status'
             ]);
             if ($storeCode) {
@@ -87,19 +88,20 @@ class StoreReceivingReportController extends Controller
                 $receivedQuantity = $item['received_quantity'] ?? null;
                 $receiveType = $item['receive_type_label'] ?? null;
                 $receivedBy = $item['formatted_received_by_label'] ?? null;
+                $remarks = $item['remarks'] ?? null;
                 $receivedAt = $item['formatted_received_at_label'] ?? null;
                 $deliveryDate = $item['formatted_delivery_date_label'] ?? null;
-                $remarks = null;
-                $variance = intval($receivedQuantity) - intval($allocatedQuantity);
+                $status = null;
+                $variance = floatval($receivedQuantity) - floatval($allocatedQuantity);
 
                 if ($receivedQuantity < $allocatedQuantity) {
-                    $remarks = 'Short';
+                    $status = 'Short';
                 } else if ($receivedQuantity > $allocatedQuantity) {
-                    $remarks = 'Over';
+                    $status = 'Over';
                 } else if ($orderQuantity <= 0) {
-                    $remarks = 'Unallocated';
+                    $status = 'Unallocated';
                 } else {
-                    $remarks = 'Completed';
+                    $status = 'Completed';
                 }
 
                 if ($isShowOnlyNonZeroVariance && $variance == 0) {
@@ -121,9 +123,10 @@ class StoreReceivingReportController extends Controller
                     'received' => $receivedQuantity,
                     'variance' => $variance,
                     'received_by' => $receivedBy,
+                    'remarks' => $remarks,
                     'date_received' => $receivedAt,
                     'receive_type' => $receiveType,
-                    'remarks' => $remarks,
+                    'status' => $status,
                 ];
             }
             return $this->dataResponse('success', 200, __('msg.record_found'), $reportData);

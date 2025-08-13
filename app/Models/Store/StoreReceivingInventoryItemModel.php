@@ -20,6 +20,7 @@ class StoreReceivingInventoryItemModel extends Model
         'formatted_delivery_date_label',
         'received_by_label',
         'received_at_label',
+        'completed_by_label',
     ];
     protected $fillable = [
         'store_receiving_inventory_id',
@@ -56,6 +57,7 @@ class StoreReceivingInventoryItemModel extends Model
         'completed_at',
         'received_by_id',
         'received_at',
+        'remarks',
     ];
 
     public function storeReceivingInventory()
@@ -93,7 +95,7 @@ class StoreReceivingInventoryItemModel extends Model
         return $orderTypeArr[$this->order_type] ?? null;
     }
 
-    public function getFormattedReceivedByLabelAttribute()
+    public function getReceivedByLabelAttribute()
     {
         if ($this->received_by_id) {
             $user = User::where('employee_id', $this->received_by_id)->first();
@@ -110,5 +112,14 @@ class StoreReceivingInventoryItemModel extends Model
     public function getFormattedDeliveryDateLabelAttribute()
     {
         return $this->delivery_date ? Carbon::parse($this->delivery_date)->format('Y-m-d') : 'Not Set';
+    }
+
+    public function getCompletedByLabelAttribute()
+    {
+        if ($this->received_by_id) {
+            $user = User::where('employee_id', $this->received_by_id)->first();
+            return $user ? "$user->first_name $user->last_name" : null;
+        }
+        return null;
     }
 }

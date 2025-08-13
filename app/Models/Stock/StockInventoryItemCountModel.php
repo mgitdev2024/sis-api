@@ -22,6 +22,7 @@ class StockInventoryItemCountModel extends Model
         'created_by_id',
         'updated_by_id',
         'status',
+        'remarks',
     ];
 
     public function stockInventoryCount()

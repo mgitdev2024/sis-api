@@ -18,13 +18,18 @@ class StockInventoryItemCountController extends Controller
     use ResponseTrait, CrudOperationsTrait;
     public function onGetById($store_inventory_count_id)
     {
-        $whereFields = [
-            'stock_inventory_count_id' => $store_inventory_count_id,
-        ];
-        $orderFields = [
-            'system_quantity' => 'DESC',
-        ];
-        return $this->readCurrentRecord(StockInventoryItemCountModel::class, null, $whereFields, null, $orderFields, 'Store Inventory Item Count');
+        try {
+            $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
+            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
+
+            $data = [
+                'stock_inventory_count' => $stockInventoryCountModel,
+                'stock_inventory_items_count' => $stockInventoryItemCountModel
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
     }
 
     public function onUpdate(Request $request, $store_inventory_count_id)
@@ -53,7 +58,6 @@ class StockInventoryItemCountController extends Controller
             foreach ($stockInventoryCountData as $item) {
                 $itemCode = $item['ic']; // Item Code
                 $countedQuantity = $item['cq']; // Counted Quantity
-
                 $stockInventoryItemCount = StockInventoryItemCountModel::where([
                     'stock_inventory_count_id' => $store_inventory_count_id,
                     'item_code' => $itemCode,
@@ -83,6 +87,7 @@ class StockInventoryItemCountController extends Controller
             'created_by_id' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
+            'stock_inventory_item_count_data' => 'nullable' // {"CR 12":"Nahulog","TAS WH":"Nawala"}
         ]);
 
         try {
@@ -103,6 +108,10 @@ class StockInventoryItemCountController extends Controller
             ])->where('discrepancy_quantity', '!=', 0)->get();
 
             foreach ($stockInventoryItemCountModel as $item) {
+                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
+                $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
+                $item->save();
+
                 $countedQuantity = $item->counted_quantity;
                 // Update the stock inventory
                 $stockInventoryModel = StockInventoryModel::where([
