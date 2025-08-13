@@ -540,7 +540,7 @@ class StoreReceivingInventoryItemController extends Controller
             foreach ($storeInventoryItemData as $item) {
                 $storeInventoryItem = StoreReceivingInventoryItemModel::find($item['id']);
                 if ($storeInventoryItem) {
-                    $storeInventoryItem->remarks = $item['re'];
+                    $storeInventoryItem->remarks = trim($item['re'] ?? '') ?: null;
                     $storeInventoryItem->save();
                 }
             }

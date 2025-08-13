@@ -141,6 +141,10 @@ class StockInventoryCountModel extends Model
 
     public static function onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
     {
+        $data = [
+            'counted_quantity' => 0,
+            'remarks' => null
+        ];
         try {
             $stockInventoryCountModel = self::where([
                 'store_code' => $storeCode,
@@ -155,12 +159,14 @@ class StockInventoryCountModel extends Model
             if ($stockInventoryCountModel) {
                 $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount->where('item_code', $itemCode)->first();
                 if ($stockInventoryItemCountModel) {
-                    return $stockInventoryItemCountModel->counted_quantity;
+                    $data['counted_quantity'] = $stockInventoryItemCountModel->counted_quantity ?? 0;
+                    $data['remarks'] = $stockInventoryItemCountModel->remarks ?? null;
+                    return $data;
                 }
             }
-            return 0;
+            return $data;
         } catch (\Exception $exception) {
-            return 0;
+            return $data;
         }
     }
 }
