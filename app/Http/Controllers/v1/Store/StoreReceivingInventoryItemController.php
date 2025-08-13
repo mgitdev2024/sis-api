@@ -34,7 +34,7 @@ class StoreReceivingInventoryItemController extends Controller
             if ($reference_number != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('reference_number', $reference_number);
             }
-            $storeInventoryItemModel = $storeInventoryItemModel->orderBy('id', 'DESC')->get();
+            $storeInventoryItemModel = $storeInventoryItemModel->orderBy('item_category_name', 'ASC')->get();
 
             $data = [
                 'reservation_request' => [],
@@ -80,7 +80,6 @@ class StoreReceivingInventoryItemController extends Controller
                     $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
                 }
 
-
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
                     'reference_number' => $reference_number,
@@ -97,8 +96,6 @@ class StoreReceivingInventoryItemController extends Controller
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
                 ];
-
-
             }
 
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
@@ -557,6 +554,19 @@ class StoreReceivingInventoryItemController extends Controller
             return $this->dataResponse('success', 200, __('msg.update_success'));
         } catch (Exception $exception) {
             DB::rollback();
+            return $this->dataResponse('error', 404, __('msg.update_failed'));
+        }
+    }
+
+    public function onGetCountOrderType($store_code, $reference_number)
+    {
+        try {
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::selectRaw('order_type, COUNT(*) as count')->where([
+                'store_code' => $store_code,
+                'reference_number' => $reference_number
+            ])->groupBy('order_type');
+            return $this->dataResponse('success', 200, __('msg.update_success'), $storeInventoryItemModel);
+        } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.update_failed'));
         }
     }

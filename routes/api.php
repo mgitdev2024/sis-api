@@ -86,6 +86,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/store/receive-inventory-item/complete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onComplete']);
     Route::post('v1/store/receive-inventory-item/add-remarks/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onAddRemarks']);
 
+    Route::get('v1/store/receive-inventory-item/filter/order-type/get/{store_code}/{order_type}/{is_received}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCountOrderType']);
     #endregion
 
     #region Store Receiving Inventory Item Cache
