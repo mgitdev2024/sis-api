@@ -566,9 +566,12 @@ class StoreReceivingInventoryItemController extends Controller
                 ->where([
                     'store_code' => $store_code,
                     'reference_number' => $reference_number
-                ])->when($sub_unit, function ($query) use ($sub_unit) {
-                    $query->where('sub_unit', $sub_unit);
-                })->groupBy('order_type')
+                ]);
+            if ($sub_unit) {
+                $storeInventoryItemModel->where('sub_unit', $sub_unit);
+            }
+            $storeInventoryItemModel = $storeInventoryItemModel
+                ->groupBy('order_type')
                 ->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
         } catch (Exception $exception) {
