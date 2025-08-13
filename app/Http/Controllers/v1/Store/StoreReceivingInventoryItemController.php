@@ -561,13 +561,15 @@ class StoreReceivingInventoryItemController extends Controller
     public function onGetCountOrderType($store_code, $reference_number)
     {
         try {
-            $storeInventoryItemModel = StoreReceivingInventoryItemModel::selectRaw('order_type, COUNT(*) as count')->where([
-                'store_code' => $store_code,
-                'reference_number' => $reference_number
-            ])->groupBy('order_type');
-            return $this->dataResponse('success', 200, __('msg.update_success'), $storeInventoryItemModel);
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::toBase()
+                ->selectRaw('order_type, COUNT(*) as count')
+                ->where('store_code', $store_code)
+                ->where('reference_number', $reference_number)
+                ->groupBy('order_type')
+                ->get();
+            return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 404, __('msg.update_failed'));
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
     }
 }
