@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Report;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stock\StockConversionModel;
+use App\Models\Stock\StockInventoryCountModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockOutModel;
@@ -12,6 +13,7 @@ use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Throwable;
 
 class StoreInventoryReportController extends Controller
 {
@@ -25,6 +27,14 @@ class StoreInventoryReportController extends Controller
             $isGroupByItemCategory = $request->is_group_by_item_category ?? null; // Expected values: 0 (false), 1 (true) For store receiving
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
+            $response = \Http::withHeaders([
+                'x-api-key' => env('SCM_API_KEY'),
+            ])->get(env('SCM_URL') . "/public/reason-list/current/get/1");
+
+            $foodChargeReasonList = [];
+            if ($response->successful()) {
+                $foodChargeReasonList = $response->json()['success']['data'] ?? [];
+            }
             $storeInventoryModel = StockInventoryModel::select([
                 'id',
                 'store_code',
@@ -49,7 +59,7 @@ class StoreInventoryReportController extends Controller
                 $itemCode = $inventory->item_code;
                 $storeCode = $inventory->store_code;
                 $storeSubUnitShortName = $inventory->store_sub_unit_short_name ?? null;
-                $beginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $beginningStock = $this->onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
                 $deliveryTransferCount = $this->onGetDeliveryTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $firstDelivery = $deliveryTransferCount['1D'] ?? 0;
@@ -57,9 +67,10 @@ class StoreInventoryReportController extends Controller
                 $thirdDelivery = $deliveryTransferCount['3D'] ?? 0;
                 $transactionIn = $deliveryTransferCount['store_transfer_in'] ?? 0;
 
-                $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $storeTransferOutCount = $this->onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName, $foodChargeReasonList);
                 $transactionOut = $storeTransferOutCount['store_transfer_out'] ?? 0;
                 $pulledOut = $storeTransferOutCount['pullout'] ?? 0;
+                $foodCharge = $storeTransferOutCount['food_charge'] ?? 0;
 
                 $stockConversionCount = $this->onGetConvertedStockCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
                 $convertOut = $stockConversionCount['convert_out'] ?? 0;
@@ -71,10 +82,13 @@ class StoreInventoryReportController extends Controller
                 $stockOutCount = $this->onGetStockOutCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
 
                 $t1 = $beginningStock + $firstDelivery + $secondDelivery + $thirdDelivery;
-                $actualCount = StockLogModel::onGetActualStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $actualCount = StockInventoryCountModel::onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+                $countedQuantity = $actualCount['counted_quantity'];
+                $countedRemarks = $actualCount['remarks'];
                 $reportData["$itemCode|$storeCode|$storeSubUnitShortName"] = [
                     'id' => $inventory->id,
                     'store_code' => $storeCode,
+                    'store_name' => $inventory->formatted_store_name_label,
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
                     'item_description' => $inventory->item_description,
@@ -90,9 +104,10 @@ class StoreInventoryReportController extends Controller
                     'convert_out' => $convertOut,
                     'convert_in' => 0,
                     'sold' => $stockOutCount,
-                    'food_charge' => 0,
+                    'food_charge' => $foodCharge,
                     'running_balance' => 0,
-                    'actual_count' => $actualCount,
+                    'actual_count' => $countedQuantity,
+                    'remarks' => $countedRemarks,
                     'variance' => 0,
                 ];
             }
@@ -177,12 +192,13 @@ class StoreInventoryReportController extends Controller
 
     }
 
-    public function onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    public function onGetStockTransferCount($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName, $foodChargeReasonList)
     {
         try {
             $stockTransferCount = [
                 'store_transfer_out' => 0,
                 'pullout' => 0,
+                'food_charge' => 0,
             ];
 
             $stockTransferModel = StockTransferModel::where([
@@ -201,12 +217,17 @@ class StoreInventoryReportController extends Controller
                     continue; // Skip if no items match the item code
                 }
 
+
                 switch ($transfer->transfer_type) {
                     case 0: // Store Transfer
                         $stockTransferCount['store_transfer_out'] += $filteredItems->sum('quantity');
                         break;
                     case 1: // Pull Out
-                        $stockTransferCount['pullout'] += $filteredItems->sum('quantity');
+                        if (in_array($transfer['remarks'], $foodChargeReasonList)) {
+                            $stockTransferCount['food_charge'] += $filteredItems->sum('quantity');
+                        } else {
+                            $stockTransferCount['pullout'] += $filteredItems->sum('quantity');
+                        }
                         break;
                 }
             }
@@ -276,4 +297,38 @@ class StoreInventoryReportController extends Controller
             throw new Exception('Error fetching stock out count: ' . $e->getMessage());
         }
     }
+
+    public function onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        try {
+            $subTractedTransactionDate = \Carbon\Carbon::parse($transactionDate)->subDay()->toDateString();
+
+            $stockInventoryCountModel = StockInventoryCountModel::whereDate('created_at', $subTractedTransactionDate)
+                ->where('store_code', $storeCode);
+
+            if ($storeSubUnitShortName) {
+                $stockInventoryCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+
+            $stockInventoryCountModel = $stockInventoryCountModel->orderBy('id', 'DESC')->first();
+
+            if ($stockInventoryCountModel) {
+                $stockInventoryItemCount = $stockInventoryCountModel
+                    ->stockInventoryItemsCount()
+                    ->select('counted_quantity')
+                    ->where('item_code', $itemCode)
+                    ->first();
+
+                if ($stockInventoryItemCount) {
+                    return $stockInventoryItemCount->counted_quantity;
+                }
+            }
+
+            $stockLogBeginningStock = StockLogModel::onGetBeginningStock($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName);
+            return $stockLogBeginningStock;
+        } catch (Throwable $e) {
+            throw new Exception("Error fetching beginning stock: {$e->getMessage()}", 0, $e);
+        }
+    }
 }
+

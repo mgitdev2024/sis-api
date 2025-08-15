@@ -34,7 +34,7 @@ class StoreReceivingInventoryItemController extends Controller
             if ($reference_number != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('reference_number', $reference_number);
             }
-            $storeInventoryItemModel = $storeInventoryItemModel->orderBy('id', 'DESC')->get();
+            $storeInventoryItemModel = $storeInventoryItemModel->orderBy('item_category_name', 'ASC')->get();
 
             $data = [
                 'reservation_request' => [],
@@ -43,7 +43,6 @@ class StoreReceivingInventoryItemController extends Controller
             ];
 
             $isReceived = true;
-            $counter = 0;
             foreach ($storeInventoryItemModel as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
@@ -55,16 +54,36 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
-                $data['reservation_request'] = [
-                    'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'reference_number' => $reference_number,
-                    'order_session_id' => $item->order_session_id ?? null,
-                ];
+                if (count($data['reservation_request']) === 0) {
+                    $data['reservation_request'] = [
+                        'delivery_location' => $item->store_name,
+                        'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'reference_number' => $reference_number,
+                        'order_session_id' => $item->order_session_id ?? null,
+                    ];
+
+                    $data['reservation_request']['is_received'] = $isReceived;
+                }
+
+                if (count($data['request_details']) === 0) {
+                    $data['request_details'] = [
+                        'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                        'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'delivery_scheme' => $item->delivery_type,
+                        'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
+                        'requested_by' => $item->created_by_name,
+                        'completed_by' => $item->completed_by_label ?? null,
+                        'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
+                        'status' => $item->status,
+                    ];
+
+                    $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
+                }
 
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
                     'reference_number' => $reference_number,
+                    'id' => $item->id,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
                     'order_quantity' => $item->order_quantity,
@@ -77,22 +96,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
                 ];
-
-                $data['request_details'] = [
-                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'delivery_scheme' => $item->delivery_type,
-                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
-                    'requested_by' => $item->created_by_name,
-                    'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
-                    'status' => $item->status,
-                ];
-                $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
-                $counter++;
             }
 
-            $data['reservation_request']['is_received'] = $isReceived;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
@@ -147,7 +152,6 @@ class StoreReceivingInventoryItemController extends Controller
 
             $isReceived = true;
 
-            $counter = 0;
             foreach ($storeInventoryItemArr as $item) {
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
@@ -160,13 +164,29 @@ class StoreReceivingInventoryItemController extends Controller
                     $uniqueKey .= "-$fanOutCategory";
                 }
 
+                if (count($data['reservation_request']) === 0) {
+                    $data['reservation_request'] = [
+                        'delivery_location' => $item->store_name,
+                        'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'reference_number' => $reference_number,
+                        'order_session_id' => $item->order_session_id ?? null,
+                    ];
+                    $data['reservation_request']['is_received'] = $isReceived;
 
-                $data['reservation_request'] = [
-                    'delivery_location' => $item->store_name,
-                    'estimated_delivery_date' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'reference_number' => $reference_number,
-                    'order_session_id' => $item->order_session_id ?? null,
-                ];
+                }
+                if (count($data['request_details']) === 0) {
+                    $data['request_details'] = [
+                        'supply_hub' => $item->storeReceivingInventory->warehouse_name,
+                        'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
+                        'delivery_scheme' => $item->delivery_type,
+                        'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
+                        'requested_by' => $item->created_by_name,
+                        'completed_by' => $item->completed_by_name ?? null,
+                        'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
+                        'status' => $item->status,
+                    ];
+                    $data['request_details']['additional_info'] = $this->onCheckReferenceNumber($reference_number);
+                }
 
                 $data['requested_items'][] = [
                     'unique_key' => "$uniqueKey",
@@ -183,23 +203,8 @@ class StoreReceivingInventoryItemController extends Controller
                     'created_by_name' => $item->created_by_name,
                     'status' => $item->status,
                 ];
-
-                $data['request_details'] = [
-                    'supply_hub' => $item->storeReceivingInventory->warehouse_name,
-                    'delivery_location' => Carbon::parse($item->delivery_date)->format('F d, Y'),
-                    'delivery_scheme' => $item->delivery_type,
-                    'order_date' => Carbon::parse($item->order_date)->format('F d, Y'),
-                    'requested_by' => $item->created_by_name,
-                    'completed_by' => $item->completed_by_name ?? null,
-                    'completed_at' => $item->completed_at != null ? Carbon::parse($item->completed_at)->format('F d, Y') : null,
-                    'status' => $item->status,
-
-                ];
-
-                $counter++;
             }
 
-            $data['reservation_request']['is_received'] = $isReceived;
             return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
@@ -216,11 +221,12 @@ class StoreReceivingInventoryItemController extends Controller
                 'sri.delivery_type',
                 'sri.warehouse_name',
                 'srt.status',
-                DB::raw('MAX(srt.type) as receive_type'),
+                DB::raw('MAX(srt.type) as type'),
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
-                ->where('store_code', $store_code);
+                ->where('store_code', $store_code)
+                ->whereDate('srt.delivery_date', now());
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
             }
@@ -516,6 +522,60 @@ class StoreReceivingInventoryItemController extends Controller
                 'store_received_by_id' => $createdById,
                 'store_received_at' => now(),
             ]);
+        }
+    }
+
+    // ------------- Added New Function
+
+    public function onAddRemarks(Request $request, $reference_number)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+            'store_inventory_item_data' => 'required' // [{"id":1,"re":"Naiwan"},{"id":2,"re":"Nahulog"}]
+        ]);
+        try {
+            DB::beginTransaction();
+
+            $storeInventoryItemData = json_decode($fields['store_inventory_item_data'], true);
+            foreach ($storeInventoryItemData as $item) {
+                $storeInventoryItem = StoreReceivingInventoryItemModel::find($item['id']);
+                if ($storeInventoryItem) {
+                    $storeInventoryItem->remarks = trim($item['re'] ?? '') ?: null;
+                    $storeInventoryItem->save();
+                }
+            }
+
+            $onCompleteRequestForm = new Request([
+                'created_by_id' => $fields['created_by_id']
+            ]);
+            $this->onComplete($onCompleteRequestForm, $reference_number);
+
+            DB::commit();
+            return $this->dataResponse('success', 200, __('msg.update_success'));
+        } catch (Exception $exception) {
+            DB::rollback();
+            return $this->dataResponse('error', 404, __('msg.update_failed'));
+        }
+    }
+
+    public function onGetCountOrderType($store_code, $reference_number, $sub_unit = null)
+    {
+        try {
+            $storeInventoryItemModel = StoreReceivingInventoryItemModel::toBase()
+                ->selectRaw('order_type, COUNT(*) as count')
+                ->where([
+                    'store_code' => $store_code,
+                    'reference_number' => $reference_number
+                ]);
+            if ($sub_unit) {
+                $storeInventoryItemModel->where('store_sub_unit_short_name', $sub_unit);
+            }
+            $storeInventoryItemModel = $storeInventoryItemModel
+                ->groupBy('order_type')
+                ->get();
+            return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
     }
 }

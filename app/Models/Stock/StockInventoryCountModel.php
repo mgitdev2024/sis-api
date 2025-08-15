@@ -21,14 +21,24 @@ class StockInventoryCountModel extends Model
         'formatted_updated_by_label',
         'formatted_created_at_label',
         'formatted_updated_at_label',
+        'formatted_reviewed_at_label',
+        'formatted_posted_at_label',
+        'formatted_reviewed_by_label',
+        'formatted_posted_by_label',
     ];
     protected $fillable = [
         'reference_number',
         'type', // 1 = Hourly, 2 = EOD, 3 = Month-End
         'store_code',
         'store_sub_unit_short_name',
+        'created_at',
         'created_by_id',
+        'updated_at',
         'updated_by_id',
+        'reviewed_at',
+        'reviewed_by_id',
+        'posted_at',
+        'posted_by_id',
         'status', // 0 = Pending, 1 = For Review, 2 = Posted, 3 = Cancelled
     ];
 
@@ -99,5 +109,64 @@ class StockInventoryCountModel extends Model
     public function getFormattedUpdatedAtLabelAttribute()
     {
         return $this->updated_at ? \Carbon\Carbon::parse($this->updated_at)->format('Y-m-d h:i A') : null;
+    }
+
+    public function getFormattedReviewedAtLabelAttribute()
+    {
+        return $this->reviewed_at ? \Carbon\Carbon::parse($this->reviewed_at)->format('Y-m-d h:i A') : null;
+    }
+
+    public function getFormattedPostedAtLabelAttribute()
+    {
+        return $this->posted_at ? \Carbon\Carbon::parse($this->posted_at)->format('Y-m-d h:i A') : null;
+    }
+
+    public function getFormattedReviewedByLabelAttribute()
+    {
+        $userModel = User::where('employee_id', $this->reviewed_by_id)->first();
+        if ($userModel) {
+            return $userModel->first_name . ' ' . $userModel->last_name;
+        }
+        return null;
+    }
+
+    public function getFormattedPostedByLabelAttribute()
+    {
+        $userModel = User::where('employee_id', $this->posted_by_id)->first();
+        if ($userModel) {
+            return $userModel->first_name . ' ' . $userModel->last_name;
+        }
+        return null;
+    }
+
+    public static function onGetActualCountEOD($transactionDate, $itemCode, $storeCode, $storeSubUnitShortName)
+    {
+        $data = [
+            'counted_quantity' => 0,
+            'remarks' => null
+        ];
+        try {
+            $stockInventoryCountModel = self::where([
+                'store_code' => $storeCode,
+                'type' => 2, // EOD type
+                'status' => 2, // Posted status
+            ]);
+            if ($storeSubUnitShortName) {
+                $stockInventoryCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+            }
+            $stockInventoryCountModel = $stockInventoryCountModel->whereDate('created_at', $transactionDate)
+                ->orderBy('id', 'DESC')->first();
+            if ($stockInventoryCountModel) {
+                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount->where('item_code', $itemCode)->first();
+                if ($stockInventoryItemCountModel) {
+                    $data['counted_quantity'] = $stockInventoryItemCountModel->counted_quantity ?? 0;
+                    $data['remarks'] = $stockInventoryItemCountModel->remarks ?? null;
+                    return $data;
+                }
+            }
+            return $data;
+        } catch (\Exception $exception) {
+            return $data;
+        }
     }
 }

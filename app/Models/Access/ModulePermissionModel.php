@@ -11,7 +11,6 @@ class ModulePermissionModel extends Model
     use HasFactory;
     protected $table = 'access_module_permissions';
     protected $fillable = [
-        'scm_system_id',
         'name',
         'code',
         'description',

@@ -30,6 +30,7 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/stock/conversion/daily', [App\Http\Controllers\v1\Report\StockConversionReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/out/daily', [App\Http\Controllers\v1\Report\StockOutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
+    Route::post('/reports/stock/pullout/daily', [App\Http\Controllers\v1\Report\StockPulloutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
 });
 
@@ -83,6 +84,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
     Route::post('v1/store/receive-inventory-item/complete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onComplete']);
+    Route::post('v1/store/receive-inventory-item/add-remarks/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onAddRemarks']);
+
+    Route::get('v1/store/receive-inventory-item/filter/order-type/get/{store_code}/{reference_number}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCountOrderType']);
     #endregion
 
     #region Store Receiving Inventory Item Cache
@@ -106,7 +110,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #region Stock Transfer
     Route::post('v1/stock/transfer/create', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCreate']);
     Route::post('v1/stock/transfer/cancel/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onCancel']);
-    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGet']);
+    Route::get('v1/stock/transfer/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetCurrent']);
     Route::get('v1/stock/transfer/get/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onGetById']);
     Route::post('v1/stock/transfer/pickup/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onPickupTransfer']);
     #endregion
@@ -166,5 +170,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
 
     #region Stock Out Item
     Route::get('v1/stock/out-item/get/{stock_out_id}', [App\Http\Controllers\v1\Stock\StockOutItemController::class, 'onGet']);
+    #endregion
+
+    #region Stock Return Item
+    Route::post('v1/stock/return-item/create', [App\Http\Controllers\v1\Stock\StockReturnItemController::class, 'onCreate']);
     #endregion
 });

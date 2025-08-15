@@ -28,8 +28,21 @@ class StockInventoryCountController extends Controller
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
+
+            $hasPending = StockInventoryCountModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'status' => 0
+            ])->exists();
+
+            if ($hasPending) {
+                return $this->dataResponse('success', 400, 'Still has pending stock count');
+            }
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
             $type = $fields['type'];
+
+            $stockCountDate = now();
+
             $stockInventoryCount = StockInventoryCountModel::create([
                 'reference_number' => $referenceNumber,
                 'type' => $type, // 1 = Hourly, 2 = EOD, 3 = Month-End
@@ -38,8 +51,29 @@ class StockInventoryCountController extends Controller
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
                 'status' => 0,
+                'created_at' => $stockCountDate
             ]);
             $stockInventoryCount->save();
+            $response = \Http::withHeaders([
+                'x-api-key' => env('MGIOS_API_KEY'),
+            ])->get(env('MGIOS_URL') . "/public/stock-count-lead-time/current/get");
+
+            if ($response->successful()) {
+                $leadTime = $response->json()['success']['data'] ?? [];
+                $leadTimeFrom = $leadTime['lead_time_from'] ?? null;
+                $leadTimeTo = $leadTime['lead_time_to'] ?? null;
+                $currentTime = now()->format('H:i:s');
+
+                if (
+                    Carbon::createFromTimeString($currentTime)
+                        ->between(
+                            Carbon::createFromTimeString($leadTimeFrom),
+                            Carbon::createFromTimeString($leadTimeTo)
+                        )
+                ) {
+                    $stockCountDate = now()->subDay(); // yesterday
+                }
+            }
 
             $this->onCreateStockInventoryItemsCount($stockInventoryCount->id, $storeCode, $storeSubUnitShortName, $createdById);
             DB::commit();
@@ -57,7 +91,7 @@ class StockInventoryCountController extends Controller
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
-            ])->orderBy('item_code', 'ASC')->get();
+            ])->orderBy('item_code', 'DESC')->get();
 
             $stockInventoryItemsCount = [];
             foreach ($stockInventoryModel as $item) {

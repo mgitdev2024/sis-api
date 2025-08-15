@@ -18,13 +18,18 @@ class StockInventoryItemCountController extends Controller
     use ResponseTrait, CrudOperationsTrait;
     public function onGetById($store_inventory_count_id)
     {
-        $whereFields = [
-            'stock_inventory_count_id' => $store_inventory_count_id,
-        ];
-        $orderFields = [
-            'system_quantity' => 'DESC',
-        ];
-        return $this->readCurrentRecord(StockInventoryItemCountModel::class, null, $whereFields, null, $orderFields, 'Store Inventory Item Count');
+        try {
+            $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
+            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
+
+            $data = [
+                'stock_inventory_count' => $stockInventoryCountModel,
+                'stock_inventory_items_count' => $stockInventoryItemCountModel
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
+        }
     }
 
     public function onUpdate(Request $request, $store_inventory_count_id)
@@ -46,12 +51,13 @@ class StockInventoryItemCountController extends Controller
                 $stockInventoryCountModel->update([
                     'status' => 1, // For Review
                     'updated_by_id' => $createdById,
+                    'reviewed_at' => now(),
+                    'reviewed_by_id' => $createdById
                 ]);
             }
             foreach ($stockInventoryCountData as $item) {
                 $itemCode = $item['ic']; // Item Code
                 $countedQuantity = $item['cq']; // Counted Quantity
-
                 $stockInventoryItemCount = StockInventoryItemCountModel::where([
                     'stock_inventory_count_id' => $store_inventory_count_id,
                     'item_code' => $itemCode,
@@ -81,6 +87,7 @@ class StockInventoryItemCountController extends Controller
             'created_by_id' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
+            'stock_inventory_item_count_data' => 'nullable' // {"CR 12":"Nahulog","TAS WH":"Nawala"}
         ]);
 
         try {
@@ -92,6 +99,8 @@ class StockInventoryItemCountController extends Controller
                 $stockInventoryCountModel->update([
                     'status' => 2, // Post
                     'updated_by_id' => $createdById,
+                    'posted_at' => now(),
+                    'posted_by_id' => $createdById
                 ]);
             }
             $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
@@ -99,6 +108,10 @@ class StockInventoryItemCountController extends Controller
             ])->where('discrepancy_quantity', '!=', 0)->get();
 
             foreach ($stockInventoryItemCountModel as $item) {
+                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
+                $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
+                $item->save();
+
                 $countedQuantity = $item->counted_quantity;
                 // Update the stock inventory
                 $stockInventoryModel = StockInventoryModel::where([
@@ -126,41 +139,27 @@ class StockInventoryItemCountController extends Controller
                     ]);
                 }
 
-                $stockLogModel = StockLogModel::where([
+                $latestLog = StockLogModel::where([
                     'store_code' => $fields['store_code'],
                     'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
                     'item_code' => $item->item_code,
                 ])->orderBy('id', 'DESC')->first();
 
-                if ($stockLogModel) {
-                    $stockLogModel->create([
-                        'reference_number' => $item->stockInventoryCount->reference_number,
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $stockLogModel->item_code,
-                        'item_description' => $stockLogModel->item_description,
-                        'item_category_name' => $stockLogModel->item_category_name,
-                        'quantity' => 0,
-                        'initial_stock' => $stockLogModel->final_stock,
-                        'final_stock' => $countedQuantity,
-                        'transaction_type' => 'adjustment',
-                        'created_by_id' => $createdById,
-                    ]);
-                } else {
-                    StockLogModel::create([
-                        'reference_number' => $item->stockInventoryCount->reference_number,
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $item->item_code,
-                        'item_description' => $item->item_description,
-                        'item_category_name' => $item->item_category_name,
-                        'quantity' => 0,
-                        'initial_stock' => 0,
-                        'final_stock' => $countedQuantity,
-                        'transaction_type' => 'adjustment',
-                        'created_by_id' => $createdById,
-                    ]);
-                }
+                $data = [
+                    'reference_number' => $item->stockInventoryCount->reference_number,
+                    'store_code' => $fields['store_code'],
+                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    'item_code' => $latestLog?->item_code ?? $item->item_code,
+                    'item_description' => $latestLog?->item_description ?? $item->item_description,
+                    'item_category_name' => $latestLog?->item_category_name ?? $item->item_category_name,
+                    'quantity' => 0,
+                    'initial_stock' => $latestLog?->final_stock ?? 0,
+                    'final_stock' => $countedQuantity,
+                    'transaction_type' => 'adjustment',
+                    'created_by_id' => $createdById,
+                ];
+
+                StockLogModel::create($data);
 
             }
             DB::commit();

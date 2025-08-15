@@ -118,7 +118,7 @@ class StockTransferModel extends Model
     {
         $userModel = User::where('employee_id', $this->store_received_by_id)->first();
 
-        return $userModel ? "$userModel->first_name $userModel->last_name" : 'Unknown';
+        return $userModel ? "$userModel->first_name $userModel->last_name" : null;
     }
 
     public function getFormattedWarehouseReceivedAtLabelAttribute()
@@ -135,7 +135,7 @@ class StockTransferModel extends Model
     {
         $userModel = User::where('employee_id', $this->created_by_id)->first();
 
-        return $userModel ? "$userModel->first_name $userModel->last_name" : 'Unknown';
+        return $userModel ? "$userModel->first_name $userModel->last_name" : null;
     }
 
     public function getFormattedStoreNameLabelAttribute()

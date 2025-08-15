@@ -7,6 +7,7 @@ use App\Models\Stock\StockOutModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 class StockOutReportController extends Controller
 {
     use ResponseTrait;
@@ -31,7 +32,9 @@ class StockOutReportController extends Controller
                 $stockOutModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($dateFrom && $dateTo) {
-                $stockOutModel->whereBetween('created_at', [$dateFrom, $dateTo]);
+                $stockOutModel->where('created_at', '>=', $dateFrom)
+                    ->where('created_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
+                ;
             } else if ($dateFrom) {
                 $stockOutModel->whereDate('created_at', $dateFrom);
             }

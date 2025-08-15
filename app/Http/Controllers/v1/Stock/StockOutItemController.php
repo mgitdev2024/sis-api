@@ -87,7 +87,6 @@ class StockOutItemController extends Controller
             $stockOutModel = StockOutModel::with(['stockOutItems'])->where('id', $stock_out_id)->firstOrFail();
             return $this->dataResponse('success', 200, __('msg.record_found'), $stockOutModel);
         } catch (Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
     }

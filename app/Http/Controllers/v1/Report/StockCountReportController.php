@@ -7,19 +7,35 @@ use App\Models\Stock\StockInventoryCountModel;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
+use Carbon\Carbon;
 class StockCountReportController extends Controller
 {
     use ResponseTrait;
     public function onGenerateDailyReport(Request $request)
     {
         try {
+            // Store Code & Sub Unit Filters
             $storeCode = $request->store_code ?? null;
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
-            $deliveryDateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
-            $deliveryDateExplode = $deliveryDateRange != null ? explode('to', str_replace(' ', '', $deliveryDateRange)) : null;
-            $deliveryDateFrom = isset($deliveryDateExplode[0]) ? date('Y-m-d', strtotime($deliveryDateExplode[0])) : null;
-            $deliveryDateTo = isset($deliveryDateExplode[1]) ? date('Y-m-d', strtotime($deliveryDateExplode[1])) : null;
-            $status = $request->status ?? null;
+
+            // Date Ranges & Type Filters
+            $dateRangeTypeId = $request->date_range_type ?? null; // Expected format: 0, 1, 2 [0 = created_at, 1 = posted_at, 2 = reviewed_at]
+            $dateRangeArray = [
+                0 => 'created_at',
+                1 => 'posted_at',
+                2 => 'reviewed_at',
+            ];
+            $dateRangeType = $dateRangeArray[$dateRangeTypeId] ?? null;
+            $dateRange = $request->delivery_date_range ?? null; // Expected format: 'YYYY-MM-DD to YYYY-MM-DD'
+            $dateRangeExplode = $dateRange != null ? explode('to', str_replace(' ', '', $dateRange)) : null;
+            $dateFrom = isset($dateRangeExplode[0]) ? date('Y-m-d', strtotime($dateRangeExplode[0])) : null;
+            $dateTo = isset($dateRangeExplode[1]) ? date('Y-m-d', strtotime($dateRangeExplode[1])) : null;
+
+            // Other Filters
+            $status = $request->status ?? null; // Assuming status is passed as a query parameter
+            $referenceNumber = $request->reference_number ?? null;
+            $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null;
+            $countType = $request->count_type ?? null; // Assuming count_type is passed as a query parameter [1,2,3]
 
             $stockCountModel = StockInventoryCountModel::select([
                 'id',
@@ -34,27 +50,41 @@ class StockCountReportController extends Controller
                 'status',
             ]);
             if ($storeCode) {
-                $stockCountModel->where('store_code', $storeCode);
+                $storeCode = json_decode($storeCode);
+                $stockCountModel->whereIn('store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
                 $stockCountModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
             }
-            if ($deliveryDateFrom && $deliveryDateTo) {
-                $stockCountModel->whereBetween('created_at', [$deliveryDateFrom, $deliveryDateTo]);
-            } else if ($deliveryDateFrom) {
-                $stockCountModel->whereDate('created_at', $deliveryDateFrom);
+            if (($dateFrom && $dateTo) && $dateRangeType) {
+                $stockCountModel->where($dateRangeType, '>=', $dateFrom)
+                    ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
+            } else if ($dateFrom && $dateRangeType) {
+                $stockCountModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($status) {
                 $stockCountModel->where('status', $status);
             }
+            if ($referenceNumber) {
+                $stockCountModel->where('reference_number', $referenceNumber);
+            }
+            if ($countType) {
+                $countType = json_decode($countType);
+                $stockCountModel->whereIn('type', $countType);
+            }
+
             $stockCountModel = $stockCountModel->whereNotIn('status', [3])->orderBy('reference_number', 'ASC')->get();
 
             $reportData = [];
             foreach ($stockCountModel as $item) {
-                $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item) {
+                $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item, $isShowOnlyNonZeroVariance) {
+                    $remarks = $countItem['remarks'];
                     $systemQuantity = $countItem['system_quantity'];
                     $actualQuantity = $countItem['counted_quantity'];
                     $variance = $systemQuantity - $actualQuantity;
+                    if ($isShowOnlyNonZeroVariance && $variance == 0) {
+                        return; // Skip if variance is zero and filter is applied
+                    }
                     $status = $item['status'];
                     $postedBy = null;
                     $postedAt = null;
@@ -78,7 +108,8 @@ class StockCountReportController extends Controller
                         'actual_qty' => $actualQuantity,
                         'variance' => $variance,
                         'posted_by' => $postedBy,
-                        'date_posted' => $postedAt
+                        'date_posted' => $postedAt,
+                        'remarks' => $remarks,
                     ];
                 });
             }

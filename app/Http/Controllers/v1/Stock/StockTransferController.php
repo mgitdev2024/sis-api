@@ -60,7 +60,7 @@ class StockTransferController extends Controller
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'transfer_type' => $transferTypeArr[$type],
-                'transportation_type' => $transportationType,
+                'transportation_type' => $type == 1 ? 1 : $transportationType,
                 'pickup_date' => $pickupDate,
                 'location_code' => $transferToStoreCode,
                 'location_name' => $transferToStoreName,
@@ -102,7 +102,7 @@ class StockTransferController extends Controller
                 'warehouse_name' => $transferToStoreName,
                 'reference_number' => $referenceNumber,
                 'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
+                'delivery_type' => null,
                 'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
@@ -325,7 +325,7 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onGet($status, $store_code, $sub_unit = null)
+    public function onGetCurrent($status, $store_code, $sub_unit = null)
     {
         try {
             $query = StockTransferModel::query();
@@ -339,7 +339,8 @@ class StockTransferController extends Controller
             if ($sub_unit) {
                 $query->where('store_sub_unit_short_name', $sub_unit);
             }
-            $stockTransfers = $query->get();
+            $stockTransfers = $query->orderBy('id', 'DESC')
+                ->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $stockTransfers);
 
         } catch (Exception $exception) {
