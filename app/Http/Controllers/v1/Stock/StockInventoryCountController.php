@@ -36,7 +36,7 @@ class StockInventoryCountController extends Controller
             ])->exists();
 
             if ($hasPending) {
-                // return $this->dataResponse('success', 400, 'Still has pending stock count');
+                return $this->dataResponse('success', 400, 'Still has pending stock count');
             }
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
             $type = $fields['type'];
