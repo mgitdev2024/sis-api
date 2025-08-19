@@ -105,7 +105,7 @@ class StockInventoryItemCountController extends Controller
             }
             $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
                 'stock_inventory_count_id' => $store_inventory_count_id,
-            ])->where('discrepancy_quantity', '!=', 0)->get();
+            ])->get();
 
             foreach ($stockInventoryItemCountModel as $item) {
                 $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
