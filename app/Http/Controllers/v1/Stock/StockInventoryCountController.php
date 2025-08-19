@@ -119,8 +119,8 @@ class StockInventoryCountController extends Controller
             }
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
-                    'x-api-key' => env('MGIOS_API_KEY'),
-                ])->post(env('MGIOS_URL') . "/public/item/masterdata-collection/get", [
+                    'x-api-key' => env('SCM_API_KEY'),
+                ])->post(env('SCM_URL') . "/public/item/masterdata-collection/get", [
                             'item_code_collection' => json_encode($toBeAddedItems),
                         ]);
 
