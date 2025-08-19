@@ -229,8 +229,38 @@ class StockInventoryCountController extends Controller
             "FG0070",
             "FG0074",
             "FG0075",
-            "FG0085"
+            "FG0085",
+
+            // ⬇️ Newly added items
+            "EQ PCS",
+            "CR PCS",
+            "MM PCS",
+
+            "BR SL",
+            "LMS PC",
+            "VT SL",
+            "CK SL",
+            "CC SL",
+            "CH SL",
+            "SSCV SL",
+            "SW SL",
+            "TR SL",
+            "CM SL",
+
+            "MB DD",
+            "MB SL",
+            "CTI SL",
+            "PU SL",
+            "BD SL",
+            "FC SL",
+            "LGB",
+            "LGQB",
+
+            "FC LF",
+            "IND1050",
+            "IND1051"
         ];
+
 
         return array_values(array_diff($fohItems, $existingItemCodes));
     }
