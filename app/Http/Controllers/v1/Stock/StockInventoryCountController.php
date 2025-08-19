@@ -43,17 +43,6 @@ class StockInventoryCountController extends Controller
 
             $stockCountDate = now();
 
-            $stockInventoryCount = StockInventoryCountModel::create([
-                'reference_number' => $referenceNumber,
-                'type' => $type, // 1 = Hourly, 2 = EOD, 3 = Month-End
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName,
-                'created_by_id' => $createdById,
-                'updated_by_id' => $createdById,
-                'status' => 0,
-                'created_at' => $stockCountDate
-            ]);
-            $stockInventoryCount->save();
             $response = \Http::withHeaders([
                 'x-api-key' => env('MGIOS_API_KEY'),
             ])->get(env('MGIOS_URL') . "/public/stock-count-lead-time/current/get");
@@ -74,6 +63,18 @@ class StockInventoryCountController extends Controller
                     $stockCountDate = now()->subDay(); // yesterday
                 }
             }
+
+            $stockInventoryCount = StockInventoryCountModel::create([
+                'reference_number' => $referenceNumber,
+                'type' => $type, // 1 = Hourly, 2 = EOD, 3 = Month-End
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'created_by_id' => $createdById,
+                'updated_by_id' => $createdById,
+                'status' => 0,
+                'created_at' => $stockCountDate
+            ]);
+            $stockInventoryCount->save();
 
             $this->onCreateStockInventoryItemsCount($stockInventoryCount->id, $storeCode, $storeSubUnitShortName, $createdById);
             DB::commit();
