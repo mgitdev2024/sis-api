@@ -195,9 +195,9 @@ class AccessManagementController extends Controller
 
     public function onIsAllowed($isAllowedArr, $id)
     {
-        $isAllowed = json_decode($isAllowedArr ?? '[]', true);
+        $isAllowed = array_map('strval', json_decode($isAllowedArr ?? '[]', true) ?: []);
 
-        return in_array($id, $isAllowed);
+        return in_array((string) $id, $isAllowed, true);
     }
 
     public function onBulkUpload(Request $request)
