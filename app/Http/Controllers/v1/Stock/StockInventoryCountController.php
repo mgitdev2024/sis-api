@@ -153,6 +153,7 @@ class StockInventoryCountController extends Controller
     {
         $fohItems = [
             "EQ 6",
+            "CR PC",
             "CR 12",
             "MM 6",
             "BR 8",
