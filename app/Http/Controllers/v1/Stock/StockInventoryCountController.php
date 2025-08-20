@@ -31,9 +31,8 @@ class StockInventoryCountController extends Controller
 
             $hasPending = StockInventoryCountModel::where([
                 'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName,
-                'status' => 0
-            ])->exists();
+                'store_sub_unit_short_name' => $storeSubUnitShortName
+            ])->whereIn('status', [0, 1])->exists();
 
             if ($hasPending) {
                 return $this->dataResponse('success', 400, 'Still has pending stock count');
