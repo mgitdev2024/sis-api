@@ -37,7 +37,7 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
-    Route::get('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
+    Route::post('v1/logout', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogout']); // Logout
 
     Route::get('v1/run-migrations', function () {
         // Artisan::call('migrate', ["--force" => true]);
@@ -102,7 +102,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS', 'check
 
     #region Stock Inventory
     Route::get('v1/stock/inventory/get/{is_group}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
-    Route::get('v1/stock/inventory/id/get/{stock_inventory_id}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
+    Route::get('v1/stock/inventory/id/get/{stock_inventory_id?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
 
     #endregion
 
@@ -126,7 +126,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS', 'check
     #endregion
 
     #region Stock Inventory Count
-    Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);
+    Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id?}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);
     Route::post('v1/stock/inventory-item-count/update/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onUpdate']);
     Route::post('v1/stock/inventory-item-count/post/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onPost']);
     #endregion
