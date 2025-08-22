@@ -70,9 +70,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/system/admin/status/change/{system_id}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onChangeStatus']);
     Route::get('v1/system/admin/get/{system_id?}', [App\Http\Controllers\v1\Admin\System\SCMSystemController::class, 'onGet']);
     #endregion
+
+    // Cache Store
+    Route::post('v1/store/cache', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onStoreCache']);
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS', 'check.pending.stock.count']], function () {
     #region Store Receiving Inventory
     Route::get('v1/store/receive-inventory/current/get/{status}/{store_code?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
     Route::get('v1/store/receive-inventory/get/{store_receiving_inventory_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetById']);

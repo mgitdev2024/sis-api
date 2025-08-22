@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'check.system.status' => \App\Http\Middleware\CheckSystemStatus::class,
         'check.api.key' => \App\Http\Middleware\CheckApiKey::class,
+        'check.pending.stock.count' => \App\Http\Middleware\CheckPendingStockCount::class,
     ];
 }
