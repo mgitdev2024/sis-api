@@ -100,7 +100,7 @@ class StockTransferItemController extends Controller
                     'store_sub_unit_short_name' => $storeSubUnitShortName,
                     'item_code' => $itemCode,
                 ])->first();
-                if($stockInventoryModel) {
+                if ($stockInventoryModel) {
                     $stockInventoryModel->stock_count -= $itemQuantityCount;
                     $stockInventoryModel->save();
                 }
