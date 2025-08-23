@@ -211,7 +211,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    public function onGetCategory($store_code, $status = null, $sub_unit = null)
+    public function onGetCategory($store_code, $status = null, $back_date = null, $sub_unit = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::from('store_receiving_inventory_items as srt')->select([
@@ -225,10 +225,14 @@ class StoreReceivingInventoryItemController extends Controller
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
-                ->where('store_code', $store_code)
-                ->whereDate('srt.delivery_date', now());
+                ->where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
+            }
+            if ($back_date != null) {
+                $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', $back_date);
+            } else {
+                $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', now());
             }
             if ($sub_unit != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.store_sub_unit_short_name', $sub_unit);
