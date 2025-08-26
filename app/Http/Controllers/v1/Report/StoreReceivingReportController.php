@@ -89,7 +89,7 @@ class StoreReceivingReportController extends Controller
                 $receiveType = $item['receive_type_label'] ?? null;
                 $receivedBy = $item['received_by_label'] ?? null;
                 $remarks = $item['remarks'] ?? null;
-                $receivedAt = $item['received_at_label'] ?? null;
+                $receivedAt = $item['formatted_received_at_label'] ?? null;
                 $deliveryDate = $item['formatted_delivery_date_label'] ?? null;
                 $status = null;
                 $variance = floatval($receivedQuantity) - floatval($allocatedQuantity);
