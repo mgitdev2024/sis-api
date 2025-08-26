@@ -252,7 +252,6 @@ class StoreReceivingInventoryItemController extends Controller
                     return $item;
                 });
 
-            dd($storeInventoryItemModel);
             return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
