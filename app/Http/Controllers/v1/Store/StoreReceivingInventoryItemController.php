@@ -229,7 +229,7 @@ class StoreReceivingInventoryItemController extends Controller
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
             }
-            if ($back_date != 'null') {
+            if ($back_date != 'undefined') {
                 $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', $back_date);
             } else {
                 $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', now());
@@ -252,6 +252,7 @@ class StoreReceivingInventoryItemController extends Controller
                     return $item;
                 });
 
+            dd($storeInventoryItemModel);
             return $this->dataResponse('success', 200, __('msg.record_found'), $storeInventoryItemModel);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
