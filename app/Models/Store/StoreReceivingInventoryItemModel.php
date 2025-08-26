@@ -19,7 +19,7 @@ class StoreReceivingInventoryItemModel extends Model
         'order_type_label',
         'formatted_delivery_date_label',
         'received_by_label',
-        'received_at_label',
+        'formatted_received_at_label',
         'completed_by_label',
     ];
     protected $fillable = [
