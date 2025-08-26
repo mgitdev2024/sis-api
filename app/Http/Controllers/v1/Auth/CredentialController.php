@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ResponseTrait;
 use DB;
+use Illuminate\Support\Facades\Cache;
 
 class CredentialController extends Controller
 {
@@ -58,6 +59,7 @@ class CredentialController extends Controller
     public function onLogout()
     {
         try {
+            Cache::forget('store_' . auth()->id());
             auth()->user()->tokens()->delete();
             return $this->dataResponse('success', 200, __('msg.logout'));
         } catch (Exception $exception) {
@@ -93,6 +95,24 @@ class CredentialController extends Controller
                 'message' => 'Token is invalid'
             ];
             return response()->json($data, 401);
+        }
+    }
+
+    public function onStoreCache(Request $request)
+    {
+        $fields = $request->validate([
+            'store_code' => 'required|string',
+            'sub_unit' => 'nullable|string',
+        ]);
+
+        try {
+            Cache::put('store_' . auth()->id(), [
+                'store_code' => $fields['store_code'],
+                'sub_unit' => $fields['sub_unit'],
+            ]);
+            return $this->dataResponse('success', 200, 'Cache Set');
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
         }
     }
 }

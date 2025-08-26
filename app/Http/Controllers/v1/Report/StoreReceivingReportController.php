@@ -87,7 +87,7 @@ class StoreReceivingReportController extends Controller
                 $allocatedQuantity = $item['allocated_quantity'] ?? null;
                 $receivedQuantity = $item['received_quantity'] ?? null;
                 $receiveType = $item['receive_type_label'] ?? null;
-                $receivedBy = $item['formatted_received_by_label'] ?? null;
+                $receivedBy = $item['received_by_label'] ?? null;
                 $remarks = $item['remarks'] ?? null;
                 $receivedAt = $item['formatted_received_at_label'] ?? null;
                 $deliveryDate = $item['formatted_delivery_date_label'] ?? null;

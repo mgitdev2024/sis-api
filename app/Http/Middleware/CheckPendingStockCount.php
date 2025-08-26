@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Models\Stock\StockInventoryCountModel;
+use App\Traits\ResponseTrait;
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Cache;
+
+class CheckPendingStockCount
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    use ResponseTrait;
+    public function handle(Request $request, Closure $next): Response
+    {
+        $requestMethods = ['POST', 'DELETE', 'PUT'];
+        $method = $request->getMethod();
+
+        if (in_array($method, $requestMethods)) {
+            $cache = Cache::get('store_' . auth()->id());
+            $storeCode = $cache['store_code'] ?? null;
+            $subUnit = $cache['sub_unit'] ?? null;
+
+            $stockInventoryCount = StockInventoryCountModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit
+            ])->whereIn('status', [0, 1])->get();
+
+            if (count($stockInventoryCount)) {
+                return $this->dataResponse('error', 400, 'Pending stock count exists');
+            }
+        }
+
+        return $next($request);
+    }
+}

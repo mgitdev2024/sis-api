@@ -76,39 +76,42 @@ class StockInventoryController extends Controller
         });
     }
 
-    public function onGetById($stockInventoryId)
+    public function onGetById($stockInventoryId = null)
     {
         try {
-            $stockInventoryModel = StockInventoryModel::findOrFail($stockInventoryId);
-            $itemCode = $stockInventoryModel->item_code;
+            if ($stockInventoryId) {
+                $stockInventoryModel = StockInventoryModel::findOrFail($stockInventoryId);
+                $itemCode = $stockInventoryModel->item_code;
 
-            $response = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get/' . $itemCode);
-            $apiResponse = $response->json()['success']['data'] ?? [];
+                $response = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get/' . $itemCode);
+                $apiResponse = $response->json()['success']['data'] ?? [];
 
-            $stockConversionItem = $apiResponse['stock_conversion_items'] ?? [];
+                $stockConversionItem = $apiResponse['stock_conversion_items'] ?? [];
 
-            $data = [
-                'stock_inventory' => $stockInventoryModel,
-                'stock_conversion_items' => []
-            ];
-            foreach ($stockConversionItem as $conversionItem) {
-                $itemCode = $conversionItem['item_code_label'];
-                $itemDescription = $conversionItem['item_masterdata']['description'] ?? '';
-                $itemVariant = $conversionItem['item_masterdata']['uom_label']['long_name'] ?? '';
-
-                $quantity = $conversionItem['quantity'] ?? 0;
-                $isDod = $conversionItem['is_dod'] ?? 0;
-
-                $data['stock_conversion_items'][] = [
-                    'item_label' => $isDod == 1 ? "$itemCode (DOD)" : $itemCode,
-                    'item_code' => $itemCode,
-                    'item_description' => $isDod == 1 ? "$itemDescription (DOD)" : $itemDescription,
-                    'item_variant' => $itemVariant,
-                    'quantity' => $quantity,
-                    'is_dod' => $isDod
+                $data = [
+                    'stock_inventory' => $stockInventoryModel,
+                    'stock_conversion_items' => []
                 ];
+                foreach ($stockConversionItem as $conversionItem) {
+                    $itemCode = $conversionItem['item_code_label'];
+                    $itemDescription = $conversionItem['item_masterdata']['description'] ?? '';
+                    $itemVariant = $conversionItem['item_masterdata']['uom_label']['long_name'] ?? '';
+
+                    $quantity = $conversionItem['quantity'] ?? 0;
+                    $isDod = $conversionItem['is_dod'] ?? 0;
+
+                    $data['stock_conversion_items'][] = [
+                        'item_label' => $isDod == 1 ? "$itemCode (DOD)" : $itemCode,
+                        'item_code' => $itemCode,
+                        'item_description' => $isDod == 1 ? "$itemDescription (DOD)" : $itemDescription,
+                        'item_variant' => $itemVariant,
+                        'quantity' => $quantity,
+                        'is_dod' => $isDod
+                    ];
+                }
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }

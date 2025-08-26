@@ -152,7 +152,7 @@ class StockInventoryCountController extends Controller
     {
         $fohItems = [
             "EQ 6",
-            "CR PC",
+            "CR PCS",
             "CR 12",
             "MM 6",
             "BR 8",
@@ -459,6 +459,8 @@ class StockInventoryCountController extends Controller
             $stockInventoryCountModel = StockInventoryCountModel::where('store_code', $store_code);
             if ($status == 0) {
                 $stockInventoryCountModel->whereIn('status', [0, 1]);
+            } else if ($status == 1) {
+                $stockInventoryCountModel->where('status', 2);
             }
             if ($sub_unit) {
                 $stockInventoryCountModel->where('store_sub_unit_short_name', $sub_unit);
@@ -478,7 +480,7 @@ class StockInventoryCountController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $stockInventoryCountModel = StockInventoryCountModel::where('status', 0)->find($store_inventory_count_id);
+            $stockInventoryCountModel = StockInventoryCountModel::whereIn('status', [0, 1])->find($store_inventory_count_id);
             if (!$stockInventoryCountModel) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }
