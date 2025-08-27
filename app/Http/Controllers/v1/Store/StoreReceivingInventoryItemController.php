@@ -229,7 +229,7 @@ class StoreReceivingInventoryItemController extends Controller
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
             }
-            if ($back_date != null) {
+            if ($back_date != 'undefined') {
                 $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', $back_date);
             } else {
                 $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', now());
