@@ -86,6 +86,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'id' => $item->id,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
+                    'item_category_name' => $item->item_category_name,
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
