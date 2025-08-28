@@ -33,7 +33,7 @@ class CheckPendingStockCount
             ])->whereIn('status', [0, 1])->get();
 
             if (count($stockInventoryCount)) {
-                return $this->dataResponse('error', 400, 'Pending stock count exists');
+                return $this->dataResponse('error', 400, 'Action blocked: A pending stock count is still open and must be completed first.');
             }
         }
 
