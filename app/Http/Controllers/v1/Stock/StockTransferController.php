@@ -26,7 +26,7 @@ class StockTransferController extends Controller
             'transfer_to_store_name' => 'required_if:type,store',
             'transfer_to_store_sub_unit_short_name' => 'nullable',
             'transportation_type' => 'nullable|required_if:type,store|in:1,2,3', // 1: Logistics, 2: Third Party, 3 Store Staff
-            'return_date' => 'nullable|required_if:type,store_warehouse_store|date',
+            'return_date' => 'nullable',
             'created_by_id' => 'required',
 
             // Store Details
