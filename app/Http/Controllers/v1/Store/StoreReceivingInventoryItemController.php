@@ -300,7 +300,7 @@ class StoreReceivingInventoryItemController extends Controller
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
-
+                        //
                         if ($orderType !== null) {
                             $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $storeInventoryItemModel->order_type;
                         }
