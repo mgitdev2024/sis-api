@@ -27,16 +27,33 @@ class CheckPendingStockCount
             $storeCode = $cache['store_code'] ?? null;
             $subUnit = $cache['sub_unit'] ?? null;
 
-            $stockInventoryCount = StockInventoryCountModel::where([
+            if (!$storeCode) {
+                \Log::info('Pending Stock Check', [
+                    'user_id' => auth()->id(),
+                    'store_code' => $storeCode,
+                    'sub_unit' => $subUnit,
+                    'has_pending_stock' => null
+                ]);
+                return $this->dataResponse('error', 400, 'Store not found in cache.');
+            }
+
+            $hasPendingStock = StockInventoryCountModel::where([
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $subUnit
-            ])->whereIn('status', [0, 1])->get();
+            ])
+                ->whereIn('status', [0, 1])
+                ->exists();
 
-            if (count($stockInventoryCount)) {
+            if ($hasPendingStock) {
+                \Log::info('Pending Stock Check', [
+                    'user_id' => auth()->id(),
+                    'store_code' => $storeCode,
+                    'sub_unit' => $subUnit,
+                    'has_pending_stock' => $hasPendingStock
+                ]);
                 return $this->dataResponse('error', 400, 'Action blocked: A pending stock count is still open and must be completed first.');
             }
         }
-
         return $next($request);
     }
 }

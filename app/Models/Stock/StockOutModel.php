@@ -38,7 +38,7 @@ class StockOutModel extends Model
     {
         $latestStockOutId = static::latest()->value('id');
         $nextStockOutId = $latestStockOutId + 1;
-        $referenceNumber = 'SO-' . str_pad($nextStockOutId, 6, '0', STR_PAD_LEFT);
+        $referenceNumber = 'IO-' . str_pad($nextStockOutId, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }
