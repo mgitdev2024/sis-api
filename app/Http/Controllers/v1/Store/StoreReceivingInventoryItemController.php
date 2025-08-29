@@ -267,7 +267,7 @@ class StoreReceivingInventoryItemController extends Controller
             'scanned_items' => 'required|json', // ["2":{"bid":1,"q":1,"item_code":"TAS WH"},"3":{"bid":1,"q":1}]
             'created_by_id' => 'required',
             'receive_type' => 'required|in:scan,manual',
-            'order_type' => 'nullable|in:0,1,2', // 0 = Order, 1 = Manual, 2 = Fan Out Category
+            'order_type' => 'nullable|in:0,1,2', // 0 = Order, 1 = Advance, 2 = Fan Out Category
         ]);
         try {
             $receiveType = $fields['receive_type']; // Stock In, Stock Out
@@ -287,7 +287,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'reference_number' => $referenceNumber,
                     'item_code' => $itemCode
                 ]);
-                if ($orderType != null) {
+                if ($orderType !== null) {
                     $storeInventoryItemModel->where('order_type', $orderType);
                 }
                 if ($fanOutCategory != '>') {
@@ -300,8 +300,8 @@ class StoreReceivingInventoryItemController extends Controller
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
-
-                        if ($orderType != null) {
+                        //
+                        if ($orderType !== null) {
                             $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $storeInventoryItemModel->order_type;
                         }
                     }
@@ -329,7 +329,7 @@ class StoreReceivingInventoryItemController extends Controller
                         'received_items' => []
                     ];
 
-                    if ($orderType != null) {
+                    if ($orderType !== null) {
                         $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $orderType;
                     }
                 }
@@ -372,7 +372,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'item_code' => $itemCode
                 ]);
 
-                if ($orderType != null) {
+                if ($orderType !== null) {
                     $storeInventoryItemModel->where('order_type', $orderType);
                 }
                 if ($fanOutCategory != null) {
