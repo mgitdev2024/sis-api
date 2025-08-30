@@ -236,7 +236,7 @@ class StoreInventoryReportController extends Controller
 
 
                 switch ($transfer->transfer_type) {
-                    case 0: // Store Transfer
+                    case 0 || 2: // Store Transfer || store warehouse store
                         $stockTransferCount['store_transfer_out'] += $filteredItems->sum('quantity');
                         break;
                     case 1: // Pull Out

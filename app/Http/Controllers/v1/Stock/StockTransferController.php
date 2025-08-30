@@ -109,6 +109,7 @@ class StockTransferController extends Controller
                 'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
+                'movement_type' => 2, // Store Transfer
                 'sessions' => []
 
             ];
