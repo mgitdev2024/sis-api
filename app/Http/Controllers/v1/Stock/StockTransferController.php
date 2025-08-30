@@ -387,7 +387,7 @@ class StockTransferController extends Controller
 
             if ($type == 'store_warehouse_store') {
                 $referenceNumber = $stockTransferModel->reference_number;
-                $pickupDate = $stockTransferModel->pickup_date;
+                $pickupDate = $stockTransferModel->return_date ?? $stockTransferModel->pickup_date;
                 $transferToStoreCode = $stockTransferModel->location_code;
                 $transferToStoreName = $stockTransferModel->location_name;
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
