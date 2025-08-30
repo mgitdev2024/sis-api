@@ -91,7 +91,7 @@ class StoreReceivingInventoryController extends Controller
                             'store_sub_unit_long_name' => $storeSubUnitLongName,
                             'received_quantity' => 0,
                             'received_items' => json_encode([]),
-                            'type' => 0, // Order
+                            'type' => $consolidatedData['movement_type'] ?? 0, // Order
                             'created_by_id' => $createdById,
                             'created_by_name' => $createdByName,
                             'created_at' => now(),

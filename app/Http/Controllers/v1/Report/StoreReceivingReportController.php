@@ -91,6 +91,7 @@ class StoreReceivingReportController extends Controller
                 $remarks = $item['remarks'] ?? null;
                 $receivedAt = $item['formatted_received_at_label'] ?? null;
                 $deliveryDate = $item['formatted_delivery_date_label'] ?? null;
+                $movementType = $item['type_label'] ?? null;
                 $status = null;
                 $variance = floatval($receivedQuantity) - floatval($allocatedQuantity);
 
@@ -114,6 +115,7 @@ class StoreReceivingReportController extends Controller
                     'store_code' => $storeCode,
                     'store_name' => $storeName,
                     'section' => $storeSubUnitShortName,
+                    'movement_type' => $movementType,
                     'order_type' => $orderType,
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
