@@ -97,10 +97,10 @@ class StoreReceivingReportController extends Controller
 
                 if ($receivedQuantity < $allocatedQuantity) {
                     $status = 'Short';
-                } else if ($receivedQuantity > $allocatedQuantity) {
-                    $status = 'Over';
                 } else if ($orderQuantity <= 0) {
                     $status = 'Unallocated';
+                } else if ($receivedQuantity > $allocatedQuantity) {
+                    $status = 'Over';
                 } else {
                     $status = 'Completed';
                 }
