@@ -35,7 +35,7 @@ class StockInventoryCountController extends Controller
             ])->whereIn('status', [0, 1])->exists();
 
             if ($hasPending) {
-                return $this->dataResponse('success', 400, 'Still has pending stock count');
+                return $this->dataResponse('error', 400, 'Still has pending stock count');
             }
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
             $type = $fields['type'];
@@ -152,7 +152,7 @@ class StockInventoryCountController extends Controller
     {
         $fohItems = [
             "EQ 6",
-            "CR PC",
+            "CR PCS",
             "CR 12",
             "MM 6",
             "BR 8",
@@ -456,30 +456,17 @@ class StockInventoryCountController extends Controller
     public function onGet($status, $store_code, $sub_unit = null)
     {
         try {
-            $whereFields = [
-                'status' => $status,
-                'store_code' => $store_code,
-            ];
+            $stockInventoryCountModel = StockInventoryCountModel::where('store_code', $store_code);
+            if ($status == 0) {
+                $stockInventoryCountModel->whereIn('status', [0, 1]);
+            } else if ($status == 1) {
+                $stockInventoryCountModel->where('status', 2);
+            }
             if ($sub_unit) {
-                $whereFields['store_sub_unit_short_name'] = $sub_unit;
+                $stockInventoryCountModel->where('store_sub_unit_short_name', $sub_unit);
             }
-
-            $orderFields = [
-                'id' => 'DESC',
-            ];
-            $array = $this->readCurrentRecord(StockInventoryCountModel::class, null, $whereFields, null, $orderFields, 'Stock Inventory Count', false, null, null);
-
-            if (!isset($array->getOriginalContent()['success'])) {
-                return $this->dataResponse('error', 200, __('msg.record_not_found'));
-            }
-            $formatted = collect($array->getOriginalContent()['success']['data']->toArray())->map(function ($item) {
-                if (isset($item['created_at'])) {
-                    $item['created_at'] = Carbon::parse($item['created_at'])->format('Y-m-d H:i:s');
-                    $item['updated_at'] = Carbon::parse($item['created_at'])->format('Y-m-d H:i:s');
-                }
-                return $item;
-            })->toArray();
-            return $this->dataResponse('success', 200, __('msg.record_found'), $formatted);
+            $stockInventoryCountModel = $stockInventoryCountModel->orderBy('id', 'DESC')->get();
+            return $this->dataResponse('success', 200, __('msg.record_found'), $stockInventoryCountModel);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception->getMessage());
         }
@@ -493,7 +480,7 @@ class StockInventoryCountController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $stockInventoryCountModel = StockInventoryCountModel::where('status', 0)->find($store_inventory_count_id);
+            $stockInventoryCountModel = StockInventoryCountModel::whereIn('status', [0, 1])->find($store_inventory_count_id);
             if (!$stockInventoryCountModel) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }

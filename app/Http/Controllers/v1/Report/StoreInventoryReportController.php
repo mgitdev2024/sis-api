@@ -25,6 +25,8 @@ class StoreInventoryReportController extends Controller
             $storeSubUnitShortName = $request->store_sub_unit_short_name ?? null;
             $transactionDate = $request->transaction_date ?? null; // Expected format: 'YYYY-MM-DD'
             $isGroupByItemCategory = $request->is_group_by_item_category ?? null; // Expected values: 0 (false), 1 (true) For store receiving
+            $isGroupByItemDescription = $request->is_group_by_item_description ?? null; // Expected values: 0 (false), 1 (true) For store receiving
+
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
             $response = \Http::withHeaders([
@@ -130,8 +132,23 @@ class StoreInventoryReportController extends Controller
             }
             unset($data);
 
-            if ($isGroupByItemCategory) {
-                $reportData = collect($reportData)->sortBy('item_category_name')->toArray();
+            if ($isGroupByItemCategory && $isGroupByItemDescription) {
+                // Sort by category first, then by description
+                $reportData = collect($reportData)
+                    ->sortBy(function ($item) {
+                        return $item['item_category_name'] . '|' . $item['item_description'];
+                    })
+                    ->toArray();
+            } elseif ($isGroupByItemCategory) {
+                // Sort only by category
+                $reportData = collect($reportData)
+                    ->sortBy('item_category_name')
+                    ->toArray();
+            } elseif ($isGroupByItemDescription) {
+                // Sort only by description
+                $reportData = collect($reportData)
+                    ->sortBy('item_description')
+                    ->toArray();
             }
 
             return $this->dataResponse('success', 200, __('msg.record_found'), array_values($reportData));
@@ -219,7 +236,7 @@ class StoreInventoryReportController extends Controller
 
 
                 switch ($transfer->transfer_type) {
-                    case 0: // Store Transfer
+                    case 0 || 2: // Store Transfer || store warehouse store
                         $stockTransferCount['store_transfer_out'] += $filteredItems->sum('quantity');
                         break;
                     case 1: // Pull Out

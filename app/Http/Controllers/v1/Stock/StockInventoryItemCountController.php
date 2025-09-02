@@ -16,17 +16,20 @@ use Exception;
 class StockInventoryItemCountController extends Controller
 {
     use ResponseTrait, CrudOperationsTrait;
-    public function onGetById($store_inventory_count_id)
+    public function onGetById($store_inventory_count_id = null)
     {
         try {
-            $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
-            $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
+            if ($store_inventory_count_id) {
+                $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
+                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
 
-            $data = [
-                'stock_inventory_count' => $stockInventoryCountModel,
-                'stock_inventory_items_count' => $stockInventoryItemCountModel
-            ];
-            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+                $data = [
+                    'stock_inventory_count' => $stockInventoryCountModel,
+                    'stock_inventory_items_count' => $stockInventoryItemCountModel
+                ];
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+            }
+
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }

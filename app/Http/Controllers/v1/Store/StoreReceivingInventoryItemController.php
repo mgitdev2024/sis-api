@@ -86,6 +86,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'id' => $item->id,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
+                    'item_category_name' => $item->item_category_name,
                     'order_quantity' => $item->order_quantity,
                     'allocated_quantity' => $item->allocated_quantity,
                     'received_quantity' => $item->received_quantity,
@@ -193,6 +194,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'reference_number' => $reference_number,
                     'item_code' => $itemCode,
                     'item_description' => $item->item_description,
+                    'item_category_name' => $item->item_category_name,
                     'order_quantity' => $item->order_quantity,
                     'fan_out_category' => $fanOutCategory,
                     'allocated_quantity' => $item->allocated_quantity,
@@ -211,7 +213,7 @@ class StoreReceivingInventoryItemController extends Controller
         }
     }
 
-    public function onGetCategory($store_code, $status = null, $sub_unit = null)
+    public function onGetCategory($store_code, $status = null, $back_date = null, $sub_unit = null)
     {
         try {
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::from('store_receiving_inventory_items as srt')->select([
@@ -225,10 +227,14 @@ class StoreReceivingInventoryItemController extends Controller
                 DB::raw('COUNT(srt.reference_number) as session_count'),
             ])
                 ->leftJoin('store_receiving_inventory as sri', 'srt.store_receiving_inventory_id', '=', 'sri.id')
-                ->where('store_code', $store_code)
-                ->whereDate('srt.delivery_date', now());
+                ->where('store_code', $store_code);
             if ($status != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.status', $status);
+            }
+            if ($back_date != 'undefined') {
+                $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', $back_date);
+            } else {
+                $storeInventoryItemModel = $storeInventoryItemModel->whereDate('srt.delivery_date', now());
             }
             if ($sub_unit != null) {
                 $storeInventoryItemModel = $storeInventoryItemModel->where('srt.store_sub_unit_short_name', $sub_unit);
@@ -261,7 +267,7 @@ class StoreReceivingInventoryItemController extends Controller
             'scanned_items' => 'required|json', // ["2":{"bid":1,"q":1,"item_code":"TAS WH"},"3":{"bid":1,"q":1}]
             'created_by_id' => 'required',
             'receive_type' => 'required|in:scan,manual',
-            'order_type' => 'nullable|in:0,1,2', // 0 = Order, 1 = Manual, 2 = Fan Out Category
+            'order_type' => 'nullable|in:0,1,2', // 0 = Order, 1 = Advance, 2 = Fan Out Category
         ]);
         try {
             $receiveType = $fields['receive_type']; // Stock In, Stock Out
@@ -281,7 +287,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'reference_number' => $referenceNumber,
                     'item_code' => $itemCode
                 ]);
-                if ($orderType != null) {
+                if ($orderType !== null) {
                     $storeInventoryItemModel->where('order_type', $orderType);
                 }
                 if ($fanOutCategory != '>') {
@@ -294,8 +300,8 @@ class StoreReceivingInventoryItemController extends Controller
                             'received_quantity' => 0,
                             'received_items' => []
                         ];
-
-                        if ($orderType != null) {
+                        //
+                        if ($orderType !== null) {
                             $orderSessionData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $storeInventoryItemModel->order_type;
                         }
                     }
@@ -323,7 +329,7 @@ class StoreReceivingInventoryItemController extends Controller
                         'received_items' => []
                     ];
 
-                    if ($orderType != null) {
+                    if ($orderType !== null) {
                         $wrongDroppedData["$store_code:$referenceNumber:$itemCode:$fanOutCategory"]['order_type'] = $orderType;
                     }
                 }
@@ -366,7 +372,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'item_code' => $itemCode
                 ]);
 
-                if ($orderType != null) {
+                if ($orderType !== null) {
                     $storeInventoryItemModel->where('order_type', $orderType);
                 }
                 if ($fanOutCategory != null) {

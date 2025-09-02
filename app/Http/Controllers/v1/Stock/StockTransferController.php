@@ -26,6 +26,7 @@ class StockTransferController extends Controller
             'transfer_to_store_name' => 'required_if:type,store',
             'transfer_to_store_sub_unit_short_name' => 'nullable',
             'transportation_type' => 'nullable|required_if:type,store|in:1,2,3', // 1: Logistics, 2: Third Party, 3 Store Staff
+            'return_date' => 'nullable',
             'created_by_id' => 'required',
 
             // Store Details
@@ -43,6 +44,7 @@ class StockTransferController extends Controller
             $transferToStoreName = $fields['transfer_to_store_name'] ?? null;
             $transferToStoreSubUnitShortName = $fields['transfer_to_store_sub_unit_short_name'] ?? null;
             $transportationType = $fields['transportation_type'] ?? null;
+            $returnDate = $fields['return_date'] ?? null;
 
             $createdById = $fields['created_by_id'];
 
@@ -67,6 +69,7 @@ class StockTransferController extends Controller
                 'location_sub_unit' => $transferToStoreSubUnitShortName,
                 'remarks' => $remarks,
                 'created_by_id' => $createdById,
+                'return_date' => $returnDate
                 // 'status' => ($type == 'pullout') ? 2 : 1, // 2 = received, 1 = For Receive
             ]);
 
@@ -106,6 +109,7 @@ class StockTransferController extends Controller
                 'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
+                'movement_type' => 2, // Store Transfer
                 'sessions' => []
 
             ];
@@ -127,7 +131,7 @@ class StockTransferController extends Controller
                 'store_name' => $transferToStoreName,
                 'date_created' => now(),
                 'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
+                'delivery_type' => null,
                 'order_date' => $pickupDate,
                 'reference_number' => $referenceNumber,
                 'store_sub_unit_short_name' => $transferToStoreSubUnitShortName,
@@ -242,6 +246,7 @@ class StockTransferController extends Controller
             $remarks = $stockTransferModel->remarks;
             $transferType = $stockTransferModel->transfer_type;
             $transportationType = $stockTransferModel->transportation_type;
+            $returnDate = $stockTransferModel->return_date;
             $data = [
                 'sis_stock_transfer_id' => $stockTransferModel->id,
                 'reference_number' => $referenceNumber,
@@ -255,7 +260,8 @@ class StockTransferController extends Controller
                 'location_sub_unit' => $transferToStoreSubUnitShortName ?? null,
                 'transportation_type' => $transportationType,
                 'created_by_name' => $fullName,
-                'remarks' => $remarks
+                'remarks' => $remarks,
+                'return_date' => $returnDate
             ];
 
             // api call for transmittal
@@ -382,7 +388,7 @@ class StockTransferController extends Controller
 
             if ($type == 'store_warehouse_store') {
                 $referenceNumber = $stockTransferModel->reference_number;
-                $pickupDate = $stockTransferModel->pickup_date;
+                $pickupDate = $stockTransferModel->return_date ?? $stockTransferModel->pickup_date;
                 $transferToStoreCode = $stockTransferModel->location_code;
                 $transferToStoreName = $stockTransferModel->location_name;
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
