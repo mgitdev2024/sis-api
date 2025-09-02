@@ -131,7 +131,7 @@ class StockTransferController extends Controller
                 'store_name' => $transferToStoreName,
                 'date_created' => now(),
                 'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
+                'delivery_type' => null,
                 'order_date' => $pickupDate,
                 'reference_number' => $referenceNumber,
                 'store_sub_unit_short_name' => $transferToStoreSubUnitShortName,
