@@ -124,14 +124,15 @@ trait StockTrait
         $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
+            $itemMasterData = $apiResponse['item_masterdata'] ?? [];
             $smallestUnitQty = $apiResponse['quantity'] ?? 0;
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
 
             $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
-            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
-            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+            $itemDescription = $itemMasterData['description'] ?? $itemDescription;
+            $itemCategoryName = $itemMasterData['item_category_label'] ?? $itemCategoryName;
         }
 
         $stockLogModel = StockLogModel::where([
@@ -188,16 +189,16 @@ trait StockTrait
                 $itemCode,
                 $itemDescription,
                 $itemCategoryName,
-                $itemMasterData['item_code'] ?? '',
-                $itemMasterData['item_description'] ?? '',
-                $itemMasterData['item_category_label'] ?? '',
+                $itemMasterData['item_code'] ?? null,
+                $itemMasterData['description'] ?? null,
+                $itemMasterData['item_category_name'] ?? null,
                 $originalQuantityCount,
                 $itemQuantityCount,
                 $createdById
             );
             $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
-            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
-            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+            $itemDescription = $itemMasterData['description'] ?? $itemDescription;
+            $itemCategoryName = $itemMasterData['item_category_label'] ?? $itemCategoryName;
 
 
         }
