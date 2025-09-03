@@ -352,7 +352,7 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 404, $exception->getMessage());
         }
     }
 
