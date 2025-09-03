@@ -44,7 +44,8 @@ class StockTransferModel extends Model
         'attachment',
         'created_by_id',
         'updated_by_id',
-        'status' // 0 = Cancelled, 1 = For Receive, 1.1 = In warehouse, 2 = Received
+        'status', // 0 = Cancelled, 1 = For Receive, 1.1 = In warehouse, 2 = Received
+        'return_date'
     ];
 
     /**
