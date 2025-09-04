@@ -189,9 +189,9 @@ trait StockTrait
                 $itemCode,
                 $itemDescription,
                 $itemCategoryName,
-                $itemMasterData['item_code'] ?? null,
-                $itemMasterData['description'] ?? null,
-                $itemMasterData['item_category_name'] ?? null,
+                $itemMasterData['item_code'] ?? $itemCode,
+                $itemMasterData['description'] ?? $itemDescription,
+                $itemMasterData['item_category_name'] ?? $itemCategoryName,
                 $originalQuantityCount,
                 $itemQuantityCount,
                 $createdById
