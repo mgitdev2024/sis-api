@@ -109,6 +109,7 @@ class StockTransferController extends Controller
                 'created_by_name' => $userModel->first_name . ' ' . $userModel->last_name,
                 'created_by_id' => $createdById,
                 'updated_by_id' => $createdById,
+                'movement_type' => 2, // Store Transfer
                 'sessions' => []
 
             ];
@@ -130,7 +131,7 @@ class StockTransferController extends Controller
                 'store_name' => $transferToStoreName,
                 'date_created' => now(),
                 'delivery_date' => $pickupDate,
-                'delivery_type' => '1D',
+                'delivery_type' => null,
                 'order_date' => $pickupDate,
                 'reference_number' => $referenceNumber,
                 'store_sub_unit_short_name' => $transferToStoreSubUnitShortName,
@@ -387,7 +388,7 @@ class StockTransferController extends Controller
 
             if ($type == 'store_warehouse_store') {
                 $referenceNumber = $stockTransferModel->reference_number;
-                $pickupDate = $stockTransferModel->pickup_date;
+                $pickupDate = $stockTransferModel->return_date ?? $stockTransferModel->pickup_date;
                 $transferToStoreCode = $stockTransferModel->location_code;
                 $transferToStoreName = $stockTransferModel->location_name;
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;

@@ -352,7 +352,7 @@ class StoreReceivingInventoryItemController extends Controller
 
         } catch (Exception $exception) {
             DB::rollback();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 404, $exception->getMessage());
         }
     }
 
@@ -447,7 +447,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'is_wrong_drop' => true,
                     'item_code' => trim($itemCode),
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
-                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? null,
+                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? '',
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'is_received' => 1,

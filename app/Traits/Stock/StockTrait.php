@@ -124,14 +124,15 @@ trait StockTrait
         $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
+            $itemMasterData = $apiResponse['item_masterdata'] ?? [];
             $smallestUnitQty = $apiResponse['quantity'] ?? 0;
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
 
             $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
-            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
-            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+            $itemDescription = $itemMasterData['description'] ?? $itemDescription;
+            $itemCategoryName = $itemMasterData['item_category_label'] ?? $itemCategoryName;
         }
 
         $stockLogModel = StockLogModel::where([
@@ -176,7 +177,9 @@ trait StockTrait
         $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
+            $itemMasterData = $apiResponse['item_masterdata'] ?? [];
             $smallestUnitQty = $apiResponse['quantity'] ?? 0;
+            $originalQuantityCount = $itemQuantityCount;
             if ($smallestUnitQty > 0) {
                 $itemQuantityCount = $itemQuantityCount * $smallestUnitQty;
             }
@@ -186,16 +189,16 @@ trait StockTrait
                 $itemCode,
                 $itemDescription,
                 $itemCategoryName,
-                $apiResponse['converted_item_code'] ?? '',
-                $apiResponse['converted_item_description'] ?? '',
-                $apiResponse['converted_item_category_name'] ?? '',
+                $itemMasterData['item_code'] ?? $itemCode,
+                $itemMasterData['description'] ?? $itemDescription,
+                $itemMasterData['item_category_name'] ?? $itemCategoryName,
+                $originalQuantityCount,
                 $itemQuantityCount,
-                $apiResponse['converted_quantity'] ?? 0,
                 $createdById
             );
             $itemCode = $apiResponse['item_code_label'] ?? $itemCode;
-            $itemDescription = $apiResponse['item_masterdata']['description'] ?? $itemDescription;
-            $itemCategoryName = $apiResponse['item_masterdata']['item_category_name'] ?? $itemCategoryName;
+            $itemDescription = $itemMasterData['description'] ?? $itemDescription;
+            $itemCategoryName = $itemMasterData['item_category_label'] ?? $itemCategoryName;
 
 
         }
