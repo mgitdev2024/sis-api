@@ -16,7 +16,7 @@ class CheckApiKey
     public function handle(Request $request, Closure $next): Response
     {
         $apiKey = $request->header('X-Api-Key');
-        if ($apiKey !== env('SIS_API_KEY')) {
+        if ($apiKey !== config('apikeys.sis_api_key')) {
             return response()->json(['message' => 'Unauthorized. Invalid API Key.'], 401);
         }
         return $next($request);

@@ -101,7 +101,7 @@ class StockConversionController extends Controller
                     continue; // Skip if the converted quantity or quantity is not valid
                 }
 
-                $itemMasterData = \Http::get(env('SCM_URL') . '/item/masterdata-details/get/' . $convertedItemCode);
+                $itemMasterData = \Http::get(config('apiurls.scm.url') . config('apiurls.scm.item_masterdata_details_get') . $convertedItemCode);
                 if ($itemMasterData->status() != 200) {
                     continue;
                 }

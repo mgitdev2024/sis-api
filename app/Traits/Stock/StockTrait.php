@@ -121,7 +121,7 @@ trait StockTrait
             $itemQuantityCount = $transactionItems[0]['q'];
         }
 
-        $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
+        $checkIfAutoConvert = \Http::get(config('apiurls.scm.url') . config('apiurls.scm.stock_conversion_item_id_get_auto_convert') . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
             $itemMasterData = $apiResponse['item_masterdata'] ?? [];
@@ -174,7 +174,7 @@ trait StockTrait
             $itemQuantityCount = $transactionItems[0]['q'];
         }
 
-        $checkIfAutoConvert = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get-auto-convert/' . $itemCode);
+        $checkIfAutoConvert = \Http::get(config('apiurls.scm.url') . config('apiurls.scm.stock_conversion_item_id_get_auto_convert') . $itemCode);
         if ($checkIfAutoConvert->successful()) {
             $apiResponse = $checkIfAutoConvert->json()['success']['data'] ?? [];
             $itemMasterData = $apiResponse['item_masterdata'] ?? [];
