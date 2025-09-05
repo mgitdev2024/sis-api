@@ -26,6 +26,13 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        //
+        Schema::table('stock_logs', function (Blueprint $table) {
+            $table->integer('quantity')->nullable()->change();
+            $table->integer('initial_stock')->nullable()->change();
+            $table->integer('final_stock')->nullable()->change();
+        });
+        Schema::table('stock_inventories', function (Blueprint $table) {
+            $table->integer('stock_count')->nullable()->change();
+        });
     }
 };

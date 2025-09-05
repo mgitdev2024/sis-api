@@ -418,7 +418,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $referenceNumber = $key[1];
                 $itemCode = $key[2];
 
-                $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
+                $response = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
                 if ($response->failed()) {
                     throw new Exception('Error in API call');
                     // throw new Exception if this is not valid

@@ -43,8 +43,8 @@ class StockInventoryCountController extends Controller
             $stockCountDate = now();
 
             $response = \Http::withHeaders([
-                'x-api-key' => env('SCM_API_KEY'),
-            ])->get(env('SCM_URL') . "/public/stock-count-lead-time/current/get");
+                'x-api-key' => config('apikeys.scm_api_key'),
+            ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_stock_count_lead_time_current_get'));
 
             if ($response->successful()) {
                 $leadTime = $response->json()['success']['data'] ?? [];
@@ -118,8 +118,8 @@ class StockInventoryCountController extends Controller
             }
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
-                    'x-api-key' => env('MGIOS_API_KEY'),
-                ])->post(env('MGIOS_URL') . "/public/item/masterdata-collection/get", [
+                    'x-api-key' => config('apikeys.mgios_api_key'),
+                ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'), [
                             'item_code_collection' => json_encode($toBeAddedItems),
                         ]);
 

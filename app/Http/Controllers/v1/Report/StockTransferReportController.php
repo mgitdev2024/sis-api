@@ -136,8 +136,8 @@ class StockTransferReportController extends Controller
 
                     if ($referenceNumberBase == "SWS") {
                         $response = \Http::withHeaders([
-                            'x-api-key' => env('MGIOS_API_KEY'),
-                        ])->get(env('MGIOS_URL') . "/public/receiving/stock/transfer/get/$referenceNumber/$itemCode");
+                            'x-api-key' => config('apikeys.mgios_api_key'),
+                        ])->get(config('apiurls.mgios.url') . config('apiurls.mgios.public_receiving_stock_transfer_get') . "$referenceNumber/$itemCode");
 
                         if ($response->successful()) {
                             $warehouseReceived = $response->json()['stock_transfer_items'][0]['quantity'] ?? 0;
