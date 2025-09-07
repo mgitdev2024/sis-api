@@ -16,9 +16,23 @@ class CheckApiKey
     public function handle(Request $request, Closure $next): Response
     {
         $apiKey = $request->header('X-Api-Key');
-        if ($apiKey !== config('apikeys.sis_api_key')) {
+        $validKey = config('apikeys.sis_api_key');
+
+        // Check if header is missing
+        if (empty($apiKey)) {
+            return response()->json(['message' => 'Unauthorized. Missing API Key.'], 401);
+        }
+
+        // Check if no key configured
+        if (empty($validKey)) {
+            return response()->json(['message' => 'Server misconfiguration. No API Key set.'], 500);
+        }
+
+        // Check if invalid
+        if ($apiKey !== $validKey) {
             return response()->json(['message' => 'Unauthorized. Invalid API Key.'], 401);
         }
+
         return $next($request);
     }
 }
