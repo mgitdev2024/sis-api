@@ -48,7 +48,7 @@ class DirectPurchaseHandledItemController extends Controller
             }
 
             // Get Expiration Date check-item-code/
-            $response = \Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
+            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
             if ($response->successful()) {
                 $shelfLifeDays = $response->json()['item_base']['shelf_life_days'] ?? 0;
                 $expirationDate = date('Y-m-d', strtotime("+$shelfLifeDays days", strtotime($receivedDate)));

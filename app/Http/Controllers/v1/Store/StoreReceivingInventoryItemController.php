@@ -418,7 +418,7 @@ class StoreReceivingInventoryItemController extends Controller
                 $referenceNumber = $key[1];
                 $itemCode = $key[2];
 
-                $response = Http::get(env('MGIOS_URL') . '/check-item-code/' . $itemCode);
+                $response = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
                 if ($response->failed()) {
                     throw new Exception('Error in API call');
                     // throw new Exception if this is not valid
@@ -447,7 +447,7 @@ class StoreReceivingInventoryItemController extends Controller
                     'is_wrong_drop' => true,
                     'item_code' => trim($itemCode),
                     'item_description' => $itemData['long_name'], // API to be called for Item Masterdata long name
-                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? null,
+                    'item_category_name' => $itemData['item_base']['item_category']['category_name'] ?? '',
                     'received_quantity' => $wrongDroppedValue['received_quantity'],
                     'received_items' => json_encode($wrongDroppedValue['received_items'] ?? []),
                     'is_received' => 1,
