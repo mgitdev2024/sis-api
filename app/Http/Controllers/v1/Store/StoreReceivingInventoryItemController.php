@@ -47,12 +47,13 @@ class StoreReceivingInventoryItemController extends Controller
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
                 $fanOutCategory = $item->fan_out_category;
-                $uniqueKey = "$itemCode:$fanOutCategory";
+                $uniqueKey = "$itemCode>$fanOutCategory";
                 if ($item->is_received == 0) {
                     $isReceived = false;
-                } else {
-                    $uniqueKey .= "-$fanOutCategory";
                 }
+                // else {
+                //     $uniqueKey .= "-$fanOutCategory";
+                // }
 
                 if (count($data['reservation_request']) === 0) {
                     $data['reservation_request'] = [
@@ -157,13 +158,14 @@ class StoreReceivingInventoryItemController extends Controller
                 $itemCode = trim($item->item_code);
                 $orderType = $item->order_type;
                 $fanOutCategory = $item->fan_out_category;
-                $uniqueKey = "$itemCode:$fanOutCategory";
+                $uniqueKey = "$itemCode>$fanOutCategory";
 
                 if ($item->is_received == 0) {
                     $isReceived = false;
-                } else {
-                    $uniqueKey .= "-$fanOutCategory";
                 }
+                // else {
+                //     $uniqueKey .= "-$fanOutCategory";
+                // }
 
                 if (count($data['reservation_request']) === 0) {
                     $data['reservation_request'] = [

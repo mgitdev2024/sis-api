@@ -26,7 +26,7 @@ class StoreReceivingInventoryItemModel extends Model
         'store_receiving_inventory_id',
         'reference_number',
         'order_type',
-        'fan_out_category',
+        'fan_out_category', // 0 = pullout, 1 = fresh
         'is_wrong_drop',
         'store_code',
         'store_name',
