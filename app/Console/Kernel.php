@@ -9,8 +9,8 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:archive-production-log-command')->everyMinute();
-        $schedule->command('app:queued-sub-location-command')->everyMinute();
+        $schedule->command('app:create-store-receiving-inventory')->everyMinute();
+        $schedule->command('app:delete-store-consolidation-cache')->dailyAt('00:00');
         // ->cron('0 0 1,15 * *'); // Runs every 1st and 15th of the month
         /*
         $schedule->command('app:your-command')->everyMinute(); // Runs every minute

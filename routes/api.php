@@ -32,6 +32,8 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/pullout/daily', [App\Http\Controllers\v1\Report\StockPulloutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
+
+    Route::post('/store-consolidation-cache/create', [App\Http\Controllers\v1\Store\StoreConsolidationCacheController::class, 'onCreate']);
 });
 
 
