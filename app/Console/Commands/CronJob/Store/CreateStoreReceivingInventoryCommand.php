@@ -134,8 +134,8 @@ class CreateStoreReceivingInventoryCommand extends Command
                 $cache->status = 1; // Mark as processed
                 $cache->save();
                 Log::info('Store receiving inventory created successfully from consolidation cache. ' . $consolidatedOrderId);
-                return;
             }
+            return;
 
         } catch (Exception $exception) {
             DB::rollBack();
