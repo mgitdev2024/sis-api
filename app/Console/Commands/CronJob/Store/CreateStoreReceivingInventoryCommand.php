@@ -86,7 +86,8 @@ class CreateStoreReceivingInventoryCommand extends Command
                 $exists = StoreReceivingInventoryItemModel::where('reference_number', $orderReferenceNumber)->exists();
 
                 if ($exists) {
-                    throw new Exception('Reference number already exists: ' . $orderReferenceNumber);
+                    \Log::info('Reference number already exists: ' . $orderReferenceNumber);
+                    continue;
                 }
                 if (isset($storeOrders['ordered_items'])) {
                     foreach ($storeOrders['ordered_items'] as $orderedItems) {
