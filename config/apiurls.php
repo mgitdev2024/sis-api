@@ -12,7 +12,6 @@ return [
         'public_stock_adjustment_create' => '/stock-adjustment/create',
         'receiving_stock_transfer_create' => '/receiving/stock-transfer/create',
         'store_inventory_data_update' => '/store-inventory-data/update/',
-        ''
     ],
     'scm' => [
         'url' => env('SCM_URL'),
