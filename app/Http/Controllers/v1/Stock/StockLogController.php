@@ -48,7 +48,7 @@ class StockLogController extends Controller
     public function onGetStockDetails($item_code)
     {
         try {
-            $response = \Http::get(env('MGIOS_URL') . '/item-details/get/' . $item_code);
+            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.item_details_get') . $item_code);
             if ($response->failed()) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
 

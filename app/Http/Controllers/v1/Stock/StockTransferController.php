@@ -219,7 +219,7 @@ class StockTransferController extends Controller
                 'remarks' => $remarks
             ];
             // api call for stock adjustment
-            $response = \Http::post(env('MGIOS_URL') . '/stock-adjustment/create', $data);
+            $response = \Http::post(config('apiurls.mgios.url') . config('apiurls.mgios.stock_adjustment_create'), $data);
             if (!$response->successful()) {
                 return $this->dataResponse('error', 404, 'Unauthorized Access');
             }
@@ -265,7 +265,7 @@ class StockTransferController extends Controller
             ];
 
             // api call for transmittal
-            $response = \Http::post(env('MGIOS_URL') . '/receiving/stock-transfer/create', $data);
+            $response = \Http::post(config('apiurls.mgios.url') . config('apiurls.mgios.receiving_stock_transfer_create'), $data);
 
             if (!$response->successful()) {
                 throw new Exception('API Call failed');

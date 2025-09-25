@@ -46,7 +46,7 @@ class StockInventoryController extends Controller
             ->values()
             ->all();
 
-        $response = \Http::get(env('MGIOS_URL') . '/item-uom/get/' . json_encode($itemCodes));
+        $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.item_uom_get') . json_encode($itemCodes));
         $uomData = collect($response->json()); // make uomData a collection for easier lookup
 
         $stockInventoryData = $stockInventoryData->map(function ($items) use ($uomData) {
@@ -66,7 +66,7 @@ class StockInventoryController extends Controller
             ->unique()
             ->values()
             ->all();
-        $response = \Http::get(env('MGIOS_URL') . '/item-uom/get/' . json_encode($itemCodes));
+        $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.item_uom_get') . json_encode($itemCodes));
         $uomData = collect($response->json()); // make uomData a collection for easier lookup
 
         $stockInventoryData = collect($stockInventoryData)->map(function ($item) use ($uomData) {
@@ -83,7 +83,7 @@ class StockInventoryController extends Controller
                 $stockInventoryModel = StockInventoryModel::findOrFail($stockInventoryId);
                 $itemCode = $stockInventoryModel->item_code;
 
-                $response = \Http::get(env('SCM_URL') . '/stock/conversion/item-id/get/' . $itemCode);
+                $response = \Http::get(config('apiurls.scm.url') . config('apiurls.scm.stock_conversion_item_id_get') . $itemCode);
                 $apiResponse = $response->json()['success']['data'] ?? [];
 
                 $stockConversionItem = $apiResponse['stock_conversion_items'] ?? [];

@@ -36,7 +36,12 @@ class StoreReceivingInventoryItemCacheController extends Controller
     public function onGetCurrent($reference_number, $receive_type, $selected_item_codes)
     {
         try {
-            $selected_item_codes = str_replace(":", "", $selected_item_codes);
+            $decodedItemCodes = json_decode($selected_item_codes, true);
+            $itemCodes = array_map(function ($code) {
+                // split at ":" and take only the first part
+                return explode(":", $code)[0];
+            }, $decodedItemCodes);
+
             $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where([
                 'reference_number' => $reference_number,
                 'receive_type' => $receive_type
@@ -44,7 +49,6 @@ class StoreReceivingInventoryItemCacheController extends Controller
 
             if ($storeReceivingInventoryItemCacheModel) {
                 $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
-                $itemCodes = json_decode($selected_item_codes, true);
 
                 $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) { // Return items that are selected from the store receiving and also return the new or wrong dropped items
                     return in_array($item['ic'], $itemCodes) || strtolower($item['source']) === 'new';

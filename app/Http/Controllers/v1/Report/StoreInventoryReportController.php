@@ -30,8 +30,8 @@ class StoreInventoryReportController extends Controller
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
             $response = \Http::withHeaders([
-                'x-api-key' => env('SCM_API_KEY'),
-            ])->get(env('SCM_URL') . "/public/reason-list/current/get/1");
+                'x-api-key' => config('apikeys.scm_api_key'),
+            ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_reason_list_current_get') . '1');
 
             $foodChargeReasonList = [];
             if ($response->successful()) {

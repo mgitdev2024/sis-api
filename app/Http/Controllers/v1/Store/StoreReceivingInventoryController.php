@@ -104,7 +104,7 @@ class StoreReceivingInventoryController extends Controller
             // Bulk insert to speed up
             if (!empty($insertData)) {
                 StoreReceivingInventoryItemModel::insert($insertData);
-                Http::post(env('MGIOS_URL') . '/store-inventory-data/update/' . $consolidatedOrderId);
+                Http::post(config('apiurls.mgios.url') . config('apiurls.mgios.store_inventory_data_update') . $consolidatedOrderId);
             }
 
             DB::commit();

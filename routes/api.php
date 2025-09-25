@@ -13,14 +13,7 @@ use Illuminate\Support\Facades\Artisan;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 Route::post('v1/login', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onLogin']);
-Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
-// Route::get('v1/check/token/{token}', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']);
 Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreate']);
 Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onUpdate']);
 
@@ -35,7 +28,6 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
 
     Route::post('/store-consolidation-cache/create', [App\Http\Controllers\v1\Store\StoreConsolidationCacheController::class, 'onCreate']);
 });
-
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/check/token', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onCheckToken']); // Logout
@@ -65,7 +57,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/user/access/update', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onUpdateAccess']);
     Route::post('v1/user/access/remove', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onRemoveAccess']);
     Route::post('v1/user/access/bulk', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onBulkUpload']);
-    Route::get('user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
+    Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
     #endregion
 
     #region System Status

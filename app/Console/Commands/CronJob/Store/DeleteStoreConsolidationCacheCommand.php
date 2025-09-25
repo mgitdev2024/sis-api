@@ -46,7 +46,7 @@ class DeleteStoreConsolidationCacheCommand extends Command
     {
         try {
             $threeDaysAgo = Carbon::now()->subDays(3);
-            $storeConsolidationCache = StoreConsolidationCacheModel::where('status', 0)
+            $storeConsolidationCache = StoreConsolidationCacheModel::where('status', 1)
                 ->where('created_at', '<=', $threeDaysAgo)
                 ->get();
 

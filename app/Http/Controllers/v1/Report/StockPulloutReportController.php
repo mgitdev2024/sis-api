@@ -122,8 +122,8 @@ class StockPulloutReportController extends Controller
 
                     if ($referenceNumberBase == "PT") {
                         $response = \Http::withHeaders([
-                            'x-api-key' => env('MGIOS_API_KEY'),
-                        ])->get(env('MGIOS_URL') . "/public/stock-adjustment/pullout/get/$stockTransferId/$itemCode");
+                            'x-api-key' => config('apikeys.mgios_api_key'),
+                        ])->get(config('apiurls.mgios.url') . config('apiurls.mgios.public_stock_adjustment_pullout_get') . "$stockTransferId/$itemCode");
 
                         if ($response->successful()) {
                             $warehouseReceived = $response->json()['quantity'] ?? 0;
