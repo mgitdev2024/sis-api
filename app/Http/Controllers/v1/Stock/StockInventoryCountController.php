@@ -112,7 +112,7 @@ class StockInventoryCountController extends Controller
             }
             $toBeAddedItems = [];
             if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
-                $toBeAddedItems = $this->BohItems($existingItemCodes);
+                $toBeAddtekedItems = $this->BohItems($existingItemCodes);
             } else {
                 $toBeAddedItems = $this->FohItems($existingItemCodes);
             }
@@ -188,7 +188,6 @@ class StockInventoryCountController extends Controller
             "DCC1",
             "TLC WH",
             "AFFOG WH",
-            "FC LF",
             "PU LF",
             "BD LF",
             "LGB J",
@@ -259,7 +258,6 @@ class StockInventoryCountController extends Controller
             "IND1050",
             "IND1051"
         ];
-
 
         return array_values(array_diff($fohItems, $existingItemCodes));
     }
@@ -448,6 +446,11 @@ class StockInventoryCountController extends Controller
             "RMDD053",
             "RMDD074",
             "RMDD068",
+
+            // Newly added items
+            'IND1060',
+            'IND2039',
+            'IND2040'
         ];
 
         return array_values(array_diff($bohItems, $existingItemCodes));
