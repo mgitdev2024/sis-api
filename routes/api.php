@@ -70,6 +70,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
+    #region Store Receiving Inventory
+    Route::post('v1/store/receive-inventory-goods-issue', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreateReceivingFromGI']);
+    #endregion
     #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
     Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id?}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);

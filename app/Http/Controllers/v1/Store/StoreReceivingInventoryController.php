@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\Store;
 use App\Http\Controllers\Controller;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\Store\StoreReceivingInventoryModel;
+use App\Traits\Sap\SapGoodsIssueTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -12,7 +13,18 @@ use App\Traits\ResponseTrait;
 use DB;
 class StoreReceivingInventoryController extends Controller
 {
-    use ResponseTrait;
+    use ResponseTrait, SapGoodsIssueTrait;
+    public function onCreateReceivingFromGI()
+    {
+        try {
+            $data = $this->getOutboundGoodsIssue();
+            dd($data);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+
     public function onCreate(Request $request, $is_internal = false)
     {
         $fields = $request->validate([
@@ -114,7 +126,6 @@ class StoreReceivingInventoryController extends Controller
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
-
     public function onGetById($store_receiving_inventory_id)
     {
         try {
