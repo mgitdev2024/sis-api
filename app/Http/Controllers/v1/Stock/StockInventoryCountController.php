@@ -112,7 +112,7 @@ class StockInventoryCountController extends Controller
             }
             $toBeAddedItems = [];
             if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
-                $toBeAddtekedItems = $this->BohItems($existingItemCodes);
+                $toBeAddedItems = $this->BohItems($existingItemCodes);
             } else {
                 $toBeAddedItems = $this->FohItems($existingItemCodes);
             }
