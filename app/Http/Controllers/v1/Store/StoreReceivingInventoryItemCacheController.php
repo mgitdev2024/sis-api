@@ -33,56 +33,53 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-  public function onGetCurrent(Request $request)
-{
-    try {
-        $fields = $request->validate([
-            'reference_number'   => 'required|string',
-            'receive_type'       => 'required|string',
-            'selected_item_codes'=> 'required|string',
-        ]);
+    public function onGetCurrent(Request $request)
+    {
+        try {
+            $fields = $request->validate([
+                'reference_number' => 'required|string',
+                'receive_type' => 'required|string',
+                'selected_item_codes' => 'required|string',
+            ]);
 
-        $referenceNumber = $fields['reference_number'];
-        $receiveType     = $fields['receive_type'];
-        $selectedCodes   = json_decode($fields['selected_item_codes'], true);
+            $referenceNumber = $fields['reference_number'];
+            $receiveType = $fields['receive_type'];
+            $selectedCodes = json_decode($fields['selected_item_codes'], true);
 
-        // Normalize item codes (take only the part before ":")
-        $itemCodes = collect($selectedCodes)
-            ->map(fn($code) => explode(':', $code)[0])
-            ->unique()
-            ->values();
+            // Normalize item codes (take only the part before ":")
+            $itemCodes = collect($selectedCodes)
+                ->map(fn($code) => explode(':', $code)[0])
+                ->unique()
+                ->values();
 
-        // Get latest cache entry
-        $cacheModel = StoreReceivingInventoryItemCacheModel::where([
+            // Get latest cache entry
+            $cacheModel = StoreReceivingInventoryItemCacheModel::where([
                 'reference_number' => $referenceNumber,
-                'receive_type'     => $receiveType,
+                'receive_type' => $receiveType,
             ])
-            ->latest('id')
-            ->first();
+                ->latest('id')
+                ->first();
 
-        if (!$cacheModel) {
-            // Return success with empty data instead of error
-            $emptyModel = new StoreReceivingInventoryItemCacheModel();
-            $emptyModel->scanned_items = '[]';
-            return $this->dataResponse('success', 200, __('msg.record_found'), $emptyModel);
+            if (!$cacheModel) {
+                return $this->dataResponse('success', 200, __('msg.record_found'), []);
+            }
+
+            // Decode scanned items safely
+            $decodedItems = collect(json_decode($cacheModel->scanned_items, true) ?: []);
+
+            // Filter items: either match item_code or new source
+            $filteredItems = $decodedItems->filter(function ($item) use ($itemCodes) {
+                return $itemCodes->contains($item['ic']) || strtolower($item['source'] ?? '') === 'new';
+            })->values();
+
+            // Replace scanned_items with filtered list (still JSON for consistency)
+            $cacheModel->scanned_items = $filteredItems->toJson();
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $cacheModel);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 500, __('msg.record_not_found'), $exception->getMessage());
         }
-
-        // Decode scanned items safely
-        $decodedItems = collect(json_decode($cacheModel->scanned_items, true) ?: []);
-
-        // Filter items: either match item_code or new source
-        $filteredItems = $decodedItems->filter(function ($item) use ($itemCodes) {
-            return $itemCodes->contains($item['ic']) || strtolower($item['source'] ?? '') === 'new';
-        })->values();
-
-        // Replace scanned_items with filtered list (still JSON for consistency)
-        $cacheModel->scanned_items = $filteredItems->toJson();
-
-        return $this->dataResponse('success', 200, __('msg.record_found'), $cacheModel);
-    } catch (Exception $exception) {
-        return $this->dataResponse('error', 500, __('msg.record_not_found'), $exception->getMessage());
     }
-}
     public function onGetCurrentScanning($reference_number, $receive_type)
     {
         try {
