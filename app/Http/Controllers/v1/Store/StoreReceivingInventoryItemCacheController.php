@@ -61,7 +61,10 @@ class StoreReceivingInventoryItemCacheController extends Controller
             ->first();
 
         if (!$cacheModel) {
-            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            // Return success with empty data instead of error
+            $emptyModel = new StoreReceivingInventoryItemCacheModel();
+            $emptyModel->scanned_items = '[]';
+            return $this->dataResponse('success', 200, __('msg.record_found'), $emptyModel);
         }
 
         // Decode scanned items safely
