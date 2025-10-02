@@ -33,37 +33,56 @@ class StoreReceivingInventoryItemCacheController extends Controller
         }
     }
 
-    public function onGetCurrent($reference_number, $receive_type, $selected_item_codes)
-    {
-        try {
-            $decodedItemCodes = json_decode($selected_item_codes, true);
-            $itemCodes = array_map(function ($code) {
-                // split at ":" and take only the first part
-                return explode(":", $code)[0];
-            }, $decodedItemCodes);
+  public function onGetCurrent(Request $request)
+{
+    try {
+        $fields = $request->validate([
+            'reference_number'   => 'required|string',
+            'receive_type'       => 'required|string',
+            'selected_item_codes'=> 'required|string',
+        ]);
 
-            $storeReceivingInventoryItemCacheModel = StoreReceivingInventoryItemCacheModel::where([
-                'reference_number' => $reference_number,
-                'receive_type' => $receive_type
-            ])->orderBy('id', 'DESC')->first();
+        $referenceNumber = $fields['reference_number'];
+        $receiveType     = $fields['receive_type'];
+        $selectedCodes   = json_decode($fields['selected_item_codes'], true);
 
-            if ($storeReceivingInventoryItemCacheModel) {
-                $decodedItems = json_decode($storeReceivingInventoryItemCacheModel->scanned_items, true);
+        // Normalize item codes (take only the part before ":")
+        $itemCodes = collect($selectedCodes)
+            ->map(fn($code) => explode(':', $code)[0])
+            ->unique()
+            ->values();
 
-                $filteredItems = array_values(array_filter($decodedItems, function ($item) use ($itemCodes) { // Return items that are selected from the store receiving and also return the new or wrong dropped items
-                    return in_array($item['ic'], $itemCodes) || strtolower($item['source']) === 'new';
-                }));
+        // Get latest cache entry
+        $cacheModel = StoreReceivingInventoryItemCacheModel::where([
+                'reference_number' => $referenceNumber,
+                'receive_type'     => $receiveType,
+            ])
+            ->latest('id')
+            ->first();
 
-                $storeReceivingInventoryItemCacheModel->scanned_items = $filteredItems;
-
-                return $this->dataResponse('success', 200, __('msg.record_found'), $storeReceivingInventoryItemCacheModel);
-            }
-
-            return $this->dataResponse('error', 404, __('msg.record_not_found'));
-        } catch (Exception $exception) {
-            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        if (!$cacheModel) {
+            // Return success with empty data instead of error
+            $emptyModel = new StoreReceivingInventoryItemCacheModel();
+            $emptyModel->scanned_items = '[]';
+            return $this->dataResponse('success', 200, __('msg.record_found'), $emptyModel);
         }
+
+        // Decode scanned items safely
+        $decodedItems = collect(json_decode($cacheModel->scanned_items, true) ?: []);
+
+        // Filter items: either match item_code or new source
+        $filteredItems = $decodedItems->filter(function ($item) use ($itemCodes) {
+            return $itemCodes->contains($item['ic']) || strtolower($item['source'] ?? '') === 'new';
+        })->values();
+
+        // Replace scanned_items with filtered list (still JSON for consistency)
+        $cacheModel->scanned_items = $filteredItems->toJson();
+
+        return $this->dataResponse('success', 200, __('msg.record_found'), $cacheModel);
+    } catch (Exception $exception) {
+        return $this->dataResponse('error', 500, __('msg.record_not_found'), $exception->getMessage());
     }
+}
     public function onGetCurrentScanning($reference_number, $receive_type)
     {
         try {

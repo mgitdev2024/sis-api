@@ -89,7 +89,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
 
     #region Store Receiving Inventory Item
     Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{order_type}/{is_received}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
-    Route::get('v1/store/receive-inventory-item/manual/get/{reference_number}/{order_type}/{selected_item_codes}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
+     Route::post('v1/store/receive-inventory-item/manual', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
 
     Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}/{back_date?}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
@@ -102,7 +102,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #region Store Receiving Inventory Item Cache
     Route::post('v1/store/receive-inventory-item-cache/create/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onCreate']);
     Route::get('v1/store/receive-inventory-item-cache/scanning/current/get/{reference_number}/{receive_type}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrentScanning']);
-    Route::get('v1/store/receive-inventory-item-cache/current/get/{reference_number}/{receive_type}/{selected_item_codes}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
+    Route::post('v1/store/receive-inventory-item-cache/current', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onGetCurrent']);
     Route::post('v1/store/receive-inventory-item-cache/delete/{reference_number}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemCacheController::class, 'onDelete']);
     #endregion
 
