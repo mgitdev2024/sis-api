@@ -13,7 +13,7 @@ return new class extends Migration {
     {
         Schema::create('store_receiving_gi', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('sr_inventory_id');
+            $table->unsignedBigInteger('sr_inventory_id'); // store inventory id
             $table->date('gi_posting_date')->nullable();
             $table->string('gi_plant_code');
             $table->string('gi_plant_name')->nullable();
@@ -27,7 +27,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('sr_inventory_item_id');
             $table->string('gi_id')->nullable();
             $table->string('gi_material_doc_year')->nullable();
-            $table->string('gi_material_doc_item')->nullable();
+            $table->string('gi_material_doc')->nullable();
             $table->date('gi_posting_date')->nullable();
             $table->string('gi_inventory_stock_type')->nullable();
             $table->string('gi_inventory_trans_type')->nullable();
@@ -38,9 +38,6 @@ return new class extends Migration {
             $table->string('gi_purchase_order')->nullable();
             $table->string('gi_purchase_order_item')->nullable();
             $table->string('gi_entry_unit')->nullable();
-            $table->string('gi_delivery_document')->nullable();
-            $table->string('gi_delivery_document_item')->nullable();
-            $table->string('gi_goods_movement_ref_doc_type')->nullable();
             $table->string('gi_supplying_plant')->nullable();
             SchemaHelper::addCommonColumns($table);
 

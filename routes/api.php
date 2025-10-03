@@ -89,7 +89,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
 
     #region Store Receiving Inventory Item
     Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{order_type}/{is_received}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
-     Route::post('v1/store/receive-inventory-item/manual', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
+    Route::post('v1/store/receive-inventory-item/manual', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
 
     Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}/{back_date?}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
