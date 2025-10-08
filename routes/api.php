@@ -70,6 +70,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
+    #region Store Receiving Inventory
+    Route::post('v1/store/receive-inventory-goods-issue', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreateReceivingFromGI']);
+    #endregion
     #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
     Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id?}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);
@@ -86,7 +89,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
 
     #region Store Receiving Inventory Item
     Route::get('v1/store/receive-inventory-item/current/get/{store_code}/{order_type}/{is_received}/{status?}/{reference_number?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCurrent']);
-     Route::post('v1/store/receive-inventory-item/manual', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
+    Route::post('v1/store/receive-inventory-item/manual', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCheckedManual']);
 
     Route::get('v1/store/receive-inventory-item/category/get/{store_code}/{status?}/{back_date?}/{sub_unit?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onGetCategory']);
     Route::post('v1/store/receive-inventory-item/scan/{store_code}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryItemController::class, 'onScanItems']);
