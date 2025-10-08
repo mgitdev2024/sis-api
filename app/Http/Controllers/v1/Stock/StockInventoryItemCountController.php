@@ -21,7 +21,12 @@ class StockInventoryItemCountController extends Controller
         try {
             if ($store_inventory_count_id) {
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
-                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()->orderBy('system_quantity', 'DESC')->get();
+                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()
+                    ->orderBy('system_quantity', 'DESC')
+                    ->get();
+
+                $groupedItems = $stockInventoryItemCountModel->groupBy('item_category_name');
+                $stockInventoryItemCountModel = $groupedItems;
 
                 $data = [
                     'stock_inventory_count' => $stockInventoryCountModel,
