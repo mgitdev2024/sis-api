@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stock\StockInventoryCountModel;
+use App\Models\Stock\StockInventoryCountTemplateModel;
 use App\Models\Stock\StockInventoryItemCountModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Traits\CrudOperationsTrait;
@@ -22,12 +23,16 @@ class StockInventoryCountController extends Controller
             'type' => 'required|in:1,2,3', // 1 = Hourly, 2 = EOD, 3 = Month-End
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
+            'selected_item_codes' => 'required', // ['CR 12','CR 6',...]
+            'selection_template' => 'nullable', // JSON String
         ]);
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
+            $selectedItemCodes = $fields['selected_item_codes'];
+            $selectionTemplate = $fields['selection_template'] ?? null;
 
             $hasPending = StockInventoryCountModel::where([
                 'store_code' => $storeCode,
@@ -75,7 +80,10 @@ class StockInventoryCountController extends Controller
             ]);
             $stockInventoryCount->save();
 
-            $this->onCreateStockInventoryItemsCount($stockInventoryCount->id, $storeCode, $storeSubUnitShortName, $createdById);
+            $this->onCreateStockInventoryItemsCount($stockInventoryCount->id, $storeCode, $storeSubUnitShortName, $selectedItemCodes, $createdById);
+            if ($selectionTemplate != null) {
+                $this->onSaveStockCountTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById);
+            }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.create_success'));
         } catch (Exception $exception) {
@@ -84,7 +92,34 @@ class StockInventoryCountController extends Controller
         }
     }
 
-    public function onCreateStockInventoryItemsCount($stockInventoryCountId, $storeCode, $storeSubUnitShortName, $createdById)
+    public function onSaveStockCountTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById)
+    {
+        try {
+            $existingTemplate = StockInventoryCountTemplateModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName
+            ])->first();
+
+            if ($existingTemplate) {
+                $existingTemplate->selection_template = $selectionTemplate;
+                $existingTemplate->updated_by_id = $createdById;
+                $existingTemplate->save();
+            } else {
+                StockInventoryCountTemplateModel::create([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'selection_template' => $selectionTemplate,
+                    'created_by_id' => $createdById,
+                    'updated_by_id' => $createdById,
+                    'status' => 1, // Active
+                ]);
+            }
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCreateStockInventoryItemsCount($stockInventoryCountId, $storeCode, $storeSubUnitShortName, $selectedItemCodes, $createdById)
     {
         try {
             $existingItemCodes = [];
@@ -110,12 +145,12 @@ class StockInventoryCountController extends Controller
                     'status' => 1, // For Receive
                 ];
             }
-            $toBeAddedItems = [];
-            if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
-                $toBeAddedItems = $this->BohItems($existingItemCodes);
-            } else {
-                $toBeAddedItems = $this->FohItems($existingItemCodes);
-            }
+            $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
+            // if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
+            //     $toBeAddedItems = $this->BohItems($existingItemCodes);
+            // } else {
+            //     $toBeAddedItems = $this->FohItems($existingItemCodes);
+            // }
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
@@ -148,6 +183,10 @@ class StockInventoryCountController extends Controller
         }
     }
 
+    public function onItemsDiff($existingItemCodes, $selectedItemCodes)
+    {
+        return array_values(array_diff($selectedItemCodes, $existingItemCodes));
+    }
     public function FohItems($existingItemCodes)
     {
         $fohItems = [
