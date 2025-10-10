@@ -138,6 +138,7 @@ trait SapGoodReceiptTrait
     private function saveGoodReceiptItem($sapGoodReceiptId, $plantCode, $itemCode, $storageLocation, $batchCode, $goodsMovementType, $purchaseOrder, $purchaseOrderItem, $goodsMovementRefDocType, $quantityInEntryUnit, $entryUnit, $manufactureDate, $createdById)
     {
         try {
+            // s
             GoodReceiptItemModel::insert([
                 'sap_good_receipt_id' => $sapGoodReceiptId,
                 'plant' => $plantCode,
