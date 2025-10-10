@@ -4,12 +4,9 @@ namespace App\Http\Controllers\v1\Store;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stock\StockTransferModel;
-use App\Models\Store\StoreReceivingGoodsIssueItemModel;
-use App\Models\Store\StoreReceivingGoodsIssueModel;
 use App\Models\Store\StoreReceivingInventoryItemCacheModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use App\Models\User;
-use App\Traits\Sap\SapGoodReceiptTrait;
 use App\Traits\Stock\StockTrait;
 use Http;
 use Illuminate\Http\Request;
@@ -19,7 +16,7 @@ use DB;
 use Carbon\Carbon;
 class StoreReceivingInventoryItemController extends Controller
 {
-    use ResponseTrait, StockTrait, SapGoodReceiptTrait;
+    use ResponseTrait, StockTrait;
 
     public function onGetCurrent($store_code, $order_type, $is_received, $status = null, $reference_number = null)
     {
@@ -488,23 +485,7 @@ class StoreReceivingInventoryItemController extends Controller
             $goodReceiptPayload = [];
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)->get();
             if (count($storeInventoryItemModel) > 0) {
-                $initialStoreInventoryItem = $storeInventoryItemModel[0];
-                $storeInventoryModel = $initialStoreInventoryItem->storeReceivingInventory;
-                $isSapCreated = $storeInventoryModel->is_sap_created ?? 0;
-                if ($isSapCreated) {
-                    $storeReceivingGoodsIssueModel = StoreReceivingGoodsIssueModel::where('sr_inventory_id', $storeInventoryModel->id)->first();
-                    $goodReceiptPayload = [
-                        'reference_number' => $storeInventoryModel->reference_number,
-                        'delivery_date' => $storeInventoryModel->delivery_date,
-                        'warehouse_code' => $storeInventoryModel->warehouse_code,
-                        'plant' => $storeReceivingGoodsIssueModel->plant_code,
-                        'goods_receipt_items' => []
-                    ];
-                }
-
                 $createdById = $fields['created_by_id'];
-
-
                 foreach ($storeInventoryItemModel as $item) {
                     $item->status = 1;
                     $item->updated_by_id = $createdById;
@@ -515,18 +496,10 @@ class StoreReceivingInventoryItemController extends Controller
                         $item->received_at = now();
                         $item->received_by_id = $createdById;
                     }
-
-                    if ($isSapCreated) {
-                        $goodReceiptPayload['good_receipt_items'][$item->id] = [
-                            'item_code' => $item->item_code,
-                            'quantity' => $item->received_quantity,
-                        ];
-                    }
                     $item->save();
                 }
 
                 $this->onCheckReferenceNumberCompletion($reference_number, $createdById);
-                $this->createSapGoodReceipt($goodReceiptPayload, $createdById);
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
             }
