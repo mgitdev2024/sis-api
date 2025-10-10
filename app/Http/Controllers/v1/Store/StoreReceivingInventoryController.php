@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Traits\ResponseTrait;
 use DB;
+use Illuminate\Support\Str;
 class StoreReceivingInventoryController extends Controller
 {
     use ResponseTrait;
+
     public function onCreate(Request $request, $is_internal = false)
     {
         $fields = $request->validate([
@@ -114,7 +116,6 @@ class StoreReceivingInventoryController extends Controller
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
-
     public function onGetById($store_receiving_inventory_id)
     {
         try {
