@@ -25,7 +25,7 @@ return new class extends Migration {
         Schema::create('store_receiving_gi_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sr_inventory_item_id');
-            $table->string('gi_id')->nullable();
+            $table->text('gi_id')->nullable();
             $table->string('gi_material_doc_year')->nullable();
             $table->string('gi_material_doc')->nullable();
             $table->date('gi_posting_date')->nullable();

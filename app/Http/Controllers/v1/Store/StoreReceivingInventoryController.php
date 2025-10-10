@@ -25,7 +25,6 @@ class StoreReceivingInventoryController extends Controller
             $data = $this->getOutboundGoodsIssue();
             $collatedData = $this->collateGoodsIssueData($data);
             $counter = 1;
-
             foreach ($collatedData as $goodsIssue) {
                 $createdByName = 'SAP System Generated';
                 $createdById = '0000';
@@ -73,18 +72,20 @@ class StoreReceivingInventoryController extends Controller
                     $orderDate = $storeOrders['order_date'];
                     $orderSessionId = $storeOrders['order_session_id'] ?? null;
                     // $storeSubUnitId = $storeOrders['store_sub_unit_id'];
-                    $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'];
-                    $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'];
-                    // $orderReferenceNumber = 'CO-' . $storeOrders['order_session_id'] ?? $counter;
-                    $orderReferenceNumber = "CO-$counter";
+                    $storeSubUnitShortName = $storeOrders['store_sub_unit_short_name'] == 1 ? 'FOH' : 'BOH';
+                    $storeSubUnitLongName = $storeOrders['store_sub_unit_long_name'] == 1 ? 'Front of the House' : 'Back of the House';
+                    $orderReferenceNumber = 'GI-' . $storeOrders['order_session_id'];
 
-                    $counter++;
                     $exists = StoreReceivingInventoryItemModel::where('reference_number', $orderReferenceNumber)->exists();
                     if ($exists) {
                         throw new Exception('Reference number already exists: ' . $orderReferenceNumber);
                     }
                     if (isset($storeOrders['ordered_items'])) {
                         foreach ($storeOrders['ordered_items'] as $orderedItems) {
+
+                            if ($storeOrders['gi_material_doc'] !== '4900000163') {
+                                continue;
+                            }
                             $generateUniqueId = Str::uuid()->toString();
                             $insertData[] = [
                                 'store_receiving_inventory_id' => $storeReceivingInventory->id,
