@@ -133,6 +133,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
     Route::get('v1/stock/inventory-count/current/get/{status}/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onGet']);
+    Route::get('v1/stock/inventory-count/department/get/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onGetItemByDepartment']);
     #endregion
 
 
