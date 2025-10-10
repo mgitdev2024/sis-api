@@ -58,7 +58,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('v1/user/access/remove', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onRemoveAccess']);
     Route::post('v1/user/access/bulk', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onBulkUpload']);
     Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
-    
+
     // User Access Management
     Route::get('v1/user/store-info/{employee_id}', [App\Http\Controllers\UserStoreController::class, 'getStoreInfo']);
     Route::post('v1/user/store-info', [App\Http\Controllers\UserStoreController::class, 'updateStoreInfo']);
@@ -114,6 +114,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #region Stock Inventory
     Route::get('v1/stock/inventory/get/{is_group}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     Route::get('v1/stock/inventory/id/get/{stock_inventory_id?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
+    Route::post('v1/stock/inventory/generate-initial-items', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGenerateInitialInventory']);
     #endregion
 
     #region Stock Log
@@ -132,7 +133,6 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
     Route::get('v1/stock/inventory-count/current/get/{status}/{store_code}/{store_sub_unit_short_name?}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onGet']);
-
     #endregion
 
 
