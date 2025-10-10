@@ -94,6 +94,7 @@ class UserStoreController extends Controller
             ]);
 
             $responseData = [
+                'status' => 'success',
                 'employee_id' => $user->employee_id,
                 'user_access' => null
             ];
