@@ -31,7 +31,7 @@ class StockInventoryCountController extends Controller
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
-            $selectedItemCodes = $fields['selected_item_codes'];
+            $selectedItemCodes = json_decode($fields['selected_item_codes'], true);
             $selectionTemplate = $fields['selection_template'] ?? null;
 
             $hasPending = StockInventoryCountModel::where([
@@ -122,36 +122,33 @@ class StockInventoryCountController extends Controller
     public function onCreateStockInventoryItemsCount($stockInventoryCountId, $storeCode, $storeSubUnitShortName, $selectedItemCodes, $createdById)
     {
         try {
-            // $existingItemCodes = [];
-            // $stockInventoryModel = StockInventoryModel::where([
-            //     'store_code' => $storeCode,
-            //     'store_sub_unit_short_name' => $storeSubUnitShortName,
-            // ])->orderBy('item_code', 'DESC')->get();
+            $existingItemCodes = [];
+            $stockInventoryModel = StockInventoryModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+            ])
+                ->whereIn('item_code', $selectedItemCodes)
+                ->orderBy('item_code', 'DESC')
+                ->get();
 
             $stockInventoryItemsCount = [];
-            // foreach ($stockInventoryModel as $item) {
-            //     $existingItemCodes[] = $item->item_code;
-            //     $stockInventoryItemsCount[] = [
-            //         'stock_inventory_count_id' => $stockInventoryCountId,
-            //         'item_code' => $item->item_code,
-            //         'item_description' => $item->item_description,
-            //         'item_category_name' => $item->item_category_name,
-            //         'system_quantity' => $item->stock_count,
-            //         'counted_quantity' => 0,
-            //         'discrepancy_quantity' => 0,
-            //         'created_at' => now(),
-            //         'created_by_id' => $createdById,
-            //         'updated_by_id' => $createdById,
-            //         'status' => 1, // For Receive
-            //     ];
-            // }
-            // $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
-            // if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
-            //     $toBeAddedItems = $this->BohItems($existingItemCodes);
-            // } else {
-            //     $toBeAddedItems = $this->FohItems($existingItemCodes);
-            // }
-            $toBeAddedItems = $selectedItemCodes;
+            foreach ($stockInventoryModel as $item) {
+                $existingItemCodes[] = $item->item_code;
+                $stockInventoryItemsCount[] = [
+                    'stock_inventory_count_id' => $stockInventoryCountId,
+                    'item_code' => $item->item_code,
+                    'item_description' => $item->item_description,
+                    'item_category_name' => $item->item_category_name,
+                    'system_quantity' => $item->stock_count,
+                    'counted_quantity' => 0,
+                    'discrepancy_quantity' => 0,
+                    'created_at' => now(),
+                    'created_by_id' => $createdById,
+                    'updated_by_id' => $createdById,
+                    'status' => 1, // For Receive
+                ];
+            }
+            $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
@@ -186,7 +183,7 @@ class StockInventoryCountController extends Controller
 
     public function onItemsDiff($existingItemCodes, $selectedItemCodes)
     {
-        return array_values(array_diff(json_decode($selectedItemCodes, true), $existingItemCodes));
+        return array_values(array_diff($selectedItemCodes, $existingItemCodes));
     }
     public function onGet($status, $store_code, $sub_unit = null)
     {
@@ -227,6 +224,26 @@ class StockInventoryCountController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Cancel Failed', $exception->getMessage());
+        }
+    }
+
+    public function onGetItemByDepartment($store_code, $sub_unit)
+    {
+        try {
+            $stockInventoryModel = StockInventoryModel::where([
+                'store_code' => $store_code,
+                'store_sub_unit_short_name' => $sub_unit,
+            ])
+                ->orderBy('item_code', 'DESC')
+                ->pluck('item_code');
+
+            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.scm.get_item_by_department') . json_encode($stockInventoryModel));
+            if ($response->successful()) {
+                $data = $response->json();
+                return $this->dataResponse('success', 200, 'record_found', $data);
+            }
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, 'record_not_found', $exception->getMessage());
         }
     }
 }
