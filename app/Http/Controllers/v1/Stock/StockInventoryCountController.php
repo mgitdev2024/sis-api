@@ -151,7 +151,7 @@ class StockInventoryCountController extends Controller
             // } else {
             //     $toBeAddedItems = $this->FohItems($existingItemCodes);
             // }
-            $toBeAddedItems = $selectedItemCodes;
+            $toBeAddedItems = json_decode($selectedItemCodes, true);
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
@@ -186,7 +186,7 @@ class StockInventoryCountController extends Controller
 
     public function onItemsDiff($existingItemCodes, $selectedItemCodes)
     {
-        return array_values(array_diff(json_decode($selectedItemCodes, true), $existingItemCodes));
+        return array_values(array_diff($selectedItemCodes, $existingItemCodes));
     }
     public function onGet($status, $store_code, $sub_unit = null)
     {
