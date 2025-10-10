@@ -122,35 +122,36 @@ class StockInventoryCountController extends Controller
     public function onCreateStockInventoryItemsCount($stockInventoryCountId, $storeCode, $storeSubUnitShortName, $selectedItemCodes, $createdById)
     {
         try {
-            $existingItemCodes = [];
-            $stockInventoryModel = StockInventoryModel::where([
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName,
-            ])->orderBy('item_code', 'DESC')->get();
+            // $existingItemCodes = [];
+            // $stockInventoryModel = StockInventoryModel::where([
+            //     'store_code' => $storeCode,
+            //     'store_sub_unit_short_name' => $storeSubUnitShortName,
+            // ])->orderBy('item_code', 'DESC')->get();
 
             $stockInventoryItemsCount = [];
-            foreach ($stockInventoryModel as $item) {
-                $existingItemCodes[] = $item->item_code;
-                $stockInventoryItemsCount[] = [
-                    'stock_inventory_count_id' => $stockInventoryCountId,
-                    'item_code' => $item->item_code,
-                    'item_description' => $item->item_description,
-                    'item_category_name' => $item->item_category_name,
-                    'system_quantity' => $item->stock_count,
-                    'counted_quantity' => 0,
-                    'discrepancy_quantity' => 0,
-                    'created_at' => now(),
-                    'created_by_id' => $createdById,
-                    'updated_by_id' => $createdById,
-                    'status' => 1, // For Receive
-                ];
-            }
-            $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
+            // foreach ($stockInventoryModel as $item) {
+            //     $existingItemCodes[] = $item->item_code;
+            //     $stockInventoryItemsCount[] = [
+            //         'stock_inventory_count_id' => $stockInventoryCountId,
+            //         'item_code' => $item->item_code,
+            //         'item_description' => $item->item_description,
+            //         'item_category_name' => $item->item_category_name,
+            //         'system_quantity' => $item->stock_count,
+            //         'counted_quantity' => 0,
+            //         'discrepancy_quantity' => 0,
+            //         'created_at' => now(),
+            //         'created_by_id' => $createdById,
+            //         'updated_by_id' => $createdById,
+            //         'status' => 1, // For Receive
+            //     ];
+            // }
+            // $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
             // if (strcasecmp($storeSubUnitShortName, 'BOH') === 0) {
             //     $toBeAddedItems = $this->BohItems($existingItemCodes);
             // } else {
             //     $toBeAddedItems = $this->FohItems($existingItemCodes);
             // }
+            $toBeAddedItems = $selectedItemCodes;
             if (count($toBeAddedItems) > 0) {
                 $response = \Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
