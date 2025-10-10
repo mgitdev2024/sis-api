@@ -237,11 +237,12 @@ class StockInventoryCountController extends Controller
                 ->orderBy('item_code', 'DESC')
                 ->pluck('item_code');
 
-            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.scm.get_item_by_department') . json_encode($stockInventoryModel));
+            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.scm.get_item_by_department') ."$sub_unit/". json_encode($stockInventoryModel));
             if ($response->successful()) {
                 $data = $response->json();
                 return $this->dataResponse('success', 200, 'record_found', $data);
             }
+            return $this->dataResponse('error', 400, 'record_not_found');
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, 'record_not_found', $exception->getMessage());
         }
