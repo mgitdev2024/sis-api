@@ -141,6 +141,26 @@ class StockInventoryController extends Controller
                     ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'), [
                                 'item_code_collection' => json_encode($toBeAddedItems),
                             ]);
+
+                    if ($response->successful()) {
+                        $itemCollection = $response->json();
+                        $stockInventoryData = [];
+                        foreach ($itemCollection as $item) {
+                            $stockInventoryData[] = [
+                                'store_code' => $storeCode,
+                                'store_sub_unit_short_name' => $storeSubUnit,
+                                'item_code' => $item['item_code'],
+                                'item_description' => $item['long_name'] ?? '',
+                                'item_category_name' => $item['category_name'] ?? '',
+                                'stock_count' => 0,
+                                'status' => 1,
+                                'created_by_id' => '0000',
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+                        }
+                        StockInventoryModel::insert($stockInventoryData);
+                    }
                 }
             }
 
