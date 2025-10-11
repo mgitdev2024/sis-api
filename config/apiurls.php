@@ -9,10 +9,10 @@ return [
         'item_details_get' => '/item-details/get/',
         'item_uom_get' => '/item-uom/get/',
         'check_item_code' => '/check-item-code/',
-        'public_stock_adjustment_create' => '/stock-adjustment/create',
         'receiving_stock_transfer_create' => '/receiving/stock-transfer/create',
         'store_inventory_data_update' => '/store-inventory-data/update/',
-        'get_item_by_department' => '/item-by-department/get/'
+        'get_item_by_department' => '/item-by-department/get/',
+        'stock_adjustment_create' => '/stock-adjustment/create',
     ],
     'scm' => [
         'url' => env('SCM_URL'),
