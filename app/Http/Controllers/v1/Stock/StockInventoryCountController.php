@@ -10,6 +10,7 @@ use App\Models\Stock\StockInventoryModel;
 use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
 use Carbon\Carbon;
+use Http;
 use Illuminate\Http\Request;
 use Exception;
 use DB;
@@ -34,20 +35,12 @@ class StockInventoryCountController extends Controller
             $selectedItemCodes = json_decode($fields['selected_item_codes'], true);
             $selectionTemplate = $fields['selection_template'] ?? null;
 
-            $hasPending = StockInventoryCountModel::where([
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName
-            ])->whereIn('status', [0, 1])->exists();
-
-            if ($hasPending) {
-                return $this->dataResponse('error', 400, 'Still has pending stock count');
-            }
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
             $type = $fields['type'];
 
             $stockCountDate = now();
 
-            $response = \Http::withHeaders([
+            $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.scm_api_key'),
             ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_stock_count_lead_time_current_get'));
 
@@ -150,7 +143,7 @@ class StockInventoryCountController extends Controller
             }
             $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
             if (count($toBeAddedItems) > 0) {
-                $response = \Http::withHeaders([
+                $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
                 ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'), [
                             'item_code_collection' => json_encode($toBeAddedItems),
@@ -237,14 +230,117 @@ class StockInventoryCountController extends Controller
                 ->orderBy('item_code', 'DESC')
                 ->pluck('item_code');
 
-            $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.scm.get_item_by_department') ."$sub_unit/". json_encode($stockInventoryModel));
+            $response = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.get_item_by_department') . "$sub_unit/" . json_encode($stockInventoryModel));
             if ($response->successful()) {
                 $data = $response->json();
-                return $this->dataResponse('success', 200, 'record_found', $data);
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-            return $this->dataResponse('error', 400, 'record_not_found');
+            return $this->dataResponse('error', 400, __('msg.record_not_found'));
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, 'record_not_found', $exception->getMessage());
+            return $this->dataResponse('error', 400, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+
+    public function onBulk(Request $request)
+    {
+        $fields = $request->validate([
+            'store_code' => 'required',
+            'store_sub_unit' => 'required',
+            'type' => 'required|in:1,2,3', // 1 = Hourly, 2 = EOD, 3 = Month-End
+            'created_by_id' => 'required',
+            'bulk_data' => 'required', // [{"Item Code":"CR 12","Counted Quantity":30},{"Item Code":"CR 6","Counted Quantity":10}]
+        ]);
+        try {
+            DB::beginTransaction();
+            $storeCode = $fields['store_code'];
+            $storeSubUnitShortName = $fields['store_sub_unit'];
+            $type = $fields['type'];
+            $createdById = $fields['created_by_id'];
+            $bulkData = json_decode($fields['bulk_data'], true);
+
+            $stockCountDate = now();
+            $response = Http::withHeaders([
+                'x-api-key' => config('apikeys.scm_api_key'),
+            ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_stock_count_lead_time_current_get'));
+
+            if ($response->successful()) {
+                $leadTime = $response->json()['success']['data'] ?? [];
+                $leadTimeFrom = $leadTime['lead_time_from'] ?? null;
+                $leadTimeTo = $leadTime['lead_time_to'] ?? null;
+                $currentTime = now()->format('H:i:s');
+
+                if (
+                    Carbon::createFromTimeString($currentTime)
+                        ->between(
+                            Carbon::createFromTimeString($leadTimeFrom),
+                            Carbon::createFromTimeString($leadTimeTo)
+                        )
+                ) {
+                    $stockCountDate = now()->subDay(); // yesterday
+                }
+            }
+
+            $stockInventoryCountModel = StockInventoryCountModel::create([
+                'reference_number' => StockInventoryCountModel::onGenerateReferenceNumber(),
+                'type' => $type, // 1 = Hourly, 2 = EOD, 3 = Month-End
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'created_by_id' => $createdById,
+                'updated_by_id' => $createdById,
+                'status' => 0,
+                'created_at' => $stockCountDate
+            ]);
+            $stockInventoryCountId = $stockInventoryCountModel->id;
+
+            $stockInventoryCountItems = [];
+
+            $itemCodes = array_column($bulkData, 'Item Code');
+            $stockInventoryModel = StockInventoryModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName,
+            ])
+                ->whereIn('item_code', $itemCodes)
+                ->orderBy('item_code', 'DESC')
+                ->get()->keyBy('item_code');
+
+            $groupedItems = [];
+            foreach ($bulkData as $data) {
+                $itemCode = $data['Item Code'];
+                $countedQuantity = $data['Counted Quantity'];
+
+                // If item already exists, just add the counted quantity
+                if (isset($groupedItems[$itemCode])) {
+                    $groupedItems[$itemCode]['counted_quantity'] += $countedQuantity;
+                    continue;
+                }
+
+                // Otherwise, validate item once
+                $itemCodeExists = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
+                if (!$itemCodeExists->successful() || !$itemCodeExists->json()) {
+                    throw new Exception('Item Code does not exist: ' . $itemCode);
+                }
+
+                // Create new record
+                $groupedItems[$itemCode] = [
+                    'stock_inventory_count_id' => $stockInventoryCountId,
+                    'item_code' => $itemCode,
+                    'item_description' => $itemCodeExists->json()['long_name'] ?? null,
+                    'item_category_name' => $itemCodeExists->json()['item_base']['item_category']['category_name'] ?? null,
+                    'system_quantity' => $stockInventoryModel[$itemCode]->stock_count ?? 0,
+                    'counted_quantity' => $countedQuantity,
+                    'discrepancy_quantity' => 0,
+                    'created_at' => now(),
+                    'created_by_id' => $createdById,
+                    'updated_by_id' => $createdById,
+                    'status' => 1, // For Receive
+                ];
+            }
+            StockInventoryItemCountModel::insert(array_values($groupedItems));
+            DB::commit();
+            return $this->dataResponse('success', 200, 'Bulk Upload Successful');
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Bulk Upload Failed', $exception->getMessage());
         }
     }
 }

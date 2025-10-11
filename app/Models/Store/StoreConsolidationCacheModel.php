@@ -16,5 +16,6 @@ class StoreConsolidationCacheModel extends Model
         'created_by_name',
         'consolidated_data',
         'status',
+        'consolidated_order_id',
     ];
 }
