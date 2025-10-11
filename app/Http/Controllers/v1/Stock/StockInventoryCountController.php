@@ -302,20 +302,30 @@ class StockInventoryCountController extends Controller
                 ->whereIn('item_code', $itemCodes)
                 ->orderBy('item_code', 'DESC')
                 ->get()->keyBy('item_code');
+
+            $groupedItems = [];
             foreach ($bulkData as $data) {
                 $itemCode = $data['Item Code'];
                 $countedQuantity = $data['Counted Quantity'];
 
+                // If item already exists, just add the counted quantity
+                if (isset($groupedItems[$itemCode])) {
+                    $groupedItems[$itemCode]['counted_quantity'] += $countedQuantity;
+                    continue;
+                }
+
+                // Otherwise, validate item once
                 $itemCodeExists = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
-                if (!$itemCodeExists->successful() || !$itemCodeExists->json()['success']['data']) {
+                if (!$itemCodeExists->successful() || !$itemCodeExists->json()) {
                     throw new Exception('Item Code does not exist: ' . $itemCode);
                 }
 
-                $stockInventoryCountItems[] = [
+                // Create new record
+                $groupedItems[$itemCode] = [
                     'stock_inventory_count_id' => $stockInventoryCountId,
                     'item_code' => $itemCode,
-                    'item_description' => $itemCodeExists->json()['success']['data']['long_name'] ?? null,
-                    'item_category_name' => $itemCodeExists->json()['success']['data']['category_name'] ?? null,
+                    'item_description' => $itemCodeExists->json()['long_name'] ?? null,
+                    'item_category_name' => $itemCodeExists->json()['item_base']['item_category']['category_name'] ?? null,
                     'system_quantity' => $stockInventoryModel[$itemCode]->stock_count ?? 0,
                     'counted_quantity' => $countedQuantity,
                     'discrepancy_quantity' => 0,
@@ -325,7 +335,7 @@ class StockInventoryCountController extends Controller
                     'status' => 1, // For Receive
                 ];
             }
-            StockInventoryItemCountModel::insert($stockInventoryCountItems);
+            StockInventoryItemCountModel::insert(array_values($groupedItems));
             DB::commit();
             return $this->dataResponse('success', 200, 'Bulk Upload Successful');
         } catch (Exception $exception) {
