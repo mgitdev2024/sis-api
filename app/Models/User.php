@@ -27,4 +27,13 @@ class User extends Authenticatable
         'position',
         'user_access',
     ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'user_access' => 'array',
+    ];
 }

@@ -123,95 +123,95 @@ class StoreReceivingInventoryItemController extends Controller
         return $model;
     }
 
-public function onGetCheckedManual(Request $request)
-{
-    try {
-        $fields = $request->validate([
-            'reference_number' => 'required|string',
-            'order_type' => 'required|string',
-            'selected_item_codes' => 'required|string',
-        ]);
+    public function onGetCheckedManual(Request $request)
+    {
+        try {
+            $fields = $request->validate([
+                'reference_number' => 'required|string',
+                'order_type' => 'required|string',
+                'selected_item_codes' => 'required|string',
+            ]);
 
-        $referenceNumber = $fields['reference_number'];
-        $orderType = $fields['order_type'];
-        $itemCodesInput = json_decode($fields['selected_item_codes'], true);
+            $referenceNumber = $fields['reference_number'];
+            $orderType = $fields['order_type'];
+            $itemCodesInput = json_decode($fields['selected_item_codes'], true);
 
-        // Extract item codes and fan-out categories into structured array
-        $parsedItems = collect($itemCodesInput)->map(function ($code) {
-            $parts = explode(':', $code);
-            return [
-                'item_code' => $parts[0],
-                'fan_out_category' => $parts[1] ?? null,
-            ];
-        });
-
-        // Build one query instead of looping (avoid N+1 problem)
-        $query = StoreReceivingInventoryItemModel::where('reference_number', $referenceNumber)
-            ->where('order_type', $orderType)
-            ->whereIn('item_code', $parsedItems->pluck('item_code')->toArray());
-
-        $storeInventoryItems = $query->get();
-
-        // Filter by fan_out_category if applicable
-        $storeInventoryItems = $storeInventoryItems->filter(function ($item) use ($parsedItems) {
-            $match = $parsedItems->firstWhere('item_code', $item->item_code);
-            return !$match['fan_out_category'] || $item->fan_out_category === $match['fan_out_category'];
-        });
-
-        if ($storeInventoryItems->isEmpty()) {
-            return $this->dataResponse('error', 404, __('msg.record_not_found'), []);
-        }
-
-        // Reservation request (first item basis)
-        $firstItem = $storeInventoryItems->first();
-        $isReceived = $storeInventoryItems->every(fn($i) => $i->is_received == 1);
-
-        $data = [
-            'reservation_request' => [
-                'delivery_location' => $firstItem->store_name,
-                'estimated_delivery_date' => Carbon::parse($firstItem->delivery_date)->format('F d, Y'),
-                'reference_number' => $referenceNumber,
-                'order_session_id' => $firstItem->order_session_id,
-                'is_received' => $isReceived,
-            ],
-            'request_details' => [
-                'supply_hub' => $firstItem->storeReceivingInventory->warehouse_name,
-                'delivery_location' => Carbon::parse($firstItem->delivery_date)->format('F d, Y'),
-                'delivery_scheme' => $firstItem->delivery_type,
-                'order_date' => Carbon::parse($firstItem->order_date)->format('F d, Y'),
-                'requested_by' => $firstItem->created_by_name,
-                'completed_by' => $firstItem->completed_by_name,
-                'completed_at' => $firstItem->completed_at
-                    ? Carbon::parse($firstItem->completed_at)->format('F d, Y')
-                    : null,
-                'status' => $firstItem->status,
-                'additional_info' => $this->onCheckReferenceNumber($referenceNumber),
-            ],
-            'requested_items' => $storeInventoryItems->map(function ($item) {
+            // Extract item codes and fan-out categories into structured array
+            $parsedItems = collect($itemCodesInput)->map(function ($code) {
+                $parts = explode(':', $code);
                 return [
-                    'unique_key' => "{$item->item_code}:{$item->fan_out_category}",
-                    'reference_number' => $item->reference_number,
-                    'item_code' => $item->item_code,
-                    'item_description' => $item->item_description,
-                    'item_category_name' => $item->item_category_name,
-                    'order_quantity' => $item->order_quantity,
-                    'fan_out_category' => $item->fan_out_category,
-                    'allocated_quantity' => $item->allocated_quantity,
-                    'received_quantity' => $item->received_quantity,
-                    'received_items' => json_decode($item->received_items),
-                    'order_type' => $item->order_type,
-                    'is_wrong_drop' => $item->is_wrong_drop,
-                    'created_by_name' => $item->created_by_name,
-                    'status' => $item->status,
+                    'item_code' => $parts[0],
+                    'fan_out_category' => $parts[1] ?? null,
                 ];
-            })->values(),
-        ];
+            });
 
-        return $this->dataResponse('success', 200, __('msg.record_found'), $data);
-    } catch (Exception $exception) {
-        return $this->dataResponse('error', 500, __('msg.record_not_found'), $exception->getMessage());
+            // Build one query instead of looping (avoid N+1 problem)
+            $query = StoreReceivingInventoryItemModel::where('reference_number', $referenceNumber)
+                ->where('order_type', $orderType)
+                ->whereIn('item_code', $parsedItems->pluck('item_code')->toArray());
+
+            $storeInventoryItems = $query->get();
+
+            // Filter by fan_out_category if applicable
+            $storeInventoryItems = $storeInventoryItems->filter(function ($item) use ($parsedItems) {
+                $match = $parsedItems->firstWhere('item_code', $item->item_code);
+                return !$match['fan_out_category'] || $item->fan_out_category === $match['fan_out_category'];
+            });
+
+            if ($storeInventoryItems->isEmpty()) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'), []);
+            }
+
+            // Reservation request (first item basis)
+            $firstItem = $storeInventoryItems->first();
+            $isReceived = $storeInventoryItems->every(fn($i) => $i->is_received == 1);
+
+            $data = [
+                'reservation_request' => [
+                    'delivery_location' => $firstItem->store_name,
+                    'estimated_delivery_date' => Carbon::parse($firstItem->delivery_date)->format('F d, Y'),
+                    'reference_number' => $referenceNumber,
+                    'order_session_id' => $firstItem->order_session_id,
+                    'is_received' => $isReceived,
+                ],
+                'request_details' => [
+                    'supply_hub' => $firstItem->storeReceivingInventory->warehouse_name,
+                    'delivery_location' => Carbon::parse($firstItem->delivery_date)->format('F d, Y'),
+                    'delivery_scheme' => $firstItem->delivery_type,
+                    'order_date' => Carbon::parse($firstItem->order_date)->format('F d, Y'),
+                    'requested_by' => $firstItem->created_by_name,
+                    'completed_by' => $firstItem->completed_by_name,
+                    'completed_at' => $firstItem->completed_at
+                        ? Carbon::parse($firstItem->completed_at)->format('F d, Y')
+                        : null,
+                    'status' => $firstItem->status,
+                    'additional_info' => $this->onCheckReferenceNumber($referenceNumber),
+                ],
+                'requested_items' => $storeInventoryItems->map(function ($item) {
+                    return [
+                        'unique_key' => "{$item->item_code}:{$item->fan_out_category}",
+                        'reference_number' => $item->reference_number,
+                        'item_code' => $item->item_code,
+                        'item_description' => $item->item_description,
+                        'item_category_name' => $item->item_category_name,
+                        'order_quantity' => $item->order_quantity,
+                        'fan_out_category' => $item->fan_out_category,
+                        'allocated_quantity' => $item->allocated_quantity,
+                        'received_quantity' => $item->received_quantity,
+                        'received_items' => json_decode($item->received_items),
+                        'order_type' => $item->order_type,
+                        'is_wrong_drop' => $item->is_wrong_drop,
+                        'created_by_name' => $item->created_by_name,
+                        'status' => $item->status,
+                    ];
+                })->values(),
+            ];
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 500, __('msg.record_not_found'), $exception->getMessage());
+        }
     }
-}
 
 
     public function onGetCategory($store_code, $status = null, $back_date = null, $sub_unit = null)
@@ -481,6 +481,8 @@ public function onGetCheckedManual(Request $request)
         ]);
         try {
             DB::beginTransaction();
+
+            $goodReceiptPayload = [];
             $storeInventoryItemModel = StoreReceivingInventoryItemModel::where('reference_number', $reference_number)->get();
             if (count($storeInventoryItemModel) > 0) {
                 $createdById = $fields['created_by_id'];
@@ -501,7 +503,7 @@ public function onGetCheckedManual(Request $request)
                 DB::commit();
                 return $this->dataResponse('success', 200, __('msg.update_success'));
             }
-            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            return $this->dataResponse('error', 404, statusMessage: __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
