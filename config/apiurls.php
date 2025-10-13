@@ -24,4 +24,8 @@ return [
         'public_stock_count_lead_time_current_get' => '/public/stock-count-lead-time/current/get',
         'stock_conversion_item_id_get_auto_convert' => '/stock/conversion/item-id/get-auto-convert/',
     ],
+    'sds' => [
+        'url' => env('SDS_URL'),
+        'public_store_list_get' => '/public/store/list/',
+    ]
 ];
