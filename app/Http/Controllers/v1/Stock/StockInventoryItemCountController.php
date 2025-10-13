@@ -63,7 +63,6 @@ class StockInventoryItemCountController extends Controller
             }
 
         } catch (Exception $exception) {
-            dd($exception);
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
