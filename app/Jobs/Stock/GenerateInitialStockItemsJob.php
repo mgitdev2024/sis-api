@@ -40,75 +40,77 @@ class GenerateInitialStockItemsJob implements ShouldQueue
         DB::beginTransaction();
 
         try {
-            $storeCollection = StockInventoryModel::select('store_code', 'store_sub_unit_short_name')
-                ->distinct()
-                ->get();
+            $storeCollection = Http::withHeaders([
+                'x-api-key' => config('apikeys.sds_api_key'),
+            ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_list_get'));
 
+            $storeCollection = $storeCollection->json()['success']['data'];
             // Retrieve cached MGIOS master data or initialize empty array
             $cacheKey = 'mgios_item_masterdata';
             $itemMasterData = Cache::get($cacheKey, []);
 
             foreach ($storeCollection as $store) {
-                $storeCode = $store['store_code'];
-                $storeSubUnit = $store['store_sub_unit_short_name'];
+                $storeCode = $store['code'];
+                $storeSubUnitArr = ['FOH', 'BOH'];
+                foreach ($storeSubUnitArr as $storeSubUnit) {
+                    // Get existing stock items for the store
+                    $currentStockInventory = StockInventoryModel::where([
+                        'store_code' => $storeCode,
+                        'store_sub_unit_short_name' => $storeSubUnit
+                    ])->pluck('item_code');
 
-                // Get existing stock items for the store
-                $currentStockInventory = StockInventoryModel::where([
-                    'store_code' => $storeCode,
-                    'store_sub_unit_short_name' => $storeSubUnit
-                ])->pluck('item_code');
+                    // Determine missing items that are not yet in inventory
+                    $toBeAddedItems = $this->onArrayDiffItems($storeSubUnit, $currentStockInventory->toArray());
 
-                // Determine missing items that are not yet in inventory
-                $toBeAddedItems = $this->onArrayDiffItems($storeSubUnit, $currentStockInventory->toArray());
+                    if (count($toBeAddedItems) > 0) {
+                        // Fetch missing items from MGIOS
+                        $missingItems = array_diff($toBeAddedItems, array_keys($itemMasterData));
 
-                if (count($toBeAddedItems) > 0) {
-                    // Fetch missing items from MGIOS
-                    $missingItems = array_diff($toBeAddedItems, array_keys($itemMasterData));
+                        if (!empty($missingItems)) {
+                            $response = Http::withHeaders([
+                                'x-api-key' => config('apikeys.mgios_api_key'),
+                            ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'), [
+                                        'item_code_collection' => json_encode($missingItems),
+                                    ]);
 
-                    if (!empty($missingItems)) {
-                        $response = Http::withHeaders([
-                            'x-api-key' => config('apikeys.mgios_api_key'),
-                        ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'), [
-                                    'item_code_collection' => json_encode($missingItems),
-                                ]);
+                            if ($response->successful()) {
+                                $newItems = $response->json();
 
-                        if ($response->successful()) {
-                            $newItems = $response->json();
+                                // Add to cache
+                                foreach ($newItems as $item) {
+                                    $itemMasterData[$item['item_code']] = $item;
+                                }
 
-                            // Add to cache
-                            foreach ($newItems as $item) {
-                                $itemMasterData[$item['item_code']] = $item;
+                                // Update cache (24 hours)
+                                Cache::put($cacheKey, $itemMasterData, now()->addHours(24));
                             }
-
-                            // Update cache (24 hours)
-                            Cache::put($cacheKey, $itemMasterData, now()->addHours(24));
                         }
-                    }
 
-                    // Build insert data from cached + new data
-                    $stockInventoryData = [];
-                    foreach ($toBeAddedItems as $code) {
-                        $item = $itemMasterData[$code] ?? null;
-                        if (!$item)
-                            continue; // Skip missing or invalid
+                        // Build insert data from cached + new data
+                        $stockInventoryData = [];
+                        foreach ($toBeAddedItems as $code) {
+                            $item = $itemMasterData[$code] ?? null;
+                            if (!$item)
+                                continue; // Skip missing or invalid
 
-                        $stockInventoryData[$code] = [
-                            'store_code' => $storeCode,
-                            'store_sub_unit_short_name' => $storeSubUnit,
-                            'item_code' => $code,
-                            'item_description' => $item['long_name'] ?? '',
-                            'item_category_name' => $item['category_name'] ?? '',
-                            'stock_count' => 0,
-                            'status' => 1,
-                            'created_by_id' => '0000',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-                    }
+                            $stockInventoryData[$code] = [
+                                'store_code' => $storeCode,
+                                'store_sub_unit_short_name' => $storeSubUnit,
+                                'item_code' => $code,
+                                'item_description' => $item['long_name'] ?? '',
+                                'item_category_name' => $item['category_name'] ?? '',
+                                'stock_count' => 0,
+                                'status' => 1,
+                                'created_by_id' => '0000',
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+                        }
 
-                    if (!empty($stockInventoryData)) {
-                        // Bulk insert to reduce overhead
-                        StockInventoryModel::insert(array_values($stockInventoryData));
+                        if (!empty($stockInventoryData)) {
+                            // Bulk insert to reduce overhead
+                            StockInventoryModel::insert(array_values($stockInventoryData));
+                        }
                     }
                 }
             }
