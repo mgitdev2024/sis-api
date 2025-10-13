@@ -51,7 +51,12 @@ class GenerateInitialStockItemsJob implements ShouldQueue
 
             foreach ($storeCollection as $store) {
                 $storeCode = $store['code'];
-                $storeSubUnitArr = ['FOH', 'BOH'];
+                $firstChar = strtoupper(substr($storeCode, 0, 1));
+                $storeSubUnitArr = ['BOH'];
+                if ($firstChar === 'C') {
+                    $storeSubUnitArr = ['FOH', 'BOH'];
+                }
+
                 foreach ($storeSubUnitArr as $storeSubUnit) {
                     // Get existing stock items for the store
                     $currentStockInventory = StockInventoryModel::where([
