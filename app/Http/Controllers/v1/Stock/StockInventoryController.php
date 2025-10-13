@@ -7,6 +7,7 @@ use App\Jobs\Stock\GenerateInitialStockItemsJob;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
@@ -48,7 +49,11 @@ class StockInventoryController extends Controller
             ->values()
             ->all();
 
-        $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.item_uom_get') . json_encode($itemCodes));
+        $response = Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key')
+        ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'), [
+                    'item_code_collection' => json_encode($itemCodes)
+                ]);
         $uomData = collect($response->json()); // make uomData a collection for easier lookup
 
         $stockInventoryData = $stockInventoryData->map(function ($items) use ($uomData) {
@@ -68,7 +73,11 @@ class StockInventoryController extends Controller
             ->unique()
             ->values()
             ->all();
-        $response = \Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.item_uom_get') . json_encode($itemCodes));
+        $response = Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key')
+        ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'), [
+                    'item_code_collection' => json_encode($itemCodes)
+                ]);
         $uomData = collect($response->json()); // make uomData a collection for easier lookup
 
         $stockInventoryData = collect($stockInventoryData)->map(function ($item) use ($uomData) {
@@ -76,6 +85,7 @@ class StockInventoryController extends Controller
             $item['uom'] = $uomData[$itemCode] ?? null;
             return $item;
         });
+
     }
 
     public function onGetById($stockInventoryId = null)

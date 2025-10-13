@@ -230,7 +230,11 @@ class StockInventoryCountController extends Controller
                 ->orderBy('item_code', 'DESC')
                 ->pluck('item_code');
 
-            $response = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.get_item_by_department') . "$sub_unit/" . json_encode($stockInventoryModel));
+            $response = Http::withHeaders([
+                'x-api-key' => config('apikeys.mgios_api_key'),
+            ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . "$sub_unit", [
+                        'item_code_collection' => json_encode($stockInventoryModel),
+                    ]);
             if ($response->successful()) {
                 $data = $response->json();
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);

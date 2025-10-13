@@ -10,6 +10,7 @@ use App\Models\Stock\StockLogModel;
 use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use DB;
 use Exception;
 
@@ -23,10 +24,36 @@ class StockInventoryItemCountController extends Controller
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
                 $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()
                     ->orderBy('system_quantity', 'DESC')
-                    ->get();
+                    ->get()->groupBy('item_category_name');
+                $warehouseCodes = $stockInventoryItemCountModel
+                    ->flatten(1)
+                    ->pluck('item_category_name')
+                    ->unique()->values(); // optional, reindex array
 
-                $groupedItems = $stockInventoryItemCountModel->groupBy('item_category_name');
-                $stockInventoryItemCountModel = $groupedItems;
+                if (count($warehouseCodes) > 0) {
+                    $stockItemCountDepartment = [];
+                    // Fetch items from external API based on warehouse codes
+                    $response = Http::withHeaders([
+                        'x-api-key' => config('apikeys.mgios_api_key'),
+                    ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_get_department_by_category'), [
+                                'category_name_collection' => json_encode($warehouseCodes),
+                            ]);
+                    if ($response->successful()) {
+                        $departmentData = collect($response->json()); // make departmentData a collection for easier lookup
+
+                        foreach ($stockInventoryItemCountModel as $categoryKey => $data) {
+                            if (!isset($departmentData[$categoryKey])) {
+                                // Register or handle unassigned category
+                                $stockItemCountDepartment[$categoryKey] = $data->toArray();
+                            } else {
+                                // Assign under the department short name
+                                $deptShortName = $departmentData[$categoryKey]['short_name'];
+                                $stockItemCountDepartment[$deptShortName][$categoryKey] = $data->toArray();
+                            }
+                        }
+                        $stockInventoryItemCountModel = $stockItemCountDepartment;
+                    }
+                }
 
                 $data = [
                     'stock_inventory_count' => $stockInventoryCountModel,
