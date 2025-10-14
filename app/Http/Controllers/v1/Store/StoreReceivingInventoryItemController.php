@@ -497,13 +497,13 @@ class StoreReceivingInventoryItemController extends Controller
                         'reference_number' => $storeInventoryModel->reference_number,
                         'delivery_date' => $storeInventoryModel->delivery_date,
                         'warehouse_code' => $storeInventoryModel->warehouse_code,
-                        'plant' => $storeReceivingGoodsIssueModel->plant_code,
+                        'plant' => $initialStoreInventoryItem['store_code'],
+                        'posting_date' => $storeReceivingGoodsIssueModel->gi_posting_date,
                         'goods_receipt_items' => []
                     ];
                 }
 
                 $createdById = $fields['created_by_id'];
-
 
                 foreach ($storeInventoryItemModel as $item) {
                     $item->status = 1;
@@ -517,7 +517,7 @@ class StoreReceivingInventoryItemController extends Controller
                     }
 
                     if ($isSapCreated) {
-                        $goodReceiptPayload['good_receipt_items'][$item->id] = [
+                        $goodReceiptPayload['goods_receipt_items'][$item->id] = [
                             'item_code' => $item->item_code,
                             'quantity' => $item->received_quantity,
                         ];
@@ -533,6 +533,7 @@ class StoreReceivingInventoryItemController extends Controller
             return $this->dataResponse('error', 404, statusMessage: __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
+            dd($exception);
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }

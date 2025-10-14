@@ -49,6 +49,7 @@ trait SapGoodReceiptTrait
                     'definition_id' => $definitionId,
                     'posting_date' => $postingDate,
                     'reference_document' => $referenceNumber,
+                    'GoodsMovementCode' => '01',
                     'created_by_id' => $createdById
                 ]);
             } else {
@@ -63,18 +64,18 @@ trait SapGoodReceiptTrait
             $issuedItems = StoreReceivingGoodsIssueItemModel::whereIn('sr_inventory_item_id', $storeItemIds)->get()->keyBy('sr_inventory_item_id');
             foreach ($goodsReceiptItems as $id => $item) {
                 $storeReceivingGoodsIssueItemModel = $issuedItems->get($id);
-
-                $batch = $storeReceivingGoodsIssueItemModel?->gi_batch;
+                $batch = $storeReceivingGoodsIssueItemModel?->gi_batch ?? null;
                 $purchaseOrder = $storeReceivingGoodsIssueItemModel?->gi_purchase_order;
                 $purchaseOrderItem = $storeReceivingGoodsIssueItemModel?->gi_purchase_order_item;
                 $manufactureDate = $storeReceivingGoodsIssueItemModel?->gi_manu_date;
                 $entryUnit = $storeReceivingGoodsIssueItemModel?->gi_entry_unit;
 
                 $itemCode = $item['item_code'];
-                $quantity = $item['quantity'];
+                // $quantity = $item['quantity'];
+                $quantity = 12;
                 // Consolidate to material document item
                 $toMaterialDocumentItem[] = [
-                    'MaterialDocumentLine' => (string) $materialDocumentLine,
+                    // 'MaterialDocumentLine' => (string) $materialDocumentLine,
                     'Plant' => $plant,
                     'Material' => $itemCode,
                     'StorageLocation' => $warehouseCode,
