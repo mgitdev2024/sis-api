@@ -38,7 +38,7 @@ trait SapGoodReceiptTrait
             $goodsReceiptItems = $decodedData['goods_receipt_items'] ?? [];
             $plant = $decodedData['plant'] ?? null;
             $warehouseCode = $decodedData['warehouse_code'] ?? null;
-            $definitionId = 'jp10.com-mgfi-dev.goodsreceiptmgios.materialDocumentProcess';
+            $definitionId = 'jp10.com-mgfi-dev.mgiosstorereplenishmentinboundgoodsreceiptpostgr.materialDocumentProcess';
             $exists = GoodReceiptModel::where([
                 'reference_document' => $referenceNumber,
                 'upload_status' => 1
