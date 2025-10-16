@@ -9,11 +9,11 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:create-store-receiving-inventory')->everyMinute()->withoutOverlapping();
+        $schedule->command('app:create-store-receiving-inventory')->everyMinute();
         $schedule->command('app:delete-store-consolidation-cache')->dailyAt('00:00')->withoutOverlapping();
 
         // Add your queue worker
-        $schedule->command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping();
+        $schedule->command('queue:work --stop-when-empty')->everyMinute();
     }
 
     protected function commands(): void
