@@ -2,9 +2,9 @@
 
 namespace App\Traits\Sap;
 
-use App\Models\MOS\Production\ProductionBatchModel;
 use App\Models\Sap\GoodReceipt\GoodReceiptItemModel;
 use App\Models\Sap\GoodReceipt\GoodReceiptModel;
+use App\Models\Store\StoreReceivingGoodsIssueItemModel;
 use Exception;
 use App\Traits\ResponseTrait;
 use Illuminate\Support\Facades\Http;
@@ -16,26 +16,29 @@ trait SapGoodReceiptTrait
     public function createSapGoodReceipt($decodedData, $createdById)
     {
         /* [ Sample Json
-            'reference_number' => 'FI-000002',
-            'posting_date' => '2025-08-19',
-            'good_receipt_items' => [
-                2  => [ // (Batch Id)
-                    'batch_id' => 1,
-                    'quantity' => 19,
+            'reference_number' => $storeInventoryModel->reference_number,
+            'delivery_date' => $storeInventoryModel->delivery_date,
+            'warehouse_code' => $storeInventoryModel->warehouse_code,
+            'plant' => $storeReceivingGoodsIssueModel->plant_code,
+            'goods_receipt_items' => [
+                'item_code' => [
+                    'item_code' => $item->item_code,
+                    'quantity' => $item->received_quantity
                 ],
-                3 => [
-                    'batch_id' => 1,
-                    'quantity' => 29,
-                ]
+                'item_code' => [
+                    'item_code' => $item->item_code,
+                    'quantity' => $item->received_quantity
+                ],
             ]
         ] */
 
         try {
             $referenceNumber = $decodedData['reference_number'] ?? null;
             $postingDate = $decodedData['posting_date'] ?? null;
-            $goodReceiptItems = $decodedData['good_receipt_items'] ?? [];
-            $inventoryStockType = $decodedData['inventory_stock_type'] ?? 'F';
-            $definitionId = 'us10.80ff573dtrial.goodsreceiptmgios.materialDocumentIntegrationProcess';
+            $goodsReceiptItems = $decodedData['goods_receipt_items'] ?? [];
+            $plant = $decodedData['plant'] ?? null;
+            $warehouseCode = $decodedData['warehouse_code'] ?? null;
+            $definitionId = 'jp10.com-mgfi-dev.mgiosstorereplenishmentinboundgoodsreceiptpostgr.materialDocumentProcess';
             $exists = GoodReceiptModel::where([
                 'reference_document' => $referenceNumber,
                 'upload_status' => 1
@@ -46,6 +49,7 @@ trait SapGoodReceiptTrait
                     'definition_id' => $definitionId,
                     'posting_date' => $postingDate,
                     'reference_document' => $referenceNumber,
+                    'GoodsMovementCode' => '01',
                     'created_by_id' => $createdById
                 ]);
             } else {
@@ -55,51 +59,40 @@ trait SapGoodReceiptTrait
 
             $toMaterialDocumentItem = [];
             $materialDocumentLine = 1;
-            foreach ($goodReceiptItems as $batchId => $item) {
-                $batchModel = ProductionBatchModel::find($batchId);
-                if ($batchModel) {
-                    $itemMasterDataModel = $batchModel->itemMasterData;
-                    $plantCode = $itemMasterDataModel->plant->code;
-                    $itemCode = $itemMasterDataModel->item_code;
 
-                    $productionDate = $batchModel->productionOrder->production_date ?? '';
-                    $productionToBakeAssemble = $batchModel->productionOta ?? $batchModel->productionOtb;
-                    $isBatchManagementRequired = $productionToBakeAssemble->gr_is_batch_required;
-                    $storageLocation = $productionToBakeAssemble->gr_storage_location ?? '';
-                    $manufacturingOrder = $productionToBakeAssemble->gr_manu_order; // To be received from SAP, add soon
-                    $quantity = $item['quantity'];
-                    $uom = $itemMasterDataModel->uom->code;
-                    $ambientExpDate = $batchModel->ambient_exp_date ?? '';
-                    $frozenExpDate = $batchModel->frozen_exp_date ?? '';
-                    $chilledExpDate = $batchModel->chilled_exp_date ?? '';
-                    $batchCode = $isBatchManagementRequired === 1 ? $this->batchFormatter($batchModel->batch_code, $batchModel->batch_type) : '';
+            $storeItemIds = array_keys($goodsReceiptItems);
+            $issuedItems = StoreReceivingGoodsIssueItemModel::whereIn('sr_inventory_item_id', $storeItemIds)->get()->keyBy('sr_inventory_item_id');
+            foreach ($goodsReceiptItems as $id => $item) {
+                $storeReceivingGoodsIssueItemModel = $issuedItems->get($id);
+                $batch = $storeReceivingGoodsIssueItemModel?->gi_batch ?? null;
+                $purchaseOrder = $storeReceivingGoodsIssueItemModel?->gi_purchase_order;
+                $purchaseOrderItem = $storeReceivingGoodsIssueItemModel?->gi_purchase_order_item;
+                $manufactureDate = $storeReceivingGoodsIssueItemModel?->gi_manu_date;
+                $entryUnit = $storeReceivingGoodsIssueItemModel?->gi_entry_unit;
 
-                    // Consolidate sticker numbers
-                    $stickerNumbers = json_encode($item['sticker_numbers'] ?? []);
-                    // Consolidate to material document item
-                    $toMaterialDocumentItem[] = [
-                        'MaterialDocumentLine' => (string) $materialDocumentLine,
-                        'Plant' => $plantCode,
-                        'Material' => $itemCode,
-                        'StorageLocation' => $storageLocation,
-                        'Batch' => $batchCode, // 5-252-001-R
-                        'GoodsMovementType' => '101',
-                        'ManufacturingOrder' => $manufacturingOrder,
-                        'ManufactureDate' => $productionDate,
-                        'GoodsMovementRefDocType' => 'F',
-                        'QuantityInEntryUnit' => (string) $quantity,
-                        'EntryUnit' => $uom,
-                        'YY1_Ambient_Exp_Date_MMI' => $ambientExpDate,
-                        'YY1_Frozen_Exp_Date_MMI' => $frozenExpDate,
-                        'YY1_Chilled_Exp_Date_MMI' => $chilledExpDate,
-                        'InventoryUsabilityCode' => $inventoryStockType, // 'F' - Unrestricted, '2' - Quality Inspection
-                        'YY1_StickerNumber_MMI' => "$batchModel->id-$stickerNumbers"
-                    ];
+                $itemCode = $item['item_code'];
+                // $quantity = $item['quantity'];
+                $quantity = 12;
+                // Consolidate to material document item
+                $toMaterialDocumentItem[] = [
+                    // 'MaterialDocumentLine' => (string) $materialDocumentLine,
+                    'Plant' => $plant,
+                    'Material' => $itemCode,
+                    'StorageLocation' => $warehouseCode,
+                    'Batch' => $batch,
+                    "PurchaseOrder" => $purchaseOrder,
+                    "PurchaseOrderItem" => $purchaseOrderItem,
+                    'GoodsMovementType' => '101',
+                    'ManufactureDate' => $manufactureDate,
+                    'GoodsMovementRefDocType' => 'B',
+                    'QuantityInEntryUnit' => (string) $quantity,
+                    'EntryUnit' => $entryUnit,
+                ];
 
-                    $materialDocumentLine++;
-                    // Save to database
-                    $this->saveGoodReceiptItem($goodReceiptId, $plantCode, $itemCode, $batchCode, $manufacturingOrder, $quantity, $uom, $ambientExpDate, $frozenExpDate, $chilledExpDate, $createdById, $productionDate);
-                }
+                $materialDocumentLine++;
+                // Save to database
+                $this->saveGoodReceiptItem($goodReceiptId, $plant, $itemCode, $warehouseCode, $batch, '101', $purchaseOrder, $purchaseOrderItem, 'B', (string) $quantity, $entryUnit, $manufactureDate, $createdById);
+
             }
             // Call SAP API after all items are prepared
             $this->goodReceiptApiCall($definitionId, $postingDate, $referenceNumber, $sapGoodReceiptModel, $toMaterialDocumentItem);
@@ -111,18 +104,6 @@ trait SapGoodReceiptTrait
         }
     }
 
-    private function batchFormatter($batchCode, $isReprocessed)
-    {
-        $alteredBatchCode = explode('-', $batchCode);
-        if (count($alteredBatchCode) > 3) {
-            unset($alteredBatchCode[3]);
-        }
-        unset($alteredBatchCode[0]); // removes item code
-        $alteredBatchCode = array_values($alteredBatchCode); // reset array keys
-        $alteredBatchCode[0] = substr($alteredBatchCode[0], -1);
-        return implode('', $alteredBatchCode) . ($isReprocessed === 1 ? 'R' : '');
-    }
-
     private function goodReceiptApiCall($definitionId, $postingDate, $referenceNumber, $sapGoodReceiptModel, $toMaterialDocumentItem)
     {
         try {
@@ -130,9 +111,9 @@ trait SapGoodReceiptTrait
                 'definitionId' => $definitionId,
                 'context' => [
                     'materialDocumentDataType' => [
-                        'GoodsMovementCode' => '02',
+                        'GoodsMovementCode' => '01',
                         'PostingDate' => $postingDate,
-                        'DocumentDate' => '',
+                        'DocumentDate' => $postingDate,
                         'MaterialDocumentHeaderText' => '',
                         'ReferenceDocument' => '',
                         'to_MaterialDocumentItem' => $toMaterialDocumentItem
@@ -155,22 +136,22 @@ trait SapGoodReceiptTrait
         }
     }
 
-    private function saveGoodReceiptItem($sapGoodReceiptId, $plantCode, $itemCode, $batchCode, $manufacturingOrder, $quantity, $uom, $ambientExpDate, $frozenExpDate, $chilledExpDate, $createdById, $productionDate)
+    private function saveGoodReceiptItem($sapGoodReceiptId, $plantCode, $itemCode, $storageLocation, $batchCode, $goodsMovementType, $purchaseOrder, $purchaseOrderItem, $goodsMovementRefDocType, $quantityInEntryUnit, $entryUnit, $manufactureDate, $createdById)
     {
         try {
             GoodReceiptItemModel::insert([
                 'sap_good_receipt_id' => $sapGoodReceiptId,
                 'plant' => $plantCode,
                 'material' => $itemCode,
+                'storage_location' => $storageLocation,
                 'batch' => $batchCode,
-                // sticker number if possible
-                'manufacturing_order' => $manufacturingOrder,
-                'manufacture_date' => $productionDate,
-                'quantity_in_entry_unit' => $quantity,
-                'entry_unit' => $uom,
-                'yy1_ambient_exp_date_mmi' => $ambientExpDate,
-                'yy1_frozen_exp_date_mmi' => $frozenExpDate,
-                'yy1_chilled_exp_date_mmi' => $chilledExpDate,
+                'goods_movement_type' => $goodsMovementType,
+                'purchase_order' => $purchaseOrder,
+                'purchase_order_item' => $purchaseOrderItem,
+                'goods_movement_ref_doc_type' => $goodsMovementRefDocType,
+                'quantity_in_entry_unit' => $quantityInEntryUnit,
+                'entry_unit' => $entryUnit,
+                'manufacture_date' => $manufactureDate,
                 'created_by_id' => $createdById
             ]);
         } catch (Exception $exception) {
