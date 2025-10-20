@@ -60,9 +60,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 
     // User Access Management
+
     Route::get('v1/user/store-info/{employee_id}', [App\Http\Controllers\UserStoreController::class, 'getStoreInfo']);
     Route::post('v1/user/store-info', [App\Http\Controllers\UserStoreController::class, 'updateStoreInfo']);
     Route::post('v1/user/store-info/remove', [App\Http\Controllers\UserStoreController::class, 'removeStoreInfo']);
+    
     #endregion
 
     #region System Status
