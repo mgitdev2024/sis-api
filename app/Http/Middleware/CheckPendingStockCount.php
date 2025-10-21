@@ -23,7 +23,8 @@ class CheckPendingStockCount
         $method = $request->getMethod();
 
         if (in_array($method, $requestMethods)) {
-            $cache = Cache::get('store_' . auth()->id());
+            // $cache = Cache::get('store_' . auth()->id());
+            $cache = json_decode(auth()->user()->user_access, true);
             $storeCode = $cache['store_code'] ?? null;
             $subUnit = $cache['sub_unit'] ?? null;
 

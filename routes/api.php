@@ -71,7 +71,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     #endregion
 
     // Cache Store
-    Route::post('v1/store/cache', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onStoreCache']);
+    // Route::post('v1/store/cache', [App\Http\Controllers\v1\Auth\CredentialController::class, 'onStoreCache']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {

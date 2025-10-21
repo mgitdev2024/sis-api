@@ -98,21 +98,23 @@ class CredentialController extends Controller
         }
     }
 
-    public function onStoreCache(Request $request)
-    {
-        $fields = $request->validate([
-            'store_code' => 'required|string',
-            'sub_unit' => 'nullable|string',
-        ]);
+    // public function onStoreCache(Request $request)
+    // {
+    //     dd(json_decode(auth()->user()->user_access, true));
 
-        try {
-            Cache::put('store_' . auth()->id(), [
-                'store_code' => $fields['store_code'],
-                'sub_unit' => $fields['sub_unit'],
-            ]);
-            return $this->dataResponse('success', 200, 'Cache Set');
-        } catch (Exception $exception) {
-            return $this->dataResponse('error', 400, $exception->getMessage());
-        }
-    }
+    //     $fields = $request->validate([
+    //         'store_code' => 'required|string',
+    //         'sub_unit' => 'nullable|string',
+    //     ]);
+
+    //     try {
+    //         Cache::put('store_' . auth()->id(), [
+    //             'store_code' => $fields['store_code'],
+    //             'sub_unit' => $fields['sub_unit'],
+    //         ]);
+    //         return $this->dataResponse('success', 200, 'Cache Set');
+    //     } catch (Exception $exception) {
+    //         return $this->dataResponse('error', 400, $exception->getMessage());
+    //     }
+    // }
 }
