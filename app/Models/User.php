@@ -33,7 +33,4 @@ class User extends Authenticatable
      *
      * @var array<string, string>
      */
-    protected $casts = [
-        'user_access' => 'array',
-    ];
 }

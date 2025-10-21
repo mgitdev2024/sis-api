@@ -45,7 +45,7 @@ class UserStoreController extends Controller
         try {
             $request->validate([
                 'employee_id' => 'required|string',
-                'user_access' => 'required|string'
+                'user_access' => 'required|string' // {"store_code":"C018","company_code":"MGFI"}
             ]);
 
             $user = User::where('employee_id', $request->employee_id)->first();
