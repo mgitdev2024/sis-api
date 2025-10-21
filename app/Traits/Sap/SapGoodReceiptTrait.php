@@ -37,7 +37,11 @@ trait SapGoodReceiptTrait
             $postingDate = $decodedData['posting_date'] ?? null;
             $goodsReceiptItems = $decodedData['goods_receipt_items'] ?? [];
             $plant = $decodedData['plant'] ?? null;
-            $warehouseCode = $decodedData['warehouse_code'] ?? null;
+            $storeCodeResponse = Http::withHeaders([
+                'x-api-key' => config('apikeys.sds_api_key')
+            ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_get_by_code') . $plant);
+            $storeCodeData = $storeCodeResponse->json();
+            $warehouseCode = $storeCodeData['success']['data']['company_code'] ?? null;
             $definitionId = 'jp10.com-mgfi-dev.mgiosstorereplenishmentinboundgoodsreceiptpostgr.materialDocumentProcess';
             $exists = GoodReceiptModel::where([
                 'reference_document' => $referenceNumber,
@@ -71,8 +75,7 @@ trait SapGoodReceiptTrait
                 $entryUnit = $storeReceivingGoodsIssueItemModel?->gi_entry_unit;
 
                 $itemCode = $item['item_code'];
-                // $quantity = $item['quantity'];
-                $quantity = 12;
+                $quantity = $item['quantity'];
                 // Consolidate to material document item
                 $toMaterialDocumentItem[] = [
                     // 'MaterialDocumentLine' => (string) $materialDocumentLine,
@@ -120,6 +123,7 @@ trait SapGoodReceiptTrait
                     ]
                 ]
             ];
+
             // CALL SAP API
             $response = Http::timeout(30)
                 ->withToken($this->getSapAccessTokenOAuth2())
