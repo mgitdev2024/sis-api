@@ -90,6 +90,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
 
 Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'check.system.status:SIS']], function () {
     #region Store Receiving Inventory
+    Route::post('v1/store/receive-inventory-goods-issue', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreateReceivingFromGI']);
+    #endregion
+    #region Store Receiving Inventory
     Route::get('v1/store/receive-inventory/current/get/{status}/{store_code?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
     Route::get('v1/store/receive-inventory/get/{store_receiving_inventory_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetById']);
     #endregion
