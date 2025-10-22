@@ -19,6 +19,7 @@ class StoreReceivingInventoryModel extends Model
         'reference_number',
         'delivery_date',
         'delivery_type',
+        'is_sap_created',
         'created_by_name',
         'created_by_id',
         'updated_by_id',
