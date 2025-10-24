@@ -496,7 +496,7 @@ class StoreReceivingInventoryItemController extends Controller
                     $goodReceiptPayload = [
                         'reference_number' => $storeInventoryModel->reference_number,
                         'delivery_date' => $storeInventoryModel->delivery_date,
-                        'warehouse_code' => $storeInventoryModel->warehouse_code,
+                        // 'warehouse_code' => $storeInventoryModel->warehouse_code,
                         'plant' => $initialStoreInventoryItem['store_code'],
                         'posting_date' => $storeReceivingGoodsIssueModel->gi_posting_date,
                         'goods_receipt_items' => []
@@ -533,7 +533,6 @@ class StoreReceivingInventoryItemController extends Controller
             return $this->dataResponse('error', 404, statusMessage: __('msg.record_not_found'));
         } catch (Exception $exception) {
             DB::rollback();
-            dd($exception);
             return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
         }
     }
