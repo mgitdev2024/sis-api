@@ -19,13 +19,13 @@ class StockInventoryItemCountController extends Controller
     use ResponseTrait, CrudOperationsTrait;
     public function onGetById($store_inventory_count_id = null)
     {
-       try {
+        try {
             if ($store_inventory_count_id) {
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
                 $subUnit = $stockInventoryCountModel->store_sub_unit_short_name;
 
                 // 1️⃣ Get local stock count items (indexed by item_code)
-                $localItems = $stockInventoryCountModel->stockInventoryItemsCount()  
+                $localItems = $stockInventoryCountModel->stockInventoryItemsCount()
                     ->get()
                     ->keyBy('item_code');
 
@@ -35,9 +35,9 @@ class StockInventoryItemCountController extends Controller
                 $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
                 ])->post(
-                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
-                    ['item_code_collection' => json_encode($itemCodes)]
-                );
+                        config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                        ['item_code_collection' => json_encode($itemCodes)]
+                    );
 
                 if (!$response->successful()) {
                     return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
@@ -53,18 +53,18 @@ class StockInventoryItemCountController extends Controller
                             if (isset($localItems[$code])) {
                                 $local = $localItems[$code];
                                 $item = $local;
-                            }  
+                            }
                         }
                     }
                 }
                 unset($categories, $items, $item); // good practice when modifying by reference
-         $data = [
+                $data = [
                     'stock_inventory_count' => $stockInventoryCountModel,
                     'stock_inventory_items_count' => $apiData
                 ];
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-        }  catch (Exception $exception) { 
+        } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
     }
