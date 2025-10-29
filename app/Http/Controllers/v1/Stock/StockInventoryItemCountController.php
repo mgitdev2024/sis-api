@@ -23,13 +23,6 @@ class StockInventoryItemCountController extends Controller
             if ($store_inventory_count_id) {
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
                 $subUnit = $stockInventoryCountModel->store_sub_unit_short_name;
-                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()
-                    ->orderBy('system_quantity', 'DESC')
-                    ->get()->groupBy('item_category_name');
-                $warehouseCodes = $stockInventoryItemCountModel
-                    ->flatten(1)
-                    ->pluck('item_category_name')
-                    ->unique()->values(); // optional, reindex array
 
                 // 1️⃣ Get local stock count items (indexed by item_code)
                 $localItems = $stockInventoryCountModel->stockInventoryItemsCount()
@@ -62,13 +55,12 @@ class StockInventoryItemCountController extends Controller
                                 $item = $local;
                             }
                         }
-                        $stockInventoryItemCountModel = '';//;;
                     }
                 }
                 unset($categories, $items, $item); // good practice when modifying by reference
                 $data = [
                     'stock_inventory_count' => $stockInventoryCountModel,
-                    'stock_inventory_items_count' => $stockInventoryItemCountModel
+                    'stock_inventory_items_count' => $apiData
                 ];
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
