@@ -84,6 +84,10 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
     Route::post('v1/stock/inventory-count/bulk', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onBulk']);
     #endregion
+
+    #region Stock Inventory
+    Route::post('v1/stock/inventory/sync', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onSyncItemList']);
+    #endregion
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'check.system.status:SIS']], function () {
