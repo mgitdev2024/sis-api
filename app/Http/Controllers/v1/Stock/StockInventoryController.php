@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\Stock\GenerateInitialStockItemsJob;
+use App\Jobs\Stock\SyncItemListJob;
 use App\Models\Stock\StockInventoryModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use Illuminate\Http\Request;
@@ -135,6 +136,17 @@ class StockInventoryController extends Controller
             // Dispatch background job instead of running everything in request
             GenerateInitialStockItemsJob::dispatch();
             return $this->dataResponse('success', 200, 'Initial inventory generation started in background.');
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
+        }
+    }
+
+    public function onSyncItemList()
+    {
+        try {
+            // Dispatch background job instead of running everything in request
+            SyncItemListJob::dispatch();
+            return $this->dataResponse('success', 200, 'Item list sync started in background.');
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
