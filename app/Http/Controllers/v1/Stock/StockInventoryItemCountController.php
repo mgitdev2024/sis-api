@@ -22,46 +22,50 @@ class StockInventoryItemCountController extends Controller
         try {
             if ($store_inventory_count_id) {
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
-                $stockInventoryItemCountModel = $stockInventoryCountModel->stockInventoryItemsCount()
-                    ->orderBy('system_quantity', 'DESC')
-                    ->get()->groupBy('item_category_name');
-                $warehouseCodes = $stockInventoryItemCountModel
-                    ->flatten(1)
-                    ->pluck('item_category_name')
-                    ->unique()->values(); // optional, reindex array
+                $subUnit = $stockInventoryCountModel->store_sub_unit_short_name;
 
-                if (count($warehouseCodes) > 0) {
-                    $stockItemCountDepartment = [];
-                    // Fetch items from external API based on warehouse codes
-                    $response = Http::withHeaders([
-                        'x-api-key' => config('apikeys.mgios_api_key'),
-                    ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_get_department_by_category'), [
-                                'category_name_collection' => json_encode($warehouseCodes),
-                            ]);
-                    if ($response->successful()) {
-                        $departmentData = collect($response->json()); // make departmentData a collection for easier lookup
+                // 1️⃣ Get local stock count items (indexed by item_code)
+                $localItems = $stockInventoryCountModel->stockInventoryItemsCount()
+                    ->get()
+                    ->keyBy('item_code');
 
-                        foreach ($stockInventoryItemCountModel as $categoryKey => $data) {
-                            if (!isset($departmentData[$categoryKey])) {
-                                // Register or handle unassigned category
-                                $stockItemCountDepartment[$categoryKey] = $data->toArray();
-                            } else {
-                                // Assign under the department short name
-                                $deptShortName = $departmentData[$categoryKey]['short_name'];
-                                $stockItemCountDepartment[$deptShortName][$categoryKey] = $data->toArray();
-                            }
-                        }
-                        $stockInventoryItemCountModel = $stockItemCountDepartment;
-                    }
+                $itemCodes = $localItems->keys();
+
+                // 2️⃣ Fetch API data
+                $response = Http::withHeaders([
+                    'x-api-key' => config('apikeys.mgios_api_key'),
+                ])->post(
+                        config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                        ['item_code_collection' => json_encode($itemCodes)]
+                    );
+
+                if (!$response->successful()) {
+                    return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
                 }
 
+                $apiData = $response->json();
+
+                // 3️⃣ Merge local values into the nested API data (retain structure)
+                foreach ($apiData as $department => &$categories) {
+                    foreach ($categories as $category => &$items) {
+                        foreach ($items as &$item) {
+                            $apiItemData = $item;
+                            $code = $item['item_code'];
+                            if (isset($localItems[$code])) {
+                                $local = $localItems[$code];
+                                $item = $local;
+                                $item['uom'] = $apiItemData['uom'] ?? null;
+                            }
+                        }
+                    }
+                }
+                unset($categories, $items, $item); // good practice when modifying by reference
                 $data = [
                     'stock_inventory_count' => $stockInventoryCountModel,
-                    'stock_inventory_items_count' => $stockInventoryItemCountModel
+                    'stock_inventory_items_count' => $apiData
                 ];
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
-
         } catch (Exception $exception) {
             return $this->dataResponse('error', 400, __('msg.record_not_found'));
         }
