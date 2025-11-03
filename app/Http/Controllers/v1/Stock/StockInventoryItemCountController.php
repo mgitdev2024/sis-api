@@ -49,10 +49,12 @@ class StockInventoryItemCountController extends Controller
                 foreach ($apiData as $department => &$categories) {
                     foreach ($categories as $category => &$items) {
                         foreach ($items as &$item) {
+                            $apiItemData = $item;
                             $code = $item['item_code'];
                             if (isset($localItems[$code])) {
                                 $local = $localItems[$code];
                                 $item = $local;
+                                $item['uom'] = $apiItemData['uom'] ?? null;
                             }
                         }
                     }
