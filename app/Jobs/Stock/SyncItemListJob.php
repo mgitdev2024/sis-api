@@ -117,7 +117,7 @@ class SyncItemListJob implements ShouldQueue
                 $placeholders = implode(',', array_fill(0, count($itemCodesToUpdate), '?'));
 
                 $sql = "
-                UPDATE stock_inventories
+                UPDATE `" . env('DB_DATABASE') . "`.`stock_inventories`
                 SET
                     item_description = CASE item_code
                         {$caseDescription}
