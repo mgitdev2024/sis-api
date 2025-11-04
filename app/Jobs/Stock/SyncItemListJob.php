@@ -76,11 +76,11 @@ class SyncItemListJob implements ShouldQueue
 
                 $existingItem = StockInventoryModel::where('item_code', $itemCode)->first();
                 if ($existingItem) {
-                    if ($existingItem->item_description !== $data['item_description']) {
+                    if ($existingItem->item_description !== $data['long_name']) {
                         $updates['item_description'] = $data['long_name'];
                     }
 
-                    if ($existingItem->item_category_name !== $data['item_category_name']) {
+                    if ($existingItem->item_category_name !== $data['category_name']) {
                         $updates['item_category_name'] = $data['category_name'];
                     }
                 }
