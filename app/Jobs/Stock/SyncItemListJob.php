@@ -41,9 +41,11 @@ class SyncItemListJob implements ShouldQueue
             $itemCodes = StockInventoryModel::distinct()->pluck('item_code')->toArray();
 
             if (empty($itemCodes)) {
-                throw new Exception('No items to sync.');
+                Log::info('No items to sync.');
+                return;
             }
 
+            // Fetch data from MGIOS
             $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
             ])->post(
@@ -55,98 +57,43 @@ class SyncItemListJob implements ShouldQueue
                 );
 
             if ($response->failed()) {
-                throw new Exception('MGIOS API request failed with status ' . $response->status());
+                throw new Exception('MGIOS API request failed: ' . $response->status());
             }
 
             $itemMasterData = $response->json();
             if (empty($itemMasterData)) {
-                throw new Exception('No item master data returned from MGIOS.');
+                Log::info('No item master data returned from MGIOS.');
+                return;
             }
+
+            $updatedCount = 0;
 
             DB::beginTransaction();
 
-            $caseDescription = '';
-            $caseCategory = '';
-            $bindings = [];
-            $itemCodesToUpdate = [];
-
-            // Fetch current local data for comparison (indexed by item_code)
-            $localItems = StockInventoryModel::whereIn('item_code', $itemCodes)
-                ->pluck('item_description', 'item_code')
-                ->toArray();
-
-            $localCategories = StockInventoryModel::whereIn('item_code', $itemCodes)
-                ->pluck('item_category_name', 'item_code')
-                ->toArray();
-
             foreach ($itemMasterData as $itemCode => $data) {
                 $itemCode = (string) $itemCode;
-                $description = $data['long_name'] ?? null;
-                $categoryName = $data['category_name'] ?? null;
+                $updates['item_description'] = $data['long_name'];
+                $updates['item_category_name'] = $data['category_name'];
 
-                // Get current local values
-                $currentDesc = $localItems[$itemCode] ?? null;
-                $currentCat = $localCategories[$itemCode] ?? null;
-
-                // Skip if both are identical (no change)
-                if (
-                    ($description === null || $description === $currentDesc) &&
-                    ($categoryName === null || $categoryName === $currentCat)
-                ) {
-                    continue;
+                if (!empty($updates)) {
+                    $updates['updated_at'] = now();
+                    StockInventoryModel::where('item_code', $itemCode)->update($updates);
+                    $updatedCount++;
                 }
-
-                // Build CASE for item_description (only if changed)
-                if ($description !== null && $description !== $currentDesc) {
-                    $caseDescription .= " WHEN ? THEN ? ";
-                    $bindings[] = $itemCode;
-                    $bindings[] = $description;
-                }
-
-                // Build CASE for category (only if changed)
-                if ($categoryName !== null && $categoryName !== $currentCat) {
-                    $caseCategory .= " WHEN ? THEN ? ";
-                    $bindings[] = $itemCode;
-                    $bindings[] = $categoryName;
-                }
-
-                $itemCodesToUpdate[] = $itemCode;
-            }
-
-            if (!empty($itemCodesToUpdate)) {
-                $placeholders = implode(',', array_fill(0, count($itemCodesToUpdate), '?'));
-
-                $sql = "
-                UPDATE `" . env('DB_DATABASE') . "`.`stock_inventories`
-                SET
-                    item_description = CASE item_code
-                        {$caseDescription}
-                        ELSE item_description
-                    END,
-                    item_category_name = CASE item_code
-                        {$caseCategory}
-                        ELSE item_category_name
-                    END,
-                    updated_at = NOW()
-                WHERE item_code IN ({$placeholders})
-            ";
-
-                DB::update($sql, array_merge($bindings, $itemCodesToUpdate));
             }
 
             DB::commit();
 
-            $updatedCount = count($itemCodesToUpdate);
-            if (count($itemCodesToUpdate) > 0) {
-                Log::info("Synchronization of item list completed. {$updatedCount} items updated.");
+            if ($updatedCount > 0) {
+                Log::info("Item sync completed. {$updatedCount} items updated.");
             } else {
-                Log::info("Synchronization of item list completed. No items were updated.");
-
+                Log::info("Item sync completed. No changes detected.");
             }
 
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error("Synchronization of item list failed: " . $exception->getMessage());
+            Log::error("Item sync failed: " . $e->getMessage());
         }
     }
+
 }
