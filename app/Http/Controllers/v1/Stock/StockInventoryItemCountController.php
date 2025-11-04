@@ -19,7 +19,7 @@ class StockInventoryItemCountController extends Controller
     use ResponseTrait, CrudOperationsTrait;
     public function onGetById($store_inventory_count_id = null)
     {
-       try {
+        try {
             if ($store_inventory_count_id) {
                 $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
                 $subUnit = $stockInventoryCountModel->store_sub_unit_short_name;
@@ -54,7 +54,6 @@ class StockInventoryItemCountController extends Controller
                             if (isset($localItems[$code])) {
                                 $local = $localItems[$code];
                                 $item = $local;
-                                $item['uom'] = $apiItemData['uom'] ?? null;
                             }
                         }
                     }
