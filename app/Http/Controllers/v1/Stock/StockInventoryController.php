@@ -16,77 +16,46 @@ class StockInventoryController extends Controller
 {
     use ResponseTrait;
 
-    public function onGet($is_group, $store_code, $sub_unit = null)
+    public function onGet($store_code, $sub_unit)
     {
         try {
-            $stockInventoryModel = StockInventoryModel::where('store_code', $store_code);
-            if ($sub_unit != null) {
-                $stockInventoryModel->where('store_sub_unit_short_name', $sub_unit);
-            }
-            $stockInventoryModel = $stockInventoryModel->orderBy('status', 'DESC')->orderBy('item_code', 'ASC')->get();
+            $stockinventoryModel = StockInventoryModel::where([
+                'store_code' => $store_code,
+                'store_sub_unit_short_name' => $sub_unit
+            ])->get()->keyBy('item_code');
+            $itemCodes = $stockinventoryModel->keys();
 
-            if ($is_group == 1) {
-                $stockInventoryModel = $stockInventoryModel->groupBy('item_category_name');
-                $this->getUomByGroup($stockInventoryModel);
-            } else {
-                $this->getUom($stockInventoryModel);
-            }
-            if (count($stockInventoryModel) <= 0) {
-                return $this->dataResponse('error', 404, __('msg.record_not_found'), null);
-            }
-            return $this->dataResponse('success', 200, __('msg.record_found'), $stockInventoryModel);
+            $response = Http::withHeaders([
+                'x-api-key' => config('apikeys.mgios_api_key'),
+            ])->post(
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $sub_unit,
+                    ['item_code_collection' => json_encode($itemCodes)]
+                );
 
+            if (!$response->successful()) {
+                return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
+            }
+
+            $apiData = $response->json();
+            // 3️⃣ Merge local values into the nested API data (retain structure)
+            foreach ($apiData as $department => &$categories) {
+                foreach ($categories as $category => &$items) {
+                    foreach ($items as &$item) {
+                        $apiItemData = $item;
+                        $code = $item['item_code'];
+                        if (isset($stockinventoryModel[$code])) {
+                            $local = $stockinventoryModel[$code];
+                            $item = $local;
+                            $item['uom'] = $apiItemData['uom'] ?? null;
+                        }
+                    }
+                }
+            }
+            unset($categories, $items, $item);
+            return $this->dataResponse('success', 200, __('msg.record_found'), $apiData);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
-    }
-
-    public function getUomByGroup($stockInventoryData)
-    {
-        $itemCodes = $stockInventoryData
-            ->flatMap(function ($items) {
-                return collect($items)->pluck('item_code');
-            })
-            ->values()
-            ->all();
-
-        $response = Http::withHeaders([
-            'x-api-key' => config('apikeys.mgios_api_key')
-        ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'), [
-                    'item_code_collection' => json_encode($itemCodes)
-                ]);
-        $uomData = collect($response->json()); // make uomData a collection for easier lookup
-
-        $stockInventoryData = $stockInventoryData->map(function ($items) use ($uomData) {
-            return collect($items)->map(function ($item) use ($uomData) {
-                $itemCode = $item['item_code'];
-                $uom = $uomData[$itemCode] ?? null;
-                $item['uom'] = $uom;
-                return $item;
-            });
-        });
-    }
-
-    public function getUom($stockInventoryData)
-    {
-        $itemCodes = collect($stockInventoryData)
-            ->pluck('item_code')
-            ->unique()
-            ->values()
-            ->all();
-        $response = Http::withHeaders([
-            'x-api-key' => config('apikeys.mgios_api_key')
-        ])->post(config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'), [
-                    'item_code_collection' => json_encode($itemCodes)
-                ]);
-        $uomData = collect($response->json()); // make uomData a collection for easier lookup
-
-        $stockInventoryData = collect($stockInventoryData)->map(function ($item) use ($uomData) {
-            $itemCode = $item['item_code'];
-            $item['uom'] = $uomData[$itemCode] ?? null;
-            return $item;
-        });
-
     }
 
     public function onGetById($stockInventoryId = null)
