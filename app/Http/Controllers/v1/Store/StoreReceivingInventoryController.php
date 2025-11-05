@@ -82,10 +82,6 @@ class StoreReceivingInventoryController extends Controller
                     }
                     if (isset($storeOrders['ordered_items'])) {
                         foreach ($storeOrders['ordered_items'] as $orderedItems) {
-
-                            // if ($storeOrders['gi_material_doc'] !== '4900000163') {
-                            //     continue;
-                            // }
                             $generateUniqueId = Str::uuid()->toString();
                             $insertData[] = [
                                 'store_receiving_inventory_id' => $storeReceivingInventory->id,
@@ -162,10 +158,14 @@ class StoreReceivingInventoryController extends Controller
     {
         $collatedData = [];
         foreach ($data as $item) {
+            // if ($item['MaterialDocument'] !== '4900001017') {
+            //     continue;
+            // }
             $deliveryDate = $item['DocumentDate'];
             $warehouseCode = $item['StorageLocation'];
-            $collatedDataKey = "$deliveryDate|$warehouseCode";
             $deliveryType = $item['YY1_DeliveryTypePO_PDI'];
+
+            $collatedDataKey = "$deliveryDate|$warehouseCode|$deliveryType";
             $postingDate = $item['PostingDate'];
             if (!isset($collatedData[$collatedDataKey])) {
                 $collatedData[$collatedDataKey] = [
