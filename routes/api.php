@@ -19,7 +19,7 @@ Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\Stoc
 
 Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/store/receive-inventory/delivery-receiving', [App\Http\Controllers\v1\Report\StoreReceivingReportController::class, 'onGenerateDeliveryReceivingReport']);
-    Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StoreInventoryReportController::class, 'onGenerateDailyMovementReport']);
+    Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StockInventoryReportController::class, 'onGenerateDailyMovementReport']);
     Route::post('/reports/stock/conversion/daily', [App\Http\Controllers\v1\Report\StockConversionReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/out/daily', [App\Http\Controllers\v1\Report\StockOutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
@@ -77,14 +77,21 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], function () {
-    #region Stock Inventory Count
-    Route::post('v1/stock/inventory/generate-initial-items', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGenerateInitialInventory']);
-    Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
+    #region Stock Inventory Item Count
     Route::get('v1/stock/inventory-item-count/current/get/{store_inventory_count_id?}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onGetById']);
     Route::post('v1/stock/inventory-item-count/update/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onUpdate']);
     Route::post('v1/stock/inventory-item-count/post/{store_inventory_count_id}', [App\Http\Controllers\v1\Stock\StockInventoryItemCountController::class, 'onPost']);
+    #endregion
+
+    #region Stock Inventory Count
     Route::post('v1/stock/inventory-count/create', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCreate']);
     Route::post('v1/stock/inventory-count/bulk', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onBulk']);
+    #endregion
+
+    #region Stock Inventory
+    Route::post('v1/stock/inventory/generate-initial-items', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGenerateInitialInventory']);
+    Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
+    Route::post('v1/stock/inventory/sync', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onSyncItemList']);
     #endregion
 });
 
@@ -117,7 +124,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #endregion
 
     #region Stock Inventory
-    Route::get('v1/stock/inventory/get/{is_group}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    Route::get('v1/stock/inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     Route::get('v1/stock/inventory/id/get/{stock_inventory_id?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
     #endregion
 
