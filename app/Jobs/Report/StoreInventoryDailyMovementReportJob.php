@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\v1\Report;
+namespace App\Jobs\Stock;
 
-use App\Http\Controllers\Controller;
 use App\Models\Stock\StockConversionModel;
 use App\Models\Stock\StockInventoryCountModel;
 use App\Models\Stock\StockInventoryModel;
@@ -10,15 +9,39 @@ use App\Models\Stock\StockLogModel;
 use App\Models\Stock\StockOutModel;
 use App\Models\Stock\StockTransferModel;
 use App\Models\Store\StoreReceivingInventoryItemModel;
-use App\Traits\ResponseTrait;
-use Illuminate\Http\Request;
+use Cache;
+use Http;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use DB;
 use Exception;
+use Log;
 use Throwable;
-
-class StoreInventoryReportController extends Controller
+class StoreInventoryDailyMovementReportJob implements ShouldQueue
 {
-    use ResponseTrait;
-    public function onGenerateDailyMovementReport(Request $request)
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+
+    }
+
+    private function onGenerateDailyMovementReport()
     {
         try {
             $storeCode = $request->store_code ?? null; // Expected format: ['C001','C002']
@@ -28,7 +51,7 @@ class StoreInventoryReportController extends Controller
             $isGroupByItemDescription = $request->is_group_by_item_description ?? null; // Expected values: 0 (false), 1 (true) For store receiving
             $isShowOnlyNonZeroVariance = $request->is_show_only_non_zero_variance ?? null; // Expected values: 0 (false), 1 (true) For store receiving
 
-            $response = \Http::withHeaders([
+            $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.scm_api_key'),
             ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_reason_list_current_get') . '1');
 
@@ -142,9 +165,9 @@ class StoreInventoryReportController extends Controller
                     ->toArray();
             }
 
-            return $this->dataResponse('success', 200, __('msg.record_found'), array_values($reportData));
+            Log::info('Daily Movement Report Generated', ['report_data' => $reportData]);
         } catch (Exception $exception) {
-            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+            Log::error('Error Generating Daily Movement Report', ['error' => $exception->getMessage()]);
         }
     }
 

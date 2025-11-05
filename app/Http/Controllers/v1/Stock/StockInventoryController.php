@@ -46,6 +46,7 @@ class StockInventoryController extends Controller
                         if (isset($stockinventoryModel[$code])) {
                             $local = $stockinventoryModel[$code];
                             $item = $local;
+                            $item['uom'] = $apiItemData['uom'] ?? null;
                         }
                     }
                 }
