@@ -43,7 +43,10 @@ class StockInventoryReportController extends Controller
 
             $departmentItemsResponse = \Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
-            ])->get(config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department_id') . $departmentId);
+            ])->post(
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department_id'),
+                    ['department_ids' => json_encode([$departmentId])]
+                );
 
             $departmentItems = $departmentItemsResponse->successful() ? ($departmentItemsResponse->json() ?? []) : [];
             // Get inventory items with eager loading

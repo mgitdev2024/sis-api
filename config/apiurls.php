@@ -16,7 +16,7 @@ return [
         'store_inventory_data_update' => '/store-inventory-data/update/',
         'stock_adjustment_create' => '/stock-adjustment/create',
 
-        'public_get_item_by_department_id' => '/public/department/items/get/',
+        'public_get_item_by_department_id' => '/public/department/items/get',
     ],
     'scm' => [
         'url' => env('SCM_URL'),
