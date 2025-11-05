@@ -45,7 +45,7 @@ class StockInventoryReportController extends Controller
                 'x-api-key' => config('apikeys.mgios_api_key'),
             ])->post(
                     config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department_id'),
-                    ['department_ids' => json_encode([$departmentId])]
+                    ['department_ids' => $departmentId]
                 );
 
             $departmentItems = $departmentItemsResponse->successful() ? ($departmentItemsResponse->json() ?? []) : [];
