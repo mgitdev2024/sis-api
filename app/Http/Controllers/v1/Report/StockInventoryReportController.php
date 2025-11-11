@@ -80,7 +80,7 @@ class StockInventoryReportController extends Controller
 
             // Bulk fetch all data at once
             $bulkData = $this->getBulkData($transactionDate, $itemCodes, $storeCodes, $storeSubUnitShortName, $foodChargeReasonList);
-
+            $uomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
             $reportData = [];
             $convertInData = [];
 
@@ -106,6 +106,7 @@ class StockInventoryReportController extends Controller
                     'store_name' => $inventory->formatted_store_name_label,
                     'store_sub_unit_short_name' => $inventory->store_sub_unit_short_name,
                     'item_code' => $inventory->item_code,
+                    'uom' => $uomData[$inventory->item_code] ?? null,
                     'item_description' => $inventory->item_description,
                     'item_category_name' => $inventory->item_category_name,
                     'beginning_stock' => $beginningStock,
@@ -147,6 +148,23 @@ class StockInventoryReportController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    private function getUomData($itemCodes)
+    {
+        $uomData = [];
+        $response = \Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key'),
+        ])->post(
+                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'),
+                ['item_code_collection' => json_encode($itemCodes)]
+            );
+
+        if ($response->successful()) {
+            $uomData = $response->json();
+        }
+
+        return $uomData;
     }
 
     private function getBulkData($transactionDate, $itemCodes, $storeCodes, $storeSubUnitShortName, $foodChargeReasonList)

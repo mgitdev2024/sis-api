@@ -77,7 +77,10 @@ class StockCountReportController extends Controller
 
             $reportData = [];
             foreach ($stockCountModel as $item) {
-                $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item, $isShowOnlyNonZeroVariance) {
+
+                $itemCodes = $item->stockInventoryItemsCount->pluck('item_code')->unique()->toArray();
+                $uomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
+                $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item, $isShowOnlyNonZeroVariance,$uomData) {
                     $remarks = $countItem['remarks'];
                     $systemQuantity = $countItem['system_quantity'];
                     $actualQuantity = $countItem['counted_quantity'];
@@ -102,6 +105,7 @@ class StockCountReportController extends Controller
                         'store_name' => $item['formatted_store_name_label'],
                         'store_sub_unit_short_name' => $item['store_sub_unit_short_name'] ?? null,
                         'item_code' => $countItem['item_code'],
+                        'uom' => $uomData[$countItem['item_code']] ?? null,
                         'item_description' => $countItem['item_description'],
                         'status' => $item['status_label'],
                         'system_qty' => $systemQuantity,
@@ -120,5 +124,22 @@ class StockCountReportController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    private function getUomData($itemCodes)
+    {
+        $uomData = [];
+        $response = \Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key'),
+        ])->post(
+                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'),
+                ['item_code_collection' => json_encode($itemCodes)]
+            );
+
+        if ($response->successful()) {
+            $uomData = $response->json();
+        }
+
+        return $uomData;
     }
 }

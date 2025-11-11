@@ -42,10 +42,15 @@ class StockConversionReportController extends Controller
             }
             $stockConversionModel = $stockConversionModel->orderBy('reference_number', 'ASC')->get();
 
+            $itemCodes = $stockConversionModel->pluck('item_code')->unique()->toArray();
+            $uomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
+
             $reportData = [];
             foreach ($stockConversionModel as $item) {
 
-                $item->stockConversionItems->each(function ($conversionItem) use (&$reportData, $item) {
+                $itemCodes= $stockConversionModel->pluck('item_code')->unique()->toArray();
+                $convertedUomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
+                $item->stockConversionItems->each(function ($conversionItem) use (&$reportData, $item, $uomData, $convertedUomData) {
                     $reportData[] = [
                         'id' => $conversionItem->id,
                         'reference_number' => $item['reference_number'],
@@ -53,10 +58,12 @@ class StockConversionReportController extends Controller
                         'store_name' => $item['formatted_store_name_label'],
                         'store_sub_unit_short_name' => $item['store_sub_unit_short_name'] ?? null,
                         'from_item_code' => $item['item_code'],
+                        'from_uom' => $uomData[$item['item_code']] ?? null,
                         'from_item_description' => $item['item_description'],
                         'from_qty' => $item['quantity'],
                         'to_item_code' => $conversionItem['item_code'],
                         'to_item_description' => $conversionItem['item_description'],
+                        'to_uom' => $convertedUomData[$conversionItem['item_code']] ?? null,
                         'to_qty' => $conversionItem['converted_quantity'],
                         'conversion_type' => $item['type'] == 0 ? 'Automatic' : 'Manual',
                         'converted_by' => $item['created_by_name_label'] ?? null,
@@ -71,5 +78,22 @@ class StockConversionReportController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    private function getUomData($itemCodes)
+    {
+        $uomData = [];
+        $response = \Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key'),
+        ])->post(
+                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'),
+                ['item_code_collection' => json_encode($itemCodes)]
+            );
+
+        if ($response->successful()) {
+            $uomData = $response->json();
+        }
+
+        return $uomData;
     }
 }
