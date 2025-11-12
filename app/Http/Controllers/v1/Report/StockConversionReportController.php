@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use Exception;
 use Carbon\Carbon;
+
 class StockConversionReportController extends Controller
 {
     use ResponseTrait;
@@ -22,35 +23,35 @@ class StockConversionReportController extends Controller
             $dateFrom = isset($dateExplode[0]) ? date('Y-m-d', strtotime($dateExplode[0])) : null;
             $dateTo = isset($dateExplode[1]) ? date('Y-m-d', strtotime($dateExplode[1])) : null;
 
-            $stockConversionModel = StockConversionModel::query();
+            $stockConversionModel = StockConversionModel::from('stock_conversions as sc')
+            ->leftJoin('stock_inventories as si', 'sc.item_code', '=', 'si.item_code')
+            ->select([
+                'sc.*',
+                'si.uom',
+                'si.is_base_unit'
+            ]);
             if ($storeCode) {
                 $storeCode = json_decode($storeCode);
-                $stockConversionModel->whereIn('store_code', $storeCode);
+                $stockConversionModel->whereIn('sc.store_code', $storeCode);
             }
             if ($storeSubUnitShortName) {
-                $stockConversionModel->where('store_sub_unit_short_name', $storeSubUnitShortName);
+                $stockConversionModel->where('sc.store_sub_unit_short_name', $storeSubUnitShortName);
             }
             if ($dateFrom && $dateTo) {
-                $stockConversionModel->where('created_at', '>=', $dateFrom)
-                    ->where('created_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
-            } else if ($dateFrom) {
-                $stockConversionModel->whereDate('created_at', $dateFrom);
+                $stockConversionModel->where('sc.created_at', '>=', $dateFrom)
+                    ->where('sc.created_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
+            } elseif ($dateFrom) {
+                $stockConversionModel->whereDate('sc.created_at', $dateFrom);
             }
             if ($conversionType) {
                 $conversionType = json_decode($conversionType);
-                $stockConversionModel->whereIn('type', $conversionType);
+                $stockConversionModel->whereIn('sc.type', $conversionType);
             }
-            $stockConversionModel = $stockConversionModel->orderBy('reference_number', 'ASC')->get();
-
-            $itemCodes = $stockConversionModel->pluck('item_code')->unique()->toArray();
-            $uomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
+            $stockConversionModel = $stockConversionModel->orderBy('sc.reference_number', 'ASC')->get();
 
             $reportData = [];
             foreach ($stockConversionModel as $item) {
-
-                $itemCodes= $stockConversionModel->pluck('item_code')->unique()->toArray();
-                $convertedUomData = $this->getUomData($itemCodes); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
-                $item->stockConversionItems->each(function ($conversionItem) use (&$reportData, $item, $uomData, $convertedUomData) {
+                $item->stockConversionItems->each(function ($conversionItem) use (&$reportData, $item) {
                     $reportData[] = [
                         'id' => $conversionItem->id,
                         'reference_number' => $item['reference_number'],
@@ -58,12 +59,12 @@ class StockConversionReportController extends Controller
                         'store_name' => $item['formatted_store_name_label'],
                         'store_sub_unit_short_name' => $item['store_sub_unit_short_name'] ?? null,
                         'from_item_code' => $item['item_code'],
-                        'from_uom' => $uomData[$item['item_code']] ?? null,
+                        'from_uom' => $item['uom'] ?? null,
                         'from_item_description' => $item['item_description'],
                         'from_qty' => $item['quantity'],
                         'to_item_code' => $conversionItem['item_code'],
                         'to_item_description' => $conversionItem['item_description'],
-                        'to_uom' => $convertedUomData[$conversionItem['item_code']] ?? null,
+                        'to_uom' => $conversionItem->stockInventory->uom ?? null,
                         'to_qty' => $conversionItem['converted_quantity'],
                         'conversion_type' => $item['type'] == 0 ? 'Automatic' : 'Manual',
                         'converted_by' => $item['created_by_name_label'] ?? null,
@@ -78,22 +79,5 @@ class StockConversionReportController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
-    }
-
-    private function getUomData($itemCodes)
-    {
-        $uomData = [];
-        $response = \Http::withHeaders([
-            'x-api-key' => config('apikeys.mgios_api_key'),
-        ])->post(
-                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'),
-                ['item_code_collection' => json_encode($itemCodes)]
-            );
-
-        if ($response->successful()) {
-            $uomData = $response->json();
-        }
-
-        return $uomData;
     }
 }

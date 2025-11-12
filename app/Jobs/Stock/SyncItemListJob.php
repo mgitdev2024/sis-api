@@ -14,9 +14,13 @@ use Illuminate\Queue\SerializesModels;
 use DB;
 use Exception;
 use Log;
+
 class SyncItemListJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Create a new job instance.
@@ -49,12 +53,12 @@ class SyncItemListJob implements ShouldQueue
             $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
             ])->post(
-                    config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'),
-                    [
+                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'),
+                [
                         'item_code_collection' => json_encode($itemCodes),
                         'is_key_by' => true,
                     ]
-                );
+            );
 
             if ($response->failed()) {
                 throw new Exception('MGIOS API request failed: ' . $response->status());
@@ -82,6 +86,14 @@ class SyncItemListJob implements ShouldQueue
 
                     if ($existingItem->item_category_name !== $data['category_name']) {
                         $updates['item_category_name'] = $data['category_name'];
+                    }
+
+                    if ($existingItem->uom !== $data['uom']) {
+                        $updates['uom'] = $data['uom'];
+                    }
+
+                    if ($existingItem->is_base_unit !== $data['is_base_unit']) {
+                        $updates['is_base_unit'] = $data['is_base_unit'];
                     }
                 }
                 if (!empty($updates)) {
