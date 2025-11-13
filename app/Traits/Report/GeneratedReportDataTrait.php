@@ -11,9 +11,17 @@ trait GeneratedReportDataTrait
 {
     use ResponseTrait;
 
-    public function initializeRecord($uuid, $model, $createdById)
+    public function initializeRecord($uuid, $model, $createdById, $transactionDate)
     {
         try {
+            $generatedReportData = GeneratedReportDataModel::where([
+                'transaction_date' => $transactionDate,
+                'model_name' => $model
+                ])->first();
+            if ($generatedReportData) {
+                $generatedReportData->uuid = $uuid;
+                $generatedReportData->status = 0;
+            }
             GeneratedReportDataModel::create([
                 'uuid' => $uuid,
                 'model_name' => $model,
@@ -26,15 +34,15 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function fillReportData($uuid, $data, $date, $store_code = null, $sub_unit = null)
+    public function fillReportData($uuid, $data, $date, $storeCode = null, $subUnit = null)
     {
         try {
 
             $generatedReportData = GeneratedReportDataModel::where('uuid', $uuid)->first();
 
             if ($generatedReportData) {
-                $generatedReportData->store_code = $store_code;
-                $generatedReportData->store_sub_unit_short_name = $sub_unit;
+                $generatedReportData->store_code = $storeCode;
+                $generatedReportData->store_sub_unit_short_name = $subUnit;
                 $generatedReportData->report_data = json_encode($data);
                 $generatedReportData->date_range = $date;
                 $generatedReportData->status = 1;
@@ -48,7 +56,7 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function readRecord($model, $createdById)
+    public function readRecord($model)
     {
         try {
             $record = GeneratedReportDataModel::select([
@@ -59,7 +67,6 @@ trait GeneratedReportDataTrait
                 'created_at'
             ])
                 ->where('model_name', $model)
-                ->where('created_by_id', $createdById)
                 ->orderBy('id', 'desc')
                 ->get();
 
@@ -82,7 +89,22 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function deleteRecord($id)
+    public function readRecordByTransactionDate($modelName, $transactionDate)
+    {
+        try {
+            $record = GeneratedReportDataModel::where([
+                'transaction_date' => $transactionDate,
+                'model_name' => $modelName
+            ])->get();
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $record);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 400, $exception->getMessage());
+        }
+    }
+
+    public function deleteRecordById($id)
     {
         try {
             GeneratedReportDataModel::where('id', $id)->delete();
