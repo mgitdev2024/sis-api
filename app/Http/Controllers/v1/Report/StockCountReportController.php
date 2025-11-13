@@ -8,6 +8,7 @@ use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
+
 class StockCountReportController extends Controller
 {
     use ResponseTrait;
@@ -59,7 +60,7 @@ class StockCountReportController extends Controller
             if (($dateFrom && $dateTo) && $dateRangeType) {
                 $stockCountModel->where($dateRangeType, '>=', $dateFrom)
                     ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
-            } else if ($dateFrom && $dateRangeType) {
+            } elseif ($dateFrom && $dateRangeType) {
                 $stockCountModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($status) {
@@ -102,6 +103,7 @@ class StockCountReportController extends Controller
                         'store_name' => $item['formatted_store_name_label'],
                         'store_sub_unit_short_name' => $item['store_sub_unit_short_name'] ?? null,
                         'item_code' => $countItem['item_code'],
+                        'uom' => $countItem->stockInventory->uom ?? null,
                         'item_description' => $countItem['item_description'],
                         'status' => $item['status_label'],
                         'system_qty' => $systemQuantity,
