@@ -7,5 +7,8 @@ use Illuminate\Http\Request;
 
 class GeneratedReportDataController extends Controller
 {
-    //
+    public function onCreate()
+    {
+
+    }
 }
