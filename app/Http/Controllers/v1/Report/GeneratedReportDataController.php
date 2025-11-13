@@ -19,9 +19,9 @@ class GeneratedReportDataController extends Controller
         return $this->readRecordById($id);
     }
 
-    public function onGetByFilter(Request $request)
+    public function onGetByTransactionDate($model_name, $transaction_date)
     {
-        return $this->readRecordByFilter($request);
+        return $this->readRecordByTransactionDate($model_name, $transaction_date);
     }
 
     public function onDeleteById($id)
