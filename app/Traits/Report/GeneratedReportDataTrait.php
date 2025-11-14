@@ -11,11 +11,11 @@ trait GeneratedReportDataTrait
 {
     use ResponseTrait;
 
-    public function initializeRecord($uuid, $model, $createdById, $transactionDate)
+    public function initializeRecord($uuid, $model, $createdById, $transactionDate,$storeCode = null, $subUnit = null)
     {
         try {
             $generatedReportData = GeneratedReportDataModel::where([
-                'transaction_date' => $transactionDate,
+                'date_range' => $transactionDate,
                 'model_name' => $model
                 ])->first();
             if ($generatedReportData) {
@@ -26,6 +26,9 @@ trait GeneratedReportDataTrait
                 'uuid' => $uuid,
                 'model_name' => $model,
                 'created_by_id' => $createdById,
+                'date_range' => $transactionDate,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit,
                 'status' => 0,
             ]);
 
@@ -41,14 +44,10 @@ trait GeneratedReportDataTrait
             $generatedReportData = GeneratedReportDataModel::where('uuid', $uuid)->first();
 
             if ($generatedReportData) {
-                $generatedReportData->store_code = $storeCode;
-                $generatedReportData->store_sub_unit_short_name = $subUnit;
                 $generatedReportData->report_data = json_encode($data);
-                $generatedReportData->date_range = $date;
                 $generatedReportData->status = 1;
                 $generatedReportData->save();
                 return;
-
             }
 
         } catch (Exception $exception) {
@@ -93,7 +92,7 @@ trait GeneratedReportDataTrait
     {
         try {
             $record = GeneratedReportDataModel::where([
-                'transaction_date' => $transactionDate,
+                'date_range' => $transactionDate,
                 'model_name' => $modelName
             ])->get();
 
