@@ -44,7 +44,7 @@ trait GeneratedReportDataTrait
             $generatedReportData = GeneratedReportDataModel::where('uuid', $uuid)->first();
 
             if ($generatedReportData) {
-                $generatedReportData->report_data = json_encode($data);
+                $generatedReportData->report_data = json_encode(array_values($data));
                 $generatedReportData->status = 1;
                 $generatedReportData->save();
                 return;
