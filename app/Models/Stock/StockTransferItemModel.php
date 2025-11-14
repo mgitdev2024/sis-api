@@ -27,4 +27,9 @@ class StockTransferItemModel extends Model
     {
         return $this->belongsTo(StockTransferModel::class);
     }
+
+    public function stockInventory()
+    {
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
+    }
 }

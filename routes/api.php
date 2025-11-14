@@ -18,6 +18,7 @@ Route::post('v1/store/receive-inventory/{is_internal?}', [App\Http\Controllers\v
 Route::post('v1/stock/transfer/update/{id}', [App\Http\Controllers\v1\Stock\StockTransferController::class, 'onUpdate']);
 
 Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
+    #region Reports
     Route::post('/reports/store/receive-inventory/delivery-receiving', [App\Http\Controllers\v1\Report\StoreReceivingReportController::class, 'onGenerateDeliveryReceivingReport']);
     Route::post('/reports/stock/inventory/daily-movement', [App\Http\Controllers\v1\Report\StockInventoryReportController::class, 'onGenerateDailyMovementReport']);
     Route::post('/reports/stock/conversion/daily', [App\Http\Controllers\v1\Report\StockConversionReportController::class, 'onGenerateDailyReport']);
@@ -25,8 +26,18 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/pullout/daily', [App\Http\Controllers\v1\Report\StockPulloutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
+    #endregion
 
+    #region Store Consolidation Cache
     Route::post('/store-consolidation-cache/create', [App\Http\Controllers\v1\Store\StoreConsolidationCacheController::class, 'onCreate']);
+    #endregion
+
+    #region Generated Report Data
+    Route::get('/generated-report/get/{model_name}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGet']);
+    Route::get('/generated-report/id/get/{id}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGetById']);
+    Route::get('/generated-report/transaction-date/get/{model_name}/{transaction_date}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGetByTransactionDate']);
+    Route::delete('/generated-report/id/delete/{id}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onDeleteById']);
+    #endregion
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -197,4 +208,5 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
 
     #region Stock Inventory Count Template
     Route::get('v1/stock/inventory-count/template/get/{store_code}/{sub_unit_short_name}', [App\Http\Controllers\v1\Stock\StockInventoryCountTemplateController::class, 'onGet']);
+    #endregion
 });

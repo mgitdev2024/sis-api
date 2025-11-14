@@ -9,6 +9,7 @@ use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
+
 class StockTransferReportController extends Controller
 {
     use ResponseTrait;
@@ -74,7 +75,7 @@ class StockTransferReportController extends Controller
             if (($dateFrom && $dateTo) && $dateRangeType) {
                 $stockTransferModel->where($dateRangeType, '>=', $dateFrom)
                     ->where($dateRangeType, '<', Carbon::parse($dateTo)->addDay()->startOfDay());
-            } else if ($dateFrom && $dateRangeType) {
+            } elseif ($dateFrom && $dateRangeType) {
                 $stockTransferModel->whereDate($dateRangeType, $dateFrom);
             }
             if ($referenceNumber) {
@@ -105,6 +106,7 @@ class StockTransferReportController extends Controller
                         'to_store_sub_unit' => $item['location_sub_unit'],
                         'item_code' => $transferItem['item_code'],
                         'item_description' => $transferItem['item_description'],
+                        'uom' => $transferItem->stockInventory->uom ?? null,
                         'status' => $item['status_label'] ?? null,
                         'allocated' => $transferItem['quantity'] ?? 0,
                         'warehouse_receive' => 0,
