@@ -57,7 +57,7 @@ class StoreReceivingReportController extends Controller
                 $storeReceivingInventoryItems
                     ->where('received_at', '>=', $dateFrom)
                     ->where('received_at', '<', Carbon::parse($dateTo)->addDay()->startOfDay());
-            } else if ($dateFrom) {
+            } elseif ($dateFrom) {
                 $storeReceivingInventoryItems->whereDate('received_at', $dateFrom);
             }
             if ($drNumber) {
@@ -73,6 +73,8 @@ class StoreReceivingReportController extends Controller
             }
             $storeReceivingInventoryItems = $storeReceivingInventoryItems->orderBy('order_quantity', 'DESC')->get();
 
+            $itemCodes = $storeReceivingInventoryItems->pluck('item_code')->unique()->toArray();
+            $uomData = $this->getUomData(array_values($itemCodes)); // ['CR 12' => 'BOX', 'FG0001' => 'PIECE']
             $reportData = [];
             foreach ($storeReceivingInventoryItems as $item) {
                 $storeCode = $item['store_code'] ?? null;
@@ -82,6 +84,7 @@ class StoreReceivingReportController extends Controller
                 $orderSessionId = $item['order_session_id'] ?? null;
                 $itemCode = $item['item_code'] ?? null;
                 $itemDescription = $item['item_description'] ?? null;
+                $itemUom = $uomData[$itemCode] ?? null;
                 $itemCategoryName = $item['item_category_name'] ?? null;
                 $orderQuantity = $item['order_quantity'] ?? null;
                 $allocatedQuantity = $item['allocated_quantity'] ?? null;
@@ -97,9 +100,9 @@ class StoreReceivingReportController extends Controller
 
                 if ($receivedQuantity < $allocatedQuantity) {
                     $status = 'Short';
-                } else if ($orderQuantity <= 0) {
+                } elseif ($orderQuantity <= 0) {
                     $status = 'Unallocated';
-                } else if ($receivedQuantity > $allocatedQuantity) {
+                } elseif ($receivedQuantity > $allocatedQuantity) {
                     $status = 'Over';
                 } else {
                     $status = 'Completed';
@@ -119,6 +122,7 @@ class StoreReceivingReportController extends Controller
                     'order_type' => $orderType,
                     'item_code' => $itemCode,
                     'item_description' => $itemDescription,
+                    'uom' => $itemUom,
                     'category' => $itemCategoryName,
                     'requested' => $orderQuantity,
                     'allocated' => $allocatedQuantity,
@@ -135,5 +139,22 @@ class StoreReceivingReportController extends Controller
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
+    }
+
+    private function getUomData($itemCodes)
+    {
+        $uomData = [];
+        $response = \Http::withHeaders([
+            'x-api-key' => config('apikeys.mgios_api_key'),
+        ])->post(
+            config('apiurls.mgios.url') . config('apiurls.mgios.public_item_uom_get'),
+            ['item_code_collection' => json_encode($itemCodes)]
+        );
+
+        if ($response->successful()) {
+            $uomData = $response->json();
+        }
+
+        return $uomData;
     }
 }
