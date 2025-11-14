@@ -21,7 +21,8 @@ class StockInventoryController extends Controller
         try {
             $stockinventoryModel = StockInventoryModel::where([
                 'store_code' => $store_code,
-                'store_sub_unit_short_name' => $sub_unit
+                'store_sub_unit_short_name' => $sub_unit,
+                'is_base_unit' => 0
             ])->get()->keyBy('item_code');
             $itemCodes = $stockinventoryModel->keys();
 

@@ -226,6 +226,7 @@ class StockInventoryCountController extends Controller
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $store_code,
                 'store_sub_unit_short_name' => $sub_unit,
+                'is_base_unit' => 0
             ])
                 ->orderBy('item_code', 'DESC')
                 ->pluck('item_code');
@@ -348,4 +349,3 @@ class StockInventoryCountController extends Controller
         }
     }
 }
-
