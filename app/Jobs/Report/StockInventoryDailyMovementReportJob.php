@@ -175,7 +175,7 @@ class StockInventoryDailyMovementReportJob implements ShouldQueue
             // Apply sorting
             $reportData = $this->applySorting($reportData, $isGroupByItemCategory, $isGroupByItemDescription);
 
-            $this->fillReportData($uuid, $reportData, $transactionDate, $storeCode, $storeSubUnitShortName);
+            $this->fillReportData($uuid, $reportData);
             Log::info('Store Inventory Daily Movement Report generated successfully.');
         } catch (Exception $exception) {
             Log::error('Error generating Store Inventory Daily Movement Report: ' . $exception->getMessage());

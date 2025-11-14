@@ -37,7 +37,7 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function fillReportData($uuid, $data, $date, $storeCode = null, $subUnit = null)
+    public function fillReportData($uuid, $data)
     {
         try {
 
@@ -60,6 +60,8 @@ trait GeneratedReportDataTrait
         try {
             $record = GeneratedReportDataModel::select([
                 'id',
+                'store_code',
+                'store_sub_unit_short_name',
                 'model_name',
                 'status',
                 'date_range',
