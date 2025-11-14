@@ -36,7 +36,7 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::get('/generated-report/get/{model_name}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGet']);
     Route::get('/generated-report/id/get/{id}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGetById']);
     Route::get('/generated-report/transaction-date/get/{model_name}/{transaction_date}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onGetByTransactionDate']);
-    Route::delete('/generated-report/id/delete/{id}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onDeleteById']);
+    Route::post('/generated-report/id/delete/{id}', [App\Http\Controllers\v1\Report\GeneratedReportDataController::class, 'onDeleteById']);
     #endregion
 });
 
