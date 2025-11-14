@@ -108,8 +108,11 @@ trait GeneratedReportDataTrait
     public function deleteRecordById($id)
     {
         try {
-            GeneratedReportDataModel::where('id', $id)->delete();
-
+            $record = GeneratedReportDataModel::where('id', $id)->delete();
+            if($record){
+                return $this->dataResponse('success', 200, __('msg.delete_success'));
+            }
+           return $this->dataResponse('error', 404, __('msg.record_not_found'));
         } catch (Exception $exception) {
             throw $exception;
         }
