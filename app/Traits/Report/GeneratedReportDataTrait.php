@@ -11,7 +11,7 @@ trait GeneratedReportDataTrait
 {
     use ResponseTrait;
 
-    public function initializeRecord($uuid, $model, $createdById, $transactionDate,$storeCode = null, $subUnit = null)
+    public function initializeRecord($uuid, $model, $createdById, $transactionDate, $storeCode = null, $subUnit = null)
     {
         try {
             $generatedReportData = GeneratedReportDataModel::where([
@@ -109,10 +109,10 @@ trait GeneratedReportDataTrait
     {
         try {
             $record = GeneratedReportDataModel::where('id', $id)->delete();
-            if($record){
+            if ($record) {
                 return $this->dataResponse('success', 200, __('msg.delete_success'));
             }
-           return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         } catch (Exception $exception) {
             throw $exception;
         }
