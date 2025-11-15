@@ -19,7 +19,7 @@ class GeneratedReportDataController extends Controller
         return $this->readRecordById($id);
     }
 
-    public function onGetByTransactionDate($model_name, $transaction_date)
+    public function onGetByFilter($model_name, $transaction_date)
     {
         return $this->readRecordByTransactionDate($model_name, $transaction_date);
     }
