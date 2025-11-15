@@ -38,7 +38,8 @@ class StockInventoryReportController extends Controller
                 $fields['created_by_id'],
                 $fields['transaction_date'],
                 $fields['store_code'],
-                $fields['store_sub_unit_short_name']
+                $fields['store_sub_unit_short_name'],
+                $fields['department_id']
             );
             return $this->dataResponse('success', 200, 'Report generated successfully.');
 
