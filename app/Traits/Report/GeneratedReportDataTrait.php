@@ -18,20 +18,24 @@ trait GeneratedReportDataTrait
                 'date_range' => $transactionDate,
                 'model_name' => $model
                 ])->first();
-            if ($generatedReportData) {
-                $generatedReportData->uuid = $uuid;
-                $generatedReportData->status = 0;
-            }
-            GeneratedReportDataModel::create([
-                'uuid' => $uuid,
-                'model_name' => $model,
-                'created_by_id' => $createdById,
-                'date_range' => $transactionDate,
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $subUnit,
-                'status' => 0,
-            ]);
 
+            if ($generatedReportData) {
+                $generatedReportData->update([
+                    'uuid' => $uuid,
+                    'updated_at' => now(),
+                    'status' => 0,
+                ]);
+            }else {
+                GeneratedReportDataModel::create([
+                    'uuid' => $uuid,
+                    'model_name' => $model,
+                    'created_by_id' => $createdById,
+                    'date_range' => $transactionDate,
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $subUnit,
+                    'status' => 0,
+                ]);
+            }
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -39,6 +43,7 @@ trait GeneratedReportDataTrait
 
     public function fillReportData($uuid, $data)
     {
+
         try {
 
             $generatedReportData = GeneratedReportDataModel::where('uuid', $uuid)->first();
