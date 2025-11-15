@@ -16,7 +16,8 @@ use Exception;
 
 class StockInventoryItemCountController extends Controller
 {
-    use ResponseTrait, CrudOperationsTrait;
+    use ResponseTrait;
+    use CrudOperationsTrait;
     public function onGetById($store_inventory_count_id = null)
     {
         try {
@@ -35,9 +36,9 @@ class StockInventoryItemCountController extends Controller
                 $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
                 ])->post(
-                        config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
-                        ['item_code_collection' => json_encode($itemCodes)]
-                    );
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                    ['item_code_collection' => json_encode($itemCodes)]
+                );
 
                 if (!$response->successful()) {
                     return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
@@ -73,10 +74,10 @@ class StockInventoryItemCountController extends Controller
     public function onUpdate(Request $request, $store_inventory_count_id)
     {
         $fields = $request->validate([
-            'created_by_id' => 'required',
-            'store_code' => 'required|string|max:50',
-            'store_sub_unit_short_name' => 'required|string|max:50',
-            'stock_inventory_count_data' => 'required|json' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
+           'created_by_id' => 'required',
+           'store_code' => 'required|string|max:50',
+           'store_sub_unit_short_name' => 'required|string|max:50',
+           'stock_inventory_count_data' => 'required|json' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
         ]);
 
         try {
@@ -94,7 +95,7 @@ class StockInventoryItemCountController extends Controller
             // 1️⃣ Update main inventory count record (single query)
             $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
             if (!$stockInventoryCountModel) {
-                throw new \Exception('Stock inventory count not found');
+                throw new Exception('Stock inventory count not found');
             }
 
             $stockInventoryCountModel->update([
