@@ -26,10 +26,10 @@ class GeneratedReportDataModel extends Model
         'updated_at',
     ];
 
-    protected $appends = ['formatted_created_at_label'];
+    protected $appends = ['formatted_updated_at_label'];
 
-    public function getFormattedCreatedAtLabelAttribute()
+    public function getFormattedUpdatedAtLabelAttribute()
     {
-        return $this->created_at ? $this->created_at->format('M d, Y h:i A') : null;
+        return $this->updated_at ? $this->updated_at->format('M d, Y h:i A') : null;
     }
 }
