@@ -15,8 +15,11 @@ trait GeneratedReportDataTrait
     {
         try {
             $generatedReportData = GeneratedReportDataModel::where([
-                'date_range' => $transactionDate,
-                'model_name' => $model
+                    'date_range' => $transactionDate,
+                    'model_name' => $model,
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $subUnit,
+                    'department_id' => $departmentId,
                 ])->first();
 
             if ($generatedReportData) {
