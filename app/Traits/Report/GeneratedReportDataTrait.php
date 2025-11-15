@@ -25,18 +25,19 @@ trait GeneratedReportDataTrait
                     'updated_at' => now(),
                     'status' => 0,
                 ]);
-            }else {
-                GeneratedReportDataModel::create([
-                    'uuid' => $uuid,
-                    'model_name' => $model,
-                    'created_by_id' => $createdById,
-                    'date_range' => $transactionDate,
-                    'store_code' => $storeCode,
-                    'store_sub_unit_short_name' => $subUnit,
-                    'department_id' => $departmentId,
-                    'status' => 0,
-                ]);
+
+                return $generatedReportData->fresh(); // return updated model
             }
+            return GeneratedReportDataModel::create([
+                'uuid' => $uuid,
+                'model_name' => $model,
+                'created_by_id' => $createdById,
+                'date_range' => $transactionDate,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit,
+                'department_id' => $departmentId,
+                'status' => 0,
+            ]);
         } catch (Exception $exception) {
             throw $exception;
         }
