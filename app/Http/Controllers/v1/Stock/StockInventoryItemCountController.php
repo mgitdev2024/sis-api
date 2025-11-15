@@ -75,10 +75,10 @@ class StockInventoryItemCountController extends Controller
     public function onUpdate(Request $request, $store_inventory_count_id)
     {
         $fields = $request->validate([
-           'created_by_id' => 'required',
-           'store_code' => 'required|string|max:50',
-           'store_sub_unit_short_name' => 'required|string|max:50',
-           'stock_inventory_count_data' => 'required|json' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
+            'created_by_id' => 'required',
+            'store_code' => 'required|string|max:50',
+            'store_sub_unit_short_name' => 'required|string|max:50',
+            'stock_inventory_count_data' => 'required|json' // [{"ic":"CR 12","cq":12},{"ic":"TAS WH","cq":1}]
         ]);
 
         try {

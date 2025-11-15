@@ -95,14 +95,29 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function readRecordByTransactionDate($modelName, $transactionDate)
+    public function readRecordByTransactionDate($request)
     {
+        $fields = $request->validate([
+            'model_name' => 'required|string',
+            'transaction_date' => 'required|string',
+            'store_code' => 'required',
+            'store_sub_unit_short_name' => 'required'
+        ]);
         try {
+            $modelName = $fields['model_name'];
+            $transactionDate = $fields['transaction_date'];
+            $storeCode = $fields['store_code'];
+            $subUnit = $fields['store_sub_unit_short_name'];
             $record = GeneratedReportDataModel::where([
                 'date_range' => $transactionDate,
-                'model_name' => $modelName
-            ])->get();
+                'model_name' => $modelName,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit
+            ])->first();
 
+            if(!$record){
+                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            }
             return $this->dataResponse('success', 200, __('msg.record_found'), $record);
 
         } catch (Exception $exception) {
