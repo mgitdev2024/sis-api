@@ -15,6 +15,7 @@ class GeneratedReportDataModel extends Model
         'model_name',
         'store_code',
         'store_sub_unit_short_name',
+        'department_id',
         'report_data',
         'date_range',
         'uuid',

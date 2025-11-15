@@ -11,7 +11,7 @@ trait GeneratedReportDataTrait
 {
     use ResponseTrait;
 
-    public function initializeRecord($uuid, $model, $createdById, $transactionDate, $storeCode = null, $subUnit = null)
+    public function initializeRecord($uuid, $model, $createdById, $transactionDate, $storeCode, $subUnit,$departmentId)
     {
         try {
             $generatedReportData = GeneratedReportDataModel::where([
@@ -33,6 +33,7 @@ trait GeneratedReportDataTrait
                     'date_range' => $transactionDate,
                     'store_code' => $storeCode,
                     'store_sub_unit_short_name' => $subUnit,
+                    'department_id' => $departmentId,
                     'status' => 0,
                 ]);
             }
@@ -67,6 +68,7 @@ trait GeneratedReportDataTrait
                 'id',
                 'store_code',
                 'store_sub_unit_short_name',
+                'department_id',
                 'model_name',
                 'status',
                 'date_range',
@@ -95,24 +97,27 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function readRecordByTransactionDate($request)
+    public function readRecordByFilter($request)
     {
         $fields = $request->validate([
             'model_name' => 'required|string',
             'transaction_date' => 'required|string',
             'store_code' => 'required',
-            'store_sub_unit_short_name' => 'required'
+            'store_sub_unit_short_name' => 'required',
+            'department_id' => 'required',
         ]);
         try {
             $modelName = $fields['model_name'];
             $transactionDate = $fields['transaction_date'];
             $storeCode = $fields['store_code'];
             $subUnit = $fields['store_sub_unit_short_name'];
+            $departmentId = $fields['department_id'];
             $record = GeneratedReportDataModel::where([
                 'date_range' => $transactionDate,
                 'model_name' => $modelName,
                 'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $subUnit
+                'store_sub_unit_short_name' => $subUnit,
+                'department_id' => $departmentId,
             ])->first();
 
             if(!$record){
