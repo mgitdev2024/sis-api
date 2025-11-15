@@ -36,6 +36,7 @@ trait GeneratedReportDataTrait
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $subUnit,
                 'department_id' => $departmentId,
+                'updated_at' => now(),
                 'status' => 0,
             ]);
         } catch (Exception $exception) {
@@ -73,7 +74,8 @@ trait GeneratedReportDataTrait
                 'model_name',
                 'status',
                 'date_range',
-                'created_at'
+                'created_at',
+                'updated_at',
             ])
                 ->where('model_name', $model)
                 ->orderBy('id', 'desc')
