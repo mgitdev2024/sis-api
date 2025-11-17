@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:delete-store-consolidation-cache')->dailyAt('00:00')->withoutOverlapping();
 
         // Add your queue worker
-        $schedule->command('queue:work --stop-when-empty')->everyMinute();
+        $schedule->command('queue:work --stop-when-empty')
+            ->everyMinute();
     }
 
     protected function commands(): void

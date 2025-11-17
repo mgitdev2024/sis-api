@@ -32,15 +32,16 @@ class StockInventoryReportController extends Controller
             $uuid = (string) Str::uuid();
             $fields['uuid'] = $uuid;
             StockInventoryDailyMovementReportJob::dispatch($fields);
-            $this->initializeRecord(
+            $data = $this->initializeRecord(
                 $uuid,
                 'Stock Inventory Daily Movement Report',
                 $fields['created_by_id'],
                 $fields['transaction_date'],
                 $fields['store_code'],
-                $fields['store_sub_unit_short_name']
+                $fields['store_sub_unit_short_name'],
+                $fields['department_id']
             );
-            return $this->dataResponse('success', 200, 'Report generated successfully.');
+            return $this->dataResponse('success', 200, 'Report generated successfully.', $data);
 
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());

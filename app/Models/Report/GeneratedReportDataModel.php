@@ -15,6 +15,7 @@ class GeneratedReportDataModel extends Model
         'model_name',
         'store_code',
         'store_sub_unit_short_name',
+        'department_id',
         'report_data',
         'date_range',
         'uuid',
@@ -24,4 +25,11 @@ class GeneratedReportDataModel extends Model
         'created_at',
         'updated_at',
     ];
+
+    protected $appends = ['formatted_updated_at_label'];
+
+    public function getFormattedUpdatedAtLabelAttribute()
+    {
+        return $this->updated_at ? $this->updated_at->format('M d, Y h:i A') : null;
+    }
 }
