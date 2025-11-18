@@ -28,7 +28,7 @@ class StockConversionReportController extends Controller
             ->select([
                 'sc.*',
                 'si.uom',
-                'si.is_base_unit'
+                'si.is_sis_variant'
             ]);
             if ($storeCode) {
                 $storeCode = json_decode($storeCode);

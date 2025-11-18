@@ -14,9 +14,11 @@ use Http;
 use Illuminate\Http\Request;
 use Exception;
 use DB;
+
 class StockInventoryCountController extends Controller
 {
-    use ResponseTrait, CrudOperationsTrait;
+    use ResponseTrait;
+    use CrudOperationsTrait;
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
@@ -184,7 +186,7 @@ class StockInventoryCountController extends Controller
             $stockInventoryCountModel = StockInventoryCountModel::where('store_code', $store_code);
             if ($status == 0) {
                 $stockInventoryCountModel->whereIn('status', [0, 1]);
-            } else if ($status == 1) {
+            } elseif ($status == 1) {
                 $stockInventoryCountModel->where('status', 2);
             }
             if ($sub_unit) {
@@ -226,7 +228,7 @@ class StockInventoryCountController extends Controller
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $store_code,
                 'store_sub_unit_short_name' => $sub_unit,
-                'is_base_unit' => 0
+                'is_sis_variant' => 0
             ])
                 ->orderBy('item_code', 'DESC')
                 ->pluck('item_code');

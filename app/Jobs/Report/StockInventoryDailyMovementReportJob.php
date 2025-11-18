@@ -86,7 +86,7 @@ class StockInventoryDailyMovementReportJob implements ShouldQueue
                 'item_description',
                 'item_category_name',
                 'uom',
-                'is_base_unit',
+                'is_sis_variant',
             ]);
 
             if ($storeCode) {
@@ -137,7 +137,7 @@ class StockInventoryDailyMovementReportJob implements ShouldQueue
                     'store_sub_unit_short_name' => $inventory->store_sub_unit_short_name,
                     'item_code' => $inventory->item_code,
                     'uom' => $inventory->uom,
-                    'is_base_unit' => $inventory->is_base_unit,
+                    'is_sis_variant' => $inventory->is_sis_variant,
                     'item_description' => $inventory->item_description,
                     'item_category_name' => $inventory->item_category_name,
                     'beginning_stock' => $beginningStock,
