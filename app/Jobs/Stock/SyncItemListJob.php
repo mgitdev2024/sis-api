@@ -92,8 +92,8 @@ class SyncItemListJob implements ShouldQueue
                         $updates['uom'] = $data['uom'];
                     }
 
-                    if ($existingItem->is_base_unit !== $data['is_base_unit']) {
-                        $updates['is_base_unit'] = ! (bool) $data['is_base_unit'];
+                    if ($existingItem->is_sis_variant !== $data['is_sis_variant']) {
+                        $updates['is_sis_variant'] = $data['is_sis_variant'];
                     }
                 }
                 if (!empty($updates)) {
