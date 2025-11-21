@@ -26,4 +26,9 @@ class StockConversionItemModel extends Model
     {
         return $this->belongsTo(StockConversionModel::class, 'stock_conversion_id');
     }
+
+    public function stockInventory()
+    {
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
+    }
 }

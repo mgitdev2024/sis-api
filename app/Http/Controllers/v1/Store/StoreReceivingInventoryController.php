@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use App\Traits\ResponseTrait;
 use DB;
 use Illuminate\Support\Str;
+
 class StoreReceivingInventoryController extends Controller
 {
     use ResponseTrait;

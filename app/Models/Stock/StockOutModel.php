@@ -34,6 +34,11 @@ class StockOutModel extends Model
         return $this->hasMany(StockOutItemModel::class, 'stock_out_id', 'id');
     }
 
+    public function stockInventory()
+    {
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
+    }
+
     public static function onGenerateReferenceNumber()
     {
         $latestStockOutId = static::latest()->value('id');
