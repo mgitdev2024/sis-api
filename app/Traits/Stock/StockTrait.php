@@ -315,7 +315,7 @@ trait StockTrait
                 'item_code' => $baseItemCode,
                 'item_description' => $baseItemDescription,
                 'item_category_name' => $baseItemCategoryName,
-                'quantity' => $convertedQuantity,
+                'quantity' => $quantity,
                 'type' => 0, // 0 = Automatic, 1 = Manual
                 'created_by_id' => $createdById,
             ]);
@@ -335,4 +335,3 @@ trait StockTrait
         }
     }
 }
-

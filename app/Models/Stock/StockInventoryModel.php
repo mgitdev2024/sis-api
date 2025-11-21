@@ -5,6 +5,7 @@ namespace App\Models\Stock;
 use App\Models\Store\StoreReceivingInventoryItemModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 class StockInventoryModel extends Model
 {
     use HasFactory;
@@ -21,6 +22,8 @@ class StockInventoryModel extends Model
         'item_description',
         'item_category_name',
         'stock_count',
+        'is_sis_variant',
+        'uom',
         'status',
         'created_by_id',
         'updated_by_id',
