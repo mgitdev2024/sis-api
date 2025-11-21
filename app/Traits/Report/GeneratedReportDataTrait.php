@@ -11,27 +11,37 @@ trait GeneratedReportDataTrait
 {
     use ResponseTrait;
 
-    public function initializeRecord($uuid, $model, $createdById, $transactionDate,$storeCode = null, $subUnit = null)
+    public function initializeRecord($uuid, $model, $createdById, $transactionDate, $storeCode, $subUnit,$departmentId)
     {
         try {
             $generatedReportData = GeneratedReportDataModel::where([
-                'date_range' => $transactionDate,
-                'model_name' => $model
+                    'date_range' => $transactionDate,
+                    'model_name' => $model,
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $subUnit,
+                    'department_id' => $departmentId,
                 ])->first();
+
             if ($generatedReportData) {
-                $generatedReportData->uuid = $uuid;
-                $generatedReportData->status = 0;
+                $generatedReportData->update([
+                    'uuid' => $uuid,
+                    'updated_at' => now(),
+                    'status' => 0,
+                ]);
+
+                return $generatedReportData->fresh(); // return updated model
             }
-            GeneratedReportDataModel::create([
+            return GeneratedReportDataModel::create([
                 'uuid' => $uuid,
                 'model_name' => $model,
                 'created_by_id' => $createdById,
                 'date_range' => $transactionDate,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $subUnit,
+                'department_id' => $departmentId,
+                'updated_at' => now(),
                 'status' => 0,
             ]);
-
         } catch (Exception $exception) {
             throw $exception;
         }
@@ -39,6 +49,7 @@ trait GeneratedReportDataTrait
 
     public function fillReportData($uuid, $data)
     {
+
         try {
 
             $generatedReportData = GeneratedReportDataModel::where('uuid', $uuid)->first();
@@ -62,10 +73,12 @@ trait GeneratedReportDataTrait
                 'id',
                 'store_code',
                 'store_sub_unit_short_name',
+                'department_id',
                 'model_name',
                 'status',
                 'date_range',
-                'created_at'
+                'created_at',
+                'updated_at',
             ])
                 ->where('model_name', $model)
                 ->orderBy('id', 'desc')
@@ -90,14 +103,32 @@ trait GeneratedReportDataTrait
         }
     }
 
-    public function readRecordByTransactionDate($modelName, $transactionDate)
+    public function readRecordByFilter($request)
     {
+        $fields = $request->validate([
+            'model_name' => 'required|string',
+            'transaction_date' => 'required|string',
+            'store_code' => 'required',
+            'store_sub_unit_short_name' => 'required',
+            'department_id' => 'required',
+        ]);
         try {
+            $modelName = $fields['model_name'];
+            $transactionDate = $fields['transaction_date'];
+            $storeCode = $fields['store_code'];
+            $subUnit = $fields['store_sub_unit_short_name'];
+            $departmentId = $fields['department_id'];
             $record = GeneratedReportDataModel::where([
                 'date_range' => $transactionDate,
-                'model_name' => $modelName
-            ])->get();
+                'model_name' => $modelName,
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit,
+                'department_id' => $departmentId,
+            ])->first();
 
+            if(!$record){
+                return $this->dataResponse('error', 200, __('msg.record_not_found'));
+            }
             return $this->dataResponse('success', 200, __('msg.record_found'), $record);
 
         } catch (Exception $exception) {
@@ -108,8 +139,11 @@ trait GeneratedReportDataTrait
     public function deleteRecordById($id)
     {
         try {
-            GeneratedReportDataModel::where('id', $id)->delete();
-
+            $record = GeneratedReportDataModel::where('id', $id)->delete();
+            if ($record) {
+                return $this->dataResponse('success', 200, __('msg.delete_success'));
+            }
+            return $this->dataResponse('error', 404, __('msg.record_not_found'));
         } catch (Exception $exception) {
             throw $exception;
         }

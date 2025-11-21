@@ -11,7 +11,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::table('stock_inventories', function (Blueprint $table) {
-            $table->boolean('is_base_unit')->default(0);
+            $table->boolean('is_sis_variant')->default(0);
             $table->string('uom')->nullable();
         });
     }
@@ -22,7 +22,7 @@ return new class () extends Migration {
     public function down(): void
     {
         Schema::table('stock_inventories', function (Blueprint $table) {
-            $table->dropColumn('is_base_unit');
+            $table->dropColumn('is_sis_variant');
             $table->dropColumn('uom');
         });
     }

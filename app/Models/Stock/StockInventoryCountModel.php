@@ -28,7 +28,7 @@ class StockInventoryCountModel extends Model
     ];
     protected $fillable = [
         'reference_number',
-        'type', // 1 = Hourly, 2 = EOD, 3 = Month-End
+        'type', // 1 = Mid-Month, 2 = EOD, 3 = Month-End
         'store_code',
         'store_sub_unit_short_name',
         'created_at',
@@ -59,7 +59,7 @@ class StockInventoryCountModel extends Model
     public function getTypeLabelAttribute()
     {
         $type = [
-            1 => 'Hourly',
+            1 => 'Mid-Month',
             2 => 'End of Day',
             3 => 'Month-End',
         ];

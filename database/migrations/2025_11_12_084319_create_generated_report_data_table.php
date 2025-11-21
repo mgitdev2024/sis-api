@@ -16,6 +16,7 @@ return new class () extends Migration {
             $table->text('model_name');
             $table->text('store_code')->nullable();
             $table->text('store_sub_unit_short_name')->nullable();
+            $table->string('department_id')->nullable();
             $table->longText('report_data')->nullable();
             $table->string('date_range')->nullable();
             $table->string('uuid')->nullable();
