@@ -41,7 +41,7 @@ trait SapGoodReceiptTrait
                 'x-api-key' => config('apikeys.sds_api_key')
             ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_get_by_code') . $plant);
             $storeCodeData = $storeCodeResponse->json();
-            $warehouseCode = $storeCodeData['success']['data']['company_code'] ?? null;
+            $warehouseCode = $storeCodeData['success']['data']['storage_location'] ?? null;
             $definitionId = 'jp10.com-mgfi-dev.mgiosstorereplenishmentinboundgoodsreceiptpostgr.materialDocumentProcess';
             $exists = GoodReceiptModel::where([
                 'reference_document' => $referenceNumber,

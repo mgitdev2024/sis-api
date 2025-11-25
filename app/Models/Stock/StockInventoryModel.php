@@ -22,7 +22,7 @@ class StockInventoryModel extends Model
         'item_description',
         'item_category_name',
         'stock_count',
-        'is_base_unit',
+        'is_sis_variant',
         'uom',
         'status',
         'created_by_id',
