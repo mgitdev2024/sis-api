@@ -28,6 +28,7 @@ return [
     ],
     'sds' => [
         'url' => env('SDS_URL'),
-        'public_store_list_get' => '/public/store/list/',
+        'public_store_list_get' => '/public/store/list',
+        'public_store_get_by_code' => '/public/store/list/code/get/',
     ]
 ];
