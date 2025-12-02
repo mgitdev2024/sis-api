@@ -58,6 +58,7 @@ class StoreReceivingInventoryItemModel extends Model
         'received_by_id',
         'received_at',
         'remarks',
+        'goods_issue_uuid',
     ];
 
     public function storeReceivingInventory()

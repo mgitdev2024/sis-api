@@ -71,9 +71,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/user/access/get/{id}', [App\Http\Controllers\v1\Access\AccessManagementController::class, 'onGetAccessList']);
 
     // User Access Management
+
     Route::get('v1/user/store-info/{employee_id}', [App\Http\Controllers\UserStoreController::class, 'getStoreInfo']);
     Route::post('v1/user/store-info', [App\Http\Controllers\UserStoreController::class, 'updateStoreInfo']);
     Route::post('v1/user/store-info/remove', [App\Http\Controllers\UserStoreController::class, 'removeStoreInfo']);
+
     #endregion
 
     #region System Status
@@ -105,6 +107,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'check.system.status:SIS']], function () {
+    #region Store Receiving Inventory
+    Route::post('v1/store/receive-inventory-goods-issue', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onCreateReceivingFromGI']);
+    #endregion
     #region Store Receiving Inventory
     Route::get('v1/store/receive-inventory/current/get/{status}/{store_code?}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetCurrent']);
     Route::get('v1/store/receive-inventory/get/{store_receiving_inventory_id}', [App\Http\Controllers\v1\Store\StoreReceivingInventoryController::class, 'onGetById']);

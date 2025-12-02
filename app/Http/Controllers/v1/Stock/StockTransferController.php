@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use DB;
-use Http;
 use Exception;
 class StockTransferController extends Controller
 {
@@ -102,8 +101,8 @@ class StockTransferController extends Controller
 
             $consolidatedData = [
                 'consolidated_order_id' => $referenceNumber,
-                'warehouse_code' => $transferFromStoreCode,
-                'warehouse_name' => $transferFromStoreName,
+                'warehouse_code' => $transferToStoreCode,
+                'warehouse_name' => $transferToStoreName,
                 'reference_number' => $referenceNumber,
                 'delivery_date' => $pickupDate,
                 'delivery_type' => null,

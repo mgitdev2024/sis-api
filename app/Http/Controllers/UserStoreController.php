@@ -15,7 +15,7 @@ class UserStoreController extends Controller
      *
      * @param string $employee_id
      */
-    public function getStoreInfo(string $employee_id)
+    public function getStoreInfo(string $employee_id) //
     {
         try {
             $user = User::where('employee_id', $employee_id)->first();
