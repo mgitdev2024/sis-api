@@ -167,6 +167,9 @@ class StockTransferController extends Controller
             $transferToStoreCode = $stockTransferModel->location_code;
             $transferToStoreName = $stockTransferModel->location_name;
             $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+
+            $transferFromStoreCode = $stockTransferModel->store_code;
+            $transferFromStoreName = $stockTransferModel->formatted_store_name_label;
             $pickupDate = $stockTransferModel->pickup_date;
             $referenceNumber = $stockTransferModel->reference_number;
             $remarks = $stockTransferModel->remarks;
