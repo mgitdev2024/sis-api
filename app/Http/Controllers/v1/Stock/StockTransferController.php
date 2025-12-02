@@ -179,7 +179,6 @@ class StockTransferController extends Controller
             $storeLists = collect($storeDirectoryResponse->json()['success']['data'])->toArray();
             $transferFromStoreCode = $storeLists['code'];
             $transferFromStoreName = $storeLists['name'];
-
             DB::beginTransaction();
             if (isset($fields['attachment']) && $fields['attachment'] != null) {
                 $attachmentPath = $request->file('attachment')->store('public/attachments/stock_transfer');
@@ -402,8 +401,17 @@ class StockTransferController extends Controller
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
                 $createdById = $stockTransferModel->created_by_id;
                 $transferItems = json_encode($stockTransferModel->stockTransferItems);
+
+                $storeCode = $stockTransferModel->store_code;
+                $storeDirectoryResponse = Http::withHeaders([
+                    'x-api-key' => config('apikeys.sds_api_key')
+                ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_get_by_code') . $storeCode);
+
+                $storeLists = collect($storeDirectoryResponse->json()['success']['data'])->toArray();
+                $transferFromStoreCode = $storeLists['code'];
+                $transferFromStoreName = $storeLists['name'];
                 // Create Store Receiving Inventory
-                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
