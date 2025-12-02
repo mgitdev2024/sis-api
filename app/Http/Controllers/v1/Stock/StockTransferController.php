@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use DB;
-use Http;
 use Exception;
 class StockTransferController extends Controller
 {
@@ -95,15 +94,15 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onCreateStoreReceivingInventory($transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById)
+    public function onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById)
     {
         try {
             $userModel = User::where('employee_id', $createdById)->first();
 
             $consolidatedData = [
                 'consolidated_order_id' => $referenceNumber,
-                'warehouse_code' => $transferFromStoreCode,
-                'warehouse_name' => $transferFromStoreName,
+                'warehouse_code' => $transferToStoreCode,
+                'warehouse_name' => $transferToStoreName,
                 'reference_number' => $referenceNumber,
                 'delivery_date' => $pickupDate,
                 'delivery_type' => null,
@@ -128,8 +127,8 @@ class StockTransferController extends Controller
             }
             $storeReceivingInventoryController = new StoreReceivingInventoryController();
             $sessions = [
-                'store_code' => $transferFromStoreCode,
-                'store_name' => $transferFromStoreName,
+                'store_code' => $transferToStoreCode,
+                'store_name' => $transferToStoreName,
                 'date_created' => now(),
                 'delivery_date' => $pickupDate,
                 'delivery_type' => null,
@@ -165,20 +164,13 @@ class StockTransferController extends Controller
             $stockTransferModel = StockTransferModel::findOrFail($id);
             $type = $stockTransferModel->transfer_type; // 0 = Store Transfer, 1 = Pull Out, 2 = Store Warehouse Store
             $transferItems = json_encode($stockTransferModel->stockTransferItems);
-            $storeCode = $stockTransferModel->store_code;
+            $transferToStoreCode = $stockTransferModel->location_code;
+            $transferToStoreName = $stockTransferModel->location_name;
             $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
             $pickupDate = $stockTransferModel->pickup_date;
             $referenceNumber = $stockTransferModel->reference_number;
             $remarks = $stockTransferModel->remarks;
             $createdById = $fields['created_by_id'];
-
-            $storeDirectoryResponse = Http::withHeaders([
-                'x-api-key' => config('apikeys.sds_api_key')
-            ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_get_by_code') . $storeCode);
-
-            $storeLists = collect($storeDirectoryResponse->json()['success']['data'])->toArray();
-            $transferFromStoreCode = $storeLists['code'];
-            $transferFromStoreName = $storeLists['name'];
 
             DB::beginTransaction();
             if (isset($fields['attachment']) && $fields['attachment'] != null) {
@@ -191,7 +183,7 @@ class StockTransferController extends Controller
             $stockTransferModel->logistics_confirmed_by_id = $createdById;
 
             if ($type == 0) {
-                $this->onCreateStoreReceivingInventory($transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
             } else if ($type == 1) {
                 $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks, $id);
             } else if ($type == 2) {
