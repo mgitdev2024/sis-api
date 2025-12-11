@@ -26,9 +26,17 @@ class StockConversionReportController extends Controller
             $stockConversionModel = StockConversionModel::from('stock_conversions as sc')
             ->leftJoin('stock_inventories as si', 'sc.item_code', '=', 'si.item_code')
             ->select([
-                'sc.*',
+                'sc.id',
+                'sc.item_code',
+                'sc.item_description',
+                'sc.reference_number',
+                'sc.store_code',
+                'sc.store_sub_unit_short_name',
+                'sc.quantity',
                 'si.uom',
-                'si.is_sis_variant'
+                'si.is_sis_variant',
+                'sc.created_by_id',
+                'sc.created_at',
             ]);
             if ($storeCode) {
                 $storeCode = json_decode($storeCode);
@@ -47,7 +55,21 @@ class StockConversionReportController extends Controller
                 $conversionType = json_decode($conversionType);
                 $stockConversionModel->whereIn('sc.type', $conversionType);
             }
-            $stockConversionModel = $stockConversionModel->orderBy('sc.reference_number', 'ASC')->get();
+            $stockConversionModel = $stockConversionModel->orderBy('sc.reference_number', 'ASC')
+            ->groupBy([
+                'sc.id',
+                'sc.reference_number',
+                'sc.item_code',
+                'sc.item_description',
+                'sc.store_code',
+                'sc.store_sub_unit_short_name',
+                'si.uom',
+                'sc.quantity',
+                'si.is_sis_variant',
+                'sc.created_by_id',
+                'sc.created_at',
+            ])
+            ->get();
 
             $reportData = [];
             foreach ($stockConversionModel as $item) {
