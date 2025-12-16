@@ -221,62 +221,106 @@ class StockInventoryItemCountController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
+            $now = now();
+            $storeCode = $fields['store_code'];
+            $storeSubUnit = $fields['store_sub_unit_short_name'];
 
+            // 1️⃣ Update main inventory count record (single query)
             $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
-            if ($stockInventoryCountModel) {
-                $stockInventoryCountModel->update([
-                    'status' => 2, // Post
-                    'updated_by_id' => $createdById,
-                    'posted_at' => now(),
-                    'posted_by_id' => $createdById
-                ]);
+            if (!$stockInventoryCountModel) {
+                throw new Exception('Stock inventory count not found');
             }
-            $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
-                'stock_inventory_count_id' => $store_inventory_count_id,
-            ])->get();
 
-            foreach ($stockInventoryItemCountModel as $item) {
-                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
-                $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
-                $item->save();
+            $stockInventoryCountModel->update([
+                'status' => 2, // Post
+                'updated_by_id' => $createdById,
+                'posted_at' => $now,
+                'posted_by_id' => $createdById
+            ]);
+
+            // 2️⃣ Decode remarks data once (not in loop)
+            $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '{}', true);
+
+            // 3️⃣ Fetch all inventory items in one query
+            $stockInventoryItemCountModels = StockInventoryItemCountModel::where('stock_inventory_count_id', $store_inventory_count_id)
+                ->get()
+                ->keyBy('item_code');
+
+            if ($stockInventoryItemCountModels->isEmpty()) {
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'));
+            }
+
+            $itemCodes = $stockInventoryItemCountModels->keys()->all();
+
+            // 4️⃣ Bulk fetch existing stock inventories (single query)
+            $existingStockInventories = StockInventoryModel::where('store_code', $storeCode)
+                ->where('store_sub_unit_short_name', $storeSubUnit)
+                ->whereIn('item_code', $itemCodes)
+                ->get()
+                ->keyBy('item_code');
+
+            // 5️⃣ Bulk fetch latest logs for all items (single query with subquery)
+            $latestLogs = DB::table('stock_logs as sl1')
+                ->select('sl1.*')
+                ->whereIn('sl1.id', function ($query) use ($storeCode, $storeSubUnit, $itemCodes) {
+                    $query->select(DB::raw('MAX(sl2.id)'))
+                        ->from('stock_logs as sl2')
+                        ->where('sl2.store_code', $storeCode)
+                        ->where('sl2.store_sub_unit_short_name', $storeSubUnit)
+                        ->whereIn('sl2.item_code', $itemCodes)
+                        ->groupBy('sl2.item_code');
+                })
+                ->get()
+                ->keyBy('item_code');
+
+            // 6️⃣ Prepare bulk operations
+            $remarksUpdates = [];
+            $stockInventoryUpdates = [];
+            $stockInventoryInserts = [];
+            $stockLogInserts = [];
+            $referenceNumber = $stockInventoryCountModel->reference_number;
+
+            foreach ($stockInventoryItemCountModels as $itemCode => $item) {
+                // Prepare remarks update
+                $remarks = $stockInventoryCountData[$itemCode] ?? null;
+                if ($remarks !== null) {
+                    $remarksUpdates[] = [
+                        'id' => $item->id,
+                        'remarks' => $remarks
+                    ];
+                }
 
                 $countedQuantity = $item->counted_quantity;
-                // Update the stock inventory
-                $stockInventoryModel = StockInventoryModel::where([
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $item->item_code,
-                ])->first();
 
-                if ($stockInventoryModel) {
-                    $stockInventoryModel->update([
+                // Prepare stock inventory update or insert
+                if (isset($existingStockInventories[$itemCode])) {
+                    $stockInventoryUpdates[] = [
+                        'id' => $existingStockInventories[$itemCode]->id,
                         'stock_count' => $countedQuantity,
                         'updated_by_id' => $createdById,
-                    ]);
+                    ];
                 } else {
-                    // If the stock inventory does not exist, create a new one
-                    StockInventoryModel::create([
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                    $stockInventoryInserts[] = [
+                        'store_code' => $storeCode,
+                        'store_sub_unit_short_name' => $storeSubUnit,
                         'item_code' => $item->item_code,
                         'item_description' => $item->item_description,
                         'item_category_name' => $item->item_category_name,
                         'stock_count' => $countedQuantity,
                         'created_by_id' => $createdById,
                         'updated_by_id' => $createdById,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
 
-                $latestLog = StockLogModel::where([
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $item->item_code,
-                ])->orderBy('id', 'DESC')->first();
-
-                $data = [
-                    'reference_number' => $item->stockInventoryCount->reference_number,
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
+                // Prepare stock log insert
+                $latestLog = $latestLogs[$itemCode] ?? null;
+                $stockLogInserts[] = [
+                    'reference_number' => $referenceNumber,
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnit,
                     'item_code' => $latestLog?->item_code ?? $item->item_code,
                     'item_description' => $latestLog?->item_description ?? $item->item_description,
                     'item_category_name' => $latestLog?->item_category_name ?? $item->item_category_name,
@@ -285,13 +329,85 @@ class StockInventoryItemCountController extends Controller
                     'final_stock' => $countedQuantity,
                     'transaction_type' => 'adjustment',
                     'created_by_id' => $createdById,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
-
-                StockLogModel::create($data);
-
             }
+
+            // 7️⃣ Execute bulk updates for remarks (if any)
+            if (!empty($remarksUpdates)) {
+                $chunks = array_chunk($remarksUpdates, 500);
+                foreach ($chunks as $chunk) {
+                    $cases = [];
+                    $ids = [];
+                    foreach ($chunk as $update) {
+                        $id = $update['id'];
+                        $ids[] = $id;
+                        $escapedRemarks = DB::getPdo()->quote($update['remarks']);
+                        $cases[] = "WHEN {$id} THEN {$escapedRemarks}";
+                    }
+                    $idsString = implode(',', $ids);
+                    $remarksCase = implode(' ', $cases);
+                    DB::statement("
+                        UPDATE stock_inventory_items_count
+                        SET remarks = CASE id {$remarksCase} END,
+                            updated_at = ?
+                        WHERE id IN ({$idsString})
+                    ", [$now]);
+                }
+            }
+
+            // 8️⃣ Execute bulk updates for stock inventory
+            if (!empty($stockInventoryUpdates)) {
+                $chunks = array_chunk($stockInventoryUpdates, 500);
+                foreach ($chunks as $chunk) {
+                    $cases = [];
+                    $ids = [];
+                    foreach ($chunk as $update) {
+                        $id = $update['id'];
+                        $ids[] = $id;
+                        $cases['stock_count'][] = "WHEN {$id} THEN {$update['stock_count']}";
+                        $cases['updated_by_id'][] = "WHEN {$id} THEN {$update['updated_by_id']}";
+                    }
+                    $idsString = implode(',', $ids);
+                    $stockCountCase = implode(' ', $cases['stock_count']);
+                    $updatedByCase = implode(' ', $cases['updated_by_id']);
+                    DB::statement("
+                        UPDATE stock_inventories
+                        SET stock_count = CASE id {$stockCountCase} END,
+                            updated_by_id = CASE id {$updatedByCase} END,
+                            updated_at = ?
+                        WHERE id IN ({$idsString})
+                    ", [$now]);
+                }
+            }
+
+            // 9️⃣ Execute bulk inserts for new stock inventory
+            if (!empty($stockInventoryInserts)) {
+                $chunks = array_chunk($stockInventoryInserts, 500);
+                foreach ($chunks as $chunk) {
+                    StockInventoryModel::insert($chunk);
+                }
+            }
+
+            // 🔟 Execute bulk inserts for stock logs
+            if (!empty($stockLogInserts)) {
+                $chunks = array_chunk($stockLogInserts, 500);
+                foreach ($chunks as $chunk) {
+                    StockLogModel::insert($chunk);
+                }
+            }
+
             DB::commit();
-            return $this->dataResponse('success', 200, __('msg.update_success'));
+
+            return $this->dataResponse('success', 200, __('msg.update_success'), [
+                'processed_items' => count($stockInventoryItemCountModels),
+                'remarks_updated' => count($remarksUpdates),
+                'inventories_updated' => count($stockInventoryUpdates),
+                'inventories_created' => count($stockInventoryInserts),
+                'logs_created' => count($stockLogInserts),
+                'processing_time_ms' => round((microtime(true) - LARAVEL_START) * 1000, 2)
+            ]);
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, __('msg.update_failed'), $exception->getMessage());
