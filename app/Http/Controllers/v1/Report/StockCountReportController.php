@@ -74,50 +74,88 @@ class StockCountReportController extends Controller
                 $stockCountModel->whereIn('type', $countType);
             }
 
-            $stockCountModel = $stockCountModel->whereNotIn('status', [3])->orderBy('reference_number', 'ASC')->get();
+            // Eager load relationships to prevent N+1 queries
+            $stockCountModel = $stockCountModel
+                ->with([
+                    'stockInventoryItemsCount' => function ($query) use ($isShowOnlyNonZeroVariance) {
+                        // Only load items with non-zero variance if filter is applied
+                        if ($isShowOnlyNonZeroVariance) {
+                            $query->whereRaw('system_quantity != counted_quantity');
+                        }
+                    },
+                    'stockInventoryItemsCount.stockInventory:item_code,uom'
+                ])
+                ->whereNotIn('status', [3])
+                ->orderBy('reference_number', 'ASC')
+                ->get();
+
+            // Pre-load all users to avoid repeated queries
+            $userIds = $stockCountModel->pluck('created_by_id')
+                ->merge($stockCountModel->where('status', 2)->pluck('updated_by_id'))
+                ->filter()
+                ->unique();
+
+            $users = \App\Models\User::whereIn('employee_id', $userIds)
+                ->get()
+                ->keyBy('employee_id')
+                ->map(function ($user) {
+                    return $user->first_name . ' ' . $user->last_name;
+                });
+
+            // Pre-load store names to avoid repeated queries
+            $storeCodes = $stockCountModel->pluck('store_code')->unique();
+            $storeNames = \App\Models\Store\StoreReceivingInventoryItemModel::select('store_code', 'store_name')
+                ->whereIn('store_code', $storeCodes)
+                ->groupBy('store_code', 'store_name')
+                ->get()
+                ->pluck('store_name', 'store_code');
 
             $reportData = [];
             foreach ($stockCountModel as $item) {
-                $item->stockInventoryItemsCount->each(function ($countItem) use (&$reportData, $item, $isShowOnlyNonZeroVariance) {
-                    $remarks = $countItem['remarks'];
-                    $systemQuantity = $countItem['system_quantity'];
-                    $actualQuantity = $countItem['counted_quantity'];
+                $createdBy = $users[$item->created_by_id] ?? null;
+                $storeName = $storeNames[$item->store_code] ?? null;
+                $typeLabel = $item->type_label;
+                $statusLabel = $item->status_label;
+                $createdAt = $item->created_at ? $item->created_at->format('Y-m-d h:i A') : null;
+
+                $postedBy = null;
+                $postedAt = null;
+                if ($item->status == 2) {
+                    $postedBy = $users[$item->updated_by_id] ?? null;
+                    $postedAt = $item->updated_at ? $item->updated_at->format('Y-m-d h:i A') : null;
+                }
+
+                foreach ($item->stockInventoryItemsCount as $countItem) {
+                    $systemQuantity = $countItem->system_quantity;
+                    $actualQuantity = $countItem->counted_quantity;
                     $variance = $systemQuantity - $actualQuantity;
-                    if ($isShowOnlyNonZeroVariance && $variance == 0) {
-                        return; // Skip if variance is zero and filter is applied
-                    }
-                    $status = $item['status'];
-                    $postedBy = null;
-                    $postedAt = null;
-                    if ($status == 2) {
-                        $postedBy = $item['formatted_updated_by_label'];
-                        $postedAt = $item['formatted_updated_at_label'];
-                    }
+
                     $reportData[] = [
                         'id' => $countItem->id,
-                        'reference_number' => $item['reference_number'],
-                        'created_by' => $item['formatted_created_by_label'],
-                        'created_at' => $item['formatted_created_at_label'],
-                        'type' => $item['type_label'],
-                        'store_code' => $item['store_code'],
-                        'store_name' => $item['formatted_store_name_label'],
-                        'store_sub_unit_short_name' => $item['store_sub_unit_short_name'] ?? null,
-                        'item_code' => $countItem['item_code'],
+                        'reference_number' => $item->reference_number,
+                        'created_by' => $createdBy,
+                        'created_at' => $createdAt,
+                        'type' => $typeLabel,
+                        'store_code' => $item->store_code,
+                        'store_name' => $storeName,
+                        'store_sub_unit_short_name' => $item->store_sub_unit_short_name,
+                        'item_code' => $countItem->item_code,
                         'uom' => $countItem->stockInventory->uom ?? null,
-                        'item_description' => $countItem['item_description'],
-                        'status' => $item['status_label'],
+                        'item_description' => $countItem->item_description,
+                        'status' => $statusLabel,
                         'system_qty' => $systemQuantity,
                         'actual_qty' => $actualQuantity,
                         'variance' => $variance,
                         'posted_by' => $postedBy,
                         'date_posted' => $postedAt,
-                        'remarks' => $remarks,
+                        'remarks' => $countItem->remarks,
                     ];
-                });
+                }
             }
             if (empty($reportData)) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }
+            \Log::info(json_encode($reportData));
             return $this->dataResponse('success', 200, __('msg.record_found'), $reportData);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
