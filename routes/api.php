@@ -185,6 +185,13 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     Route::post('v1/direct/purchase/items/delete/{direct_purchase_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseItemController::class, 'onDelete']);
     #endregion
 
+    #region Purchase Request
+    Route::post('v1/purchase/request/create', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestController::class, 'onCreate']);
+    Route::get('v1/purchase/request/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestController::class, 'onGetCurrent']);
+    Route::get('v1/purchase/request/get/{purchase_request_id}', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestController::class, 'onGetById']);
+    Route::post('v1/purchase/request/update/{purchase_request_id}', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestController::class, 'onUpdate']);
+    #endregion
+
     #region Direct Purchase Handled Items
     Route::post('v1/direct/purchase/handled-items/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onCreate']);
     Route::post('v1/direct/purchase/handled-items/delete/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onDelete']);

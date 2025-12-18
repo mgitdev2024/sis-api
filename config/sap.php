@@ -15,5 +15,6 @@ return [
     'endpoints' => [
         'outbound_goods_issue' => env('SAP_OUTBOUND_GOODS_ISSUE_API_URL'),
         'inbound_good_receipt' => env('SAP_INBOUND_GOOD_RECEIPT_API_URL'),
+        'inbound_purchase_requisition' => env('SAP_INBOUND_PURCHASE_REQUISITION_API_URL'),
     ],
 ];
