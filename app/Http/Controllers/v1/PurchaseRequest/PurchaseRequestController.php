@@ -81,7 +81,7 @@ class PurchaseRequestController extends Controller
             ];
 
             DB::commit();
-            $this->createSapPurchaseRequest($data);
+            // $this->createSapPurchaseRequest($data);
 
             return $this->dataResponse('success', 200, 'Purchase Request Created Successfully.');
 
