@@ -28,7 +28,7 @@ class PurchaseRequestController extends Controller
             'purchase_request_items' => 'nullable|json',
             'delivery_date' => 'required|date',
         ]);
-        // dd($fields);
+
         try {
 
             DB::beginTransaction();
@@ -51,16 +51,13 @@ class PurchaseRequestController extends Controller
 
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
-
-                    $path = $file->store(
-                        'public/attachments/purchase_request'
-                    );
-
-                    $purchaseRequestAttachment[] =
-                        env('APP_URL') . '/storage/' . substr($path, 7);
+                    $path = $file->store('public/attachments/purchase_request');
+                    // Remove any leading slash from substr($path, 7)
+                    $relativePath = ltrim(substr($path, 7), '/');
+                    $purchaseRequestAttachment[] = rtrim(env('APP_URL'), '/') . '/storage/' . $relativePath;
                 }
             }
-
+            dd($purchaseRequestAttachment);
             $purchaseRequestModel = PurchaseRequestModel::create([
                 'reference_number' => PurchaseRequestModel::onGenerateReferenceNumber(),
                 'type' => $type,
@@ -78,7 +75,7 @@ class PurchaseRequestController extends Controller
                 'created_at' => now(),
             ]);
 
-            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $purchaseRequestModel, $purchaseRequestItems);
+            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $purchaseRequestItems);
 
             $data = [
                 'purchase_request_header' => $purchaseRequestModel,
@@ -96,7 +93,7 @@ class PurchaseRequestController extends Controller
         }
     }
 
-    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestModel, $purchaseRequestItems)
+    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestItems)
     {
         $purchaseRequestItems = json_decode($purchaseRequestItems, true);
         $createdBy = Auth::user()->id;
@@ -115,7 +112,7 @@ class PurchaseRequestController extends Controller
                     'price' => '1',
                     'currency' => 'PHP',
                     'delivery_date' => '',
-                    'remarks' => $items['remarks'],
+                    'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdBy,
                     'created_at' => now(),
                 ]);
@@ -128,12 +125,12 @@ class PurchaseRequestController extends Controller
                     'item_category_code' => 'A035',
                     'purchasing_organization' => 'MGPO',
                     'purchasing_group' => '001',
-                    'requested_quantity' => $items['requested_quantity'],
+                    'requested_quantity' => $items['requested_quantity'] ?? null,
                     'price' => '1',
                     'currency' => 'PHP',
                     'delivery_date' => '',
                     // 'storage_location' => 'BKRM',
-                    'remarks' => $items['remarks'],
+                    'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdBy,
                     'created_at' => now(),
                 ];
@@ -215,8 +212,8 @@ class PurchaseRequestController extends Controller
 
             if ($request->hasFile('attachment')) {
                 $attachmentPath = $request->file('attachment')->store('public/attachments/purchase_request');
-                $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
-                $purchaseRequest->attachment = $filepath;
+                $relativePath = ltrim(substr($attachmentPath, 7), '/');
+                $purchaseRequest->attachment = rtrim(env('APP_URL'), '/') . '/storage/' . $relativePath;
             }
 
             $purchaseRequest->save();
