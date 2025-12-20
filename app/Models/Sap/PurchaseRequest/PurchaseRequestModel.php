@@ -16,6 +16,7 @@ class PurchaseRequestModel extends Model
         'remarks',
         'store_code',
         'store_sub_unit_short_name',
+        'storage_location',
         'status',  // * 0 = Closed PR, 2 = For Receive, 3 = For PO, 1 = Pending
         'attachment',
         'created_by_id',

@@ -16,8 +16,10 @@ return new class extends Migration {
             $table->id();
             $table->string('reference_number'); //* PR-000001
             $table->unsignedBigInteger('type');  //* 0 = Regular PR, 1 Staggered PR
-            $table->string('store_code');
+            $table->string('store_code'); // 17CA
             $table->string('store_sub_unit_short_name')->nullable();
+            $table->string('store_company_code')->nullable(); // MGFI FTFI BMII
+            $table->string('storage_location')->nullable(); // C001
             $table->text('attachment')->nullable();
             $table->date('delivery_date');
             $table->text('remarks')->nullable();
@@ -27,18 +29,15 @@ return new class extends Migration {
         Schema::create('purchase_request_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('purchase_request_id'); //* FK to purchase request
-            $table->string('item_code');
-            $table->string('item_name');
+            $table->string('item_code')->nullable();
+            $table->string('item_name')->nullable();
             $table->string('item_category_code')->nullable();
-            $table->string('store_code');
-            $table->string('store_company_code')->nullable();
             $table->string('purchasing_organization')->nullable();
-            $table->string('purchasing_group');
-            $table->unsignedBigInteger('requested_quantity');
-            $table->unsignedBigInteger('price');
-            $table->string('currency')->default('PHP');
-            $table->datetime('delivery_date');
-            $table->string('storage_location');
+            $table->string('purchasing_group')->nullable();
+            $table->unsignedBigInteger('requested_quantity')->nullable();
+            $table->unsignedBigInteger('price')->nullable();
+            $table->string('currency')->nullable();
+            $table->datetime('delivery_date')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 0);
         });
@@ -48,7 +47,7 @@ return new class extends Migration {
             $table->id();
             $table->string('definition_id'); //* Static value
             $table->string('bpa_response_id')->nullable();
-            $table->string('purchase_requisition_type')->default('NB');
+            $table->string('purchase_requisition_type')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 1);
 
@@ -57,17 +56,17 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('purchase_request_id'); //* FK to purchase_request
             $table->unsignedBigInteger('purchase_requisition_item'); //* by 10's incrementation
-            $table->string('material'); //* Item Code
-            $table->string('material_group'); //* Item Category Code
+            $table->string('material')->nullable(); //* Item Code
+            $table->string('material_group')->nullable(); //* Item Category Code
             $table->string('plant')->nullable(); //* Store Code
-            $table->string('company_code'); //* Store Company Code
+            $table->string('company_code')->nullable(); //* Store Company Code
             $table->string('purchasing_organization')->nullable();
-            $table->string('purchasing_group');
-            $table->unsignedBigInteger('requested_quantity');
-            $table->unsignedBigInteger('purchase_requisition_price'); //* Price
-            $table->string('purchase_requisition_item_currency')->default('PHP');//* Currency
-            $table->datetime('delivery_date'); //* Expected Delivery Date
-            $table->string('storage_location');
+            $table->string('purchasing_group')->nullable();
+            $table->unsignedBigInteger('requested_quantity')->nullable();
+            $table->unsignedBigInteger('purchase_requisition_price')->nullable(); //* Price
+            $table->string('purchase_requisition_item_currency')->nullable();//* Currency
+            $table->datetime('delivery_date')->nullable(); //* Expected Delivery Date
+            $table->string('storage_location')->nullable();
             $table->text('purchase_requisition_item_text')->nullable(); //* Remarks
             SchemaHelper::addCommonColumns($table, 0);
         });
@@ -95,5 +94,6 @@ return new class extends Migration {
         Schema::dropIfExists('purchase_request_items');
         Schema::dropIfExists('sap_purchase_request');
         Schema::dropIfExists('sap_purchase_request_items');
+        Schema::dropIfExists('purchase_request_cache');
     }
 };
