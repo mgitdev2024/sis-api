@@ -37,7 +37,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('requested_quantity')->nullable();
             $table->unsignedBigInteger('price')->nullable();
             $table->string('currency')->nullable();
-            $table->datetime('delivery_date')->nullable();
+            $table->date('delivery_date')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 0);
         });
