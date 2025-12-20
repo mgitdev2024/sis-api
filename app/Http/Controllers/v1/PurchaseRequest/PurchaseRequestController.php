@@ -22,11 +22,13 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string',
             'store_code' => 'required|string',
             'store_sub_unit_short_name' => 'required|string',
+            'storage_location' => 'nullable|string',
             'attachment' => 'nullable|array',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
             'delivery_date' => 'required|date',
         ]);
+        // dd($fields);
         try {
 
             DB::beginTransaction();
@@ -36,9 +38,10 @@ class PurchaseRequestController extends Controller
             $expectedDeliveryDate = $fields['delivery_date'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
+            $storageLocation = $fields['storage_location'];
             $purchaseRequestItems = $fields['purchase_request_items'];
             // $purchaseRequestAttachment = null;
-
+            // dd($storageLocation);
             // if ($request->hasFile('attachment')) {
             //     $attachmentPath = $request->file('attachment')->store('public/attachments/purchase_request');
             //     $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
@@ -64,6 +67,8 @@ class PurchaseRequestController extends Controller
                 'remarks' => $remarks,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'store_company_code' => 'BMII',
+                'storage_location' => $storageLocation,
                 'attachment' => !empty($purchaseRequestAttachment)
                     ? json_encode($purchaseRequestAttachment)
                     : null,
@@ -73,7 +78,7 @@ class PurchaseRequestController extends Controller
                 'created_at' => now(),
             ]);
 
-            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $purchaseRequestItems);
+            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $purchaseRequestModel, $purchaseRequestItems);
 
             $data = [
                 'purchase_request_header' => $purchaseRequestModel,
@@ -91,7 +96,7 @@ class PurchaseRequestController extends Controller
         }
     }
 
-    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestItems)
+    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestModel, $purchaseRequestItems)
     {
         $purchaseRequestItems = json_decode($purchaseRequestItems, true);
         $createdBy = Auth::user()->id;
@@ -99,20 +104,17 @@ class PurchaseRequestController extends Controller
             $data = [];
             foreach ($purchaseRequestItems as $items) {
 
-                $directPurchaseItemModel = PurchaseRequestItemModel::create([
+                $purchaseRequestItemModel = PurchaseRequestItemModel::create([
                     'purchase_request_id' => $purchaseRequestModelId,
                     'item_code' => $items['item_code'],
                     'item_name' => $items['item_name'],
-                    'item_category_code' => $items['item_category_code'],
-                    'store_code' => $items['store_code'],
-                    'store_company_code' => $items['store_company_code'],
-                    'purchasing_organization' => $items['purchasing_organization'],
-                    'purchasing_group' => $items['purchasing_group'],
+                    'item_category_code' => 'A035',
+                    'purchasing_organization' => 'MGPO',
+                    'purchasing_group' => '001',
                     'requested_quantity' => $items['requested_quantity'],
                     'price' => $items['price'],
-                    'currency' => $items['currency'],
+                    'currency' => 'PHP',
                     'delivery_date' => $items['delivery_date'],
-                    'storage_location' => $items['storage_location'],
                     'remarks' => $items['remarks'],
                     'created_by_id' => $createdBy,
                     'created_at' => now(),
@@ -120,19 +122,17 @@ class PurchaseRequestController extends Controller
 
                 $data[] = [
                     'purchase_request_id' => $purchaseRequestModelId,
-                    'purchase_request_item_id' => $directPurchaseItemModel->id,
+                    'purchase_request_item_id' => $purchaseRequestItemModel->id,
                     'item_code' => $items['item_code'],
                     'item_name' => $items['item_name'],
-                    'item_category_code' => $items['item_category_code'],
-                    'store_code' => $items['store_code'],
-                    'store_company_code' => $items['store_company_code'],
-                    'purchasing_organization' => $items['purchasing_organization'],
-                    'purchasing_group' => $items['purchasing_group'],
+                    'item_category_code' => 'A035',
+                    'purchasing_organization' => 'MGPO',
+                    'purchasing_group' => '001',
                     'requested_quantity' => $items['requested_quantity'],
                     'price' => $items['price'],
-                    'currency' => $items['currency'],
+                    'currency' => 'PHP',
                     'delivery_date' => $items['delivery_date'],
-                    'storage_location' => $items['storage_location'],
+                    // 'storage_location' => 'BKRM',
                     'remarks' => $items['remarks'],
                     'created_by_id' => $createdBy,
                     'created_at' => now(),
