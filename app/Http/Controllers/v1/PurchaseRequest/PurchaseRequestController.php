@@ -23,6 +23,7 @@ class PurchaseRequestController extends Controller
             'store_code' => 'required|string',
             'store_sub_unit_short_name' => 'required|string',
             'storage_location' => 'nullable|string',
+            'created_by_id' => 'required',
             'attachment' => 'nullable',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
@@ -32,7 +33,6 @@ class PurchaseRequestController extends Controller
         try {
 
             DB::beginTransaction();
-            $createdBy = Auth::user()->id;
             $type = $fields['type'];
             $remarks = $fields['remarks'] ?? null;
             $expectedDeliveryDate = $fields['delivery_date'];
@@ -40,20 +40,23 @@ class PurchaseRequestController extends Controller
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
             $storageLocation = $fields['storage_location'];
             $purchaseRequestItems = $fields['purchase_request_items'];
-
+            $createdById = $fields['created_by_id'];
             $purchaseRequestAttachment = [];
 
             if ($request->hasFile('attachment')) {
-
                 $files = $request->file('attachment');
-
                 if (!is_array($files)) {
                     $files = [$files];
                 }
-
                 foreach ($files as $file) {
                     $path = $file->store('attachments/purchase_request', 'public');
-                    $purchaseRequestAttachment[] = asset(Storage::url($path));
+                    $purchaseRequestAttachment[] = [
+                        'url' => asset(Storage::url($path)),
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getClientMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                    ];
                 }
             }
 
@@ -68,11 +71,11 @@ class PurchaseRequestController extends Controller
                 'attachment' => $purchaseRequestAttachment,
                 'delivery_date' => $expectedDeliveryDate,
                 'status' => '1', //* Default pending upon PR (Viewing Purposes) // * 0 = Closed PR, 2 = For Receive, 3 = For PO, 1 = Pending
-                'created_by_id' => $createdBy,
+                'created_by_id' => $createdById,
                 'created_at' => now(),
             ]);
 
-            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $purchaseRequestItems);
+            $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $createdById, $purchaseRequestItems);
 
             $data = [
                 'purchase_request_header' => $purchaseRequestModel,
@@ -90,11 +93,10 @@ class PurchaseRequestController extends Controller
         }
     }
 
-    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestItems)
+    public function onCreatePurchaseRequestItems($purchaseRequestModelId, $createdById, $purchaseRequestItems)
     {
         $purchaseRequestItems = json_decode($purchaseRequestItems, true);
-        // dd($purchaseRequestItems);
-        $createdBy = Auth::user()->id;
+
         try {
             $data = [];
             foreach ($purchaseRequestItems as $items) {
@@ -112,7 +114,7 @@ class PurchaseRequestController extends Controller
                     'currency' => 'PHP',
                     'delivery_date' => null,
                     'remarks' => $items['remarks'] ?? null,
-                    'created_by_id' => $createdBy,
+                    'created_by_id' => $createdById,
                     'created_at' => now(),
                 ]);
 
@@ -131,7 +133,7 @@ class PurchaseRequestController extends Controller
                     'delivery_date' => null,
                     // 'storage_location' => 'BKRM',
                     'remarks' => $items['remarks'] ?? null,
-                    'created_by_id' => $createdBy,
+                    'created_by_id' => $createdById,
                     'created_at' => now(),
                 ];
             }
@@ -158,11 +160,18 @@ class PurchaseRequestController extends Controller
                 $query->where('store_sub_unit_short_name', $sub_unit);
             }
 
-            $purchaseRequests = $query->orderBy('id', 'DESC')
-                ->get();
+            $purchaseRequests = $query->orderBy('id', 'DESC')->get();
             if ($purchaseRequests->isEmpty()) {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'), []);
             }
+            // Decode attachment field for each request
+            $purchaseRequests->transform(function ($item) {
+                if (!empty($item->attachment) && is_string($item->attachment)) {
+                    $decoded = json_decode($item->attachment, true);
+                    $item->attachment = $decoded ?: $item->attachment;
+                }
+                return $item;
+            });
             return $this->dataResponse('success', 200, __('msg.record_found'), $purchaseRequests);
 
         } catch (Exception $exception) {
@@ -175,6 +184,11 @@ class PurchaseRequestController extends Controller
         try {
             $purchaseRequestModel = PurchaseRequestModel::find($purchase_request_id);
             if ($purchaseRequestModel) {
+                // Decode attachment field
+                if (!empty($purchaseRequestModel->attachment) && is_string($purchaseRequestModel->attachment)) {
+                    $decoded = json_decode($purchaseRequestModel->attachment, true);
+                    $purchaseRequestModel->attachment = $decoded ?: $purchaseRequestModel->attachment;
+                }
                 $data = [
                     'purchase_request_header' => $purchaseRequestModel,
                     'purchase_request_items' => $purchaseRequestModel->purchaseRequestItems()->get(),
@@ -196,6 +210,7 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string',
             'attachment' => 'nullable',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
+
             'purchase_request_items' => 'nullable|json',
             'updated_by_id' => 'required',
         ]);
@@ -208,6 +223,7 @@ class PurchaseRequestController extends Controller
 
             $purchaseRequest->delivery_date = $fields['delivery_date'];
             $purchaseRequest->remarks = $fields['remarks'] ?? $purchaseRequest->remarks;
+            $purchaseRequest->created_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_at = now();
 
@@ -234,7 +250,7 @@ class PurchaseRequestController extends Controller
                 // Remove old items
                 PurchaseRequestItemModel::where('purchase_request_id', $purchase_request_id)->delete();
                 // Create new items
-                $this->onCreatePurchaseRequestItems($purchase_request_id, $fields['purchase_request_items']);
+                $this->onCreatePurchaseRequestItems($purchase_request_id, $fields['updated_by_id'], $fields['purchase_request_items']);
             }
 
             DB::commit();
