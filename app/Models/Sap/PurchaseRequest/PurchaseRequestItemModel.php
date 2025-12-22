@@ -17,22 +17,19 @@ class PurchaseRequestItemModel extends Model
         'item_code',
         'item_name',
         'item_category_code',
-        'store_code',
-        'store_company_code',
+        'uom',
         'purchasing_organization',
         'purchasing_group',
         'requested_quantity',
         'price', //* Default 1 Peso
         'currency', //* PHP
         'delivery_date', //* Expected Delivery Date
-        'storage_location',
         'remarks', //* Remarks per item
         'created_at',
         'created_by_id',
         'updated_by_id',
         'updated_at'
     ];
-
     public function purchaseRequest()
     {
         return $this->belongsTo(PurchaseRequestModel::class, 'purchase_request_id');

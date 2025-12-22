@@ -9,6 +9,7 @@ class PurchaseRequestModel extends Model
 {
     use HasFactory;
     protected $table = 'purchase_request';
+
     protected $fillable = [
         'reference_number',
         'type',
@@ -24,7 +25,9 @@ class PurchaseRequestModel extends Model
         'created_at',
         'updated_at'
     ];
-
+    protected $casts = [
+        'attachment' => 'array',
+    ];
     public static function onGenerateReferenceNumber()
     {
         $latestPurchaseRequestId = static::latest()->value('id');
