@@ -10,7 +10,7 @@ use App\Traits\Sap\SapPurchaseRequisitionTrait;
 use DB, Http, Exception, Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 class PurchaseRequestController extends Controller
 {
     use ResponseTrait, SapPurchaseRequisitionTrait;
@@ -23,7 +23,7 @@ class PurchaseRequestController extends Controller
             'store_code' => 'required|string',
             'store_sub_unit_short_name' => 'required|string',
             'storage_location' => 'nullable|string',
-            'attachment' => 'nullable|array',
+            'attachment' => 'nullable',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
             'delivery_date' => 'required|date',
@@ -40,24 +40,23 @@ class PurchaseRequestController extends Controller
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
             $storageLocation = $fields['storage_location'];
             $purchaseRequestItems = $fields['purchase_request_items'];
-            // $purchaseRequestAttachment = null;
-            // dd($storageLocation);
-            // if ($request->hasFile('attachment')) {
-            //     $attachmentPath = $request->file('attachment')->store('public/attachments/purchase_request');
-            //     $filepath = env('APP_URL') . '/storage/' . substr($attachmentPath, 7);
-            //     $purchaseRequestAttachment = $filepath;
-            // }
+
             $purchaseRequestAttachment = [];
 
             if ($request->hasFile('attachment')) {
-                foreach ($request->file('attachment') as $file) {
-                    $path = $file->store('public/attachments/purchase_request');
-                    // Remove any leading slash from substr($path, 7)
-                    $relativePath = ltrim(substr($path, 7), '/');
-                    $purchaseRequestAttachment[] = rtrim(env('APP_URL'), '/') . '/storage/' . $relativePath;
+
+                $files = $request->file('attachment');
+
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+
+                foreach ($files as $file) {
+                    $path = $file->store('attachments/purchase_request', 'public');
+                    $purchaseRequestAttachment[] = asset(Storage::url($path));
                 }
             }
-            dd($purchaseRequestAttachment);
+
             $purchaseRequestModel = PurchaseRequestModel::create([
                 'reference_number' => PurchaseRequestModel::onGenerateReferenceNumber(),
                 'type' => $type,
@@ -66,9 +65,7 @@ class PurchaseRequestController extends Controller
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
                 'store_company_code' => 'BMII',
                 'storage_location' => $storageLocation,
-                'attachment' => !empty($purchaseRequestAttachment)
-                    ? json_encode($purchaseRequestAttachment)
-                    : null,
+                'attachment' => $purchaseRequestAttachment,
                 'delivery_date' => $expectedDeliveryDate,
                 'status' => '1', //* Default pending upon PR (Viewing Purposes) // * 0 = Closed PR, 2 = For Receive, 3 = For PO, 1 = Pending
                 'created_by_id' => $createdBy,
@@ -96,6 +93,7 @@ class PurchaseRequestController extends Controller
     public function onCreatePurchaseRequestItems($purchaseRequestModelId, $purchaseRequestItems)
     {
         $purchaseRequestItems = json_decode($purchaseRequestItems, true);
+        // dd($purchaseRequestItems);
         $createdBy = Auth::user()->id;
         try {
             $data = [];
@@ -103,15 +101,16 @@ class PurchaseRequestController extends Controller
 
                 $purchaseRequestItemModel = PurchaseRequestItemModel::create([
                     'purchase_request_id' => $purchaseRequestModelId,
-                    'item_code' => $items['item_code'],
-                    'item_name' => $items['item_name'],
+                    'item_code' => $items['item_code'] ?? null,
+                    'item_name' => $items['item_name'] ?? null,
                     'item_category_code' => 'A035',
+                    'uom' => $items['uom'] ?? null,
                     'purchasing_organization' => 'MGPO',
                     'purchasing_group' => '001',
-                    'requested_quantity' => $items['requested_quantity'],
+                    'requested_quantity' => $items['requested_quantity'] ?? null,
                     'price' => '1',
                     'currency' => 'PHP',
-                    'delivery_date' => '',
+                    'delivery_date' => null,
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdBy,
                     'created_at' => now(),
@@ -123,12 +122,13 @@ class PurchaseRequestController extends Controller
                     'item_code' => $items['item_code'],
                     'item_name' => $items['item_name'],
                     'item_category_code' => 'A035',
+                    'uom' => $items['uom'] ?? null,
                     'purchasing_organization' => 'MGPO',
                     'purchasing_group' => '001',
                     'requested_quantity' => $items['requested_quantity'] ?? null,
                     'price' => '1',
                     'currency' => 'PHP',
-                    'delivery_date' => '',
+                    'delivery_date' => null,
                     // 'storage_location' => 'BKRM',
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdBy,
@@ -147,7 +147,7 @@ class PurchaseRequestController extends Controller
     {
         try {
             $query = PurchaseRequestModel::query();
-            if ($status == 4) {
+            if ($status == 1) {
                 $query->where('store_code', $store_code);
             } else {
                 $query->where('store_code', $store_code)
@@ -194,7 +194,8 @@ class PurchaseRequestController extends Controller
         $fields = $request->validate([
             'delivery_date' => 'required|date',
             'remarks' => 'nullable|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png',
+            'attachment' => 'nullable',
+            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
             'updated_by_id' => 'required',
         ]);
@@ -210,10 +211,20 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->updated_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_at = now();
 
+
+            $purchaseRequestAttachment = [];
             if ($request->hasFile('attachment')) {
-                $attachmentPath = $request->file('attachment')->store('public/attachments/purchase_request');
-                $relativePath = ltrim(substr($attachmentPath, 7), '/');
-                $purchaseRequest->attachment = rtrim(env('APP_URL'), '/') . '/storage/' . $relativePath;
+                $files = $request->file('attachment');
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+                foreach ($files as $file) {
+                    $path = $file->store('attachments/purchase_request', 'public');
+                    $purchaseRequestAttachment[] = asset(\Storage::url($path));
+                }
+            }
+            if (!empty($purchaseRequestAttachment)) {
+                $purchaseRequest->attachment = $purchaseRequestAttachment;
             }
 
             $purchaseRequest->save();

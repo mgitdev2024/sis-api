@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('store_company_code')->nullable(); // MGFI FTFI BMII
             $table->string('storage_location')->nullable(); // C001
             $table->text('attachment')->nullable();
-            $table->date('delivery_date');
+            $table->date('delivery_date')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 1); // 0 = Closed PR, 2 = For Receive, 3 = For PO, 1 = Pending
 
@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('item_code')->nullable();
             $table->string('item_name')->nullable();
             $table->string('item_category_code')->nullable();
+            $table->string('uom')->nullable();
             $table->string('purchasing_organization')->nullable();
             $table->string('purchasing_group')->nullable();
             $table->unsignedBigInteger('requested_quantity')->nullable();
@@ -48,6 +49,7 @@ return new class extends Migration {
             $table->string('definition_id'); //* Static value
             $table->string('bpa_response_id')->nullable();
             $table->string('purchase_requisition_type')->nullable();
+            $table->text('attachment')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 1);
 
@@ -60,29 +62,30 @@ return new class extends Migration {
             $table->string('material_group')->nullable(); //* Item Category Code
             $table->string('plant')->nullable(); //* Store Code
             $table->string('company_code')->nullable(); //* Store Company Code
+            $table->string('base_unit_iso_code')->nullable(); //uom
             $table->string('purchasing_organization')->nullable();
             $table->string('purchasing_group')->nullable();
             $table->unsignedBigInteger('requested_quantity')->nullable();
             $table->unsignedBigInteger('purchase_requisition_price')->nullable(); //* Price
             $table->string('purchase_requisition_item_currency')->nullable();//* Currency
-            $table->datetime('delivery_date')->nullable(); //* Expected Delivery Date
+            $table->date('delivery_date')->nullable(); //* Expected Delivery Date
             $table->string('storage_location')->nullable();
             $table->text('purchase_requisition_item_text')->nullable(); //* Remarks
             SchemaHelper::addCommonColumns($table, 0);
         });
 
-        Schema::create('purchase_request_cache', function (Blueprint $table) {
-            $table->id();
-            $table->string('reference_number');
-            $table->string('uuid');
-            $table->string('store_code');
-            $table->string('store_sub_unit_short_name')->nullable();
-            $table->longText('items');
-            $table->date('delivery_date');
-            $table->text('remarks')->nullable();
-            $table->text('attachment')->nullable();
-            SchemaHelper::addCommonColumns($table);
-        });
+        // Schema::create('purchase_request_cache', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('reference_number');
+        //     $table->string('uuid');
+        //     $table->string('store_code');
+        //     $table->string('store_sub_unit_short_name')->nullable();
+        //     $table->longText('items');
+        //     $table->date('delivery_date');
+        //     $table->text('remarks')->nullable();
+        //     $table->text('attachment')->nullable();
+        //     SchemaHelper::addCommonColumns($table);
+        // });
     }
 
     /**
@@ -94,6 +97,6 @@ return new class extends Migration {
         Schema::dropIfExists('purchase_request_items');
         Schema::dropIfExists('sap_purchase_request');
         Schema::dropIfExists('sap_purchase_request_items');
-        Schema::dropIfExists('purchase_request_cache');
+        // Schema::dropIfExists('purchase_request_cache');
     }
 };

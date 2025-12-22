@@ -25,6 +25,7 @@ trait SapPurchaseRequisitionTrait
             $storeCodeData = $storeCodeResponse->json();
             $sapPurchaseItems = $decodedPurchaseReqData['purchase_request_items'];
             $headerRemarks = $decodedPurchaseReqData['purchase_request_header']['remarks'];
+            $headerAttachment = $decodedPurchaseReqData['purchase_request_header']['attachment'];
             $definitionId = 'jp10.com-mgfi-dev.mgiossupplierdirectdeliveryinboundpurchaserequestcreate.purchaseRequisitionProcess';
 
             $sapPurReqArr = [];
@@ -50,16 +51,16 @@ trait SapPurchaseRequisitionTrait
                 $purchaseItemLine += 10;
             }
             //* Save all to database after loop
-            $this->saveSapPurchaseRequest($definitionId, $headerRemarks, $sapPurReqArr);
+            $this->saveSapPurchaseRequest($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr);
 
             //* Call SAP API with prepared payload
-            $this->purchaseRequisitionApiCall($definitionId, $headerRemarks, $sapPurReqArr);
+            $this->purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr);
         } catch (Exception $exception) {
             throw new Exception("Error creating SAP Purchase Requisition: " . $exception->getMessage());
         }
     }
 
-    public function purchaseRequisitionApiCall($definitionId, $headerRemarks, $sapPurReqArr)
+    public function purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr)
     {
         try {
             $purchaseRequisitionFormatting = $payload ?? [
@@ -68,6 +69,7 @@ trait SapPurchaseRequisitionTrait
                     'purchaseRequisitionDataType' => [
                         'PurchaseRequisitionType' => 'NB',
                         'PurReqnDescription' => $headerRemarks,
+                        'PurReqnHeaderNote' => $headerAttachment,
                         '_PurchaseRequisitionItem' => $sapPurReqArr
                     ]
                 ]
@@ -91,7 +93,7 @@ trait SapPurchaseRequisitionTrait
         }
     }
 
-    private function saveSapPurchaseRequest($definitionId, $headerRemarks, $sapPurReqArr)
+    private function saveSapPurchaseRequest($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr)
     {
         $createdBy = Auth::user()->id;
         try {
@@ -101,6 +103,7 @@ trait SapPurchaseRequisitionTrait
                 'bpa_response_id' => '',
                 'purchase_requisition_type' => 'NB',
                 'remarks' => $headerRemarks,
+                'attachment' => $headerAttachment,
                 'status' => '3',
                 'created_by_id' => $createdBy,
             ]);
