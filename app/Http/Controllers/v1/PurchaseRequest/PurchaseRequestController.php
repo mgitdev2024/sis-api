@@ -202,63 +202,128 @@ class PurchaseRequestController extends Controller
         }
     }
 
-
     public function onUpdate(Request $request, $purchase_request_id)
     {
         $fields = $request->validate([
             'delivery_date' => 'required|date',
             'remarks' => 'nullable|string',
-            'attachment' => 'nullable',
+
+            // URLs to delete (identity = URL)
+            'delete_attachments' => 'nullable|array',
+            'delete_attachments.*' => 'string',
+
+            // New images (blob/binary)
+            'attachment' => 'nullable|array',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
 
             'purchase_request_items' => 'nullable|json',
             'updated_by_id' => 'required',
         ]);
+
         try {
             DB::beginTransaction();
+
             $purchaseRequest = PurchaseRequestModel::find($purchase_request_id);
             if (!$purchaseRequest) {
-                return $this->dataResponse('error', 404, __('msg.record_failed'), 'Purchase Request not found.');
+                return $this->dataResponse(
+                    'error',
+                    404,
+                    __('msg.record_failed'),
+                    'Purchase Request not found.'
+                );
             }
+
+            //*BASIC UPDATE
 
             $purchaseRequest->delivery_date = $fields['delivery_date'];
             $purchaseRequest->remarks = $fields['remarks'] ?? $purchaseRequest->remarks;
-            $purchaseRequest->created_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_at = now();
 
+            //*ATTACHMENT UPDATE LOGIC (handles JSON strings and prevents in_array() mismatches)
 
-            $purchaseRequestAttachment = [];
+            $currentAttachments = $purchaseRequest->attachment ?? [];
+            $deleteAttachments = $request->delete_attachments ?? [];
+
+            if (
+                count($deleteAttachments) === 1 &&
+                is_string($deleteAttachments[0])
+            ) {
+                $decoded = json_decode($deleteAttachments[0], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $deleteAttachments = $decoded;
+                }
+            }
+
+            // Upload new blobs
+            $uploadedUrls = [];
             if ($request->hasFile('attachment')) {
-                $files = $request->file('attachment');
-                if (!is_array($files)) {
-                    $files = [$files];
-                }
-                foreach ($files as $file) {
+                foreach ($request->file('attachment') as $file) {
                     $path = $file->store('attachments/purchase_request', 'public');
-                    $purchaseRequestAttachment[] = asset(\Storage::url($path));
+                    $uploadedUrls[] = asset(\Storage::url($path));
                 }
-            }
-            if (!empty($purchaseRequestAttachment)) {
-                $purchaseRequest->attachment = $purchaseRequestAttachment;
             }
 
+            $finalAttachments = [];
+            $uploadIndex = 0;
+
+            foreach ($currentAttachments as $url) {
+                if (in_array($url, $deleteAttachments, true)) {
+                    // Replace deleted image
+                    if (isset($uploadedUrls[$uploadIndex])) {
+                        $finalAttachments[] = $uploadedUrls[$uploadIndex];
+                        $uploadIndex++;
+                    }
+                } else {
+                    // Keep image
+                    $finalAttachments[] = $url;
+                }
+            }
+
+            // Append remaining uploaded images
+            while (isset($uploadedUrls[$uploadIndex])) {
+                $finalAttachments[] = $uploadedUrls[$uploadIndex];
+                $uploadIndex++;
+            }
+
+            $purchaseRequest->attachment = $finalAttachments;
             $purchaseRequest->save();
 
-            // Update items if provided
+            //* UPDATE ITEMS (OPTIONAL)
+
             if (!empty($fields['purchase_request_items'])) {
-                // Remove old items
-                PurchaseRequestItemModel::where('purchase_request_id', $purchase_request_id)->delete();
-                // Create new items
-                $this->onCreatePurchaseRequestItems($purchase_request_id, $fields['updated_by_id'], $fields['purchase_request_items']);
+                PurchaseRequestItemModel::where(
+                    'purchase_request_id',
+                    $purchase_request_id
+                )->delete();
+
+                $this->onCreatePurchaseRequestItems(
+                    $purchase_request_id,
+                    $fields['updated_by_id'],
+                    $fields['purchase_request_items']
+                );
             }
 
             DB::commit();
-            return $this->dataResponse('success', 200, 'Purchase Request Updated Successfully.');
+
+            return $this->dataResponse(
+                'success',
+                200,
+                'Purchase Request Updated Successfully.'
+            );
+
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+
+            return $this->dataResponse(
+                'error',
+                404,
+                __('msg.update_failed'),
+                $exception->getMessage()
+            );
         }
     }
+
+
 
 }
