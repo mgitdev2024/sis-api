@@ -51,11 +51,13 @@ class PurchaseRequestController extends Controller
                 foreach ($files as $file) {
                     $path = $file->store('attachments/purchase_request', 'public');
                     $purchaseRequestAttachment[] = [
+                        'id' => (string) \Str::uuid(),
                         'url' => asset(Storage::url($path)),
                         'name' => $file->getClientOriginalName(),
                         'size' => $file->getSize(),
-                        'mime' => $file->getClientMimeType(),
+                        'mime' => $file->getMimeType(),
                         'extension' => $file->getClientOriginalExtension(),
+                        'path' => $path,
                     ];
                 }
             }
@@ -208,11 +210,10 @@ class PurchaseRequestController extends Controller
             'delivery_date' => 'required|date',
             'remarks' => 'nullable|string',
 
-            // URLs to delete (identity = URL)
-            'delete_attachments' => 'nullable|array',
-            'delete_attachments.*' => 'string',
+            // existing attachments sent as JSON string
+            'existing_attachments' => 'nullable|string',
 
-            // New images (blob/binary)
+            // newly uploaded files
             'attachment' => 'nullable|array',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
 
@@ -225,78 +226,75 @@ class PurchaseRequestController extends Controller
 
             $purchaseRequest = PurchaseRequestModel::find($purchase_request_id);
             if (!$purchaseRequest) {
-                return $this->dataResponse(
-                    'error',
-                    404,
-                    __('msg.record_failed'),
-                    'Purchase Request not found.'
-                );
+                return $this->dataResponse('error', 404, 'Purchase Request not found.');
             }
 
-            //*BASIC UPDATE
+            // BASIC UPDATE
 
             $purchaseRequest->delivery_date = $fields['delivery_date'];
             $purchaseRequest->remarks = $fields['remarks'] ?? $purchaseRequest->remarks;
             $purchaseRequest->updated_by_id = $fields['updated_by_id'];
             $purchaseRequest->updated_at = now();
 
-            //*ATTACHMENT UPDATE LOGIC (handles JSON strings and prevents in_array() mismatches)
+            // EXISTING ATTACHMENTS
 
-            $currentAttachments = $purchaseRequest->attachment ?? [];
-            $deleteAttachments = $request->delete_attachments ?? [];
+            $existingAttachments = [];
 
-            if (
-                count($deleteAttachments) === 1 &&
-                is_string($deleteAttachments[0])
-            ) {
-                $decoded = json_decode($deleteAttachments[0], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    $deleteAttachments = $decoded;
+            if (!empty($fields['existing_attachments'])) {
+                $existingAttachments = json_decode($fields['existing_attachments'], true) ?? [];
+            }
+
+            // normalize old attachments from DB
+            $oldAttachments = $purchaseRequest->attachment ?? [];
+
+            //DELETE REMOVED FILES
+
+            $existingPaths = collect($existingAttachments)->pluck('path')->filter()->toArray();
+
+            foreach ($oldAttachments as $old) {
+                if (
+                    isset($old['path']) &&
+                    !in_array($old['path'], $existingPaths)
+                ) {
+                    \Storage::disk('public')->delete($old['path']);
                 }
             }
 
-            // Upload new blobs
-            $uploadedUrls = [];
+            // HANDLE NEW UPLOADS
+
+            $newAttachments = [];
+
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
+
                     $path = $file->store('attachments/purchase_request', 'public');
-                    $uploadedUrls[] = asset(\Storage::url($path));
+
+                    $newAttachments[] = [
+                        'id' => (string) \Str::uuid(),
+                        'url' => asset(\Storage::url($path)),
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'path' => $path,
+                    ];
                 }
             }
 
-            $finalAttachments = [];
-            $uploadIndex = 0;
+            // FINAL MERGE
 
-            foreach ($currentAttachments as $url) {
-                if (in_array($url, $deleteAttachments, true)) {
-                    // Replace deleted image
-                    if (isset($uploadedUrls[$uploadIndex])) {
-                        $finalAttachments[] = $uploadedUrls[$uploadIndex];
-                        $uploadIndex++;
-                    }
-                } else {
-                    // Keep image
-                    $finalAttachments[] = $url;
-                }
-            }
+            $purchaseRequest->attachment = array_values(
+                array_merge($existingAttachments, $newAttachments)
+            );
 
-            // Append remaining uploaded images
-            while (isset($uploadedUrls[$uploadIndex])) {
-                $finalAttachments[] = $uploadedUrls[$uploadIndex];
-                $uploadIndex++;
-            }
-
-            $purchaseRequest->attachment = $finalAttachments;
+            logger()->info('EXISTING', $existingAttachments);
+            logger()->info('OLD', $purchaseRequest->attachment);
             $purchaseRequest->save();
 
-            //* UPDATE ITEMS (OPTIONAL)
+            // UPDATE ITEMS
 
             if (!empty($fields['purchase_request_items'])) {
-                PurchaseRequestItemModel::where(
-                    'purchase_request_id',
-                    $purchase_request_id
-                )->delete();
-
+                PurchaseRequestItemModel::where('purchase_request_id', $purchase_request_id)->delete();
                 $this->onCreatePurchaseRequestItems(
                     $purchase_request_id,
                     $fields['updated_by_id'],
@@ -305,25 +303,11 @@ class PurchaseRequestController extends Controller
             }
 
             DB::commit();
+            return $this->dataResponse('success', 200, 'Purchase Request Updated Successfully.');
 
-            return $this->dataResponse(
-                'success',
-                200,
-                'Purchase Request Updated Successfully.'
-            );
-
-        } catch (Exception $exception) {
+        } catch (Exception $e) {
             DB::rollBack();
-
-            return $this->dataResponse(
-                'error',
-                404,
-                __('msg.update_failed'),
-                $exception->getMessage()
-            );
+            return $this->dataResponse('error', 500, 'Update failed', $e->getMessage());
         }
     }
-
-
-
 }
