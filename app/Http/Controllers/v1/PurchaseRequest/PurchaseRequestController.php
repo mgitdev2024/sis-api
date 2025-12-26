@@ -5,6 +5,7 @@ namespace App\Http\Controllers\v1\PurchaseRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Sap\PurchaseRequest\PurchaseRequestItemModel;
 use App\Models\Sap\PurchaseRequest\PurchaseRequestModel;
+use App\Models\Sap\PurchaseRequest\PurchaseRequestTemplateModel;
 use App\Traits\ResponseTrait;
 use App\Traits\Sap\SapPurchaseRequisitionTrait;
 use DB, Http, Exception, Log;
@@ -27,6 +28,7 @@ class PurchaseRequestController extends Controller
             'attachment' => 'nullable',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
+            'selection_template' => 'nullable',
             'delivery_date' => 'required|date',
         ]);
 
@@ -42,6 +44,7 @@ class PurchaseRequestController extends Controller
             $purchaseRequestItems = $fields['purchase_request_items'];
             $createdById = $fields['created_by_id'];
             $purchaseRequestAttachment = [];
+            $selectionTemplate = $fields['selection_template'] ?? null;
 
             if ($request->hasFile('attachment')) {
                 $files = $request->file('attachment');
@@ -78,7 +81,9 @@ class PurchaseRequestController extends Controller
             ]);
 
             $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $createdById, $purchaseRequestItems);
-
+            if ($selectionTemplate != null) {
+                $this->onSavePurchaseRequestTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById);
+            }
             $data = [
                 'purchase_request_header' => $purchaseRequestModel,
                 'purchase_request_items' => $purchaseRequestItemsArr
@@ -203,7 +208,7 @@ class PurchaseRequestController extends Controller
             return $this->dataResponse('error', 404, __('msg.record_failed'), $exception->getMessage());
         }
     }
-
+    #region onUpdate
     public function onUpdate(Request $request, $purchase_request_id)
     {
         $fields = $request->validate([
@@ -261,7 +266,6 @@ class PurchaseRequestController extends Controller
             }
 
             // HANDLE NEW UPLOADS
-
             $newAttachments = [];
 
             if ($request->hasFile('attachment')) {
@@ -282,17 +286,13 @@ class PurchaseRequestController extends Controller
             }
 
             // FINAL MERGE
-
             $purchaseRequest->attachment = array_values(
                 array_merge($existingAttachments, $newAttachments)
             );
 
-            logger()->info('EXISTING', $existingAttachments);
-            logger()->info('OLD', $purchaseRequest->attachment);
             $purchaseRequest->save();
 
             // UPDATE ITEMS
-
             if (!empty($fields['purchase_request_items'])) {
                 PurchaseRequestItemModel::where('purchase_request_id', $purchase_request_id)->delete();
                 $this->onCreatePurchaseRequestItems(
@@ -308,6 +308,55 @@ class PurchaseRequestController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             return $this->dataResponse('error', 500, 'Update failed', $e->getMessage());
+        }
+    }
+    public function onSavePurchaseRequestTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById)
+    {
+        try {
+            $existingTemplate = PurchaseRequestTemplateModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $storeSubUnitShortName
+            ])->first();
+
+            if ($existingTemplate) {
+                $existingTemplate->selection_template = $selectionTemplate;
+                $existingTemplate->updated_by_id = $createdById;
+                $existingTemplate->save();
+            } else {
+                PurchaseRequestTemplateModel::create([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $storeSubUnitShortName,
+                    'selection_template' => $selectionTemplate,
+                    'created_by_id' => $createdById,
+                    'updated_by_id' => $createdById,
+                    'status' => 1, // Active
+                ]);
+            }
+        } catch (Exception $exception) {
+            throw new Exception($exception->getMessage());
+        }
+    }
+
+    public function onCancel(Request $request, $purchase_request_id)
+    {
+        $fields = $request->validate([
+            'created_by_id' => 'required',
+        ]);
+        try {
+            DB::beginTransaction();
+            $createdById = $fields['created_by_id'];
+            $purchaseRequestModel = PurchaseRequestModel::whereIn('status', [2, 3])->find($purchase_request_id);
+            if (!$purchaseRequestModel) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            }
+            $purchaseRequestModel->status = 3; // Set status to Cancelled
+            $purchaseRequestModel->updated_by_id = $createdById;
+            $purchaseRequestModel->save();
+            DB::commit();
+            return $this->dataResponse('success', 200, 'Cancelled Successfully');
+        } catch (Exception $exception) {
+            DB::rollBack();
+            return $this->dataResponse('error', 400, 'Cancel Failed', $exception->getMessage());
         }
     }
 }

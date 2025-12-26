@@ -192,6 +192,10 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     Route::post('v1/purchase/request/update/{purchase_request_id}', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestController::class, 'onUpdate']);
     #endregion
 
+    #region Purchase Request Template
+    Route::get('v1/purchase/request/template/get/{store_code}/{sub_unit_short_name}', [App\Http\Controllers\v1\PurchaseRequest\PurchaseRequestTemplateController::class, 'onGet']);
+    #endregion
+
     #region Direct Purchase Handled Items
     Route::post('v1/direct/purchase/handled-items/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onCreate']);
     Route::post('v1/direct/purchase/handled-items/delete/{direct_purchase_handled_item_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseHandledItemController::class, 'onDelete']);
