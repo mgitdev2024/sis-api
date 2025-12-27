@@ -23,7 +23,7 @@ class PurchaseRequestModel extends Model
         'store_code',
         'store_sub_unit_short_name',
         'storage_location',
-        'status',  // * 0 = Closed PR / Posted , 1 = Pending, 2 = For Receive, 3 = For PO,
+        'status',  // * 0 = Closed PR / Posted , 1 = Pending, 2 = For Receive, 3 = For PO, 4 = Cancelled,
         'attachment',
         'created_by_id',
         'updated_by_id',

@@ -28,7 +28,6 @@ class PurchaseRequestController extends Controller
             'attachment' => 'nullable',
             'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'purchase_request_items' => 'nullable|json',
-            'selection_template' => 'nullable',
             'delivery_date' => 'required|date',
         ]);
 
@@ -44,7 +43,6 @@ class PurchaseRequestController extends Controller
             $purchaseRequestItems = $fields['purchase_request_items'];
             $createdById = $fields['created_by_id'];
             $purchaseRequestAttachment = [];
-            $selectionTemplate = $fields['selection_template'] ?? null;
 
             if ($request->hasFile('attachment')) {
                 $files = $request->file('attachment');
@@ -81,9 +79,6 @@ class PurchaseRequestController extends Controller
             ]);
 
             $purchaseRequestItemsArr = $this->onCreatePurchaseRequestItems($purchaseRequestModel->id, $createdById, $purchaseRequestItems);
-            if ($selectionTemplate != null) {
-                $this->onSavePurchaseRequestTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById);
-            }
             $data = [
                 'purchase_request_header' => $purchaseRequestModel,
                 'purchase_request_items' => $purchaseRequestItemsArr
@@ -310,32 +305,6 @@ class PurchaseRequestController extends Controller
             return $this->dataResponse('error', 500, 'Update failed', $e->getMessage());
         }
     }
-    public function onSavePurchaseRequestTemplate($selectionTemplate, $storeCode, $storeSubUnitShortName, $createdById)
-    {
-        try {
-            $existingTemplate = PurchaseRequestTemplateModel::where([
-                'store_code' => $storeCode,
-                'store_sub_unit_short_name' => $storeSubUnitShortName
-            ])->first();
-
-            if ($existingTemplate) {
-                $existingTemplate->selection_template = $selectionTemplate;
-                $existingTemplate->updated_by_id = $createdById;
-                $existingTemplate->save();
-            } else {
-                PurchaseRequestTemplateModel::create([
-                    'store_code' => $storeCode,
-                    'store_sub_unit_short_name' => $storeSubUnitShortName,
-                    'selection_template' => $selectionTemplate,
-                    'created_by_id' => $createdById,
-                    'updated_by_id' => $createdById,
-                    'status' => 1, // Active
-                ]);
-            }
-        } catch (Exception $exception) {
-            throw new Exception($exception->getMessage());
-        }
-    }
 
     public function onCancel(Request $request, $purchase_request_id)
     {
@@ -345,11 +314,11 @@ class PurchaseRequestController extends Controller
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
-            $purchaseRequestModel = PurchaseRequestModel::whereIn('status', [2, 3])->find($purchase_request_id);
+            $purchaseRequestModel = PurchaseRequestModel::whereIn('status', [1, 3])->find($purchase_request_id);
             if (!$purchaseRequestModel) {
                 return $this->dataResponse('error', 404, __('msg.record_not_found'));
             }
-            $purchaseRequestModel->status = 3; // Set status to Cancelled
+            $purchaseRequestModel->status = 4; // Set status to Cancelled
             $purchaseRequestModel->updated_by_id = $createdById;
             $purchaseRequestModel->save();
             DB::commit();
