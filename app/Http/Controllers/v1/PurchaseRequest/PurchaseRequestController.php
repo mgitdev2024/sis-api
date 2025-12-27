@@ -151,11 +151,11 @@ class PurchaseRequestController extends Controller
     {
         try {
             $query = PurchaseRequestModel::query();
+            $query->where('store_code', $store_code);
             if ($status == 1) {
-                $query->where('store_code', $store_code);
+                $query->where('status', 1);
             } else {
-                $query->where('store_code', $store_code)
-                    ->whereIn('status', [0, 2, 3]);
+                $query->where('status', $status);
             }
 
             if ($sub_unit) {
@@ -316,7 +316,7 @@ class PurchaseRequestController extends Controller
             $createdById = $fields['created_by_id'];
             $purchaseRequestModel = PurchaseRequestModel::whereIn('status', [1, 3])->find($purchase_request_id);
             if (!$purchaseRequestModel) {
-                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+                return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
             $purchaseRequestModel->status = 4; // Set status to Cancelled
             $purchaseRequestModel->updated_by_id = $createdById;
