@@ -162,7 +162,7 @@ class StockInventoryItemCountController extends Controller
                     $cases['counted_quantity'][] = "WHEN {$id} THEN {$update['counted_quantity']}";
                     $cases['discrepancy_quantity'][] = "WHEN {$id} THEN {$update['discrepancy_quantity']}";
                     $cases['status'][] = "WHEN {$id} THEN {$update['status']}";
-                    $cases['updated_by_id'][] = "WHEN {$id} THEN {$update['updated_by_id']}";
+                    $cases['updated_by_id'][] = "WHEN {$id} THEN '" . addslashes($update['updated_by_id']) . "'";
                 }
 
                 if (!empty($ids)) {
