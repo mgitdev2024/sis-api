@@ -20,7 +20,7 @@ class PurchaseRequestTemplateController extends Controller
             ])->latest()->first();
 
             if (!$template) {
-                return $this->dataResponse('error', 200, 'No template found for the specified store and sub-unit.');
+                return $this->dataResponse('success', 200, 'No template found for the specified store and sub-unit.');
             }
 
             // Fetch only requested_quantity and item_code for the latest PR's items

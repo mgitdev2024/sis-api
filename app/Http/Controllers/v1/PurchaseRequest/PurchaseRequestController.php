@@ -73,7 +73,7 @@ class PurchaseRequestController extends Controller
                 'storage_location' => $storageLocation,
                 'attachment' => $purchaseRequestAttachment,
                 'delivery_date' => $expectedDeliveryDate,
-                'status' => '1', //* Default pending upon PR (Viewing Purposes) // * 0 = Closed PR, 2 = For Receive, 3 = For PO, 1 = Pending
+                'status' => '1', //* Default For PO upon PR (Viewing Purposes) // * 0 = Closed PR, 1 = For PO, 2 = For Receive, 3 = Cancelled
                 'created_by_id' => $createdById,
                 'created_at' => now(),
             ]);
@@ -318,7 +318,7 @@ class PurchaseRequestController extends Controller
             if (!$purchaseRequestModel) {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
-            $purchaseRequestModel->status = 4; // Set status to Cancelled
+            $purchaseRequestModel->status = 3; // Set status to Cancelled
             $purchaseRequestModel->updated_by_id = $createdById;
             $purchaseRequestModel->save();
             DB::commit();
