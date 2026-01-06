@@ -41,6 +41,7 @@ return new class extends Migration {
             $table->date('delivery_date')->nullable();
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table, 0);
+            $table->foreign('purchase_request_id')->references('id')->on('purchase_request');
         });
 
         //* w/ SAP Structure
