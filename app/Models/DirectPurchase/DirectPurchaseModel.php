@@ -13,7 +13,7 @@ class DirectPurchaseModel extends Model
 
     protected $appends = [
         'status_label',
-        'type_label',
+        // 'type_label',
         'formatted_direct_purchase_date_label',
         'formatted_expected_delivery_date_label',
         'formatted_created_at_label',
@@ -23,19 +23,24 @@ class DirectPurchaseModel extends Model
     ];
     protected $fillable = [
         'reference_number',
-        'direct_reference_number', // MG-0800-4382-2331 PO Number
-        'type', // 0 = DR, 1 = PO
+        // 'direct_reference_number', // MG-0800-4382-2331 PO Number
+        // 'type', // 0 = DR, 1 = PO
         'store_code',
         'store_sub_unit_short_name',
         'supplier_code',
         'supplier_name',
         'direct_purchase_date',
         'expected_delivery_date',
-        'status',
+        'status', // 0 = Draft, 1 = Posted / Complete, 2 = Cancelled
+        'attachment',
+        'remarks',
         'created_at',
         'updated_at',
         'created_by_id',
         'updated_by_id',
+    ];
+    protected $casts = [
+        'attachment' => 'array',
     ];
 
     public static function onGenerateReferenceNumber()
@@ -56,9 +61,9 @@ class DirectPurchaseModel extends Model
     {
         switch ($this->status) {
             case 0:
-                return 'Pending';
+                return 'Draft';
             case 1:
-                return 'Closed / Complete';
+                return 'Posted / Complete';
             case 2:
                 return 'Cancelled';
             default:
@@ -111,15 +116,15 @@ class DirectPurchaseModel extends Model
         return null;
     }
 
-    public function getTypeLabelAttribute()
-    {
-        switch ($this->type) {
-            case 0:
-                return 'Delivery Receipt';
-            case 1:
-                return 'Purchase Order';
-            default:
-                return 'Unknown Type';
-        }
-    }
+    // public function getTypeLabelAttribute()
+    // {
+    //     switch ($this->type) {
+    //         case 0:
+    //             return 'Delivery Receipt';
+    //         case 1:
+    //             return 'Purchase Order';
+    //         default:
+    //             return 'Unknown Type';
+    //     }
+    // }
 }

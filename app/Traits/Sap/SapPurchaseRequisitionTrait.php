@@ -17,8 +17,6 @@ trait SapPurchaseRequisitionTrait
     {
         try {
 
-            // dd($decodedPurchaseReqData['purchase_request_header']);
-            // exit;
             $storeCodeResponse = Http::withHeaders([
                 'x-api-key' => config('apikeys.sds_api_key')
             ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_list_get') . '');
@@ -28,24 +26,28 @@ trait SapPurchaseRequisitionTrait
             $headerAttachment = $decodedPurchaseReqData['purchase_request_header']['attachment'];
             $definitionId = 'jp10.com-mgfi-dev.mgiossupplierdirectdeliveryinboundpurchaserequestcreate.purchaseRequisitionProcess';
 
+            if (is_array($headerAttachment) && !empty($headerAttachment)) {
+                //Implode for SAP requirement
+                $headerAttachment = implode(',', array_column($headerAttachment, 'url'));
+            }
             $sapPurReqArr = [];
             $purchaseItemLine = 10;
-
+            // dd($sapPurchaseItems);
             foreach ($sapPurchaseItems as $item) {
                 $sapPurReqArr[] = [
                     'PurchaseRequisitionItem' => (string) $purchaseItemLine,
                     'Material' => $item['item_code'],
                     'MaterialGroup' => $item['item_category_code'],
-                    'Plant' => $item['store_code'],
-                    'CompanyCode' => $item['store_company_code'],
+                    'Plant' => '02BP',
+                    'CompanyCode' => 'BMII',
                     'PurchasingOrganization' => $item['purchasing_organization'],
                     'PurchasingGroup' => $item['purchasing_group'],
                     'BaseUnitISOCode' => 'PCE',
                     'RequestedQuantity' => (int) $item['requested_quantity'],
                     'PurchaseRequisitionPrice' => (int) $item['price'],
                     'PurReqnItemCurrency' => $item['currency'],
-                    'DeliveryDate' => $item['delivery_date'],
-                    'StorageLocation' => $item['storage_location'],
+                    'DeliveryDate' => "2025-12-27",
+                    'StorageLocation' => 'BKRM',
                     'PurchaseRequisitionItemText' => $item['remarks'],
                 ];
                 $purchaseItemLine += 10;
