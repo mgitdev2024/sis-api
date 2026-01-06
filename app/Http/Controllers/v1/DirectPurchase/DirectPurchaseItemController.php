@@ -11,16 +11,18 @@ class DirectPurchaseItemController extends Controller
     use ResponseTrait;
     public function onCreate(Request $request)
     {
+        try {
+            $directPurchaseItemsData = $request->input('direct_purchase_items', []);
+            $createdItems = [];
 
-    }
+            foreach ($directPurchaseItemsData as $itemData) {
+                $createdItem = \App\Models\DirectPurchase\DirectPurchaseItemModel::create($itemData);
+                $createdItems[] = $createdItem;
+            }
 
-    public function onUpdate(Request $request, $direct_purchase_item_id)
-    {
-
-    }
-
-    public function onDelete(Request $request, $direct_purchase_item_id)
-    {
-
+            return $this->dataResponse('success', 200, 'Direct Purchase Items Created Successfully.', $createdItems);
+        } catch (\Exception $exception) {
+            return $this->dataResponse('error', 400, 'An error occurred: ' . $exception->getMessage());
+        }
     }
 }

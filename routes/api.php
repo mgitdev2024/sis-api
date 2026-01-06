@@ -171,12 +171,16 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #endregion
 
     #region Direct Purchase
-    Route::get('v1/direct/purchase/current/get/{status}/{direct_purchase_id}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onGetCurrent']);
+    Route::get('v1/direct/purchase/current/get/{status}/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onGetCurrent']);
+    Route::get('v1/direct/purchase/get/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onGetById']);
     Route::post('v1/direct/purchase/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCreate']);
     Route::post('v1/direct/purchase/close/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onClose']);
     Route::post('v1/direct/purchase/update/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onUpdateDirectPurchaseDetails']);
     Route::post('v1/direct/purchase/cancel/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCancel']);
 
+    #endregion
+    #region Direct Purchase Template
+    Route::get('v1/direct/purchase/template/get/{store_code}/{sub_unit_short_name}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseTemplateController::class, 'onGet']);
     #endregion
 
     #region Direct Purchase Items
