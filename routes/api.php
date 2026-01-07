@@ -102,6 +102,17 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     Route::post('v1/stock/inventory-count/cancel/{id}', [App\Http\Controllers\v1\Stock\StockInventoryCountController::class, 'onCancel']);
     Route::post('v1/stock/inventory/sync', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onSyncItemList']);
     #endregion
+
+    #region Unmet Demands
+    Route::post('v1/unmet-demand/create', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandController::class, 'onCreate']);
+    Route::post('v1/unmet-demand/delete/{id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandController::class, 'onDelete']);
+    #endregion
+
+    #region Unmet Demand Items
+    Route::post('v1/unmet-demand-item/update/{unmet_demand_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onUpdate']);
+    Route::get('v1/unmet-demand-item/get/{unmet_demand_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onGet']);
+    Route::post('v1/unmet-demand-item/delete/{id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onDelete']);
+    #endregion
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'check.system.status:SIS']], function () {
