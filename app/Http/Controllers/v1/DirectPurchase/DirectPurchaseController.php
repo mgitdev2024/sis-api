@@ -320,8 +320,9 @@ class DirectPurchaseController extends Controller
                 DirectPurchaseItemModel::where('direct_purchase_id', $direct_purchase_id)->delete();
                 $this->onCreateDirectPurchaseItems(
                     $direct_purchase_id,
+                    $fields['direct_purchase_items'],
                     $fields['updated_by_id'],
-                    $fields['direct_purchase_items']
+
                 );
             }
             //TODO SAP Update Direct Purchase Details

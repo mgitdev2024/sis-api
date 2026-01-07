@@ -22,6 +22,7 @@ class DirectPurchaseItemModel extends Model
         'item_category_code',
         'total_received_quantity',
         'requested_quantity',
+        'uom',
         'status',
         'remarks',
         'created_at',
