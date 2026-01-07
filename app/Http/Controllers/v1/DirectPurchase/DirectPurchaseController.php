@@ -38,10 +38,10 @@ class DirectPurchaseController extends Controller
         try {
             DB::beginTransaction();
             // $directReferenceNumber = $fields['direct_reference_number'];
-            $supplierCode = $fields['supplier_code'];
-            $supplierName = $fields['supplier_name'];
+            $supplierCode = $fields['supplier_code'] ?? null;
+            $supplierName = $fields['supplier_name'] ?? null;
             $directPurchaseDate = $fields['direct_purchase_date'];
-            $expectedDeliveryDate = $fields['expected_delivery_date'];
+            $expectedDeliveryDate = $fields['expected_delivery_date'] ?? null;
             $directPurchaseItems = $fields['direct_purchase_items'];
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
@@ -114,8 +114,8 @@ class DirectPurchaseController extends Controller
                     'item_description' => $items['item_description'] ?? null,
                     'item_category_code' => 'A035',
                     'uom' => $items['uom'] ?? null,
-                    'total_received_quantity' => $items['total_received_quantity'] ?? null,
-                    'requested_quantity' => $items['requested_quantity'] ?? null,
+                    'total_received_quantity' => $items['total_received_quantity'] ?? 0,
+                    'requested_quantity' => $items['requested_quantity'] ?? 0,
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdById,
                     'created_at' => now(),
@@ -125,11 +125,11 @@ class DirectPurchaseController extends Controller
                     'direct_purchase_id' => $directPurchaseId,
                     'direct_purchase_item_id' => $directPurchaseItemModel->id,
                     'item_code' => $items['item_code'],
-                    'item_description' => $items['item_description'],
+                    'item_description' => $items['item_description'] ?? null,
                     'item_category_code' => 'A035',
                     'uom' => $items['uom'] ?? null,
-                    'total_received_quantity' => $items['total_received_quantity'] ?? null,
-                    'requested_quantity' => $items['requested_quantity'] ?? null,
+                    'total_received_quantity' => $items['total_received_quantity'] ?? 0,
+                    'requested_quantity' => $items['requested_quantity'] ?? 0,
                     // 'storage_location' => 'BKRM',
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdById,
@@ -258,8 +258,8 @@ class DirectPurchaseController extends Controller
             // BASIC UPDATE
 
             $directPurchase->direct_purchase_date = $fields['direct_purchase_date'];
-            $directPurchase->expected_delivery_date = $fields['expected_delivery_date'];
-            $directPurchase->supplier_code = $fields['supplier_code'];
+            $directPurchase->expected_delivery_date = $fields['expected_delivery_date'] ?? null;
+            $directPurchase->supplier_code = $fields['supplier_code'] ?? null;
             $directPurchase->supplier_name = $fields['supplier_name'];
             $directPurchase->remarks = $fields['remarks'] ?? $directPurchase->remarks;
             $directPurchase->updated_by_id = $fields['updated_by_id'];
