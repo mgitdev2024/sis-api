@@ -334,31 +334,27 @@ class DirectPurchaseController extends Controller
         }
     }
 
-    #region Cancel Direct Purchase
-    public function onCancel(Request $request, $purchase_request_id)
+    public function onCancel(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
-            'created_by_id' => 'required',
+            'updated_by_id' => 'required',
         ]);
         try {
             DB::beginTransaction();
-            $createdById = $fields['created_by_id'];
-            $purchaseRequestModel = DirectPurchaseModel::whereIn('status', [0, 1])->find($purchase_request_id);
-            if (!$purchaseRequestModel) {
+            $updatedById = $fields['updated_by_id'];
+            $directPurchaseModel = DirectPurchaseModel::whereIn('status', [0, 1])->find($direct_purchase_id);
+            if (!$directPurchaseModel) {
                 return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
-            $purchaseRequestModel->status = 2; // Set status to Cancelled
-            $purchaseRequestModel->updated_by_id = $createdById;
-            $purchaseRequestModel->save();
+            $directPurchaseModel->status = 2; // Set status to Cancelled
+            $directPurchaseModel->updated_by_id = $updatedById;
+            $directPurchaseModel->save();
             DB::commit();
-            //TODO SAP Update PR Status to Cancelled
+
             return $this->dataResponse('success', 200, 'Cancelled Successfully');
         } catch (Exception $exception) {
             DB::rollBack();
             return $this->dataResponse('error', 400, 'Cancel Failed', $exception->getMessage());
         }
     }
-    #endregion
-
-
 }

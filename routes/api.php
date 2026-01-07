@@ -175,7 +175,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     Route::get('v1/direct/purchase/get/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onGetById']);
     Route::post('v1/direct/purchase/create', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCreate']);
     Route::post('v1/direct/purchase/close/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onClose']);
-    Route::post('v1/direct/purchase/update/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onUpdateDirectPurchaseDetails']);
+    Route::post('v1/direct/purchase/update/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onUpdateDirectPurchase']);
     Route::post('v1/direct/purchase/cancel/{direct_purchase_id}', [App\Http\Controllers\v1\DirectPurchase\DirectPurchaseController::class, 'onCancel']);
 
     #endregion

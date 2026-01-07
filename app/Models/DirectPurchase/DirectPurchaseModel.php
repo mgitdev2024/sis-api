@@ -41,6 +41,7 @@ class DirectPurchaseModel extends Model
     ];
     protected $casts = [
         'attachment' => 'array',
+        'status' => 'integer',
     ];
 
     public static function onGenerateReferenceNumber()
