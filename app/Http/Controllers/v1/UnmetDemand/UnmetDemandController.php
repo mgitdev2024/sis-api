@@ -9,7 +9,7 @@ use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
 use DB;
 use Exception;
-use Request;
+use Illuminate\Http\Request;
 
 class UnmetDemandController extends Controller
 {
@@ -34,7 +34,7 @@ class UnmetDemandController extends Controller
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
             $createdById = $fields['created_by_id'];
-            $unmetItems = $fields['unmet_items']; // [{"ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":12},["ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":10
+            $unmetItems = json_decode($fields['unmet_items'], true); // [{"ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":12},{"ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":10}]
             $referenceNumber = UnmetDemandModel::onGenerateReferenceNumber();
 
             $unmetDemand = UnmetDemandModel::create([
@@ -53,6 +53,8 @@ class UnmetDemandController extends Controller
                     'quantity' => $item['q'],
                     'status' => 1,
                     'created_by_id' => $createdById,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
             DB::commit();

@@ -109,9 +109,9 @@ Route::group(['middleware' => ['auth:sanctum', 'check.system.status:SIS']], func
     #endregion
 
     #region Unmet Demand Items
-    Route::post('v1/unmet-demand-item/update/{unmet_demand_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onUpdate']);
-    Route::get('v1/unmet-demand-item/get/{unmet_demand_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onGet']);
-    Route::post('v1/unmet-demand-item/delete/{id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onDelete']);
+    Route::post('v1/unmet-demand-item/update/{unmet_demand_item_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onUpdate']);
+    Route::get('v1/unmet-demand-item/get/{unmet_demand_item_id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onGet']);
+    // Route::post('v1/unmet-demand-item/delete/{id}', [App\Http\Controllers\v1\UnmetDemand\UnmetDemandItemController::class, 'onDelete']);
     #endregion
 });
 

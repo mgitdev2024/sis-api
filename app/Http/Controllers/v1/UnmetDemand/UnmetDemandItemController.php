@@ -39,7 +39,7 @@ class UnmetDemandItemController extends Controller
     }
 
 
-    public function onUpdate(Request $request, $unmetDemandId)
+    public function onUpdate(Request $request, $unmet_demand_item_id)
     {
         $fields = $request->validate([
             'updated_data' => 'required', // [{"id":1,"quantity":10,"d":1},{"id":2,"quantity":5,"d":0}] d = delete flag
@@ -48,23 +48,27 @@ class UnmetDemandItemController extends Controller
 
         try {
             DB::beginTransaction();
-            foreach ($fields['updated_data'] as $item) {
+            foreach (json_decode($fields['updated_data'], true) as $item) {
+                $unmetDemandItemId = $item['id'];
+                $unmetDemandItemModel = UnmetDemandItemModel::select('unmet_demand_id')->where('id', $unmetDemandItemId)->first();
+                if (!UnmetDemandItemModel::where('id', $unmetDemandItemId)->exists()) {
+                    continue;
+                }
+                $unmetDemandId = $unmetDemandItemModel->unmet_demand_id;
+
                 if (isset($item['d']) && $item['d'] == 1) {
                     // Delete item
-                    UnmetDemandItemModel::where('id', $item['id'])->delete();
-                } elseif (isset($item['id'])) {
+                    $unmetDemandModel = UnmetDemandItemModel::where('unmet_demand_id', $unmetDemandItemId)->count();
+                    if ($unmetDemandModel <= 1) {
+                        UnmetDemandModel::destroy($unmetDemandId);
+                    } else {
+                        UnmetDemandItemModel::where('id', $unmetDemandItemId)->delete();
+                    }
+                } elseif (isset($unmetDemandItemId)) {
                     // Update item
-                    UnmetDemandItemModel::where('id', $item['id'])->update([
+                    UnmetDemandItemModel::where('id', $unmetDemandItemId)->update([
                         'quantity' => $item['quantity'],
                         'updated_by_id' => $fields['created_by_id'],
-                    ]);
-                } else {
-                    // Create new item
-                    UnmetDemandItemModel::create([
-                        'unmet_demand_id' => $unmetDemandId,
-                        'item_id' => $item['item_id'],
-                        'quantity' => $item['quantity'],
-                        'created_by_id' => $fields['created_by_id'],
                     ]);
                 }
             }
@@ -76,10 +80,10 @@ class UnmetDemandItemController extends Controller
         }
     }
 
-    public function onGet($unmetDemandId)
+    public function onGet($unmet_demand_item_id)
     {
         try {
-            $unmetDemandModel = UnmetDemandItemModel::with('unmetDemand')->where('unmet_demand_id', $unmetDemandId)->get();
+            $unmetDemandModel = UnmetDemandItemModel::with('unmetDemand')->where('unmet_demand_id', $unmet_demand_item_id)->get();
             return $this->dataResponse('success', 200, __('msg.record_found'), $unmetDemandModel);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 500, $exception->getMessage());

@@ -31,7 +31,7 @@ class UnmetDemandModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestUnmetDemandId = static::orderBy('id', 'desc')->first()->id;
+        $latestUnmetDemandId = static::orderBy('id', 'desc')->first()->id ?? 0;
         $nextUnmetDemandId = $latestUnmetDemandId + 1;
         $referenceNumber = 'UN-' . str_pad($nextUnmetDemandId, 6, '0', STR_PAD_LEFT);
 
