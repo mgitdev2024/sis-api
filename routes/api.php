@@ -26,6 +26,8 @@ Route::prefix('v1/public')->middleware('check.api.key')->group(function () {
     Route::post('/reports/stock/transfer/daily', [App\Http\Controllers\v1\Report\StockTransferReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/pullout/daily', [App\Http\Controllers\v1\Report\StockPulloutReportController::class, 'onGenerateDailyReport']);
     Route::post('/reports/stock/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
+
+    Route::post('/reports/unmet-demand/count/daily', [App\Http\Controllers\v1\Report\StockCountReportController::class, 'onGenerateDailyReport']);
     #endregion
 
     #region Store Consolidation Cache
@@ -141,7 +143,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #endregion
 
     #region Stock Inventory
-    Route::get('v1/stock/inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
+    Route::get('v1/stock/inventory/get/{store_code}/{sub_unit?}/{is_viewable_ir?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     Route::get('v1/stock/inventory/id/get/{stock_inventory_id?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
     #endregion
 

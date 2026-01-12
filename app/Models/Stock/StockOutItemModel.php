@@ -27,4 +27,9 @@ class StockOutItemModel extends Model
     {
         return $this->belongsTo(StockOutModel::class);
     }
+
+    public function stockInventory()
+    {
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
+    }
 }

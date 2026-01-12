@@ -2,6 +2,7 @@
 
 namespace App\Models\UnmetDemand;
 
+use App\Models\Stock\StockInventoryModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,5 +31,10 @@ class UnmetDemandItemModel extends Model
     public function unmetDemand()
     {
         return $this->belongsTo(UnmetDemandModel::class, 'unmet_demand_id');
+    }
+
+    public function stockInventory()
+    {
+        return $this->belongsTo(StockInventoryModel::class, 'item_code', 'item_code');
     }
 }

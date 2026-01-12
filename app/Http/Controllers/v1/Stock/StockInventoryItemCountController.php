@@ -159,8 +159,12 @@ class StockInventoryItemCountController extends Controller
                     $id = $update['id'];
                     $ids[] = $id;
 
-                    $cases['counted_quantity'][] = "WHEN {$id} THEN {$update['counted_quantity']}";
-                    $cases['discrepancy_quantity'][] = "WHEN {$id} THEN {$update['discrepancy_quantity']}";
+                    // Format decimal values properly for SQL
+                    $countedQty = number_format($update['counted_quantity'], 2, '.', '');
+                    $discrepancyQty = number_format($update['discrepancy_quantity'], 2, '.', '');
+
+                    $cases['counted_quantity'][] = "WHEN {$id} THEN {$countedQty}";
+                    $cases['discrepancy_quantity'][] = "WHEN {$id} THEN {$discrepancyQty}";
                     $cases['status'][] = "WHEN {$id} THEN {$update['status']}";
                     $cases['updated_by_id'][] = "WHEN {$id} THEN '" . addslashes($update['updated_by_id']) . "'";
                 }
@@ -396,8 +400,12 @@ class StockInventoryItemCountController extends Controller
             foreach ($chunk as $update) {
                 $id = $update['id'];
                 $ids[] = $id;
-                $cases['stock_count'][] = "WHEN {$id} THEN {$update['stock_count']}";
-                $cases['updated_by_id'][] = "WHEN {$id} THEN {$update['updated_by_id']}";
+
+                // Format decimal values properly for SQL
+                $stockCount = number_format($update['stock_count'], 2, '.', '');
+
+                $cases['stock_count'][] = "WHEN {$id} THEN {$stockCount}";
+                $cases['updated_by_id'][] = "WHEN {$id} THEN '" . addslashes($update['updated_by_id']) . "'";
             }
 
             $idsString = implode(',', $ids);

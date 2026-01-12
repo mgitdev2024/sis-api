@@ -17,15 +17,20 @@ class StockInventoryController extends Controller
 {
     use ResponseTrait;
 
-    public function onGet($store_code, $sub_unit)
+    public function onGet($store_code, $sub_unit, $is_viewable_ir = null)
     {
         try {
-            $stockinventoryModel = StockInventoryModel::where([
+            $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $store_code,
                 'store_sub_unit_short_name' => $sub_unit,
                 'is_sis_variant' => 1
-            ])->get()->keyBy('item_code');
-            $itemCodes = $stockinventoryModel->keys();
+            ]);
+
+            if ($is_viewable_ir !== null) {
+                $stockInventoryModel = $stockInventoryModel->where('is_viewable_item_request', $is_viewable_ir);
+            }
+            $stockInventoryModel = $stockInventoryModel->get()->keyBy('item_code');
+            $itemCodes = $stockInventoryModel->keys();
 
             $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
@@ -45,8 +50,8 @@ class StockInventoryController extends Controller
                     foreach ($items as &$item) {
                         $apiItemData = $item;
                         $code = $item['item_code'];
-                        if (isset($stockinventoryModel[$code])) {
-                            $local = $stockinventoryModel[$code];
+                        if (isset($stockInventoryModel[$code])) {
+                            $local = $stockInventoryModel[$code];
                             $item = $local;
                             $item['uom'] = $apiItemData['uom'] ?? null;
                         }
