@@ -72,14 +72,18 @@ class StockInventoryController extends Controller
                 $stockInventoryModel = StockInventoryModel::findOrFail($stockInventoryId);
                 $itemCode = $stockInventoryModel->item_code;
 
-                $response = \Http::get(config('apiurls.scm.url') . config('apiurls.scm.stock_conversion_item_id_get') . $itemCode);
+                $response = Http::get(config('apiurls.scm.url') . config('apiurls.scm.stock_conversion_item_id_get') . $itemCode);
                 $apiResponse = $response->json()['success']['data'] ?? [];
 
                 $stockConversionItem = $apiResponse['stock_conversion_items'] ?? [];
 
+                $mgiosResponse = Http::get(config('apiurls.mgios.url') . config('apiurls.mgios.check_item_code') . $itemCode);
+                $mgiosApiResponse = $mgiosResponse->json() ?? [];
+                $isAllowFloatingPoint = $mgiosApiResponse['is_allow_floating_point'] ?? 0;
                 $data = [
                     'stock_inventory' => $stockInventoryModel,
-                    'stock_conversion_items' => []
+                    'stock_conversion_items' => [],
+                    'is_allow_floating_point' => $isAllowFloatingPoint
                 ];
                 foreach ($stockConversionItem as $conversionItem) {
                     $itemCode = $conversionItem['item_code_label'];
