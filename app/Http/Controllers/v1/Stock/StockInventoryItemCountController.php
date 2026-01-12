@@ -36,9 +36,9 @@ class StockInventoryItemCountController extends Controller
                 $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
                 ])->post(
-                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
-                    ['item_code_collection' => json_encode($itemCodes)]
-                );
+                        config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                        ['item_code_collection' => json_encode($itemCodes)]
+                    );
 
                 if (!$response->successful()) {
                     return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
@@ -161,7 +161,7 @@ class StockInventoryItemCountController extends Controller
                     $cases['counted_quantity'][] = "WHEN {$id} THEN {$update['counted_quantity']}";
                     $cases['discrepancy_quantity'][] = "WHEN {$id} THEN {$update['discrepancy_quantity']}";
                     $cases['status'][] = "WHEN {$id} THEN {$update['status']}";
-                    $cases['updated_by_id'][] = "WHEN {$id} THEN {$update['updated_by_id']}";
+                    $cases['updated_by_id'][] = "WHEN {$id} THEN '" . addslashes($update['updated_by_id']) . "'";
                 }
 
                 if (!empty($ids)) {
@@ -214,86 +214,143 @@ class StockInventoryItemCountController extends Controller
             'created_by_id' => 'required',
             'store_code' => 'required',
             'store_sub_unit_short_name' => 'required',
-            'stock_inventory_item_count_data' => 'nullable' // {"CR 12":"Nahulog","TAS WH":"Nawala"}
+            'stock_inventory_item_count_data' => 'nullable'
         ]);
 
         try {
             DB::beginTransaction();
+
             $createdById = $fields['created_by_id'];
+            $storeCode = $fields['store_code'];
+            $subUnit = $fields['store_sub_unit_short_name'];
+            $now = now();
 
-            $stockInventoryCountModel = StockInventoryCountModel::find($store_inventory_count_id);
-            if ($stockInventoryCountModel) {
-                $stockInventoryCountModel->update([
-                    'status' => 2, // Post
-                    'updated_by_id' => $createdById,
-                    'posted_at' => now(),
-                    'posted_by_id' => $createdById
-                ]);
+            // Parse remarks data once
+            $remarksData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
+
+            // Update main inventory count record
+            $stockInventoryCountModel = StockInventoryCountModel::findOrFail($store_inventory_count_id);
+            $stockInventoryCountModel->update([
+                'status' => 2, // Post
+                'updated_by_id' => $createdById,
+                'posted_at' => $now,
+                'posted_by_id' => $createdById
+            ]);
+
+            // Bulk fetch all inventory items
+            $stockInventoryItems = StockInventoryItemCountModel::where('stock_inventory_count_id', $store_inventory_count_id)
+                ->get()
+                ->keyBy('item_code');
+
+            if ($stockInventoryItems->isEmpty()) {
+                DB::commit();
+                return $this->dataResponse('success', 200, __('msg.update_success'));
             }
-            $stockInventoryItemCountModel = StockInventoryItemCountModel::where([
-                'stock_inventory_count_id' => $store_inventory_count_id,
-            ])->get();
 
-            foreach ($stockInventoryItemCountModel as $item) {
-                $stockInventoryCountData = json_decode($fields['stock_inventory_item_count_data'] ?? '[]', true);
-                $item->remarks = $stockInventoryCountData[$item->item_code] ?? null;
-                $item->save();
+            $itemCodes = $stockInventoryItems->keys()->toArray();
 
+            // Bulk fetch existing stock inventories
+            $existingStockInventories = StockInventoryModel::where([
+                'store_code' => $storeCode,
+                'store_sub_unit_short_name' => $subUnit,
+            ])->whereIn('item_code', $itemCodes)
+                ->get()
+                ->keyBy('item_code');
+
+            // Bulk fetch latest logs
+            $latestLogs = StockLogModel::select('item_code', 'final_stock')
+                ->where([
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $subUnit,
+                ])
+                ->whereIn('item_code', $itemCodes)
+                ->whereIn('id', function ($query) use ($storeCode, $subUnit) {
+                    $query->select(DB::raw('MAX(id)'))
+                        ->from('stock_logs')
+                        ->where([
+                            'store_code' => $storeCode,
+                            'store_sub_unit_short_name' => $subUnit,
+                        ])
+                        ->groupBy('item_code');
+                })
+                ->get()
+                ->keyBy('item_code');
+
+            // Prepare batch data
+            $remarksUpdates = [];
+            $stockUpdates = [];
+            $stockCreates = [];
+            $logCreates = [];
+
+            foreach ($stockInventoryItems as $itemCode => $item) {
                 $countedQuantity = $item->counted_quantity;
-                // Update the stock inventory
-                $stockInventoryModel = StockInventoryModel::where([
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $item->item_code,
-                ])->first();
 
-                if ($stockInventoryModel) {
-                    $stockInventoryModel->update([
+                // Prepare remarks update
+                $remarksUpdates[] = [
+                    'id' => $item->id,
+                    'remarks' => $remarksData[$itemCode] ?? null,
+                ];
+
+                // Prepare stock inventory update/create
+                if (isset($existingStockInventories[$itemCode])) {
+                    $stockUpdates[] = [
+                        'id' => $existingStockInventories[$itemCode]->id,
                         'stock_count' => $countedQuantity,
                         'updated_by_id' => $createdById,
-                    ]);
+                        'updated_at' => $now,
+                    ];
                 } else {
-                    // If the stock inventory does not exist, create a new one
-                    StockInventoryModel::create([
-                        'store_code' => $fields['store_code'],
-                        'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                        'item_code' => $item->item_code,
+                    $stockCreates[] = [
+                        'store_code' => $storeCode,
+                        'store_sub_unit_short_name' => $subUnit,
+                        'item_code' => $itemCode,
                         'item_description' => $item->item_description,
                         'item_category_name' => $item->item_category_name,
                         'stock_count' => $countedQuantity,
                         'created_by_id' => $createdById,
                         'updated_by_id' => $createdById,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
 
-                $latestLog = StockLogModel::where([
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $item->item_code,
-                ])->orderBy('id', 'DESC')->first();
-
-                $data = [
-                    'reference_number' => $item->stockInventoryCount->reference_number,
-                    'store_code' => $fields['store_code'],
-                    'store_sub_unit_short_name' => $fields['store_sub_unit_short_name'],
-                    'item_code' => $latestLog?->item_code ?? $item->item_code,
-                    'item_description' => $latestLog?->item_description ?? $item->item_description,
-                    'item_category_name' => $latestLog?->item_category_name ?? $item->item_category_name,
+                // Prepare log create
+                $latestLog = $latestLogs->get($itemCode);
+                $logCreates[] = [
+                    'reference_number' => $stockInventoryCountModel->reference_number,
+                    'store_code' => $storeCode,
+                    'store_sub_unit_short_name' => $subUnit,
+                    'item_code' => $itemCode,
+                    'item_description' => $item->item_description,
+                    'item_category_name' => $item->item_category_name,
                     'quantity' => 0,
                     'initial_stock' => $latestLog?->final_stock ?? 0,
                     'final_stock' => $countedQuantity,
                     'transaction_type' => 'adjustment',
                     'created_by_id' => $createdById,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
-
-                StockLogModel::create($data);
-
             }
+
+            // Execute batch operations
+            $this->batchUpdateRemarks($remarksUpdates);
+            $this->batchUpdateStockInventories($stockUpdates);
+
+            if (!empty($stockCreates)) {
+                StockInventoryModel::insert($stockCreates);
+            }
+
+            if (!empty($logCreates)) {
+                StockLogModel::insert($logCreates);
+            }
+
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));
+
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 400, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 500, __('msg.update_failed'), $exception->getMessage());
         }
     }
 }
