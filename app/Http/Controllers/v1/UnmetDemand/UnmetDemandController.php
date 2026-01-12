@@ -34,7 +34,7 @@ class UnmetDemandController extends Controller
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'];
             $createdById = $fields['created_by_id'];
-            $unmetItems = json_decode($fields['unmet_items'], true); // [{"ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":12},{"ic":"CR 12","itd":"Cheeseroll box of 12","itc":"Breads","q":10}]
+            $unmetItems = json_decode($fields['unmet_items'], true); // [{"ic":"CR 12","idc":"Cheeseroll box of 12","icn":"Breads","q":12},{"ic":"CR 12","idc":"Cheeseroll box of 12","icn":"Breads","q":10}]
             $referenceNumber = UnmetDemandModel::onGenerateReferenceNumber();
 
             $unmetDemand = UnmetDemandModel::create([
@@ -63,5 +63,10 @@ class UnmetDemandController extends Controller
             DB::rollBack();
             return $this->dataResponse('error', 500, $exception->getMessage());
         }
+    }
+
+    public function onGet()
+    {
+        return $this->readRecord(UnmetDemandModel::class, 'Unmet Demand');
     }
 }
