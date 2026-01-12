@@ -28,7 +28,9 @@ class StockInventoryCountController extends Controller
             'store_sub_unit_short_name' => 'required',
             'selected_item_codes' => 'required', // ['CR 12','CR 6',...]
             'selection_template' => 'nullable', // JSON String
+            'stock_count_date' => 'required|date', // '2024-06-01'
         ]);
+
         try {
             DB::beginTransaction();
             $createdById = $fields['created_by_id'];
@@ -40,27 +42,43 @@ class StockInventoryCountController extends Controller
             $referenceNumber = StockInventoryCountModel::onGenerateReferenceNumber();
             $type = $fields['type'];
 
-            $stockCountDate = now();
+            // $stockCountDate = now();
 
-            $response = Http::withHeaders([
-                'x-api-key' => config('apikeys.scm_api_key'),
-            ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_stock_count_lead_time_current_get'));
+            // $response = Http::withHeaders([
+            //     'x-api-key' => config('apikeys.scm_api_key'),
+            // ])->get(config('apiurls.scm.url') . config('apiurls.scm.public_stock_count_lead_time_current_get'));
 
-            if ($response->successful()) {
-                $leadTime = $response->json()['success']['data'] ?? [];
-                $leadTimeFrom = $leadTime['lead_time_from'] ?? null;
-                $leadTimeTo = $leadTime['lead_time_to'] ?? null;
-                $currentTime = now()->format('H:i:s');
+            // if ($response->successful()) {
+            //     $leadTime = $response->json()['success']['data'] ?? [];
+            //     $leadTimeFrom = $leadTime['lead_time_from'] ?? null;
+            //     $leadTimeTo = $leadTime['lead_time_to'] ?? null;
+            //     $currentTime = now()->format('H:i:s');
 
-                if (
-                    Carbon::createFromTimeString($currentTime)
-                        ->between(
-                            Carbon::createFromTimeString($leadTimeFrom),
-                            Carbon::createFromTimeString($leadTimeTo)
-                        )
-                ) {
-                    $stockCountDate = now()->subDay(); // yesterday
-                }
+            //     if (
+            //         Carbon::createFromTimeString($currentTime)
+            //             ->between(
+            //                 Carbon::createFromTimeString($leadTimeFrom),
+            //                 Carbon::createFromTimeString($leadTimeTo)
+            //             )
+            //     ) {
+            //         $stockCountDate = now()->subDay(); // yesterday
+            //     }
+            // }
+            $stockCountDate = Carbon::parse($fields['stock_count_date'])->startOfDay();
+
+            $today = Carbon::today(config('app.timezone'));
+            $yesterday = Carbon::yesterday(config('app.timezone'));
+
+
+            if (
+                !$stockCountDate->equalTo($today) &&
+                !$stockCountDate->equalTo($yesterday)
+            ) {
+                return $this->dataResponse(
+                    'error',
+                    422,
+                    'Stock count date must be today or yesterday only.'
+                );
             }
 
             $stockInventoryCount = StockInventoryCountModel::create([
@@ -118,6 +136,7 @@ class StockInventoryCountController extends Controller
     {
         try {
             $existingItemCodes = [];
+
             $stockInventoryModel = StockInventoryModel::where([
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
@@ -143,7 +162,9 @@ class StockInventoryCountController extends Controller
                     'status' => 1, // For Receive
                 ];
             }
+
             $toBeAddedItems = $this->onItemsDiff($existingItemCodes, $selectedItemCodes);
+
             if (count($toBeAddedItems) > 0) {
                 $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
