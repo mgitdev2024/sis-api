@@ -92,9 +92,13 @@ class SyncItemListJob implements ShouldQueue
                     $updates['uom'] = $data['uom'];
                     // }
 
-                    // if ($existingItem->is_sis_variant !== $data['is_sis_variant']) {
-                    $updates['is_sis_variant'] = $data['is_sis_variant'];
-                    // }
+                    if ($existingItem->is_sis_variant !== $data['is_sis_variant']) {
+                        $updates['is_sis_variant'] = $data['is_sis_variant'];
+                    }
+
+                    if ($existingItem->is_viewable_item_request !== $data['is_viewable_item_request']) {
+                        $updates['is_viewable_item_request'] = $data['is_viewable_item_request'];
+                    }
                 }
                 if (!empty($updates)) {
                     $updates['updated_at'] = now();

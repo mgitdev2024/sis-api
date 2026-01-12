@@ -24,6 +24,7 @@ class StockInventoryModel extends Model
         'stock_count',
         'is_sis_variant',
         'uom',
+        'is_viewable_item_request',
         'status',
         'created_by_id',
         'updated_by_id',
