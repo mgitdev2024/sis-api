@@ -15,6 +15,24 @@ class UnmetDemandController extends Controller
 {
     use ResponseTrait;
     use CrudOperationsTrait;
+
+    public function onGet($store_code, $sub_unit = null)
+    {
+        try {
+            $query = UnmetDemandModel::where('store_code', $store_code);
+
+            if ($sub_unit) {
+                $query->where('store_sub_unit_short_name', $sub_unit);
+            }
+
+            $unmetDemands = $query->orderBy('created_at', 'desc')->get();
+
+            return $this->dataResponse('success', 200, __('msg.get_success'), $unmetDemands);
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 500, $exception->getMessage());
+        }
+    }
+
     public function onDelete($id)
     {
         return $this->deleteRecordById(UnmetDemandModel::class, $id, 'Unmet Demand');
