@@ -7,6 +7,7 @@ use App\Models\DirectPurchase\DirectPurchaseItemModel;
 use App\Models\DirectPurchase\DirectPurchaseModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Traits\CrudOperationsTrait;
+use App\Traits\Sap\SapDirectPurchaseTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
@@ -14,38 +15,64 @@ use DB;
 
 class DirectPurchaseController extends Controller
 {
-    use ResponseTrait, CrudOperationsTrait;
+    use ResponseTrait, CrudOperationsTrait, SapDirectPurchaseTrait;
 
     public function onCreate(Request $request)
     {
         $fields = $request->validate([
-            'type' => 'required|in:0,1', // 0 = DR, 1 = PO
-            'direct_reference_number' => 'required',
+            // 'type' => 'required|in:0,1', // 0 = DR, 1 = PO
+            // 'direct_reference_number' => 'required',
             'supplier_code' => 'nullable',
             'supplier_name' => 'required',
+            'remarks' => 'nullable|string',
             'direct_purchase_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date',
-            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
+            'direct_purchase_items' => 'nullable|json', //[{"item_code":"A5074","item_description":"STRAWBERRY JAM","item_category_code":"","uom":"PCE","requested_quantity":"5","total_received_quantity":"5","remarks":"test"}]
+            'attachment' => 'nullable',
+            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
             'created_by_id' => 'required',
             'store_code' => 'required|string',
             'store_sub_unit_short_name' => 'nullable|string',
         ]);
+
         try {
             DB::beginTransaction();
-            $directReferenceNumber = $fields['direct_reference_number'];
-            $supplierCode = $fields['supplier_code'];
-            $supplierName = $fields['supplier_name'];
+            // $directReferenceNumber = $fields['direct_reference_number'];
+            $supplierCode = $fields['supplier_code'] ?? null;
+            $supplierName = $fields['supplier_name'] ?? null;
             $directPurchaseDate = $fields['direct_purchase_date'];
-            $expectedDeliveryDate = $fields['expected_delivery_date'];
+            $expectedDeliveryDate = $fields['expected_delivery_date'] ?? null;
             $directPurchaseItems = $fields['direct_purchase_items'];
             $createdById = $fields['created_by_id'];
             $storeCode = $fields['store_code'];
             $storeSubUnitShortName = $fields['store_sub_unit_short_name'] ?? null;
-            $type = $fields['type'];
+            $remarks = $fields['remarks'] ?? null;
+            // $type = $fields['type'];
+            $directPurchaseAttachment = [];
+
+            if ($request->hasFile('attachment')) {
+                $files = $request->file('attachment');
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+                foreach ($files as $file) {
+                    $path = $file->store('attachments/direct_purchase', 'public');
+                    $directPurchaseAttachment[] = [
+                        'id' => (string) \Str::uuid(),
+                        'url' => asset(\Storage::url($path)),
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'path' => $path,
+                    ];
+                }
+            }
             $directPurchaseModel = DirectPurchaseModel::create([
                 'reference_number' => DirectPurchaseModel::onGenerateReferenceNumber(),
-                'direct_reference_number' => $directReferenceNumber,
-                'type' => $type,
+                // 'direct_reference_number' => $directReferenceNumber,
+                // 'type' => $type,
+                'attachment' => $directPurchaseAttachment,
                 'supplier_code' => $supplierCode,
                 'supplier_name' => $supplierName,
                 'direct_purchase_date' => $directPurchaseDate,
@@ -53,92 +80,126 @@ class DirectPurchaseController extends Controller
                 'created_by_id' => $createdById,
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $storeSubUnitShortName,
+                'status' => '1', // Posted / Complete
+                'remarks' => $remarks,
             ]);
 
-            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($type, $directReferenceNumber, $directPurchaseModel->id, $directPurchaseItems, $createdById);
+            $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($directPurchaseModel->id, $directPurchaseItems, $createdById);
 
             $data = [
-                'direct_purchase_details' => $directPurchaseModel,
+                'direct_purchase_header' => $directPurchaseModel,
                 'direct_purchase_items' => $directPurchaseItemsArr
             ];
             DB::commit();
-            return $this->dataResponse('success', 200, __('msg.create_success'), $data);
+            // $this->createSapDirectPurchase($data);
+            $directPurchaseItemController = new DirectPurchaseItemController();
+            $directPurchaseItemController->onUpdateStocks($data, $createdById);
+            // return $this->dataResponse('success', 200, __('msg.create_success'), $data);
+            return $this->dataResponse('success', 200, 'Direct Purchase Created Successfully.', $data);
         } catch (Exception $exception) {
             DB::rollback();
             return $this->dataResponse('error', 404, __('msg.create_failed'), $exception->getMessage());
         }
     }
 
-    private function onCreateDirectPurchaseItems($type, $directReferenceNumber, $directPurchaseId, $directPurchaseItems, $createdById)
+    private function onCreateDirectPurchaseItems($directPurchaseId, $directPurchaseItems, $createdById)
     {
-        try {
-            $directPurchaseItems = json_decode($directPurchaseItems, true);
+        $directPurchaseItems = json_decode($directPurchaseItems, true) ?: [];
 
+        try {
             $data = [];
             foreach ($directPurchaseItems as $items) {
-                $itemCode = $items['ic'];
-                $itemCategoryName = $items['ict'];
-                $itemDescription = $items['icd'];
-                $quantity = $items['q'];
 
                 $directPurchaseItemModel = DirectPurchaseItemModel::create([
                     'direct_purchase_id' => $directPurchaseId,
-                    'item_code' => $itemCode,
-                    'item_description' => $itemDescription,
-                    'item_category_name' => $itemCategoryName,
-                    'total_received_quantity' => 0,
-                    'requested_quantity' => $quantity,
-                    'created_by_id' => $createdById
+                    'item_code' => $items['item_code'] ?? null,
+                    'item_description' => $items['item_description'] ?? null,
+                    'item_category_code' => 'A035',
+                    'uom' => $items['uom'] ?? null,
+                    'quantity' => $items['quantity'] ?? 0,
+                    'remarks' => $items['remarks'] ?? null,
+                    'created_by_id' => $createdById,
+                    'created_at' => now(),
                 ]);
 
-                if ($type == 0) {
-                    $directPurchaseHandledItemController = new DirectPurchaseHandledItemController();
-                    $directPurchaseHandledItemRequest = new Request([
-                        'direct_purchase_item_id' => $directPurchaseItemModel->id,
-                        'delivery_receipt_number' => $directReferenceNumber,
-                        'type' => 1, // 0 = rejected, 1 = received
-                        'received_date' => now()->format('Y-m-d'),
-                        'quantity' => $quantity,
-                        'created_by_id' => $createdById
-                    ]);
-                    $directPurchaseHandledItemController->onCreate($directPurchaseHandledItemRequest);
-                }
                 $data[] = [
                     'direct_purchase_id' => $directPurchaseId,
-                    'item_code' => $itemCode,
-                    'item_description' => $itemDescription,
-                    'item_category_name' => $itemCategoryName,
-                    'total_received_quantity' => 0,
-                    'requested_quantity' => $quantity,
-                    'created_by_id' => $createdById
+                    'direct_purchase_item_id' => $directPurchaseItemModel->id,
+                    'item_code' => $items['item_code'],
+                    'item_description' => $items['item_description'] ?? null,
+                    'item_category_code' => 'A035',
+                    'uom' => $items['uom'] ?? null,
+                    'quantity' => $items['quantity'] ?? 0,
+                    // 'storage_location' => 'BKRM',
+                    'remarks' => $items['remarks'] ?? null,
+                    'created_by_id' => $createdById,
+                    'created_at' => now(),
                 ];
             }
-
 
             return $data;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
         }
     }
-    public function onGetCurrent($status, $direct_purchase_id = 0, $store_code, $sub_unit = null)
+    #region Get Current Direct Purchase
+    public function onGetCurrent($status, $store_code, $sub_unit = null)
     {
-        $whereFields = [
-            'status' => $status,
-            'store_code' => $store_code,
-        ];
+        try {
+            $query = DirectPurchaseModel::query();
+            $query->where('store_code', $store_code);
+            if ($status == 1) {
+                $query->where('status', 1);
+            } else {
+                $query->where('status', $status);
+            }
 
-        if ($sub_unit != null) {
-            $whereFields['store_sub_unit_short_name'] = $sub_unit;
+            if ($sub_unit) {
+                $query->where('store_sub_unit_short_name', $sub_unit);
+            }
+
+            $directPurchase = $query->orderBy('id', 'DESC')->get();
+            if ($directPurchase->isEmpty()) {
+                return $this->dataResponse('success', 200, __('msg.record_not_found'), []);
+            }
+            // Decode attachment field for each request
+            $directPurchase->transform(function ($item) {
+                if (!empty($item->attachment) && is_string($item->attachment)) {
+                    $decoded = json_decode($item->attachment, true);
+                    $item->attachment = $decoded ?: $item->attachment;
+                }
+                return $item;
+            });
+            return $this->dataResponse('success', 200, __('msg.record_found'), $directPurchase);
+
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }
-
-        $withFunction = null;
-        if ($direct_purchase_id != 0) {
-            $whereFields['id'] = $direct_purchase_id;
-            $withFunction = 'directPurchaseItems.directPurchaseHandledItems';
-        }
-
-        return $this->readCurrentRecord(DirectPurchaseModel::class, null, $whereFields, $withFunction, ['id' => 'DESC'], 'Purchase Order');
     }
+    #region Get Direct Purchase By ID
+    public function onGetById($direct_purchase_id)
+    {
+        try {
+            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
+            if ($directPurchaseModel) {
+                // Decode attachment field
+                if (!empty($directPurchaseModel->attachment) && is_string($directPurchaseModel->attachment)) {
+                    $decoded = json_decode($directPurchaseModel->attachment, true);
+                    $directPurchaseModel->attachment = $decoded ?: $directPurchaseModel->attachment;
+                }
+                $data = [
+                    'direct_purchase_header' => $directPurchaseModel,
+                    'direct_purchase_items' => $directPurchaseModel->directPurchaseItems()->get(),
+                ];
+                return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+            } else {
+                return $this->dataResponse('error', 404, __('msg.record_failed'));
+            }
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_failed'), $exception->getMessage());
+        }
+    }
+    #endregion
 
     public function onClose(Request $request, $direct_purchase_id)
     {
@@ -165,96 +226,136 @@ class DirectPurchaseController extends Controller
         }
     }
 
-    public function onUpdateDirectPurchaseDetails(Request $request, $direct_purchase_id)
+    #region Update Direct Purchase
+    public function onUpdateDirectPurchase(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
-            'direct_reference_number' => 'required|unique:direct_purchases,direct_reference_number,' . $direct_purchase_id,
-            'direct_purchase_items' => 'required|json', // [{"ic":"CR 12","q":12,"ict":"Breads","icd":"Cheeseroll Box of 12"}]
+
             'supplier_code' => 'nullable',
-            'supplier_name' => 'required',
+            'supplier_name' => 'nullable',
             'direct_purchase_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date',
-            'created_by_id' => 'required',
+            'remarks' => 'nullable|string',
+            // existing attachments sent as JSON string
+            'existing_attachments' => 'nullable|string',
+
+            // newly uploaded files
+            'attachment' => 'nullable|array',
+            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
+
+            'direct_purchase_items' => 'nullable|json',
+            'updated_by_id' => 'required',
         ]);
+
         try {
             DB::beginTransaction();
-            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
-            if (!$directPurchaseModel) {
-                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+
+            $directPurchase = DirectPurchaseModel::find($direct_purchase_id);
+            if (!$directPurchase) {
+                return $this->dataResponse('error', 404, 'Direct Purchase not found.');
             }
-            $directPurchaseModel->update([
-                'direct_reference_number' => $fields['direct_reference_number'],
-                'supplier_code' => $fields['supplier_code'],
-                'supplier_name' => $fields['supplier_name'],
-                'direct_purchase_date' => $fields['direct_purchase_date'],
-                'expected_delivery_date' => $fields['expected_delivery_date'],
-                'updated_by_id' => $fields['created_by_id'],
-                'updated_at' => now()
-            ]);
 
-            $directPurchaseItems = json_decode($fields['direct_purchase_items'], true);
-            foreach ($directPurchaseItems as $item) {
-                $itemCode = $item['ic'];
-                $itemCategoryName = $item['ict'];
-                $itemDescription = $item['icd'];
-                $quantity = $item['q'];
+            // BASIC UPDATE
 
-                $directPurchaseItemModel = DirectPurchaseItemModel::where([
-                    'direct_purchase_id' => $direct_purchase_id,
-                    'item_code' => $item['ic']
-                ])->first();
+            $directPurchase->direct_purchase_date = $fields['direct_purchase_date'];
+            $directPurchase->expected_delivery_date = $fields['expected_delivery_date'] ?? null;
+            $directPurchase->supplier_code = $fields['supplier_code'] ?? null;
+            $directPurchase->supplier_name = $fields['supplier_name'];
+            $directPurchase->remarks = $fields['remarks'] ?? $directPurchase->remarks;
+            $directPurchase->updated_by_id = $fields['updated_by_id'];
+            $directPurchase->updated_at = now();
 
-                if ($directPurchaseItemModel && $directPurchaseItemModel->requested_quantity != $quantity) {
-                    $directPurchaseItemModel->requested_quantity = $quantity;
-                    $directPurchaseItemModel->item_description = $itemDescription;
-                    $directPurchaseItemModel->item_category_name = $itemCategoryName;
-                    $directPurchaseItemModel->updated_by_id = $fields['created_by_id'];
-                    $directPurchaseItemModel->updated_at = now();
-                    $directPurchaseItemModel->save();
-                } else if (!$directPurchaseItemModel) {
-                    DirectPurchaseItemModel::create([
-                        'direct_purchase_id' => $direct_purchase_id,
-                        'item_code' => $itemCode,
-                        'item_description' => $itemDescription,
-                        'item_category_name' => $itemCategoryName,
-                        'requested_quantity' => $quantity,
-                        'created_by_id' => $fields['created_by_id']
-                    ]);
+            // EXISTING ATTACHMENTS
+
+            $existingAttachments = [];
+
+            if (!empty($fields['existing_attachments'])) {
+                $existingAttachments = json_decode($fields['existing_attachments'], true) ?? [];
+            }
+
+            // normalize old attachments from DB
+            $oldAttachments = $purchaseRequest->attachment ?? [];
+
+            //DELETE REMOVED FILES
+
+            $existingPaths = collect($existingAttachments)->pluck('path')->filter()->toArray();
+
+            foreach ($oldAttachments as $old) {
+                if (
+                    isset($old['path']) &&
+                    !in_array($old['path'], $existingPaths)
+                ) {
+                    \Storage::disk('public')->delete($old['path']);
                 }
             }
-            $data = [
-                'direct_purchase_details' => $directPurchaseModel,
-            ];
+
+            // HANDLE NEW UPLOADS
+            $newAttachments = [];
+
+            if ($request->hasFile('attachment')) {
+                foreach ($request->file('attachment') as $file) {
+
+                    $path = $file->store('attachments/direct_purchase', 'public');
+
+                    $newAttachments[] = [
+                        'id' => (string) \Str::uuid(),
+                        'url' => asset(\Storage::url($path)),
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'path' => $path,
+                    ];
+                }
+            }
+
+            // FINAL MERGE
+            $directPurchase->attachment = array_values(
+                array_merge($existingAttachments, $newAttachments)
+            );
+
+            $directPurchase->save();
+            // UPDATE ITEMS
+            if (!empty($fields['direct_purchase_items'])) {
+                DirectPurchaseItemModel::where('direct_purchase_id', $direct_purchase_id)->delete();
+                $this->onCreateDirectPurchaseItems(
+                    $direct_purchase_id,
+                    $fields['direct_purchase_items'],
+                    $fields['updated_by_id'],
+
+                );
+            }
+            //TODO SAP Update Direct Purchase Details
             DB::commit();
-            return $this->dataResponse('success', 200, __('msg.update_success'), $data);
-        } catch (Exception $exception) {
+            return $this->dataResponse('success', 200, 'Direct Purchase Updated Successfully.');
+
+        } catch (Exception $e) {
             DB::rollBack();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 500, 'Update failed', $e->getMessage());
         }
     }
 
     public function onCancel(Request $request, $direct_purchase_id)
     {
         $fields = $request->validate([
-            'created_by_id' => 'required'
+            'updated_by_id' => 'required',
         ]);
         try {
-            $directPurchaseModel = DirectPurchaseModel::find($direct_purchase_id);
-            if ($directPurchaseModel) {
-                DB::beginTransaction();
-                $directPurchaseModel->status = 2; // cancelled
-                $directPurchaseModel->updated_by_id = $fields['created_by_id'];
-                $directPurchaseModel->updated_at = now();
-                $directPurchaseModel->save();
-
-                DB::commit();
-                return $this->dataResponse('success', 200, __('msg.update_success'), $directPurchaseModel);
-
+            DB::beginTransaction();
+            $updatedById = $fields['updated_by_id'];
+            $directPurchaseModel = DirectPurchaseModel::whereIn('status', [0, 1])->find($direct_purchase_id);
+            if (!$directPurchaseModel) {
+                return $this->dataResponse('success', 200, __('msg.record_not_found'));
             }
-            return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            $directPurchaseModel->status = 2; // Set status to Cancelled
+            $directPurchaseModel->updated_by_id = $updatedById;
+            $directPurchaseModel->save();
+            DB::commit();
+
+            return $this->dataResponse('success', 200, 'Cancelled Successfully');
         } catch (Exception $exception) {
             DB::rollBack();
-            return $this->dataResponse('error', 404, __('msg.update_failed'), $exception->getMessage());
+            return $this->dataResponse('error', 400, 'Cancel Failed', $exception->getMessage());
         }
     }
 }

@@ -95,7 +95,7 @@ class StockTransferController extends Controller
         }
     }
 
-    public function onCreateStoreReceivingInventory($transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById)
+    public function onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById, $transferFromStoreCode, $transferFromStoreName)
     {
         try {
             $userModel = User::where('employee_id', $createdById)->first();
@@ -167,6 +167,10 @@ class StockTransferController extends Controller
             $transferItems = json_encode($stockTransferModel->stockTransferItems);
             $storeCode = $stockTransferModel->store_code;
             $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+
+            $transferFromStoreCode = $stockTransferModel->store_code;
+            $transferFromStoreName = $stockTransferModel->formatted_store_name_label;
+
             $pickupDate = $stockTransferModel->pickup_date;
             $referenceNumber = $stockTransferModel->reference_number;
             $remarks = $stockTransferModel->remarks;
@@ -190,7 +194,7 @@ class StockTransferController extends Controller
             $stockTransferModel->logistics_confirmed_by_id = $createdById;
 
             if ($type == 0) {
-                $this->onCreateStoreReceivingInventory($transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById, $transferFromStoreCode, $transferFromStoreName);
             } else if ($type == 1) {
                 $this->onCreateTransmittalPullout($transferItems, $createdById, $remarks, $id);
             } else if ($type == 2) {
@@ -399,6 +403,9 @@ class StockTransferController extends Controller
                 $transferToStoreCode = $stockTransferModel->location_code;
                 $transferToStoreName = $stockTransferModel->location_name;
                 $transferToStoreSubUnitShortName = $stockTransferModel->location_sub_unit;
+
+                $transferFromStoreCode = $stockTransferModel->store_code;
+                $transferFromStoreName = $stockTransferModel->formatted_store_name_label;
                 $createdById = $stockTransferModel->created_by_id;
                 $transferItems = json_encode($stockTransferModel->stockTransferItems);
 
@@ -411,7 +418,7 @@ class StockTransferController extends Controller
                 $transferFromStoreCode = $storeLists['code'];
                 $transferFromStoreName = $storeLists['name'];
                 // Create Store Receiving Inventory
-                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferFromStoreCode, $transferFromStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById);
+                $this->onCreateStoreReceivingInventory($transferToStoreCode, $transferToStoreName, $transferToStoreSubUnitShortName, $pickupDate, $referenceNumber, $transferItems, $createdById, $transferFromStoreCode, $transferFromStoreName);
             }
             DB::commit();
             return $this->dataResponse('success', 200, __('msg.update_success'));

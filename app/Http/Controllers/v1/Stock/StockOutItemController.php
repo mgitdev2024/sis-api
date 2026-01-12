@@ -81,12 +81,60 @@ class StockOutItemController extends Controller
         }
     }
 
-    public function onGet($stock_out_id)
+    public function onGet($stock_out_id = null)
     {
         try {
-            $stockOutModel = StockOutModel::with(['stockOutItems'])->where('id', $stock_out_id)->firstOrFail();
-            return $this->dataResponse('success', 200, __('msg.record_found'), $stockOutModel);
-        } catch (Exception $exception) {
+            if (!$stock_out_id) {
+                return $this->dataResponse('error', 404, __('msg.record_not_found'));
+            }
+
+            $stockOutModel = StockOutModel::findOrFail($stock_out_id);
+            $subUnit = $stockOutModel->store_sub_unit_short_name;
+
+            // Local items indexed by item_code
+            $localItems = $stockOutModel->stockOutItems()
+                ->get()
+                ->keyBy('item_code');
+
+            $itemCodes = $localItems->keys();
+
+            $response = \Http::withHeaders([
+                'x-api-key' => config('apikeys.mgios_api_key'),
+            ])->post(
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                    ['item_code_collection' => json_encode($itemCodes)]
+                );
+
+            if (!$response->successful()) {
+                return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
+            }
+
+            $apiData = $response->json();
+
+            // Merge local data into API structure
+            foreach ($apiData as $department => &$categories) {
+                foreach ($categories as $category => &$items) {
+                    foreach ($items as &$item) {
+                        $code = $item['item_code'];
+
+                        if (isset($localItems[$code])) {
+                            $local = $localItems[$code]->toArray();
+
+                            $local['uom'] = $item['uom'] ?? null;
+
+                            $item = $local;
+                        }
+                    }
+                }
+            }
+            unset($categories, $items, $item);
+
+            // Injected local data into api response
+            $data = $stockOutModel->toArray();
+            $data['stock_out_items'] = $apiData;
+
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
+        } catch (\Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'));
         }
     }

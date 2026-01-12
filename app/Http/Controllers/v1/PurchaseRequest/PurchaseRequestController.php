@@ -26,7 +26,7 @@ class PurchaseRequestController extends Controller
             'storage_location' => 'nullable|string',
             'created_by_id' => 'required',
             'attachment' => 'nullable',
-            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
+            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:15360',
             'purchase_request_items' => 'nullable|json',
             'delivery_date' => 'required|date',
         ]);
@@ -215,7 +215,8 @@ class PurchaseRequestController extends Controller
 
             // newly uploaded files
             'attachment' => 'nullable|array',
-            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:5120',
+            'attachment.*' => 'file|mimes:jpg,jpeg,png|max:15360',
+
 
             'purchase_request_items' => 'nullable|json',
             'updated_by_id' => 'required',

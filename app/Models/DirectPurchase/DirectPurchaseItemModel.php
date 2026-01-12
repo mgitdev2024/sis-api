@@ -9,16 +9,21 @@ class DirectPurchaseItemModel extends Model
 {
     use HasFactory;
     protected $table = 'direct_purchase_items';
-    protected $appends = ['formatted_created_at_label', 'formatted_updated_at_label', 'total_received_quantity_label'];
+    protected $appends = [
+        'formatted_created_at_label',
+        'formatted_updated_at_label',
+        // 'total_received_quantity_label'
+    ];
 
     protected $fillable = [
         'direct_purchase_id',
         'item_code',
         'item_description',
-        'item_category_name',
-        'total_received_quantity',
-        'requested_quantity',
+        'item_category_code',
+        'quantity',
+        'uom',
         'status',
+        'remarks',
         'created_at',
         'updated_at',
         'created_by_id',
@@ -30,10 +35,10 @@ class DirectPurchaseItemModel extends Model
         return $this->belongsTo(DirectPurchaseModel::class);
     }
 
-    public function directPurchaseHandledItems()
-    {
-        return $this->hasMany(DirectPurchaseHandledItemModel::class, 'direct_purchase_item_id');
-    }
+    // public function directPurchaseHandledItems()
+    // {
+    //     return $this->hasMany(DirectPurchaseHandledItemModel::class, 'direct_purchase_item_id');
+    // }
 
     public function getFormattedCreatedAtLabelAttribute()
     {
@@ -48,17 +53,17 @@ class DirectPurchaseItemModel extends Model
             ? Carbon::parse($this->updated_at)->format('F d, Y h:i A')
             : null;
     }
-    public function getTotalReceivedQuantityLabelAttribute()
-    {
-        $directPurchaseHandledItems = $this->directPurchaseHandledItems;
-        $totalReceivedQuantity = 0;
+    // public function getTotalReceivedQuantityLabelAttribute()
+    // {
+    //     $directPurchaseHandledItems = $this->directPurchaseHandledItems;
+    //     $totalReceivedQuantity = 0;
 
-        foreach ($directPurchaseHandledItems as $item) {
-            if ($item->type == 1) { // Only count received items
-                $totalReceivedQuantity += $item->quantity;
-            }
-        }
+    //     foreach ($directPurchaseHandledItems as $item) {
+    //         if ($item->type == 1) { // Only count received items
+    //             $totalReceivedQuantity += $item->quantity;
+    //         }
+    //     }
 
-        return $totalReceivedQuantity;
-    }
+    //     return $totalReceivedQuantity;
+    // }
 }

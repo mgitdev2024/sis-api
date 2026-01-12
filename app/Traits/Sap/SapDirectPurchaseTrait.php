@@ -1,68 +1,67 @@
 <?php
 
 namespace App\Traits\Sap;
-use App\Models\Sap\PurchaseRequest\PurchaseRequestModel;
-use App\Models\Sap\PurchaseRequest\SapPurchaseRequestModel;
-use App\Models\Sap\PurchaseRequest\SapPurchaseRequestItemModel;
+
+use App\Models\Sap\DirectPurchase\SapDirectPurchaseModel;
+use App\Models\Sap\DirectPurchase\SapDirectPurchaseItemModel;
 use Exception, Auth;
 use App\Traits\ResponseTrait;
 use Illuminate\Support\Facades\Http;
 
-trait SapPurchaseRequisitionTrait
+trait SapDirectPurchaseTrait
 {
     use ResponseTrait;
 
-
-    public function createSapPurchaseRequest($decodedPurchaseReqData)
+    public function createSapDirectPurchase($decodedDirectPurchaseData)
     {
         try {
-
+            // dd($decodedDirectPurchaseData['direct_purchase_items']);
             $storeCodeResponse = Http::withHeaders([
                 'x-api-key' => config('apikeys.sds_api_key')
             ])->get(config('apiurls.sds.url') . config('apiurls.sds.public_store_list_get') . '');
             $storeCodeData = $storeCodeResponse->json();
-            $sapPurchaseItems = $decodedPurchaseReqData['purchase_request_items'];
-            $headerRemarks = $decodedPurchaseReqData['purchase_request_header']['remarks'];
-            $headerAttachment = $decodedPurchaseReqData['purchase_request_header']['attachment'];
+            $sapDirectPurchaseItems = $decodedDirectPurchaseData['direct_purchase_items'];
+            $headerRemarks = $decodedDirectPurchaseData['direct_purchase_header']['remarks'];
+            $headerAttachment = $decodedDirectPurchaseData['direct_purchase_header']['attachment'];
             $definitionId = 'jp10.com-mgfi-dev.mgiossupplierdirectdeliveryinboundpurchaserequestcreate.purchaseRequisitionProcess';
 
             if (is_array($headerAttachment) && !empty($headerAttachment)) {
                 //Implode for SAP requirement
                 $headerAttachment = implode(',', array_column($headerAttachment, 'url'));
             }
-            $sapPurReqArr = [];
-            $purchaseItemLine = 10;
+            $sapDirectPurchaseArr = [];
+            $directPurchaseItemLine = 10;
             // dd($sapPurchaseItems);
-            foreach ($sapPurchaseItems as $item) {
-                $sapPurReqArr[] = [
-                    'PurchaseRequisitionItem' => (string) $purchaseItemLine,
+            foreach ($sapDirectPurchaseItems as $item) {
+                $sapDirectPurchaseArr[] = [
+                    'PurchaseRequisitionItem' => (string) $directPurchaseItemLine,
                     'Material' => $item['item_code'],
                     'MaterialGroup' => $item['item_category_code'],
                     'Plant' => '02BP',
                     'CompanyCode' => 'BMII',
-                    'PurchasingOrganization' => $item['purchasing_organization'],
-                    'PurchasingGroup' => $item['purchasing_group'],
-                    'BaseUnitISOCode' => 'PCE',
-                    'RequestedQuantity' => (int) $item['requested_quantity'],
-                    'PurchaseRequisitionPrice' => (int) $item['price'],
-                    'PurReqnItemCurrency' => $item['currency'],
-                    'DeliveryDate' => "2025-12-27",
+                    'PurchasingOrganization' => 'MGPO',
+                    'PurchasingGroup' => '001',
+                    'BaseUnitISOCode' => $item['uom'],
+                    'RequestedQuantity' => (int) $item['quantity'],
+                    'PurchaseRequisitionPrice' => 1,
+                    'PurReqnItemCurrency' => 'PHP',
+                    'DeliveryDate' => "2026-01-08",
                     'StorageLocation' => 'BKRM',
                     'PurchaseRequisitionItemText' => $item['remarks'],
                 ];
-                $purchaseItemLine += 10;
+                $directPurchaseItemLine += 10;
             }
             //* Save all to database after loop
-            $this->saveSapPurchaseRequest($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr);
+            $this->saveSapDirectPurchase($definitionId, $headerAttachment, $headerRemarks, $sapDirectPurchaseArr);
 
             //* Call SAP API with prepared payload
-            $this->purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr);
+            $this->purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapDirectPurchaseArr);
         } catch (Exception $exception) {
             throw new Exception("Error creating SAP Purchase Requisition: " . $exception->getMessage());
         }
     }
 
-    public function purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr)
+    public function purchaseRequisitionApiCall($definitionId, $headerAttachment, $headerRemarks, $sapDirectPurchaseArr)
     {
         try {
             $purchaseRequisitionFormatting = $payload ?? [
@@ -72,7 +71,7 @@ trait SapPurchaseRequisitionTrait
                         'PurchaseRequisitionType' => 'NB',
                         'PurReqnDescription' => $headerRemarks,
                         'PurReqnHeaderNote' => $headerAttachment,
-                        '_PurchaseRequisitionItem' => $sapPurReqArr
+                        '_PurchaseRequisitionItem' => $sapDirectPurchaseArr
                     ]
                 ]
             ];
@@ -95,12 +94,12 @@ trait SapPurchaseRequisitionTrait
         }
     }
 
-    private function saveSapPurchaseRequest($definitionId, $headerAttachment, $headerRemarks, $sapPurReqArr)
+    private function saveSapDirectPurchase($definitionId, $headerAttachment, $headerRemarks, $sapDirectPurchaseArr)
     {
         $createdBy = Auth::user()->id;
         try {
             // Insert header and get ID
-            $header = SapPurchaseRequestModel::create([
+            $header = SapDirectPurchaseModel::create([
                 'definition_id' => $definitionId,
                 'bpa_response_id' => '',
                 'purchase_requisition_type' => 'NB',
@@ -112,9 +111,9 @@ trait SapPurchaseRequisitionTrait
             $headerId = $header->id;
 
             // Insert all items
-            foreach ($sapPurReqArr as $item) {
-                SapPurchaseRequestItemModel::create([
-                    'purchase_request_id' => $headerId,
+            foreach ($sapDirectPurchaseArr as $item) {
+                SapDirectPurchaseItemModel::create([
+                    'direct_purchase_id' => $headerId,
                     'purchase_requisition_item' => $item['PurchaseRequisitionItem'],
                     'material' => $item['Material'],
                     'material_group' => $item['MaterialGroup'],
@@ -132,7 +131,7 @@ trait SapPurchaseRequisitionTrait
                 ]);
             }
         } catch (Exception $exception) {
-            throw new Exception("Error saving SAP Good Receipt: " . $exception->getMessage());
+            throw new Exception("Error saving SAP Purchase Request: " . $exception->getMessage());
         }
     }
     protected function getSapAccessTokenOAuth2()
