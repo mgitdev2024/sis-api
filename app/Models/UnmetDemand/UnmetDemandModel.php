@@ -2,6 +2,7 @@
 
 namespace App\Models\UnmetDemand;
 
+use App\Models\Stock\StockInventoryModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

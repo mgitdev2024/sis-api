@@ -88,7 +88,7 @@ class StockConversionReportController extends Controller
                         'to_item_description' => $conversionItem['item_description'],
                         'to_uom' => $conversionItem->stockInventory->uom ?? null,
                         'to_qty' => $conversionItem['converted_quantity'],
-                        'conversion_type' => $item['type'] == 0 ? 'Automatic' : 'Manual',
+                        'conversion_type' => $item['type'] === 0 ? 'Automatic' : 'Manual',
                         'converted_by' => $item['created_by_name_label'] ?? null,
                         'conversion_data' => $item['formatted_created_at_label'] ?? null
                     ];
