@@ -33,12 +33,41 @@ return new class extends Migration {
             $table->string('item_description')->nullable(); // Cheeseroll Box of 12
             $table->string('item_category_code')->nullable();
             $table->string('uom')->nullable();
-            $table->integer('total_received_quantity')->default(0);
-            $table->integer('requested_quantity');
+            $table->integer('quantity');
             $table->text('remarks')->nullable();
             SchemaHelper::addCommonColumns($table);
 
             $table->foreign('direct_purchase_id')->references('id')->on('direct_purchases');
+        });
+        //* w/ SAP Structure
+        Schema::create('sap_direct_purchases', function (Blueprint $table) {
+            $table->id();
+            $table->string('definition_id'); //* Static value
+            $table->string('bpa_response_id')->nullable();
+            $table->string('purchase_requisition_type')->nullable();
+            $table->text('attachment')->nullable();
+            $table->text('remarks')->nullable();
+            SchemaHelper::addCommonColumns($table, 1);
+
+        });
+        Schema::create('sap_direct_purchase_items', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('direct_purchase_id'); //* FK to sap_direct_purchase
+            $table->unsignedBigInteger('purchase_requisition_item'); //* by 10's incrementation
+            $table->string('material')->nullable(); //* Item Code
+            $table->string('material_group')->nullable(); //* Item Category Code
+            $table->string('plant')->nullable(); //* Store Code
+            $table->string('company_code')->nullable(); //* Store Company Code
+            $table->string('base_unit_iso_code')->nullable(); //uom
+            $table->string('purchasing_organization')->nullable();
+            $table->string('purchasing_group')->nullable();
+            $table->unsignedBigInteger('requested_quantity')->nullable();
+            $table->unsignedBigInteger('purchase_requisition_price')->nullable(); //* Price
+            $table->string('purchase_requisition_item_currency')->nullable();//* Currency
+            $table->date('delivery_date')->nullable(); //* Expected Delivery Date
+            $table->string('storage_location')->nullable();
+            $table->text('purchase_requisition_item_text')->nullable(); //* Remarks
+            SchemaHelper::addCommonColumns($table, 0);
         });
 
         // Schema::create('direct_purchase_handled_items', function (Blueprint $table) {

@@ -36,9 +36,9 @@ class StockInventoryItemCountController extends Controller
                 $response = Http::withHeaders([
                     'x-api-key' => config('apikeys.mgios_api_key'),
                 ])->post(
-                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
-                    ['item_code_collection' => json_encode($itemCodes)]
-                );
+                        config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                        ['item_code_collection' => json_encode($itemCodes)]
+                    );
 
                 if (!$response->successful()) {
                     return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
@@ -258,8 +258,8 @@ class StockInventoryItemCountController extends Controller
                 'store_code' => $storeCode,
                 'store_sub_unit_short_name' => $subUnit,
             ])->whereIn('item_code', $itemCodes)
-            ->get()
-            ->keyBy('item_code');
+                ->get()
+                ->keyBy('item_code');
 
             // Bulk fetch latest logs
             $latestLogs = StockLogModel::select('item_code', 'final_stock')

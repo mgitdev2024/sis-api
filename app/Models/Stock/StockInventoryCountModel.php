@@ -49,7 +49,7 @@ class StockInventoryCountModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestStoreInventoryCount = static::orderBy('id', 'desc')->value('id');
+        $latestStoreInventoryCount = static::max('id');
         $nextStoreInventoryCount = $latestStoreInventoryCount + 1;
         $referenceNumber = 'SC-' . str_pad($nextStoreInventoryCount, 6, '0', STR_PAD_LEFT);
 

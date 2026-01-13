@@ -7,7 +7,7 @@ use App\Models\DirectPurchase\DirectPurchaseItemModel;
 use App\Models\DirectPurchase\DirectPurchaseModel;
 use App\Models\Stock\StockInventoryModel;
 use App\Traits\CrudOperationsTrait;
-use App\Traits\Sap\SapPurchaseRequisitionTrait;
+use App\Traits\Sap\SapDirectPurchaseTrait;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Exception;
@@ -15,7 +15,7 @@ use DB;
 
 class DirectPurchaseController extends Controller
 {
-    use ResponseTrait, CrudOperationsTrait, SapPurchaseRequisitionTrait;
+    use ResponseTrait, CrudOperationsTrait, SapDirectPurchaseTrait;
 
     public function onCreate(Request $request)
     {
@@ -87,11 +87,13 @@ class DirectPurchaseController extends Controller
             $directPurchaseItemsArr = $this->onCreateDirectPurchaseItems($directPurchaseModel->id, $directPurchaseItems, $createdById);
 
             $data = [
-                'direct_purchase_details' => $directPurchaseModel,
+                'direct_purchase_header' => $directPurchaseModel,
                 'direct_purchase_items' => $directPurchaseItemsArr
             ];
             DB::commit();
-            // $this->createSapPurchaseRequest($data);
+            // $this->createSapDirectPurchase($data);
+            $directPurchaseItemController = new DirectPurchaseItemController();
+            $directPurchaseItemController->onUpdateStocks($data, $createdById);
             // return $this->dataResponse('success', 200, __('msg.create_success'), $data);
             return $this->dataResponse('success', 200, 'Direct Purchase Created Successfully.', $data);
         } catch (Exception $exception) {
@@ -114,8 +116,7 @@ class DirectPurchaseController extends Controller
                     'item_description' => $items['item_description'] ?? null,
                     'item_category_code' => 'A035',
                     'uom' => $items['uom'] ?? null,
-                    'total_received_quantity' => $items['total_received_quantity'] ?? 0,
-                    'requested_quantity' => $items['requested_quantity'] ?? 0,
+                    'quantity' => $items['quantity'] ?? 0,
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdById,
                     'created_at' => now(),
@@ -128,8 +129,7 @@ class DirectPurchaseController extends Controller
                     'item_description' => $items['item_description'] ?? null,
                     'item_category_code' => 'A035',
                     'uom' => $items['uom'] ?? null,
-                    'total_received_quantity' => $items['total_received_quantity'] ?? 0,
-                    'requested_quantity' => $items['requested_quantity'] ?? 0,
+                    'quantity' => $items['quantity'] ?? 0,
                     // 'storage_location' => 'BKRM',
                     'remarks' => $items['remarks'] ?? null,
                     'created_by_id' => $createdById,

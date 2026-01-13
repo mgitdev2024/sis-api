@@ -53,12 +53,12 @@ class SyncItemListJob implements ShouldQueue
             $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
             ])->post(
-                config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'),
-                [
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_item_masterdata_collection_get'),
+                    [
                         'item_code_collection' => json_encode($itemCodes),
                         'is_key_by' => true,
                     ]
-            );
+                );
 
             if ($response->failed()) {
                 throw new Exception('MGIOS API request failed: ' . $response->status());
@@ -92,13 +92,9 @@ class SyncItemListJob implements ShouldQueue
                     $updates['uom'] = $data['uom'];
                     // }
 
-                    if ($existingItem->is_sis_variant !== $data['is_sis_variant']) {
-                        $updates['is_sis_variant'] = $data['is_sis_variant'];
-                    }
-
-                    if ($existingItem->is_viewable_item_request !== $data['is_viewable_item_request']) {
-                        $updates['is_viewable_item_request'] = $data['is_viewable_item_request'];
-                    }
+                    // if ($existingItem->is_sis_variant !== $data['is_sis_variant']) {
+                    $updates['is_sis_variant'] = $data['is_sis_variant'];
+                    // }
                 }
                 if (!empty($updates)) {
                     $updates['updated_at'] = now();
