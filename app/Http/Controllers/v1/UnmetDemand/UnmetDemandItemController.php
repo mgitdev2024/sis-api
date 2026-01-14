@@ -51,6 +51,7 @@ class UnmetDemandItemController extends Controller
             DB::beginTransaction();
             foreach (json_decode($fields['updated_data'], true) as $item) {
                 $unmetDemandItemId = $item['id'];
+
                 $unmetDemandItemModel = UnmetDemandItemModel::select('unmet_demand_id')->where('id', $unmetDemandItemId)->first();
                 if (!UnmetDemandItemModel::where('id', $unmetDemandItemId)->exists()) {
                     continue;
@@ -59,7 +60,7 @@ class UnmetDemandItemController extends Controller
 
                 if (isset($item['d']) && $item['d'] == 1) {
                     // Delete item
-                    $unmetDemandModel = UnmetDemandItemModel::where('unmet_demand_id', $unmetDemandItemId)->count();
+                    $unmetDemandModel = UnmetDemandItemModel::where('unmet_demand_id', $unmetDemandId)->count();
                     if ($unmetDemandModel <= 1) {
                         UnmetDemandModel::destroy($unmetDemandId);
                     } else {
