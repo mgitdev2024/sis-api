@@ -3,6 +3,7 @@
 namespace App\Models\UnmetDemand;
 
 use App\Models\Stock\StockInventoryModel;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +11,11 @@ class UnmetDemandModel extends Model
 {
     use HasFactory;
     protected $table = 'unmet_demands';
+
+    protected $appends = [
+        'formatted_created_by_label',
+        'formatted_created_at_label',
+    ];
 
     protected $fillable = [
         'reference_code',
@@ -39,4 +45,17 @@ class UnmetDemandModel extends Model
         return $referenceNumber;
     }
 
+    public function getFormattedCreatedByLabelAttribute()
+    {
+        $userModel = User::where('employee_id', $this->created_by_id)->first();
+        if ($userModel) {
+            return $userModel->first_name . ' ' . $userModel->last_name;
+        }
+        return null;
+    }
+
+    public function getFormattedCreatedAtLabelAttribute()
+    {
+        return $this->created_at ? \Carbon\Carbon::parse($this->created_at)->format('Y-m-d h:i A') : null;
+    }
 }

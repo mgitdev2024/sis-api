@@ -33,7 +33,7 @@ class StoreReceivingInventoryModel extends Model
 
     public static function onGenerateReferenceNumber($consolidatedOrderId)
     {
-        $latestStoreReceiving = static::latest()->value('id');
+        $latestStoreReceiving = static::orderBy('id', 'desc')->value('id');
         $nextStoreReceiving = $latestStoreReceiving + 1;
         $referenceNumber = 'C' . $consolidatedOrderId . '-1' . str_pad($nextStoreReceiving, 6, '0', STR_PAD_LEFT);
 

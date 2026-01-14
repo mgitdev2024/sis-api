@@ -30,7 +30,7 @@ class CustomerReturnFormModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestCustomerReturnId = static::latest()->value('id');
+        $latestCustomerReturnId = static::orderBy('id', 'desc')->value('id');
         $nextCustomerReturnId = $latestCustomerReturnId + 1;
         $referenceNumber = 'CR-' . str_pad($nextCustomerReturnId, 6, '0', STR_PAD_LEFT);
 

@@ -25,7 +25,7 @@ class StockReturnItemModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestStockReturnId = static::latest()->value('id');
+        $latestStockReturnId = static::orderBy('id', 'desc')->value('id');
         $nextStockReturnId = $latestStockReturnId + 1;
         $referenceNumber = 'RT-' . str_pad($nextStockReturnId, 6, '0', STR_PAD_LEFT);
 
