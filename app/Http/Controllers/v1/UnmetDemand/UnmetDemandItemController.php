@@ -9,6 +9,7 @@ use App\Traits\CrudOperationsTrait;
 use App\Traits\ResponseTrait;
 use DB;
 use Exception;
+use Http;
 use Illuminate\Http\Request;
 
 class UnmetDemandItemController extends Controller
@@ -83,8 +84,47 @@ class UnmetDemandItemController extends Controller
     public function onGet($unmet_demand_item_id)
     {
         try {
-            $unmetDemandModel = UnmetDemandItemModel::with('unmetDemand')->where('unmet_demand_id', $unmet_demand_item_id)->get();
-            return $this->dataResponse('success', 200, __('msg.record_found'), $unmetDemandModel);
+            $unmetDemandItemModel = UnmetDemandItemModel::where('unmet_demand_id', $unmet_demand_item_id)->get()->keyBy('item_code');
+            $unmetDemandModel = UnmetDemandModel::where('id', $unmet_demand_item_id)->first();
+            $storeCode = $unmetDemandModel->store_code;
+            $subUnit = $unmetDemandModel->store_sub_unit_short_name;
+            $referenceNumber = $unmetDemandModel->reference_number;
+            $itemCodes = $unmetDemandItemModel->keys();
+
+
+            $response = Http::withHeaders([
+                'x-api-key' => config('apikeys.mgios_api_key'),
+            ])->post(
+                config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $subUnit,
+                ['item_code_collection' => json_encode($itemCodes)]
+            );
+
+            if (!$response->successful()) {
+                return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
+            }
+
+            $apiData = $response->json();
+            // 3️⃣ Merge local values into the nested API data (retain structure)
+            foreach ($apiData as $department => &$categories) {
+                foreach ($categories as $category => &$items) {
+                    foreach ($items as &$item) {
+                        $apiItemData = $item;
+                        $code = $item['item_code'];
+                        if (isset($unmetDemandItemModel[$code])) {
+                            $local = $unmetDemandItemModel[$code];
+                            $item = $local;
+                            $item['uom'] = $apiItemData['uom'] ?? null;
+                        }
+                    }
+                }
+            }
+            unset($categories, $items, $item);
+
+            $data = [
+                'unmet_details' => $unmetDemandModel,
+                'unmet_items' => $apiData,
+            ];
+            return $this->dataResponse('success', 200, __('msg.record_found'), $data);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 500, $exception->getMessage());
         }

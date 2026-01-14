@@ -36,7 +36,7 @@ class StockOutModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestStockOutId = static::latest()->value('id');
+        $latestStockOutId = static::orderBy('id', 'desc')->value('id');
         $nextStockOutId = $latestStockOutId + 1;
         $referenceNumber = 'IO-' . str_pad($nextStockOutId, 6, '0', STR_PAD_LEFT);
 

@@ -34,9 +34,9 @@ class StockConversionModel extends Model
 
     public static function onGenerateReferenceNumber()
     {
-        $latestDirectPurchaseId = static::latest()->value('id');
-        $nextDirectPurchaseId = $latestDirectPurchaseId + 1;
-        $referenceNumber = 'STC-' . str_pad($nextDirectPurchaseId, 6, '0', STR_PAD_LEFT);
+        $latestStockConversion = static::orderBy('id', 'desc')->value('id');
+        $nextStockConversionId = $latestStockConversion + 1;
+        $referenceNumber = 'STC-' . str_pad($nextStockConversionId, 6, '0', STR_PAD_LEFT);
 
         return $referenceNumber;
     }
