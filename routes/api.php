@@ -132,6 +132,7 @@ Route::group(['middleware' => ['auth:sanctum', 'check.pending.stock.count', 'che
     #region Stock Inventory
     Route::get('v1/stock/inventory/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGet']);
     Route::get('v1/stock/inventory/id/get/{stock_inventory_id?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetById']);
+    Route::get('v1/stock/inventory/item/get/{store_code}/{sub_unit?}', [App\Http\Controllers\v1\Stock\StockInventoryController::class, 'onGetItemByStore']);
     #endregion
 
     #region Stock Log

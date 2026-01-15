@@ -64,15 +64,15 @@ class StockInventoryCountController extends Controller
             //         $stockCountDate = now()->subDay(); // yesterday
             //     }
             // }
-            $stockCountDate = Carbon::parse($fields['stock_count_date'])->startOfDay();
+            $stockCountDate = Carbon::parse($fields['stock_count_date'])->setTimeFrom(Carbon::now());
 
             $today = Carbon::today(config('app.timezone'));
             $yesterday = Carbon::yesterday(config('app.timezone'));
 
 
             if (
-                !$stockCountDate->equalTo($today) &&
-                !$stockCountDate->equalTo($yesterday)
+                !$stockCountDate->isSameDay($today) &&
+                !$stockCountDate->isSameDay($yesterday)
             ) {
                 return $this->dataResponse(
                     'error',

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Exception;
 use App\Traits\ResponseTrait;
 use DB;
+use Log;
 
 class StockInventoryController extends Controller
 {
@@ -30,9 +31,9 @@ class StockInventoryController extends Controller
             $response = Http::withHeaders([
                 'x-api-key' => config('apikeys.mgios_api_key'),
             ])->post(
-                config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $sub_unit,
-                ['item_code_collection' => json_encode($itemCodes)]
-            );
+                    config('apiurls.mgios.url') . config('apiurls.mgios.public_get_item_by_department') . $sub_unit,
+                    ['item_code_collection' => json_encode($itemCodes)]
+                );
 
             if (!$response->successful()) {
                 return $this->dataResponse('error', 500, 'Failed to fetch item data from API');
@@ -96,6 +97,31 @@ class StockInventoryController extends Controller
                 return $this->dataResponse('success', 200, __('msg.record_found'), $data);
             }
 
+        } catch (Exception $exception) {
+            return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
+        }
+    }
+    public function onGetItemByStore($store_code, $sub_unit = null)
+    {
+        try {
+
+            $query = StockInventoryModel::where('store_code', $store_code)
+                ->select([
+                    'item_code',
+                    'item_description',
+                    'item_category_name',
+                    'uom',
+                    'store_sub_unit_short_name',
+                    'store_code',
+                ])
+                ->where('store_sub_unit_short_name', $sub_unit)
+                ->orderBy('item_code', 'ASC')
+                ->toBase()
+                ->get();
+
+            Log::info('Query: ' . $query);
+
+            return response($query, 200);
         } catch (Exception $exception) {
             return $this->dataResponse('error', 404, __('msg.record_not_found'), $exception->getMessage());
         }

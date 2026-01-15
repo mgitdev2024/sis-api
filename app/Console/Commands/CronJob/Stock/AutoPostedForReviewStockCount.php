@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands\CronJob\Stock;
 
+use App\Http\Controllers\v1\Stock\StockInventoryItemCountController;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use App\Models\Stock\StockInventoryCountModel;
+
+
 use Log;
 
 class AutoPostedForReviewStockCount extends Command
@@ -29,34 +32,47 @@ class AutoPostedForReviewStockCount extends Command
     public function handle()
     {
         Log::info('Stock Count Auto Post for Review Cron Job started at ' . Carbon::now()->toDateTimeString());
-        $this->onPostForReviewStockCount();
+        // $this->onPostForReviewStockCount();
+        $this->onAutoPostForReviewStockCount();
     }
 
-    public function onPostForReviewStockCount()
+    public function onAutoPostForReviewStockCount()
     {
         $now = Carbon::now();
 
-        // Extra safety: ensure 2PM logic
-        if ($now->format('H:i') !== '14:00') {
-            return 0;
-        }
+        // 2PM cutoff today (exact)
+        $cutoffTime = Carbon::today()->setTime(14, 0, 0);
 
-        $posted = StockInventoryCountModel::where('status', 1)
-            ->whereDate('created_at', now()->toDateString())
-            ->update([
-                'status' => 2,
-                'posted_at' => now(),
-                'posted_by_id' => '0000',
-            ]);
-        if ($posted > 0) {
-            Log::info("Auto-posted {$posted} stock count records for review.");
-        } else {
-            Log::info('No stock count records found for auto-posting.');
-        }
-
-        Log::info('Auto-post stock count cron executed', [
-            'posted_count' => $posted,
+        Log::info('Auto-post started at', [
+            'now' => $now->toDateTimeString(),
+            'cutoff' => $cutoffTime->toDateTimeString(),
         ]);
-        $this->info("Auto-posted {$posted} stock count records.");
+
+        $stockCounts = StockInventoryCountModel::where('status', 1)
+            ->whereDate('created_at', Carbon::today())
+            ->where('created_at', '<=', $cutoffTime)
+            ->get();
+
+        foreach ($stockCounts as $stockCount) {
+            $request = \Request::create('', 'POST', [
+                'created_by_id' => $stockCount->created_by_id,
+                'store_code' => $stockCount->store_code,
+                'store_sub_unit_short_name' => $stockCount->store_sub_unit_short_name,
+                'stock_inventory_item_count_data' => null,
+            ]);
+            $stockInventoryCountId = $stockCount->id;
+
+            Log::info('Auto-posting stock count ID: ' . $request);
+
+            $stockInventoryItemCountController = new StockInventoryItemCountController();
+            $stockInventoryItemCountController->onPost($request, $stockInventoryCountId);
+        }
+
+        Log::info('Auto-post completed', [
+            'processed_count' => $stockCounts->count()
+        ]);
+
+        $this->info("Auto-posted {$stockCounts->count()} stock count records.");
     }
+
 }
